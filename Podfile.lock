@@ -1,0 +1,27 @@
+PODS:
+  - Argo (3.0.1)
+  - Curry (2.2.0)
+  - GCDWebServer (3.3.2):
+    - GCDWebServer/Core (= 3.3.2)
+  - GCDWebServer/Core (3.3.2)
+  - JSONCodable (2.1)
+  - SQLite.swift (0.10.1)
+  - XCGLogger (3.3)
+
+DEPENDENCIES:
+  - Argo
+  - Curry
+  - GCDWebServer (~> 3.0)
+  - JSONCodable (~> 2.1)
+  - SQLite.swift (~> 0.10.1)
+  - XCGLogger (~> 3.3)
+
+SPEC CHECKSUMS:
+  Argo: 22c5d62b7967020a641468c91dc9488bea9523b8
+  Curry: c22d80fff7f5a4b1bbd531455c3e2dbb099658a3
+  GCDWebServer: 2a375ec42839a41d7187d04e5b688d32fa5c4cd5
+  JSONCodable: d3bb8d1323bb4cbc381b16219046c5282565a4f1
+  SQLite.swift: 6a6e4b034efc317ce4e203b6af2d3024fee2b570
+  XCGLogger: d6e196e78940ff6daab17d6917107876f973fa31
+
+COCOAPODS: 0.39.0

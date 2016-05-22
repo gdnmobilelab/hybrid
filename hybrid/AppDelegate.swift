@@ -7,16 +7,41 @@
 //
 
 import UIKit
+import XCGLogger;
+
+let log = XCGLogger.defaultInstance()
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
-
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-        // Override point for customization after application launch.
-        return true
+        
+        log.setup(.Debug, showLogIdentifier: false, showFunctionName: false, showThreadName: true, showLogLevel: true, showFileNames: false, showLineNumbers: false, showDate: false, writeToFile: nil, fileLogLevel: nil)
+        
+        do {
+            
+            let serviceWorkerHandler = try ServiceWorkerHandler();
+            let messageHandler = HybridMessageHandler();
+            
+            try messageHandler.setPort(serviceWorkerHandler.webServerPort);
+            
+            let rootWindow = UIWindow(frame: UIScreen.mainScreen().bounds);
+            //rootWindow.backgroundColor = UIColor.whiteColor();
+            rootWindow.rootViewController = ViewController(config: messageHandler.webviewConfiguration);
+            
+            self.window = rootWindow;
+            rootWindow.makeKeyAndVisible();
+            
+            return true
+
+            
+        } catch {
+            print(error);
+            return false;
+        }
+       
     }
 
     func applicationWillResignActive(application: UIApplication) {
