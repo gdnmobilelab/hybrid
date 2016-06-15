@@ -5,11 +5,8 @@ use_frameworks!
 
 target 'hybrid' do
     pod 'GCDWebServer', '~> 3.0'
-    pod 'XCGLogger', '~> 3.3'
+    pod 'XCGLogger', :git=> 'https://github.com/Bersaelor/XCGLogger.git', :branch => 'swift_3.0'
     pod 'SQLite.swift', '~> 0.10.1'
-    pod 'Argo'
-    pod 'Curry'
-    pod 'JSONCodable', '~> 2.1'
 
 
 end

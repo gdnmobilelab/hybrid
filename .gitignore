@@ -1,6 +1,6 @@
 Pods/*
 node_modules
-
+.DS_Store
 
 ## Build generated
 build/

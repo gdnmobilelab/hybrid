@@ -12,7 +12,8 @@
   "dependencies": {
     "path-browserify": "0.0.0",
     "rollup": "^0.26.1",
-    "rollup-plugin-buble": "^0.7.0"
+    "rollup-plugin-buble": "^0.7.0",
+    "whatwg-fetch": "^1.0.0"
   },
   "devDependencies": {
     "rollup-plugin-commonjs": "^2.2.1",

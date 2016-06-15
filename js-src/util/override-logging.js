@@ -22,7 +22,13 @@ if (!console._hybridHooked) {
             
             let argsAsJSON = Array.from(arguments).map(makeSuitable);
             
-            send({action: `log.${level}`, data: argsAsJSON.join(",")});
+            send({
+                command: 'console',
+                arguments: {
+                    level: level,
+                    text: argsAsJSON.join(",")
+                }
+            });
         }
     });
     

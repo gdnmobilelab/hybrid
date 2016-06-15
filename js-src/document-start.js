@@ -1,7 +1,7 @@
-import fetch from 'fetch-global-optional';
+import 'whatwg-fetch';
 import './util/override-logging';
 import {resolve} from 'path-browserify';
-import send from './util/wk-messaging';
+import {sendAndReceive} from './util/wk-messaging';
 
 
 navigator.serviceWorker = {
@@ -22,20 +22,32 @@ navigator.serviceWorker = {
         };
 
         console.info("Attempting to register service worker at", pathToSW);
-        fetch("http://localhost:" + HANDLER_PORT + "/sw/register", {
-            method: "POST",
-            body: JSON.stringify({
-                url: pathToSW,
-                scope: opts.scope
-            })
+
+        return sendAndReceive({
+            command: "navigator.serviceWorker.register",
+            arguments: {
+                path: swPath,
+                opts: opts
+            }
         })
-        .then((res) => res.json())
-        .then(function(json) {
-              console.log("done?", json);
+        .then((response) => {
+            console.log("done?", response);
         })
-        .catch((err) => {
-            console.error(err, err.stack)
-        })
+
+        // fetch("http://localhost:" + HANDLER_PORT + "/sw/register", {
+        //     method: "POST",
+        //     body: JSON.stringify({
+        //         url: pathToSW,
+        //         scope: opts.scope
+        //     })
+        // })
+        // .then((res) => res.json())
+        // .then(function(json) {
+        //       console.log("done?", json);
+        // })
+        // .catch((err) => {
+        //     console.error(err, err.stack)
+        // })
         
     }
 }
