@@ -1,21 +1,28 @@
 # Uncomment this line to define a global platform for your project
-# platform :ios, '8.0'
+platform :ios, '9.0'
 # Uncomment this line if you're using Swift
 use_frameworks!
 
-target 'hybrid' do
+def global_pods
     pod 'GCDWebServer', '~> 3.0'
-    pod 'XCGLogger', :git=> 'https://github.com/Bersaelor/XCGLogger.git', :branch => 'swift_3.0'
-    pod 'SQLite.swift', '~> 0.10.1'
+    pod 'XCGLogger'
+    pod 'FMDB'
+    pod 'FMDBMigrationManager'
+    pod 'Alamofire'
+    pod 'PromiseKit', '~> 3.0'
+    
+end
 
-
+target 'hybrid' do
+    global_pods
 end
 
 target 'hybridTests' do
-
+    global_pods
+    pod 'Quick'
+    pod 'Nimble'
 end
 
 target 'hybridUITests' do
-
+    
 end
-

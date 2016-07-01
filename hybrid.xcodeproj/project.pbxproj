@@ -10,6 +10,8 @@
 		6491E65D29F89B3EE240B4B9 /* Pods_hybridTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63CFC906FE82B28A71289383 /* Pods_hybridTests.framework */; };
 		8ADAAE181D10E2F5009F3898 /* console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADAAE171D10E2F5009F3898 /* console.swift */; };
 		8ADAAE1A1D119F7E009F3898 /* ServiceWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADAAE191D119F7E009F3898 /* ServiceWorker.swift */; };
+		8AEEDE5C1D26CF450032D588 /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
+		8AEEDE5E1D26ECE70032D588 /* url-resolve.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5D1D26ECE70032D588 /* url-resolve.swift */; };
 		939622D25030CFD4641F37FD /* Pods_hybridUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 695FE77A434866D84BFDEBDC /* Pods_hybridUITests.framework */; };
 		CA84C83AD6F1B9C9CE1C18A7 /* Pods_hybrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 311DE092863FE59F27435153 /* Pods_hybrid.framework */; };
 		D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */; };
@@ -18,7 +20,6 @@
 		D31BC1171CD534CF00CF6BEB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D31BC1151CD534CF00CF6BEB /* LaunchScreen.storyboard */; };
 		D31BC1221CD534CF00CF6BEB /* hybridTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BC1211CD534CF00CF6BEB /* hybridTests.swift */; };
 		D31BC12D1CD534CF00CF6BEB /* hybridUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BC12C1CD534CF00CF6BEB /* hybridUITests.swift */; };
-		D32977D61CDEABBC008B3767 /* ServiceWorkerRegisterRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = D32977D51CDEABBC008B3767 /* ServiceWorkerRegisterRequest.swift */; };
 		D38116301CD58473004A3CCD /* ServiceWorkerHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D381162F1CD58473004A3CCD /* ServiceWorkerHandler.swift */; };
 		D38116351CD59AED004A3CCD /* MessageHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38116341CD59AED004A3CCD /* MessageHandler.swift */; };
 		D381163A1CD5AE96004A3CCD /* js-dist in Resources */ = {isa = PBXBuildFile; fileRef = D38116391CD5AE96004A3CCD /* js-dist */; };
@@ -50,6 +51,8 @@
 		8A61C2718D624655AC9BD4D7 /* Pods-hybrid.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid.release.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid/Pods-hybrid.release.xcconfig"; sourceTree = "<group>"; };
 		8ADAAE171D10E2F5009F3898 /* console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = console.swift; path = commands/console.swift; sourceTree = "<group>"; };
 		8ADAAE191D119F7E009F3898 /* ServiceWorker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ServiceWorker.swift; path = commands/ServiceWorker.swift; sourceTree = "<group>"; };
+		8AEEDE5B1D26CF450032D588 /* db.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = db.swift; sourceTree = "<group>"; };
+		8AEEDE5D1D26ECE70032D588 /* url-resolve.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "url-resolve.swift"; sourceTree = "<group>"; };
 		94047B8822E7F4703DD0D1C4 /* Pods-hybridUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybridUITests.release.xcconfig"; path = "Pods/Target Support Files/Pods-hybridUITests/Pods-hybridUITests.release.xcconfig"; sourceTree = "<group>"; };
 		B46C29523D9C4D0AF532ADC1 /* Pods-hybrid.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid.debug.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid/Pods-hybrid.debug.xcconfig"; sourceTree = "<group>"; };
 		D31BC1091CD534CF00CF6BEB /* hybrid.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = hybrid.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -64,7 +67,6 @@
 		D31BC1281CD534CF00CF6BEB /* hybridUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = hybridUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D31BC12C1CD534CF00CF6BEB /* hybridUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = hybridUITests.swift; sourceTree = "<group>"; };
 		D31BC12E1CD534CF00CF6BEB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D32977D51CDEABBC008B3767 /* ServiceWorkerRegisterRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegisterRequest.swift; sourceTree = "<group>"; };
 		D381162F1CD58473004A3CCD /* ServiceWorkerHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerHandler.swift; sourceTree = "<group>"; };
 		D38116311CD584B6004A3CCD /* hybrid-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "hybrid-Bridging-Header.h"; sourceTree = "<group>"; };
 		D38116341CD59AED004A3CCD /* MessageHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageHandler.swift; sourceTree = "<group>"; };
@@ -158,7 +160,6 @@
 			isa = PBXGroup;
 			children = (
 				8ADAAE161D10E2D3009F3898 /* commands */,
-				D32977D41CDEABA9008B3767 /* models */,
 				D38116391CD5AE96004A3CCD /* js-dist */,
 				D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */,
 				D31BC10E1CD534CF00CF6BEB /* ViewController.swift */,
@@ -168,6 +169,8 @@
 				D381162F1CD58473004A3CCD /* ServiceWorkerHandler.swift */,
 				D38116311CD584B6004A3CCD /* hybrid-Bridging-Header.h */,
 				D38116341CD59AED004A3CCD /* MessageHandler.swift */,
+				8AEEDE5B1D26CF450032D588 /* db.swift */,
+				8AEEDE5D1D26ECE70032D588 /* url-resolve.swift */,
 			);
 			path = hybrid;
 			sourceTree = "<group>";
@@ -188,14 +191,6 @@
 				D31BC12E1CD534CF00CF6BEB /* Info.plist */,
 			);
 			path = hybridUITests;
-			sourceTree = "<group>";
-		};
-		D32977D41CDEABA9008B3767 /* models */ = {
-			isa = PBXGroup;
-			children = (
-				D32977D51CDEABBC008B3767 /* ServiceWorkerRegisterRequest.swift */,
-			);
-			name = models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -475,9 +470,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				8ADAAE1A1D119F7E009F3898 /* ServiceWorker.swift in Sources */,
-				D32977D61CDEABBC008B3767 /* ServiceWorkerRegisterRequest.swift in Sources */,
 				D31BC10F1CD534CF00CF6BEB /* ViewController.swift in Sources */,
 				D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */,
+				8AEEDE5C1D26CF450032D588 /* db.swift in Sources */,
+				8AEEDE5E1D26ECE70032D588 /* url-resolve.swift in Sources */,
 				8ADAAE181D10E2F5009F3898 /* console.swift in Sources */,
 				D38116351CD59AED004A3CCD /* MessageHandler.swift in Sources */,
 				D38116301CD58473004A3CCD /* ServiceWorkerHandler.swift in Sources */,

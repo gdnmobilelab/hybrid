@@ -9,8 +9,8 @@
 import Foundation
 
 class Console {
-    static func logLevel(arguments:AnyObject, callback: Callback?) {
-      
+    static func logLevel(arguments:AnyObject, webviewURL:NSURL, callback: Callback?) {
+        
         let level = arguments["level"] as! String;
         let text = arguments["text"] as! String;
         

@@ -9,25 +9,55 @@
 import Foundation
 import WebKit
 
-typealias Callback = (returnValue:AnyObject?) -> Void
+typealias Callback = (returnError: AnyObject?, returnValue:AnyObject?) -> Void
+
+struct HybridWebviewMessage {
+    let command:String
+    let arguments:Dictionary<String,AnyObject>?
+    let callbackIndex:Int?
+    let webviewURL:NSURL
+    
+    init(args:AnyObject, webviewURL: NSURL) {
+        self.command = args["command"] as! String
+        self.arguments = args["arguments"] as? Dictionary<String, AnyObject>
+        self.callbackIndex = args["_callbackIndex"] as? Int
+        self.webviewURL = webviewURL
+    }
+}
 
 
 class HybridMessageHandler : NSObject, WKScriptMessageHandler {
     
-    typealias MessageCommand = (arguments:AnyObject, callback: Callback?) -> Void
+    typealias MessageCommand = (arguments:AnyObject, webviewURL: NSURL, callback: Callback?) -> Void
     
     var webviewConfiguration:WKWebViewConfiguration;
     private var userContentController:WKUserContentController;
     
     private var registeredCommands = Dictionary<String, MessageCommand>();
     
+    func anyObjectToJSON(obj:AnyObject) throws -> String {
+        
+        if (obj is String) {
+            let objString = obj as! String
+            return "\"" + objString + "\"";
+        }
+        
+        if (obj is Int) {
+            return String(obj)
+        }
+        
+        let data = try NSJSONSerialization.dataWithJSONObject(obj, options: [])
+        return String(data: data, encoding:NSUTF8StringEncoding)!
+        
+    }
+    
     func userContentController(userContentController: WKUserContentController, didReceiveScriptMessage message: WKScriptMessage) {
         
-        let command = message.body["command"] as! String;
-        let arguments = message.body["arguments"];
+        let currentWebviewURL = message.webView!.URL!
+        let args = HybridWebviewMessage(args: message.body, webviewURL: currentWebviewURL);
         
-        if (registeredCommands[command] == nil) {
-            log.error("Webview called command " + command + " but it isn't registered.");
+        if (registeredCommands[args.command] == nil) {
+            log.error("Webview called command " + args.command + " but it isn't registered.");
         }
         
         // We need a way to pass data back into the webview. WKWebView doesn't have anything built in for this
@@ -35,18 +65,41 @@ class HybridMessageHandler : NSObject, WKScriptMessageHandler {
         // the relevant data.
         
         var callback: Callback? = nil;
-        let callbackID = message.body["_callbackIndex"] as? Int;
         
-        if callbackID != nil {
-            callback = { r in
-                log.info("test");
-                let js = "window._hybridCallback(" + String(callbackID!) + ",null,'test');";
+        if args.callbackIndex != nil {
+            callback = { returnError, returnVal in
+                
+                var errorJS = "null";
+                var returnJS = "null";
+                
+                if returnVal != nil {
+                    do {
+                        returnJS = try self.anyObjectToJSON(returnVal!)
+                    }
+                    catch _ {
+                        log.error("Tried to stringify return value but failed. Command: " + args.command);
+                    }
+                }
+                
+                if returnError != nil {
+                    do {
+                        errorJS = try self.anyObjectToJSON(returnError!)
+                    }
+                    catch _ {
+                        log.error("Tried to stringify return error but failed. Command: " + args.command);
+                    }
+                }
+                
+                
+                let returnArgs = [String(args.callbackIndex!), errorJS, returnJS].joinWithSeparator(",")
+                let js = "window._hybridCallback(" + returnArgs + ");";
                 message.webView!.evaluateJavaScript(js, completionHandler: nil)
+                
             }
         }
         
         
-        registeredCommands[command]!(arguments: arguments!!, callback: callback);
+        registeredCommands[args.command]!(arguments: args.arguments!, webviewURL: currentWebviewURL, callback: callback);
         
     }
     
@@ -85,7 +138,7 @@ class HybridMessageHandler : NSObject, WKScriptMessageHandler {
         userContentController.removeAllUserScripts();
         userContentController.addUserScript(userScript);
         
-
+        
     }
-
+    
 }
