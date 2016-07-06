@@ -12,6 +12,9 @@
 		8ADAAE1A1D119F7E009F3898 /* ServiceWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADAAE191D119F7E009F3898 /* ServiceWorker.swift */; };
 		8AEEDE5C1D26CF450032D588 /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
 		8AEEDE5E1D26ECE70032D588 /* url-resolve.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5D1D26ECE70032D588 /* url-resolve.swift */; };
+		8AEEDE601D2D88F10032D588 /* promisified.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5F1D2D88F10032D588 /* promisified.swift */; };
+		8AEEDE631D2D90DF0032D588 /* 201606290.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AEEDE621D2D90DF0032D588 /* 201606290.sql */; };
+		8AEEDE671D2D93570032D588 /* 201607060.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AEEDE661D2D93570032D588 /* 201607060.sql */; };
 		939622D25030CFD4641F37FD /* Pods_hybridUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 695FE77A434866D84BFDEBDC /* Pods_hybridUITests.framework */; };
 		CA84C83AD6F1B9C9CE1C18A7 /* Pods_hybrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 311DE092863FE59F27435153 /* Pods_hybrid.framework */; };
 		D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */; };
@@ -53,6 +56,9 @@
 		8ADAAE191D119F7E009F3898 /* ServiceWorker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ServiceWorker.swift; path = commands/ServiceWorker.swift; sourceTree = "<group>"; };
 		8AEEDE5B1D26CF450032D588 /* db.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = db.swift; sourceTree = "<group>"; };
 		8AEEDE5D1D26ECE70032D588 /* url-resolve.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "url-resolve.swift"; sourceTree = "<group>"; };
+		8AEEDE5F1D2D88F10032D588 /* promisified.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = promisified.swift; sourceTree = "<group>"; };
+		8AEEDE621D2D90DF0032D588 /* 201606290.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 201606290.sql; sourceTree = "<group>"; };
+		8AEEDE661D2D93570032D588 /* 201607060.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 201607060.sql; sourceTree = "<group>"; };
 		94047B8822E7F4703DD0D1C4 /* Pods-hybridUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybridUITests.release.xcconfig"; path = "Pods/Target Support Files/Pods-hybridUITests/Pods-hybridUITests.release.xcconfig"; sourceTree = "<group>"; };
 		B46C29523D9C4D0AF532ADC1 /* Pods-hybrid.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid.debug.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid/Pods-hybrid.debug.xcconfig"; sourceTree = "<group>"; };
 		D31BC1091CD534CF00CF6BEB /* hybrid.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = hybrid.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -121,6 +127,15 @@
 			name = commands;
 			sourceTree = "<group>";
 		};
+		8AEEDE611D2D90C00032D588 /* migrations */ = {
+			isa = PBXGroup;
+			children = (
+				8AEEDE621D2D90DF0032D588 /* 201606290.sql */,
+				8AEEDE661D2D93570032D588 /* 201607060.sql */,
+			);
+			name = migrations;
+			sourceTree = "<group>";
+		};
 		BEF7120B410DE09F005FADF3 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -159,6 +174,7 @@
 		D31BC10B1CD534CF00CF6BEB /* hybrid */ = {
 			isa = PBXGroup;
 			children = (
+				8AEEDE611D2D90C00032D588 /* migrations */,
 				8ADAAE161D10E2D3009F3898 /* commands */,
 				D38116391CD5AE96004A3CCD /* js-dist */,
 				D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */,
@@ -171,6 +187,7 @@
 				D38116341CD59AED004A3CCD /* MessageHandler.swift */,
 				8AEEDE5B1D26CF450032D588 /* db.swift */,
 				8AEEDE5D1D26ECE70032D588 /* url-resolve.swift */,
+				8AEEDE5F1D2D88F10032D588 /* promisified.swift */,
 			);
 			path = hybrid;
 			sourceTree = "<group>";
@@ -307,6 +324,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				D381163A1CD5AE96004A3CCD /* js-dist in Resources */,
+				8AEEDE631D2D90DF0032D588 /* 201606290.sql in Resources */,
+				8AEEDE671D2D93570032D588 /* 201607060.sql in Resources */,
 				D31BC1171CD534CF00CF6BEB /* LaunchScreen.storyboard in Resources */,
 				D31BC1141CD534CF00CF6BEB /* Assets.xcassets in Resources */,
 			);
@@ -472,6 +491,7 @@
 				8ADAAE1A1D119F7E009F3898 /* ServiceWorker.swift in Sources */,
 				D31BC10F1CD534CF00CF6BEB /* ViewController.swift in Sources */,
 				D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */,
+				8AEEDE601D2D88F10032D588 /* promisified.swift in Sources */,
 				8AEEDE5C1D26CF450032D588 /* db.swift in Sources */,
 				8AEEDE5E1D26ECE70032D588 /* url-resolve.swift in Sources */,
 				8ADAAE181D10E2F5009F3898 /* console.swift in Sources */,

@@ -12,6 +12,41 @@ import JavaScriptCore
 import FMDBMigrationManager
 import PromiseKit
 
+class DbTransactionPromise<T>: Promise<T> {
+    
+    typealias DBRun = (db:FMDatabase) throws -> Promise<T>
+    
+    init(toRun: DBRun) {
+        super.init(resolvers: { fulfill, reject in
+            Db.dbQueue.inTransaction() {
+                db, rollback in
+                
+                do {
+                    // It can fail synchronously
+                    try toRun(db: db)
+                        
+                        .then { returnedPromise in
+                            
+                            fulfill(returnedPromise)
+                        }
+                        .error { error in
+                            // Or asynchronously
+                            db.rollback()
+                            rollback.initialize(true)
+                            reject(error)
+                    }
+                } catch {
+                    db.rollback()
+                    rollback.initialize(true)
+   
+                    reject(error)
+                }
+            }
+        })
+    }
+}
+
+
 class Db {
     static let dbQueue = FMDatabaseQueue(path: NSHomeDirectory() + "/Library/db.sqlite")!
     //    static let dbInstance = FMDatabase(path: NSHomeDirectory() + "/Library/db.sqlite")
@@ -22,25 +57,6 @@ class Db {
         
     }
     
-    static func TransactionPromise(toRun: (db:FMDatabase) -> Promise<AnyObject>) -> Promise<AnyObject> {
-        
-        return Promise { fulfill, reject in
-            dbQueue.inTransaction() {
-                db, rollback in
-                
-                toRun(db: db)
-                .then { returnedPromise in
-                    fulfill(returnedPromise)
-                }
-                .error { error in
-                    rollback.initialize(true)
-                    reject(error)
-                }
-            }
-        }
-        
-        
-    }
     
     static func inTransaction(toRun: (db:FMDatabase) throws -> Void) throws {
         
@@ -72,12 +88,13 @@ class Db {
             if migrateManager.hasMigrationsTable == false {
                 try migrateManager.createMigrationsTable()
             }
-            
+            log.debug("Database path: " + dbQueue.path)
             log.debug("Database currently at migration " + String(migrateManager.currentVersion) + ", " + String(migrateManager.pendingVersions.count) + " migrations pending.")
             
-            if (migrateManager.pendingVersions.count > 0) {
+//            if (migrateManager.pendingVersions.count > 0) {
                 try migrateManager.migrateDatabaseToVersion(UInt64.max, progress: nil)
-            }
+                
+//            }
             
         }
         
