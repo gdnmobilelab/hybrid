@@ -1,10 +1,12 @@
 import events from 'events';
 import Promise from 'es6-promise';
+import {emitWithWaitUntil} from './wait-until'
 
 let emitter = new events.EventEmitter();
 
 self.addEventListener = emitter.addListener.bind(emitter);
 self.emit = emitter.emit.bind(emitter)
+self.emitWithWaitUntil = emitWithWaitUntil.bind(emitter)
 
 self.promiseBridge = function(callbackIndex, promise) {
     promise

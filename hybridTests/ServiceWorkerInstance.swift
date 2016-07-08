@@ -77,10 +77,9 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                         }
                         .recover({ (err:ErrorType) -> JSValue in
                             
-                            let test = err as! JSContextError
-                            
-                            
-                            expect(test.message).to(equal("hello"))
+                            let jserror = err as! JSContextError
+   
+                            expect(jserror.message).to(equal("hello"))
                             done()
                             
                             // no idea why it's forcing me to do this

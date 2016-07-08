@@ -4,13 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha --require babel-register --recursive test",
     "rollup": "node_modules/.bin/rollup --config rollup.config.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "es6-promise": "^3.2.1",
+    "mocha": "^2.5.3",
     "path-browserify": "0.0.0",
     "rollup": "^0.26.1",
     "rollup-plugin-buble": "^0.7.0",
