@@ -6,7 +6,9 @@ export default {
     sourceMap: "inline",
     plugins: [
         buble(),
-        nodeResolve(),
+        nodeResolve({
+            preferBuiltins: false
+        }),
         commonJS({
             include: 'node_modules/**'
         })

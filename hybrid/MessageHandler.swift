@@ -8,18 +8,19 @@
 
 import Foundation
 import WebKit
+import PromiseKit
 
 typealias Callback = (returnError: AnyObject?, returnValue:AnyObject?) -> Void
 
 struct HybridWebviewMessage {
     let command:String
-    let arguments:Dictionary<String,AnyObject>?
+    let argumentsJSON:String?
     let callbackIndex:Int?
     let webviewURL:NSURL
     
     init(args:AnyObject, webviewURL: NSURL) {
         self.command = args["command"] as! String
-        self.arguments = args["arguments"] as? Dictionary<String, AnyObject>
+        self.argumentsJSON = args["arguments"] as? String
         self.callbackIndex = args["_callbackIndex"] as? Int
         self.webviewURL = webviewURL
     }
@@ -28,7 +29,7 @@ struct HybridWebviewMessage {
 
 class HybridMessageHandler : NSObject, WKScriptMessageHandler {
     
-    typealias MessageCommand = (arguments:AnyObject, webviewURL: NSURL, callback: Callback?) -> Void
+    typealias MessageCommand = (arguments:String, webviewURL: NSURL ) -> Promise<AnyObject>
     
     var webviewConfiguration:WKWebViewConfiguration;
     private var userContentController:WKUserContentController;
@@ -40,6 +41,10 @@ class HybridMessageHandler : NSObject, WKScriptMessageHandler {
         if (obj is String) {
             let objString = obj as! String
             return "\"" + objString + "\"";
+        }
+        
+        if (obj is Bool) {
+            return (obj as! Bool) == true ? "true" : "false"
         }
         
         if (obj is Int) {
@@ -60,46 +65,30 @@ class HybridMessageHandler : NSObject, WKScriptMessageHandler {
             log.error("Webview called command " + args.command + " but it isn't registered.");
         }
         
+        
+        
+        let commandPromise = registeredCommands[args.command]!(arguments: args.argumentsJSON!, webviewURL: currentWebviewURL)
+        
+        if (args.callbackIndex == nil) {
+            return
+        }
+        
         // We need a way to pass data back into the webview. WKWebView doesn't have anything built in for this
         // so instead the JS library declares a function on the window object that we manually call to provide
         // the relevant data.
         
-        var callback: Callback? = nil;
-        
-        if args.callbackIndex != nil {
-            callback = { returnError, returnVal in
-                
-                var errorJS = "null";
-                var returnJS = "null";
-                
-                if returnVal != nil {
-                    do {
-                        returnJS = try self.anyObjectToJSON(returnVal!)
-                    }
-                    catch _ {
-                        log.error("Tried to stringify return value but failed. Command: " + args.command);
-                    }
-                }
-                
-                if returnError != nil {
-                    do {
-                        errorJS = try self.anyObjectToJSON(returnError!)
-                    }
-                    catch _ {
-                        log.error("Tried to stringify return error but failed. Command: " + args.command);
-                    }
-                }
-                
-                
-                let returnArgs = [String(args.callbackIndex!), errorJS, returnJS].joinWithSeparator(",")
-                let js = "window._hybridCallback(" + returnArgs + ");";
-                message.webView!.evaluateJavaScript(js, completionHandler: nil)
-                
-            }
+        commandPromise.then { (result) -> Void in
+            
+            let returnJSON = try self.anyObjectToJSON(result)
+            let js = "window._hybridCallback(" + String(args.callbackIndex!) + ",null," + returnJSON + ");";
+            message.webView!.evaluateJavaScript(js, completionHandler: nil)
+            
+        }.error { (err) -> Void in
+            
+            let js = "window._hybridCallback(" + String(args.callbackIndex!) + "," + String(err) + ");";
+            message.webView!.evaluateJavaScript(js, completionHandler: nil)
+
         }
-        
-        
-        registeredCommands[args.command]!(arguments: args.arguments!, webviewURL: currentWebviewURL, callback: callback);
         
     }
     

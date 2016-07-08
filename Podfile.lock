@@ -11,6 +11,7 @@ PODS:
     - GCDWebServer/Core (= 3.3.2)
   - GCDWebServer/Core (3.3.2)
   - Nimble (4.0.1)
+  - ObjectMapper (1.3.0)
   - OMGHTTPURLRQ (3.1.2):
     - OMGHTTPURLRQ/RQ (= 3.1.2)
   - OMGHTTPURLRQ/FormURLEncode (3.1.2)
@@ -39,7 +40,8 @@ DEPENDENCIES:
   - FMDBMigrationManager
   - GCDWebServer (~> 3.0)
   - Nimble
-  - PromiseKit (~> 3.0)
+  - ObjectMapper (~> 1.3)
+  - PromiseKit (~> 3.2)
   - Quick
   - XCGLogger
 
@@ -49,11 +51,12 @@ SPEC CHECKSUMS:
   FMDBMigrationManager: d52007f328ea0665e8985ca8a33500707aef084f
   GCDWebServer: 2a375ec42839a41d7187d04e5b688d32fa5c4cd5
   Nimble: 0f3c8b8b084cda391209c3c5efbb48bedeeb920a
+  ObjectMapper: 4eb08a726e9791a93b2632049951b56a7c17e471
   OMGHTTPURLRQ: 38316b56d88125c600bcdb16df8329147da2b0ee
   PromiseKit: 1db024241265f428137a9f3c00ff9590740c4be6
   Quick: 18d057bc66451eedd5d1c8dc99ba2a5db6e60226
   XCGLogger: d6e196e78940ff6daab17d6917107876f973fa31
 
-PODFILE CHECKSUM: 389d1c4968917a1c805220c940a169e1482d569b
+PODFILE CHECKSUM: 82a2a869d85cb89d119ac603a07b5d2b4e0b34db
 
 COCOAPODS: 1.0.1

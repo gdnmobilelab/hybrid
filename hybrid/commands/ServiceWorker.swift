@@ -9,35 +9,36 @@
 import Foundation
 import Alamofire
 import PromiseKit
+import ObjectMapper
 
-struct ServiceWorkerRegisterOptions {
-    let scope:String?
+class ServiceWorkerRegisterOptions : Mappable {
+    var scope:String?
     
-    init(args:Dictionary<String,AnyObject>) {
-        self.scope = args["scope"] as? String
+    required init?(_ map: Map) {
         
     }
-    
-    init(scope:String) {
-        self.scope = scope
+   
+    func mapping(map: Map) {
+        scope    <- map["scope"]
     }
 }
 
-struct ServiceWorkerRegisterRequest {
-    let path:NSURL;
-    let options:ServiceWorkerRegisterOptions?;
+class ServiceWorkerRegisterRequest : Mappable {
+    var path:NSURL!;
+    var pathAsString:String!
+    var options:ServiceWorkerRegisterOptions?;
     
-    init(args:AnyObject) {
-        self.path = NSURL(string: args["path"] as! String)!;
+    required init?(_ map: Map) {
         
-        self.options = args["options"] as? ServiceWorkerRegisterOptions
-        
+    }
+    
+    func mapping(map: Map) {
+        path    <- (map["path"], URLTransform())
+        options <- map["options"]
     }
 }
 
 enum ServiceWorkerInstallState {
-    case Pending
-    case Parsed
     case Installing
     case Installed
     case Activating
@@ -45,34 +46,47 @@ enum ServiceWorkerInstallState {
     case Redundant
 }
 
+enum ServiceWorkerUpdateResult {
+    case New
+    case Failed
+    case NoUpdateNeeded
+    case UpdatedExisting
+}
+
 
 class ServiceWorker {
     
     private static let libraryDir:String = NSSearchPathForDirectoriesInDomains(.LibraryDirectory, .UserDomainMask, true)[0]
     
-    static func Register(arguments:AnyObject, webviewURL:NSURL,  callback: Callback?) {
-        do {
-            let args = ServiceWorkerRegisterRequest(args: arguments);
-            
-            let urlOfServiceWorker = URLUtilities.resolveToBaseURL(args.path, baseURL: webviewURL)
-            
-            Update(urlOfServiceWorker)
-                .then { didUpdate in
-                    
-                }
-                .error { error in
-                    callback!(returnError: String(error), returnValue: nil)
-                }
+    static func Register(arguments:String, webviewURL:NSURL) -> Promise<AnyObject> {
+       
+        let registerRequest = Mapper<ServiceWorkerRegisterRequest>().map(arguments)!
         
+        let urlOfServiceWorker = URLUtilities.resolveToBaseURL(registerRequest.path, baseURL: webviewURL)
+        var serviceWorkerScope:NSURL? = nil
+        if (registerRequest.options?.scope != nil) {
+            serviceWorkerScope = URLUtilities.resolveToBaseURL(NSURL(string: registerRequest.options!.scope!)!, baseURL: webviewURL)
+        }
+        
+        
+        return Update(urlOfServiceWorker, scope: serviceWorkerScope)
+        .then { response in
             
-            //log.info("Hmm: " + args.path + args.options!.scope!)
-            callback!(returnError: nil, returnValue: "HELLO TEST");
-        } catch {
+            if (response == ServiceWorkerUpdateResult.Failed || response == ServiceWorkerUpdateResult.NoUpdateNeeded) {
+                return Promise<AnyObject>(false)
+            }
+            
+            if (response == ServiceWorkerUpdateResult.New || response == ServiceWorkerUpdateResult.UpdatedExisting) {
+                return Promise<AnyObject>(true)
+            } else {
+                return Promise<AnyObject>(false)
+            }
             
         }
         
     }
     
+    // Amazon S3, at least, seems to return headers in lowercase. So we need to accommodate that.
     static func GetHeaderCaseInsensitive(res:NSHTTPURLResponse, name:String) -> String? {
         let nameLowerCase = name.lowercaseString
         
@@ -109,7 +123,9 @@ class ServiceWorker {
         })
     }
     
-    static func Update(urlOfServiceWorker:NSURL) -> Promise<Bool> {
+    static func Update(urlOfServiceWorker:NSURL, scope:NSURL?) -> Promise<ServiceWorkerUpdateResult> {
+        
+        var existingRecord: Bool!
         
         return GetLastUpdated(urlOfServiceWorker)
         .then { lastMod in
@@ -121,41 +137,63 @@ class ServiceWorker {
                     return Promise<Bool>(true)
                 }
                 
-                let result = try db.executeQuery("SELECT * FROM cache WHERE resource_url = ?", values: [urlOfServiceWorker])
-                if (result.next() == false) {
+                // Get the most recent service worker installation
+                
+                let result = try db.executeQuery("SELECT * FROM service_workers WHERE url = ? ORDER BY last_modified LIMIT 1", values: [urlOfServiceWorker])
+                
+                existingRecord = result.next()
+                if (existingRecord == false) {
+                    
+                    // If there's no existing service worker record, we must update
+                    
                     return Promise<Bool>(true)
                 }
                 let lastSeenModifiedDate = NSDate(timeIntervalSince1970: result.doubleForColumn("last_modified"))
                 
+                // Otherwise, we do a date comparison between the header and result to see if we need to update
                 return Promise<Bool>(lastMod!.compare(lastSeenModifiedDate) == NSComparisonResult.OrderedDescending)
             }
             
         }.then { needsUpdate in
             if (needsUpdate == false) {
-                return Promise<Bool>(false)
+                return Promise<ServiceWorkerUpdateResult>(ServiceWorkerUpdateResult.NoUpdateNeeded)
             }
             
             return Promisified.AlamofireRequest(Alamofire.Method.GET, url: urlOfServiceWorker)
-            .then({ container in
+                .then { container in
                 
                 let lastMod = GetHeaderCaseInsensitive(container.response, name: "last-modified")
                 let lastModAsTimeInterval = HTTPDateToNSDate(lastMod!)!.timeIntervalSince1970
-                let etag = GetHeaderCaseInsensitive(container.response, name: "e-tag")
+                    
+                let scopeOrNull = scope == nil ? NSNull() : scope!
                 
-                let headersAsJSON = try NSJSONSerialization.dataWithJSONObject(container.response.allHeaderFields, options: NSJSONWritingOptions.PrettyPrinted)
-                
-                let headersAsJSONString = String(data: headersAsJSON, encoding: NSUTF8StringEncoding)
-                
-                
-                
-                return DbTransactionPromise<Bool> { db in
-                    try db.executeUpdate("INSERT INTO cache (resource_url, last_modified, etag, contents, headers) VALUES (?,?,?,?,?)", values: [urlOfServiceWorker, lastModAsTimeInterval, NSNull(), container.data!, headersAsJSONString! ] as [AnyObject])
-                    log.info("Did it, apparently.")
-                    return Promise<Bool>(true)
+                return DbTransactionPromise<ServiceWorkerUpdateResult> { db in
+                    try db.executeUpdate("INSERT INTO service_workers (url, scope, last_modified, contents, install_state) VALUES (?,?,?,?,?)", values: [urlOfServiceWorker, scopeOrNull, lastModAsTimeInterval, container.data!, ServiceWorkerInstallState.Installing.hashValue ] as [AnyObject])
+                    
+                    let response = existingRecord == true ? ServiceWorkerUpdateResult.UpdatedExisting : ServiceWorkerUpdateResult.New
+                    
+                    return Promise<ServiceWorkerUpdateResult>(response)
                 }
-            })
+            }
         }
-        
-        
+        .recover { err in
+            return Promise<ServiceWorkerUpdateResult>(ServiceWorkerUpdateResult.Failed)
+        }
+  
     }
 }
+
+//let headersAsJSON = try NSJSONSerialization.dataWithJSONObject(container.response.allHeaderFields, options: NSJSONWritingOptions.PrettyPrinted)
+//
+//let headersAsJSONString = String(data: headersAsJSON, encoding: NSUTF8StringEncoding)
+//
+//
+//
+//return DbTransactionPromise<ServiceWorkerUpdateResult> { db in
+//    try db.executeUpdate("INSERT INTO cache (resource_url, last_modified, etag, contents, headers) VALUES (?,?,?,?,?)", values: [urlOfServiceWorker, lastModAsTimeInterval, NSNull(), container.data!, headersAsJSONString! ] as [AnyObject])
+//    
+//    let response = existingRecord == true ? ServiceWorkerUpdateResult.UpdatedExisting : ServiceWorkerUpdateResult.New
+//    
+//    return Promise<ServiceWorkerUpdateResult>(response)
+//}
+

@@ -1,4 +1,4 @@
-import 'whatwg-fetch';
+// import 'whatwg-fetch';
 import './util/override-logging';
 import {resolve} from 'path-browserify';
 import {sendAndReceive} from './util/wk-messaging';
@@ -10,24 +10,14 @@ navigator.serviceWorker = {
         
         
         let pathToSW = window.location.origin + resolve(window.location.pathname, swPath); 
-        
-        var toSend = {
-            category: "service-worker",
-            action: "register",
-            data: {
-                path: pathToSW,
-                opts: opts
-            },
-            port: HANDLER_PORT
-        };
-
+    
         console.info("Attempting to register service worker at", pathToSW);
 
         return sendAndReceive({
             command: "navigator.serviceWorker.register",
             arguments: {
                 path: swPath,
-                opts: opts
+                options: opts
             }
         })
         .then((response) => {

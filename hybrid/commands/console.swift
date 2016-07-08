@@ -7,23 +7,40 @@
 //
 
 import Foundation
+import PromiseKit
+import ObjectMapper
+
+class LogMessage : Mappable {
+    var level:String!
+    var text:String!
+    
+    required init?(_ map: Map) {
+        
+    }
+    
+    func mapping(map: Map) {
+        level    <- map["level"]
+        text     <- map["text"]
+    }
+}
 
 class Console {
-    static func logLevel(arguments:AnyObject, webviewURL:NSURL, callback: Callback?) {
+    static func logLevel(arguments:String, webviewURL:NSURL) -> Promise<AnyObject> {
         
-        let level = arguments["level"] as! String;
-        let text = arguments["text"] as! String;
+        let logDetails = Mapper<LogMessage>().map(arguments)!
         
-        switch (level) {
+        switch (logDetails.level) {
         case "info":
-            log.info(text);
+            log.info(logDetails.text);
             break;
         case "error":
-            log.error(text);
+            log.error(logDetails.text);
             break;
         default:
-            log.info(text);
+            log.info(logDetails.text);
         }
+        
+        return Promise<AnyObject>(true)
         
     }
 }

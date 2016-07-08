@@ -9,8 +9,8 @@ def global_pods
     pod 'FMDB'
     pod 'FMDBMigrationManager'
     pod 'Alamofire'
-    pod 'PromiseKit', '~> 3.0'
-    
+    pod 'PromiseKit', '~> 3.2'
+    pod 'ObjectMapper', '~> 1.3'
 end
 
 target 'hybrid' do

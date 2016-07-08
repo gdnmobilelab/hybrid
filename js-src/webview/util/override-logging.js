@@ -16,7 +16,9 @@ if (!console._hybridHooked) {
         console[level] = function() {
             
             // Still output to web console in case we have Safari debugger attached.
-            original.apply(console, arguments);
+            if (original) {
+                original.apply(console, arguments);
+            }
             
             // Array.from because otherwise it transforms to an object like {"0": "", "1": ""}
             
@@ -33,9 +35,12 @@ if (!console._hybridHooked) {
     });
     
     // send errors to XCode debug
-    window.onerror = function(message, file, line, col, error) {
-        console.error(arguments);
+    if (window) {
+        window.onerror = function(message, file, line, col, error) {
+            console.error(arguments);
+        }
     }
+    
         
     console._hybridHooked = true;
 }

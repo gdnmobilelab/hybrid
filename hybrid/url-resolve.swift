@@ -22,8 +22,15 @@ class URLUtilities {
             urlToReturn = baseDirectory.URLByAppendingPathComponent(targetURL.path!)
             
             // is there really no better way to normalise paths?
-            let urlAsNormalisedString = NSString(string: urlToReturn.absoluteString).stringByStandardizingPath;
-            urlToReturn = NSURL(string: urlAsNormalisedString)!
+            let pathAsNormalisedString = NSString(string: urlToReturn.path!).stringByStandardizingPath;
+            
+            let finalURL = NSURLComponents()
+            finalURL.scheme = urlToReturn.scheme
+            finalURL.host = urlToReturn.host
+            finalURL.path = pathAsNormalisedString
+            finalURL.port = urlToReturn.port
+            urlToReturn = finalURL.URL!
+
         }
         
         return urlToReturn

@@ -1,4 +1,7 @@
 export function send(msg) {
+    if (typeof msg.arguments === "object") {
+        msg.arguments = JSON.stringify(msg.arguments);
+    }
     window.webkit.messageHandlers.hybrid.postMessage(msg);
 }
 
@@ -9,7 +12,7 @@ export function send(msg) {
 const callbackArray = [];
 
 export function sendAndReceive(msg) {
-
+    
     let callbackIndex = 0;
 
     while (callbackArray[callbackIndex]) {
