@@ -1,23 +1,22 @@
+import ES6 from 'es6-promise';
+import events from 'events';
 
-let waitUntil = function() {
-
-}
-
-export function emitWithWaitUntil(name, event) {
+let Promise = ES6.Promise;
+export function emitWithWaitUntil(name:string, event:ExtendableEvent) {
+    
     return new Promise((fulfill, reject) => {
         let usedWaitUntil = false;
-
-        event.waitUntil = (promise) => {
+        event.waitUntil = (promise:Promise<any>) => {
             usedWaitUntil = true;
             promise.then(() => fulfill())
         }
-
+        
         try {
 
             // waitUntil is optional, so we still need to handle cases
             // where the handler does an immediate return.
 
-            this.emit(name, event);
+            (this as EventEmitter).emit(name, event);
 
             if (usedWaitUntil === false) {
                 fulfill();

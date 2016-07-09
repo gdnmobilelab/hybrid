@@ -1,0 +1,1 @@
+declare function __promiseCallback(callbackIndex: Number, error?: Error, response?: any);

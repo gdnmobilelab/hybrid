@@ -474,7 +474,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$PROJECT_DIR\"/js-src\nnpm run rollup -- src/webview/document-start.js -o ../hybrid/js-dist/document-start.js\nnpm run rollup -- src/service-worker/worker-context.js -o ../hybrid/js-dist/worker-context.js";
+			shellScript = "cd \"$PROJECT_DIR\"/js-src\nnpm run rollup -- src/webview/document-start.ts -o ../hybrid/js-dist/document-start.js\nnpm run rollup -- src/service-worker/worker-context.ts -o ../hybrid/js-dist/worker-context.js";
 		};
 		DE06B41D1E7E156132351F47 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;

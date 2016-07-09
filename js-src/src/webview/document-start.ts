@@ -1,6 +1,6 @@
 // import 'whatwg-fetch';
 import './util/override-logging';
-import {resolve} from 'path-browserify';
+import path from 'path-browserify';
 import {sendAndReceive} from './util/wk-messaging';
 
 

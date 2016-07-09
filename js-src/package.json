@@ -4,17 +4,21 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --require babel-register --recursive test",
+    "test": "mocha --require ts-node/register --recursive test/**/*.ts",
     "rollup": "node_modules/.bin/rollup --config rollup.config.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "es6-promise": "^3.2.1",
+    "events": "^1.1.1",
     "mocha": "^2.5.3",
     "path-browserify": "0.0.0",
     "rollup": "^0.26.1",
     "rollup-plugin-buble": "^0.7.0",
+    "rollup-plugin-typescript": "^0.7.6",
+    "ts-node": "^0.9.3",
+    "typescript-register": "^1.1.0",
     "whatwg-fetch": "^1.0.0"
   },
   "devDependencies": {
