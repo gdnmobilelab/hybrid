@@ -1,6 +1,7 @@
 Pods/*
 node_modules
 .DS_Store
+typings
 
 ## Build generated
 build/

@@ -4,13 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --require ts-node/register --recursive test/**/*.ts",
+    "test": "mocha --require ts-node/register --require ./test-bootstrap.js test/**/*.ts test/**/**/*.ts",
     "rollup": "node_modules/.bin/rollup --config rollup.config.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "es6-promise": "^3.2.1",
+    "eventemitter3": "^1.2.0",
     "events": "^1.1.1",
     "mocha": "^2.5.3",
     "path-browserify": "0.0.0",

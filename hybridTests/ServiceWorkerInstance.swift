@@ -27,7 +27,7 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                         "var currentValue = 1;" +
                         "self.addEventListener('test', function() {currentValue++;});"
                     ).then {_ in
-                        return sw.runScript("self.emit('test'); currentValue")
+                        return sw.runScript("var test = new ExtendableEvent('test'); self.dispatchEvent(test); currentValue")
                     }.then { (returnValue) -> Void in
                         
                         expect(returnValue.toInt32()).to(equal(2))

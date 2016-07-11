@@ -7,13 +7,16 @@ export default {
     sourceMap: "inline",
     plugins: [
         typescript(),
-       // buble(),
+        buble(),
         nodeResolve({
             preferBuiltins: false
         }),
         commonJS({
             include: 'node_modules/**',
-            extensions: ['.js', '.ts']
+            extensions: ['.js', '.ts'],
+            namedExports: {
+                'node_modules/es6-promise/dist/es6-promise.js': ['Promise']
+            }
         })
     ]
 }

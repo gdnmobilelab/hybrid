@@ -102,7 +102,19 @@ public class ServiceWorkerInstance {
             let contextJS = try NSString(contentsOfFile: workerContextPath, encoding: NSUTF8StringEncoding) as String
             fulfill(contextJS)
         }.then { js in
-            return self.runScript("var self = {};" + js)
+            return self.runScript("var self = {}; var global = {};" + js)
+        }.then { js in
+            
+            // JSContext doesn't have a 'global' variable so instead we make our own,
+            // then go through and manually declare global variables.
+            
+            let keys = self.jsContext.evaluateScript("Object.keys(global);").toArray()
+            var globalsScript = ""
+            for key in keys {
+                let keyAsString = key as! String
+                globalsScript += "var " + keyAsString + " = global['" + keyAsString + "'];";
+            }
+            return self.runScript(globalsScript)
         }
     }
     
