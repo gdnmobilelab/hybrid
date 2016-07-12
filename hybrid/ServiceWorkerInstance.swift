@@ -9,6 +9,8 @@
 import Foundation
 import JavaScriptCore
 import PromiseKit
+import ObjectMapper
+
 
 class JSContextError : ErrorType {
     let message:String
@@ -69,11 +71,15 @@ public class ServiceWorkerInstance {
         
         return Promise<JSValue> { fulfill, reject in
             pendingPromises[pendingIndex] = PromiseReturn(fulfill: fulfill, reject: reject)
-            self.runScript("self.promiseBridge(" + String(pendingIndex) + "," + js + ");")
+            self.runScript("hybrid.promiseBridgeBackToNative(" + String(pendingIndex) + "," + js + ");")
             .error { err in
                 reject(err)
             }
         }
+    }
+    
+    func dispatchExtendableEvent(name: String, data: Mappable?) -> Promise<JSValue> {
+        return self.executeJSPromise("hybrid.dispatchExtendableEvent('" + name + "')")
     }
     
     func loadServiceWorker(workerJS:String) -> Promise<JSValue> {
@@ -102,7 +108,7 @@ public class ServiceWorkerInstance {
             let contextJS = try NSString(contentsOfFile: workerContextPath, encoding: NSUTF8StringEncoding) as String
             fulfill(contextJS)
         }.then { js in
-            return self.runScript("var self = {}; var global = {};" + js)
+            return self.runScript("var self = {}; var global = {}; hybrid = {};" + js)
         }.then { js in
             
             // JSContext doesn't have a 'global' variable so instead we make our own,

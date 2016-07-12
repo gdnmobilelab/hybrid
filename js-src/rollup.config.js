@@ -5,6 +5,7 @@ import typescript from 'rollup-plugin-typescript'
 
 export default {
     sourceMap: "inline",
+    treeshake: false,
     plugins: [
         typescript(),
         buble(),
@@ -17,6 +18,6 @@ export default {
             namedExports: {
                 'node_modules/es6-promise/dist/es6-promise.js': ['Promise']
             }
-        })
+        }),
     ]
 }

@@ -72,22 +72,50 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                     
                     sw.loadServiceWorker(
                         "var test = function() { return new Promise(function(fulfill, reject) { reject(new Error('hello'));});}"
-                        ).then {_ in
-                            return sw.executeJSPromise("test()")
-                        }
-                        .recover({ (err:ErrorType) -> JSValue in
-                            
-                            let jserror = err as! JSContextError
-   
-                            expect(jserror.message).to(equal("hello"))
-                            done()
-                            
-                            // no idea why it's forcing me to do this
-                            return JSValue()
-                        })
+                    ).then {_ in
+                        return sw.executeJSPromise("test()")
+                    }
+                    .recover({ (err:ErrorType) -> JSValue in
+                        
+                        let jserror = err as! JSContextError
+
+                        expect(jserror.message).to(equal("hello"))
+                        done()
+                        
+                        // no idea why it's forcing me to do this
+                        return JSValue()
+                    })
+                }
+                    
+            }
+            
+            it("should fire a extendable event") {
+                waitUntil { done in
+                    
+                    let sw = ServiceWorkerInstance()
+                    
+                    sw.loadServiceWorker(
+                        "self.addEventListener('test', function(e) {" +
+                        "   e.waitUntil(new Promise(function(fulfill) {" +
+                        "       fulfill('hello');" +
+                        "   }));" +
+                        "})"
+                    ).then {_ in
+                        return sw.dispatchExtendableEvent("test", data: nil)
+                    }
+                    .then { (value) -> Void in
+                        expect(value.toString()).to(equal("hello"))
+                        done()
+                        
+                    }
+                    .recover { (err:ErrorType) -> Void in
+                        expect(err).to(beNil())
+                        done()
                     }
                     
                 }
+
+            }
             
 
         }
