@@ -21,7 +21,7 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                 
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance()
+                    let sw = ServiceWorkerInstance(url: "file://test")
 
                     sw.loadServiceWorker(
                         "var currentValue = 1;" +
@@ -45,7 +45,8 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                 
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance()
+                    let sw = ServiceWorkerInstance(url: "file://test")
+
                     
                     sw.loadServiceWorker(
                         "var test = function() { return new Promise(function(fulfill) { fulfill('hello');});}"
@@ -68,7 +69,7 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                 
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance()
+                    let sw = ServiceWorkerInstance(url: "file://test")
                     
                     sw.loadServiceWorker(
                         "var test = function() { return new Promise(function(fulfill, reject) { reject(new Error('hello'));});}"
@@ -92,7 +93,7 @@ class ServiceWorkerInstanceSpec: QuickSpec {
             it("should fire a extendable event") {
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance()
+                    let sw = ServiceWorkerInstance(url: "file://test")
                     
                     sw.loadServiceWorker(
                         "self.addEventListener('test', function(e) {" +

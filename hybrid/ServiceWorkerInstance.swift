@@ -27,11 +27,16 @@ public class ServiceWorkerInstance {
     
     var jsContext:JSContext!
     var contextErrorValue:JSValue?
+    let url:String!
+    let timeoutManager = ServiceWorkerTimeoutManager()
+    let webSQL: WebSQL!
     
     var pendingPromises = Dictionary<Int, PromiseReturn>()
     
-    init() {
+    init(url:String) {
+        self.url = url
         self.jsContext = JSContext()
+        self.webSQL = WebSQL(url: self.url)
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.hookFunctions()
         
@@ -42,9 +47,18 @@ public class ServiceWorkerInstance {
         let promiseCallbackAsConvention: @convention(block) (JSValue, JSValue, JSValue) -> Void = self.promiseCallback
         self.jsContext.setObject(unsafeBitCast(promiseCallbackAsConvention, AnyObject.self), forKeyedSubscript: "__promiseCallback")
         
-        let setTimeout: @convention(block) (JSValue, JSValue) -> Void = self.setTimeout
-        self.jsContext.setObject(unsafeBitCast(setTimeout, AnyObject.self), forKeyedSubscript: "setTimeout")
+//        let webSQLQueryAsConvention: @convention(block) (JSValue, JSValue, JSValue) -> [String] = self.executeSqlQueries
+//        self.jsContext.setObject(unsafeBitCast(webSQLQueryAsConvention, AnyObject.self), forKeyedSubscript: "__webSQLQuery")
         
+        let consoleAsConvention: @convention(block) (JSValue) -> Void = self.consoleLog
+        self.jsContext.setObject(unsafeBitCast(consoleAsConvention, AnyObject.self), forKeyedSubscript: "__console")
+        
+        self.timeoutManager.hookFunctions(self.jsContext)
+        self.webSQL.hookFunctions(self.jsContext)
+    }
+    
+    private func consoleLog(args: JSValue) {
+        Console.logLevel(args.toString(), webviewURL: NSURL(string: self.url)!)
     }
     
     
@@ -58,8 +72,7 @@ public class ServiceWorkerInstance {
         pendingPromises.removeValueForKey(pendingIndexAsInt)
     }
     
-    func executeJSPromise(js:String) -> Promise<JSValue> {
-        
+    private func getVacantPromiseIndex() -> Int {
         // We can't use an array because we need the indexes to stay consistent even
         // when an entry has been removed. So instead we check every index until we
         // find an empty one, then use that.
@@ -68,7 +81,17 @@ public class ServiceWorkerInstance {
         while pendingPromises[pendingIndex] != nil {
             pendingIndex += 1
         }
+        return pendingIndex
+    }
+    
+    func executeJSPromise(js:String) -> Promise<JSValue> {
         
+        // We can't use an array because we need the indexes to stay consistent even
+        // when an entry has been removed. So instead we check every index until we
+        // find an empty one, then use that.
+        
+        let pendingIndex = self.getVacantPromiseIndex()
+       
         return Promise<JSValue> { fulfill, reject in
             pendingPromises[pendingIndex] = PromiseReturn(fulfill: fulfill, reject: reject)
             self.runScript("hybrid.promiseBridgeBackToNative(" + String(pendingIndex) + "," + js + ");")
@@ -89,17 +112,29 @@ public class ServiceWorkerInstance {
         }
     }
     
-    func setTimeout(callback:JSValue, timeout: JSValue) {
-        dispatch_after(
-            dispatch_time(
-                DISPATCH_TIME_NOW,
-                Int64((timeout.toDouble() / 1000) * Double(NSEC_PER_SEC))
-            ),
-            dispatch_get_main_queue(), {
-                callback.callWithArguments(nil)
-        })
-        
-    }
+
+    
+//    func executeSqlQueries(dbName:JSValue, queries:JSValue, readOnly:JSValue) -> [String] {
+//        let queryMapper = Mapper<WebSQLQuery>()
+//        let queriesAsObjects = queryMapper.mapArray(queries.toString())!
+//        
+//        let urlComponents = NSURLComponents(string: self.url)!
+//        urlComponents.path = nil
+//        
+//        let origin = urlComponents.URLString
+//        do {
+//            let results = try WebSQL.exec(dbName.toString(), queries: queriesAsObjects, readOnly: readOnly.toBool(), origin: origin)
+//            
+//            let resultsAsJSONArray = Mapper().toJSONString(results)!
+//            // can't use [String?] for some Objective-C related reason, so we
+//            // have to set something else as null.
+//            return ["__NULL__", resultsAsJSONArray]
+//        } catch {
+//            
+//            return [String(error), "__NULL__"]
+//        }
+//        
+//    }
     
     private func loadContextScript() -> Promise<JSValue> {
         

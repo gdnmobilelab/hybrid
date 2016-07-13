@@ -18,7 +18,7 @@ class DbTransactionPromise<T>: Promise<T> {
     
     init(toRun: DBRun) {
         super.init(resolvers: { fulfill, reject in
-            Db.dbQueue.inTransaction() {
+            Db.mainDatabase.dbQueue.inTransaction() {
                 db, rollback in
                 
                 do {
@@ -46,19 +46,44 @@ class DbTransactionPromise<T>: Promise<T> {
     }
 }
 
-
 class Db {
-    static let dbQueue = FMDatabaseQueue(path: NSHomeDirectory() + "/Library/db.sqlite")!
-    //    static let dbInstance = FMDatabase(path: NSHomeDirectory() + "/Library/db.sqlite")
     
+    let dbQueue:FMDatabaseQueue!
     
+    init(dbFilename:String) {
+        let dbPath = NSHomeDirectory() + "/Library/" + dbFilename + ".sqlite"
+        
+        log.debug("Creating database queue for: " + dbPath)
+        
+        self.dbQueue = FMDatabaseQueue(path: dbPath)!
+    }
     
-    static func query(queryText: String, values: [AnyObject]) {
+    init(dbDir:String, dbFilename: String) throws {
+        
+        let fullPath = try Db.getFullDatabasePath(dbDir, dbFilename: dbFilename)
+        
+        log.debug("Creating database queue for: " + fullPath)
+        
+        self.dbQueue = FMDatabaseQueue(path: fullPath)!
         
     }
     
+    static func getFullDatabasePath(dbDir:String, dbFilename: String) throws -> String {
+        let fullDirPath = NSHomeDirectory() + "/Library/" + dbDir
+        
+        let fm = NSFileManager.defaultManager()
+        if fm.fileExistsAtPath(fullDirPath) == false {
+            try fm.createDirectoryAtPath(fullDirPath, withIntermediateDirectories: true, attributes: nil)
+        }
+        
+        return fullDirPath + "/" + dbFilename + ".sqlite"
+    }
     
-    static func inTransaction(toRun: (db:FMDatabase) throws -> Void) throws {
+    func destroy() {
+        dbQueue.close()
+    }
+    
+    func inTransaction(toRun: (db:FMDatabase) throws -> Void) throws {
         
         var err:ErrorType? = nil
         
@@ -80,21 +105,42 @@ class Db {
         
     }
     
+    func inDatabase(toRun: (db:FMDatabase) throws -> Void) throws {
+        
+        var err:ErrorType? = nil
+        
+        dbQueue.inDatabase() {
+            db in
+            
+            do {
+                try toRun(db: db!)
+            } catch {
+                
+                err = error
+            }
+        }
+        
+        if (err != nil ){
+            throw err!
+        }
+        
+    }
+    
+    static let mainDatabase = Db(dbFilename: "db")
+}
+
+class DbMigrate {
     static func migrate() throws {
         
-        try self.inTransaction { (db) in
+        try Db.mainDatabase.inTransaction { (db) in
             let migrateManager = FMDBMigrationManager(database: db, migrationsBundle: NSBundle.mainBundle())!
             
             if migrateManager.hasMigrationsTable == false {
                 try migrateManager.createMigrationsTable()
             }
-            log.debug("Database path: " + dbQueue.path)
             log.debug("Database currently at migration " + String(migrateManager.currentVersion) + ", " + String(migrateManager.pendingVersions.count) + " migrations pending.")
             
-//            if (migrateManager.pendingVersions.count > 0) {
-                try migrateManager.migrateDatabaseToVersion(UInt64.max, progress: nil)
-                
-//            }
+            try migrateManager.migrateDatabaseToVersion(UInt64.max, progress: nil)
             
         }
         
