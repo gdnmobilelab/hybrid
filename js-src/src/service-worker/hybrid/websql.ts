@@ -30,7 +30,7 @@ class CustomImplementation {
         let resultJSON = __execDatabaseQuery(this.nativeDbId, queriesAsJSON, readOnly);
     
         let results:any = JSON.parse(resultJSON);
-        
+        console.log("return from exec", results)
         return callback(null, results);
     }
 }

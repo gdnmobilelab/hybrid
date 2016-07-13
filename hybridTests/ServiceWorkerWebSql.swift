@@ -11,11 +11,13 @@ import Quick
 import Nimble
 import PromiseKit
 import JavaScriptCore
+import FMDB
 @testable import hybrid
 
 
 class ServiceWorkerWebSQLSpec: QuickSpec {
     override func spec() {
+        
         
         beforeEach({
             do {
@@ -30,7 +32,7 @@ class ServiceWorkerWebSQLSpec: QuickSpec {
         describe("Service Worker WebSQL") {
             it("should successfully run a read-only query") {
                 
-                waitUntil { done in
+                waitUntil(timeout: 30) { done in
                     
                     let sw = ServiceWorkerInstance(url: "file://test")
                     
@@ -73,28 +75,37 @@ class ServiceWorkerWebSQLSpec: QuickSpec {
                     
                     let sql = "CREATE TABLE test (" +
                         "\"testvalue\" TEXT NOT NULL" +
-                        ");" +
-                        "INSERT INTO test (testvalue) VALUES (?);" +
-                        "INSERT INTO test (testvalue) VALUES (?);"
+                        ");"
                     
                     sw.loadServiceWorker("")
                         .then {_ in
                             return sw.runScript(
                                 "var testPromise = function() {" +
-                                    "   return new Promise(function(fulfill, reject) {" +
-                                    "       var db = hybrid.openDatabase('test_db', '0.1', 'Test DB', 1024 * 1024);" +
-                                    "       db.transaction(function(t) {" +
-                                    "           t.executeSql('" + sql + "',['test'], function(t, results) {" +
-                                    "               console.log(results);fulfill(results.rowsAffected);" +
-                                    "           })" +
-                                    "       });" +
-                                    "   });" +
+                                "   return new Promise(function(fulfill, reject) {" +
+                                "       var db = hybrid.openDatabase('test_db', '0.1', 'Test DB', 1024 * 1024);" +
+                                "       db.transaction(function(t) {" +
+                                "           t.executeSql('" + sql + "',[], function(t2, results) {" +
+                                "               t.executeSql('INSERT INTO test (testvalue) VALUES (?), (?);',['test','test2'], function(t, results2) {fulfill(results2.rowsAffected);})" +
+                                "           })" +
+                                "       });" +
+                                "   });" +
                                 "};"
                                 )
                                 .then {_ in
                                     return sw.executeJSPromise("testPromise()")
                                 }.then { (returnValue:JSValue) -> Void in
-                                    expect(returnValue.toInt32()).to(equal(111))
+                                    expect(returnValue.toInt32()).to(equal(2))
+                                    
+                                    let testDBPath = try Db.getFullDatabasePath("filetest", dbFilename: "test_db")
+                                    
+                                    let db = FMDatabase(path: testDBPath)
+                                    db.open()
+                                    let resultSet = try db.executeQuery("SELECT * FROM test", values: [])
+                                    
+                                    expect(resultSet.next()).to(beTrue())
+
+                                    expect(resultSet.stringForColumn("testvalue")).to(equal("test"))
+                                    db.close()
                                     done()
                                 }
                                 .recover { (err:ErrorType) -> Void in

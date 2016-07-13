@@ -28,8 +28,8 @@ class WebSQLQuery : Mappable {
 
 class WebSQLResult: Mappable {
     var error:JSContextError?
-    var insertId:Int64?
-    var rowsAffected:Int32!
+    var insertId:Int?
+    var rowsAffected:Int!
     var rows = [[String:AnyObject]]()
     
     required init?(_ map: Map) {
@@ -109,18 +109,13 @@ class WebSQL {
         
         if (readOnly == false) {
             
-            let insertIdBeforeThis = db.lastInsertRowId()
-            
             do {
                 try db.executeUpdate(query.sql, values: query.args)
                 
-                let newInsertId = db.lastInsertRowId()
                 
-                if (newInsertId != insertIdBeforeThis) {
-                    result.insertId = newInsertId
-                }
+                result.insertId = Int(db.lastInsertRowId())
                 
-                result.rowsAffected = db.changes()
+                result.rowsAffected = Int(db.changes())
                 return result
 
             } catch {
@@ -137,7 +132,7 @@ class WebSQL {
                     result.rows.append(resultSet.resultDictionary() as! [String:AnyObject])
                 }
                 
-                result.rowsAffected = Int32(result.rows.count)
+                //result.rowsAffected = Int(result.rows.count)
                 return result;
                 
             } catch {
@@ -148,9 +143,17 @@ class WebSQL {
         }
     }
     
+    func closeAll() {
+        for (key, val) in self.activeDBInstances {
+            val.close()
+        }
+    }
+    
     func execDatabaseQuery(dbIndex:Int, queriesAsString: String, readOnly:Bool) -> String {
         
         let dbInstance = self.activeDBInstances[dbIndex]!
+        
+        //if dbInstance.o
         
         let queryMapper = Mapper<WebSQLQuery>()
         let queriesAsObjects = queryMapper.mapArray(queriesAsString)!

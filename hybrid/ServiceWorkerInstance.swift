@@ -95,9 +95,14 @@ public class ServiceWorkerInstance {
         return Promise<JSValue> { fulfill, reject in
             pendingPromises[pendingIndex] = PromiseReturn(fulfill: fulfill, reject: reject)
             self.runScript("hybrid.promiseBridgeBackToNative(" + String(pendingIndex) + "," + js + ");")
+            .always {
+                // Clean up WebSQL connections
+                self.webSQL.closeAll()
+            }
             .error { err in
                 reject(err)
             }
+            
         }
     }
     
