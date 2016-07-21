@@ -76,7 +76,7 @@ class Db {
             try fm.createDirectoryAtPath(fullDirPath, withIntermediateDirectories: true, attributes: nil)
         }
         
-        return fullDirPath + "/" + dbFilename + ".sqlite"
+        return fullDirPath + "/" + dbFilename
     }
     
     func destroy() {

@@ -26,6 +26,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             try DbMigrate.migrate()
             
+            try WebServer.initialize()
+            
             let serviceWorkerHandler = try ServiceWorkerHandler();
             let messageHandler = HybridMessageHandler();
             

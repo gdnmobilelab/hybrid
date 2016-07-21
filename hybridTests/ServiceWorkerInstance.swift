@@ -21,7 +21,8 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                 
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance(url: "file://test")
+                    
+                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
 
                     sw.loadServiceWorker(
                         "var currentValue = 1;" +
@@ -45,7 +46,7 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                 
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance(url: "file://test")
+                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
 
                     
                     sw.loadServiceWorker(
@@ -69,8 +70,8 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                 
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance(url: "file://test")
-                    
+                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
+ 
                     sw.loadServiceWorker(
                         "var test = function() { return new Promise(function(fulfill, reject) { reject(new Error('hello'));});}"
                     ).then {_ in
@@ -93,8 +94,8 @@ class ServiceWorkerInstanceSpec: QuickSpec {
             it("should fire a extendable event") {
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance(url: "file://test")
-                    
+                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
+ 
                     sw.loadServiceWorker(
                         "self.addEventListener('test', function(e) {" +
                         "   e.waitUntil(new Promise(function(fulfill) {" +
@@ -116,6 +117,26 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                     
                 }
 
+            }
+            
+            it("should map a URL within scope") {
+                let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
+                
+                do {
+                    let mappedURL = try sw.getURLInsideServiceWorkerScope(NSURL(string:"file://test/file.html")!)
+                    expect(mappedURL.host!).to(equal("localhost"))
+                    expect(mappedURL.pathComponents![1]).to(equal("__service_worker"))
+                    
+                    let unescapedServiceWorkerURL = mappedURL.pathComponents![2].stringByRemovingPercentEncoding
+                   
+                    expect(unescapedServiceWorkerURL).to(equal("file://test/test.js"))
+                    expect(mappedURL.pathComponents![3]).to(equal("test"))
+                    expect(mappedURL.pathComponents![4]).to(equal("file.html"))
+                }
+                catch {
+                    expect(error).to(beNil())
+                }
+                
             }
             
 

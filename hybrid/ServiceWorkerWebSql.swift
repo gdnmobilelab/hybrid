@@ -27,7 +27,7 @@ class WebSQLQuery : Mappable {
 }
 
 class WebSQLResult: Mappable {
-    var error:JSContextError?
+    var error:String?
     var insertId:Int?
     var rowsAffected:Int!
     var rows = [[String:AnyObject]]()
@@ -53,11 +53,11 @@ class WebSQL {
     var activeDBInstances = [Int:FMDatabase]()
     var origin:String!
     
-    init(url:String) {
+    init(url:NSURL) {
         
         // WebSQL DBs are stored according to origin (i.e. protocol + hostname)
         
-        let urlComponents = NSURLComponents(string: url)!
+        let urlComponents = NSURLComponents(URL: url, resolvingAgainstBaseURL: false)!
         urlComponents.path = nil
         
         origin = urlComponents.URLString
@@ -86,7 +86,7 @@ class WebSQL {
             
             activeDBInstances[spareIndex] = FMDatabase(path: dbPath)
             
-            activeDBInstances[spareIndex]!.open()
+            //activeDBInstances[spareIndex]!.open()
             
             return spareIndex
         } catch {
@@ -103,29 +103,35 @@ class WebSQL {
         jsContext.setObject(unsafeBitCast(execDatabaseQueryConvention, AnyObject.self), forKeyedSubscript: "__execDatabaseQuery")
     }
     
-    private func execSingleQuery(db:FMDatabase, query:WebSQLQuery, readOnly:Bool) -> WebSQLResult {
+    private func execSingleQuery(dbInstance:FMDatabase, query:WebSQLQuery, readOnly:Bool) -> WebSQLResult {
         
         let result = WebSQLResult()
         
-        if (readOnly == false) {
+        var isSelect = false
+        
+        if (query.sql.lengthOfBytesUsingEncoding(NSUTF8StringEncoding) > 6) {
+            isSelect = query.sql.substringWithRange(Range<String.Index>(start: query.sql.startIndex, end: query.sql.startIndex.advancedBy(6))).uppercaseString == "SELECT"
+        }
+        log.debug(query.sql)
+        if (readOnly == false && isSelect == false) {
             
             do {
-                try db.executeUpdate(query.sql, values: query.args)
+                try dbInstance.executeUpdate(query.sql, values: query.args)
                 
                 
-                result.insertId = Int(db.lastInsertRowId())
+                result.insertId = Int(dbInstance.lastInsertRowId())
                 
-                result.rowsAffected = Int(db.changes())
+                result.rowsAffected = Int(dbInstance.changes())
                 return result
 
             } catch {
-                result.error = JSContextError(message: db.lastErrorMessage())
+                result.error = dbInstance.lastErrorMessage()
                 return result
             }
             
         } else {
             do {
-                let resultSet = try db.executeQuery(query.sql, values: query.args)
+                let resultSet = try dbInstance.executeQuery(query.sql, values: query.args)
                 
                 
                 while resultSet.next() {
@@ -136,7 +142,7 @@ class WebSQL {
                 return result;
                 
             } catch {
-                result.error = JSContextError(message: db.lastErrorMessage())
+                result.error = dbInstance.lastErrorMessage()
                 return result
             }
             
@@ -152,8 +158,8 @@ class WebSQL {
     func execDatabaseQuery(dbIndex:Int, queriesAsString: String, readOnly:Bool) -> String {
         
         let dbInstance = self.activeDBInstances[dbIndex]!
-        
-        //if dbInstance.o
+        // Might already be open, but let's make sure
+        dbInstance.open()
         
         let queryMapper = Mapper<WebSQLQuery>()
         let queriesAsObjects = queryMapper.mapArray(queriesAsString)!
@@ -169,6 +175,6 @@ class WebSQL {
      
         
         return resultsAsJSONArray
-       
+        
     }
 }

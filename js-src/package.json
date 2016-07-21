@@ -5,21 +5,27 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha --require ts-node/register --require ./test-bootstrap.js test/**/*.ts test/**/**/*.ts",
-    "rollup": "node_modules/.bin/rollup --config rollup.config.js"
+    "rollup": "node_modules/.bin/rollup --config rollup.config.js",
+    "browserify": "browserify"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "assert": "^1.4.1",
     "es6-promise": "^3.2.1",
     "eventemitter3": "^1.2.0",
     "events": "^1.1.1",
+    "indexeddbshim": "^2.2.1",
+    "inherits": "^2.0.1",
     "mocha": "^2.5.3",
     "path-browserify": "0.0.0",
     "rollup": "^0.26.1",
     "rollup-plugin-buble": "^0.7.0",
     "rollup-plugin-typescript": "^0.7.6",
+    "tape": "^4.6.0",
     "ts-node": "^0.9.3",
     "typescript-register": "^1.1.0",
+    "util": "^0.10.3",
     "websql": "^0.4.4",
     "whatwg-fetch": "^1.0.0"
   },

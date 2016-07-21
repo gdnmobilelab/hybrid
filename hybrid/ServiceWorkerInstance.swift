@@ -14,27 +14,46 @@ import ObjectMapper
 
 class JSContextError : ErrorType {
     let message:String
+    let stack:String?
+    
     init(message:String){
         self.message = message
-    }}
+        self.stack = nil
+    }
+    
+    init(jsValue:JSValue) {
+        let dict = jsValue.toObject() as! [String: String]
+        self.message = dict["message"]!
+        self.stack = dict["stack"]
+    }
+
+}
+
+
 
 struct PromiseReturn {
     let fulfill:(JSValue) -> Void
     let reject:(ErrorType) -> Void
 }
 
+class ServiceWorkerOutOfScopeError : ErrorType {
+    
+}
+
 public class ServiceWorkerInstance {
     
     var jsContext:JSContext!
     var contextErrorValue:JSValue?
-    let url:String!
+    let url:NSURL!
+    let scope:NSURL!
     let timeoutManager = ServiceWorkerTimeoutManager()
     let webSQL: WebSQL!
     
     var pendingPromises = Dictionary<Int, PromiseReturn>()
     
-    init(url:String) {
+    init(url:NSURL, scope: NSURL) {
         self.url = url
+        self.scope = scope
         self.jsContext = JSContext()
         self.webSQL = WebSQL(url: self.url)
         self.jsContext.exceptionHandler = self.exceptionHandler
@@ -58,14 +77,14 @@ public class ServiceWorkerInstance {
     }
     
     private func consoleLog(args: JSValue) {
-        Console.logLevel(args.toString(), webviewURL: NSURL(string: self.url)!)
+        Console.logLevel(args.toString(), webviewURL: NSURL(string: self.url.absoluteString)!)
     }
     
     
     private func promiseCallback(pendingIndex: JSValue, error: JSValue, response: JSValue) {
         let pendingIndexAsInt = Int(pendingIndex.toInt32())
         if (error.isNull == false) {
-            pendingPromises[pendingIndexAsInt]?.reject(JSContextError(message: error.toString()))
+            pendingPromises[pendingIndexAsInt]?.reject(JSContextError(jsValue: error))
         } else {
             pendingPromises[pendingIndexAsInt]?.fulfill(response)
         }
@@ -94,15 +113,15 @@ public class ServiceWorkerInstance {
        
         return Promise<JSValue> { fulfill, reject in
             pendingPromises[pendingIndex] = PromiseReturn(fulfill: fulfill, reject: reject)
-            self.runScript("hybrid.promiseBridgeBackToNative(" + String(pendingIndex) + "," + js + ");")
-            .always {
-                // Clean up WebSQL connections
-                self.webSQL.closeAll()
-            }
+            self.runScript("hybrid.promiseBridgeBackToNative(" + String(pendingIndex) + "," + js + ");",closeDatabasesAfter: false)
             .error { err in
                 reject(err)
             }
-            
+        } .always {
+            // We don't want to auto-close DB connections after runScript because the promise
+            // will continue to execute after that. So instead, we tidy up our webSQL connections
+            // once the promise has fulfilled (or errored out)
+            self.webSQL.closeAll()
         }
     }
     
@@ -117,30 +136,6 @@ public class ServiceWorkerInstance {
         }
     }
     
-
-    
-//    func executeSqlQueries(dbName:JSValue, queries:JSValue, readOnly:JSValue) -> [String] {
-//        let queryMapper = Mapper<WebSQLQuery>()
-//        let queriesAsObjects = queryMapper.mapArray(queries.toString())!
-//        
-//        let urlComponents = NSURLComponents(string: self.url)!
-//        urlComponents.path = nil
-//        
-//        let origin = urlComponents.URLString
-//        do {
-//            let results = try WebSQL.exec(dbName.toString(), queries: queriesAsObjects, readOnly: readOnly.toBool(), origin: origin)
-//            
-//            let resultsAsJSONArray = Mapper().toJSONString(results)!
-//            // can't use [String?] for some Objective-C related reason, so we
-//            // have to set something else as null.
-//            return ["__NULL__", resultsAsJSONArray]
-//        } catch {
-//            
-//            return [String(error), "__NULL__"]
-//        }
-//        
-//    }
-    
     private func loadContextScript() -> Promise<JSValue> {
         
         return Promise<String> {fulfill, reject in
@@ -148,23 +143,30 @@ public class ServiceWorkerInstance {
             let contextJS = try NSString(contentsOfFile: workerContextPath, encoding: NSUTF8StringEncoding) as String
             fulfill(contextJS)
         }.then { js in
-            return self.runScript("var self = {}; var global = {}; hybrid = {};" + js)
+            return self.runScript("var self = {}; var global = {}; hybrid = {}; var window = global; var navigator = {}; navigator.userAgent = 'Hybrid service worker';" + js)
         }.then { js in
             
-            // JSContext doesn't have a 'global' variable so instead we make our own,
-            // then go through and manually declare global variables.
-            
-            let keys = self.jsContext.evaluateScript("Object.keys(global);").toArray()
-            var globalsScript = ""
-            for key in keys {
-                let keyAsString = key as! String
-                globalsScript += "var " + keyAsString + " = global['" + keyAsString + "'];";
-            }
-            return self.runScript(globalsScript)
+            return self.applyGlobalVariables()
         }
     }
     
-    func runScript(js: String) -> Promise<JSValue> {
+    func applyGlobalVariables() -> Promise<JSValue> {
+        // JSContext doesn't have a 'global' variable so instead we make our own,
+        // then go through and manually declare global variables.
+        
+        let keys = self.jsContext.evaluateScript("Object.keys(global);").toArray() as! [String]
+        var globalsScript = ""
+        for key in keys {
+            globalsScript += "var " + key + " = global['" + key + "']; false;";
+        }
+        log.info("Global variables: " + keys.joinWithSeparator(", "))
+        
+        return self.runScript(globalsScript)
+
+    }
+
+    
+    func runScript(js: String, closeDatabasesAfter: Bool = true) -> Promise<JSValue> {
         self.contextErrorValue = nil
         return Promise<JSValue> { fulfill, reject in
             let result = self.jsContext.evaluateScript(js)
@@ -174,6 +176,13 @@ public class ServiceWorkerInstance {
             } else {
                 fulfill(result)
             }
+        }.always {
+            if (closeDatabasesAfter == true) {
+                // There is no standard hook on closing WebSQL connections, so we handle
+                // it manually. We assume we'll close unless told otherwise (as we do with
+                // promises)
+                self.webSQL.closeAll()
+            }
         }
     }
     
@@ -181,5 +190,39 @@ public class ServiceWorkerInstance {
     func exceptionHandler(context:JSContext!, exception:JSValue!) {
         self.contextErrorValue = exception
         log.error("JSCONTEXT error: " + exception.toString())
+        
+    }
+    
+    func getURLInsideServiceWorkerScope(url: NSURL) throws -> NSURL {
+        
+        //let startRange = self.scope.absoluteString.ra
+        let range = url.absoluteString.rangeOfString(self.scope.absoluteString)
+        
+        if range == nil || range!.startIndex != self.scope.absoluteString.startIndex {
+            throw ServiceWorkerOutOfScopeError()
+        }
+        
+        let escapedServiceWorkerURL = self.url.absoluteString.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
+        
+        let escapedTargetURL = url.absoluteString.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
+        
+        
+        let returnComponents = NSURLComponents(string: "http://localhost")!
+        returnComponents.port = WebServer.current!.port
+        
+        let pathComponents:[String] = [
+            "__service_worker",
+            escapedServiceWorkerURL,
+            url.host!,
+            url.path!.substringFromIndex(url.path!.startIndex.advancedBy(1))
+        ]
+        
+        
+        returnComponents.path = "/" + pathComponents.joinWithSeparator("/")
+        NSLog(pathComponents.joinWithSeparator("/"))
+        return returnComponents.URL!
+
+        
+        //stringByAddingPercentEncodingWithAllowedCharacters
     }
 }

@@ -30,11 +30,12 @@ class CustomImplementation {
         let resultJSON = __execDatabaseQuery(this.nativeDbId, queriesAsJSON, readOnly);
     
         let results:any = JSON.parse(resultJSON);
-        console.log("return from exec", results)
-        return callback(null, results);
+        
+        let callbackResult = callback(null, results);
+       
     }
 }
 
 
-hybrid.openDatabase = custOpen(CustomImplementation);
-export default hybrid.openDatabase;
+global.openDatabase = custOpen(CustomImplementation);
+export default global.openDatabase;

@@ -4,6 +4,9 @@ hybrid.promiseBridgeBackToNative = function(callbackIndex:number, promise: Promi
         __promiseCallback(callbackIndex, null, response)
     })
     .catch((err) => {
-        __promiseCallback(callbackIndex, err.message)
+        __promiseCallback(callbackIndex, {
+            message: err.message,
+            stack: err.stack
+        })
     })
 }
