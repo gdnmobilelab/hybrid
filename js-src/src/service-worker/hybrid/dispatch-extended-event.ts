@@ -8,8 +8,8 @@ hybrid.dispatchExtendableEvent = function(name:string, data:Object) {
 }
 
 
-hybrid.dispatchFetchEvent = function(name:string, data:Object) {
-    let respondWithEvent = new FetchEvent(name, data);
+hybrid.dispatchFetchEvent = function(data:Object) {
+    let respondWithEvent = new FetchEvent("fetch", data);
 
     self.dispatchEvent(respondWithEvent);
 

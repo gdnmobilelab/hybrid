@@ -8,6 +8,8 @@
 
 import Foundation
 import GCDWebServer
+import ObjectMapper
+import PromiseKit
 
 class WebServer {
     
@@ -15,24 +17,63 @@ class WebServer {
     static var current:WebServer? = nil
     
     init() throws {
-        try server.startWithOptions([GCDWebServerOption_BindToLocalhost: true]);
         
         self.server.addDefaultHandlerForMethod("POST", requestClass: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleRequest);
         
+        try server.startWithOptions([GCDWebServerOption_BindToLocalhost: true]);
+        
         log.info("Web server started on port " + String(server.port))
+    }
+    
+    static func mapServerURLToRequestURL(url:NSURL) -> NSURL {
+        let fetchURL = NSURLComponents()
+        fetchURL.scheme = "https"
+        fetchURL.host = url.pathComponents![3]
+        fetchURL.path = "/" + url.pathComponents!.dropFirst(4).joinWithSeparator("/")
+        fetchURL.query = url.query
+        return fetchURL.URL!
     }
     
     func handleServiceWorkerRequest(request:GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
         
         ServiceWorkerManager.getServiceWorkerForURL(request.URL)
-        .then { (sw) -> Void in
+        .then { (sw) -> Promise<Bool> in
             if (sw == nil) {
                 log.error("Service worker request that has no scope: " + request.URL.absoluteString)
                 completionBlock(GCDWebServerDataResponse(statusCode: 404))
-                return
+                return Promise<Bool>(false)
             }
             
-            sw!.
+            let fetchURL = NSURLComponents()
+            fetchURL.scheme = "https"
+            fetchURL.host = request.URL.pathComponents![2]
+            fetchURL.path = request.URL.pathComponents!.dropFirst(3).joinWithSeparator("/")
+            fetchURL.query = request.URL.query
+            
+            let fetch = FetchRequest()
+            fetch.url = fetchURL.URL!
+            fetch.method = request.method
+            fetch.headers = request.headers as! [String:String]
+            
+            if fetch.headers["Referrer"] != nil {
+                fetch.referrer = NSURL(string: fetch.headers["Referrer"]!)
+            }
+        
+            return sw!.dispatchFetchEvent(fetch)
+            .then { response in
+                let gcdresponse = GCDWebServerDataResponse(data: response.getBody(), contentType: response.getHeader("content-type"))
+                gcdresponse.statusCode = response.status
+                completionBlock(gcdresponse)
+                return Promise<Bool>(true)
+            }
+           
+            
+        } .error { err in
+            log.error(String(err))
+            let errAsNSData = String(err).dataUsingEncoding(NSUTF8StringEncoding)!
+            let errorResponse = GCDWebServerDataResponse(data:errAsNSData, contentType: "text/plain")
+            errorResponse.statusCode = 500
+            completionBlock(errorResponse)
         }
         
     }

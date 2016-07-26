@@ -102,7 +102,7 @@ class HybridMessageHandler : NSObject, WKScriptMessageHandler {
         
         userContentController.addScriptMessageHandler(self, name: "hybrid");
         
-        self.registerCommand("navigator.serviceWorker.register", functionToHandle: ServiceWorker.Register);
+        self.registerCommand("navigator.serviceWorker.register", functionToHandle: ServiceWorkerCommands.Register);
         self.registerCommand("console", functionToHandle: Console.logLevel);
     }
     

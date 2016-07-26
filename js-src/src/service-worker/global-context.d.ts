@@ -40,3 +40,9 @@ declare module "idb-polyfill" {
     module _temp {}
     export = _temp;
 }
+
+declare module "whatwg-fetch" {
+    var _temp:any;
+    module _temp {}
+    export = _temp;
+}

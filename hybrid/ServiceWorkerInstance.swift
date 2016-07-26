@@ -48,12 +48,21 @@ public class ServiceWorkerInstance {
     let scope:NSURL!
     let timeoutManager = ServiceWorkerTimeoutManager()
     let webSQL: WebSQL!
+    let installState:ServiceWorkerInstallState!
+    let events = PromisedEvents()
     
     var pendingPromises = Dictionary<Int, PromiseReturn>()
     
-    init(url:NSURL, scope: NSURL) {
+    init(url:NSURL, scope: NSURL?, installState: ServiceWorkerInstallState) {
         self.url = url
-        self.scope = scope
+        if (scope != nil) {
+            self.scope = scope
+        } else {
+            self.scope = url.URLByDeletingLastPathComponent
+        }
+        
+        self.installState = installState
+        
         self.jsContext = JSContext()
         self.webSQL = WebSQL(url: self.url)
         self.jsContext.exceptionHandler = self.exceptionHandler
@@ -61,13 +70,37 @@ public class ServiceWorkerInstance {
         
     }
     
+    static func getById(id:Int) -> Promise<ServiceWorkerInstance?> {
+        
+        return DbTransactionPromise<ServiceWorkerInstance?>(toRun: { db in
+            let serviceWorkerContents = try db.executeQuery("SELECT url, scope, contents, install_state FROM service_workers WHERE instance_id = ?", values: [id])
+            
+            if serviceWorkerContents.next() == false {
+                return Promise<ServiceWorkerInstance?>(nil)
+            }
+            
+            
+            let sw = ServiceWorkerInstance(
+                url: NSURL(string: serviceWorkerContents.stringForColumn("url"))!,
+                scope: NSURL(string: serviceWorkerContents.stringForColumn("scope"))!,
+                installState: ServiceWorkerInstallState(rawValue: Int(serviceWorkerContents.intForColumn("install_state")))!
+            )
+            
+            return sw.loadServiceWorker(serviceWorkerContents.stringForColumn("contents"))
+            .then { _ in
+                return sw
+            }
+            
+        })
+        
+        
+        
+    }
+    
     private func hookFunctions() {
         
         let promiseCallbackAsConvention: @convention(block) (JSValue, JSValue, JSValue) -> Void = self.promiseCallback
         self.jsContext.setObject(unsafeBitCast(promiseCallbackAsConvention, AnyObject.self), forKeyedSubscript: "__promiseCallback")
-        
-//        let webSQLQueryAsConvention: @convention(block) (JSValue, JSValue, JSValue) -> [String] = self.executeSqlQueries
-//        self.jsContext.setObject(unsafeBitCast(webSQLQueryAsConvention, AnyObject.self), forKeyedSubscript: "__webSQLQuery")
         
         let consoleAsConvention: @convention(block) (JSValue) -> Void = self.consoleLog
         self.jsContext.setObject(unsafeBitCast(consoleAsConvention, AnyObject.self), forKeyedSubscript: "__console")
@@ -127,6 +160,31 @@ public class ServiceWorkerInstance {
     
     func dispatchExtendableEvent(name: String, data: Mappable?) -> Promise<JSValue> {
         return self.executeJSPromise("hybrid.dispatchExtendableEvent('" + name + "')")
+        .then { retValue in
+            self.events.trigger(name)
+            return Promise<JSValue>(retValue)
+        }
+        .recover { (error) -> JSValue in
+            self.events.error(name, error: error)
+            throw error
+        }
+        
+    }
+    
+    func dispatchFetchEvent(fetch: FetchRequest) -> Promise<FetchResponse> {
+        
+        let json = Mapper().toJSONString(fetch)!
+        
+        return self.executeJSPromise("hybrid.dispatchFetchEvent(" + json + ").then(function(resp){return JSON.stringify(resp)})")
+        .then { returnVal in
+            
+            let returnAsString = returnVal.toString()
+            
+            let queryMapper = Mapper<FetchResponse>()
+            let response = queryMapper.map(returnAsString)!
+
+            return Promise<FetchResponse>(response)
+        }
     }
     
     func loadServiceWorker(workerJS:String) -> Promise<JSValue> {
@@ -143,7 +201,7 @@ public class ServiceWorkerInstance {
             let contextJS = try NSString(contentsOfFile: workerContextPath, encoding: NSUTF8StringEncoding) as String
             fulfill(contextJS)
         }.then { js in
-            return self.runScript("var self = {}; var global = {}; hybrid = {}; var window = global; var navigator = {}; navigator.userAgent = 'Hybrid service worker';" + js)
+            return self.runScript("var self = {}; var global = self; hybrid = {}; var window = global; var navigator = {}; navigator.userAgent = 'Hybrid service worker';" + js)
         }.then { js in
             
             return self.applyGlobalVariables()

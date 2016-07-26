@@ -139,6 +139,34 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                 
             }
             
+            it("should handle fetch events") {
+                let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
+                
+                waitUntil { done in
+                    sw.loadServiceWorker(
+                        "self.addEventListener('fetch', function(event) {" +
+                        "   event.respondWith(new Response('hello'));" +
+                        "})"
+                    ).then {(_) -> Promise<FetchResponse> in
+                        
+                        let request = FetchRequest()
+                        request.url = NSURL(string: "file://test/file.html")!
+                        
+                        return sw.dispatchFetchEvent(request)
+                        
+                    }
+                    .then { (response) -> Void in
+                        let bodyAsString = response._bodyInit as! String
+                        expect(bodyAsString).to(equal("hello"))
+                        done()
+                    }
+                    .error { err in
+                        expect(err).to(beNil())
+                    }
+                    
+                }
+            }
+            
 
         }
         
