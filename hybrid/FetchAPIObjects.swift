@@ -41,10 +41,12 @@ class FetchResponse : Mappable {
     var _bodyInit: Any!
     var _bodyText: String?
     var type:String!
+    var __hybridCacheResponse: ServiceWorkerCacheMatchResponse?
     
     required init?(_ map: Map) {
         
     }
+
     
     func getHeader(name:String) -> String? {
         // again, remove case-sensitivity in headers
@@ -63,5 +65,6 @@ class FetchResponse : Mappable {
         status      <- map["status"]
         _bodyInit   <- map["_bodyInit"]
         _bodyText   <- map["_bodyText"]
+        __hybridCacheResponse <- map["__hybridCacheResponse"]
     }
 }

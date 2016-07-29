@@ -34,7 +34,7 @@ class ServiceWorkerWebSQLSpec: QuickSpec {
                 
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
+                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, installState: ServiceWorkerInstallState.Installed)
  
                     sw.loadServiceWorker("")
                         .then {_ in
@@ -71,7 +71,7 @@ class ServiceWorkerWebSQLSpec: QuickSpec {
                 
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
+                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, installState: ServiceWorkerInstallState.Installed)
 
                     let sql = "CREATE TABLE test (" +
                         "\"testvalue\" TEXT NOT NULL" +
@@ -133,7 +133,7 @@ class ServiceWorkerWebSQLSpec: QuickSpec {
                     expect(error).to(beNil())
                 }
                 
-                let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
+                let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, installState: ServiceWorkerInstallState.Installed)
 
                 
                 waitUntil(timeout: 30) { done in

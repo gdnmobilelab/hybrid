@@ -56,6 +56,7 @@ class Db {
         log.debug("Creating database queue for: " + dbPath)
         
         self.dbQueue = FMDatabaseQueue(path: dbPath)!
+        
     }
     
     init(dbDir:String, dbFilename: String) throws {

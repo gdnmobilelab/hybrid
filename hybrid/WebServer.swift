@@ -44,6 +44,11 @@ class WebServer {
                 return Promise<Bool>(false)
             }
             
+            // Map our localhost URL to the "real" URL we want to request.
+            
+            // e.g. http://localhost:1234/testdomain.com/test.html
+            // to   http://testdomain.com/test.html
+            
             let fetchURL = NSURLComponents()
             fetchURL.scheme = "https"
             fetchURL.host = request.URL.pathComponents![2]

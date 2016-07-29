@@ -53,7 +53,7 @@ class ServiceWorkerCommands {
             serviceWorkerScope = URLUtilities.resolveToBaseURL(NSURL(string: registerRequest.options!.scope!)!, baseURL: webviewURL)
         }
         
-        return ServiceWorkerManager.update(urlOfServiceWorker, scope: serviceWorkerScope)
+        return ServiceWorkerManager.update(urlOfServiceWorker, scope: serviceWorkerScope!)
         .then { response in
             return Promise<AnyObject>(UpdateResultToBool(response))
         }
@@ -73,7 +73,7 @@ class ServiceWorkerCommands {
     }
     
     
-    static func Update(urlOfServiceWorker:NSURL, scope:NSURL?) -> Promise<AnyObject> {
+    static func Update(urlOfServiceWorker:NSURL, scope:NSURL) -> Promise<AnyObject> {
         
         return ServiceWorkerManager.update(urlOfServiceWorker, scope: scope)
             .then { response in

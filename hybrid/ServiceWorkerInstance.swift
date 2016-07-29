@@ -48,7 +48,7 @@ public class ServiceWorkerInstance {
     let scope:NSURL!
     let timeoutManager = ServiceWorkerTimeoutManager()
     let webSQL: WebSQL!
-    let installState:ServiceWorkerInstallState!
+    var installState:ServiceWorkerInstallState!
     let events = PromisedEvents()
     
     var pendingPromises = Dictionary<Int, PromiseReturn>()
@@ -92,9 +92,11 @@ public class ServiceWorkerInstance {
             }
             
         })
-        
-        
-        
+
+    }
+    
+    func scopeContainsURL(url:NSURL) -> Bool {
+        return url.absoluteString.hasPrefix(self.scope.absoluteString)
     }
     
     private func hookFunctions() {
@@ -158,17 +160,12 @@ public class ServiceWorkerInstance {
         }
     }
     
+    func executeJS(js:String) -> JSValue {
+        return self.jsContext.evaluateScript(js)
+    }
+    
     func dispatchExtendableEvent(name: String, data: Mappable?) -> Promise<JSValue> {
-        return self.executeJSPromise("hybrid.dispatchExtendableEvent('" + name + "')")
-        .then { retValue in
-            self.events.trigger(name)
-            return Promise<JSValue>(retValue)
-        }
-        .recover { (error) -> JSValue in
-            self.events.error(name, error: error)
-            throw error
-        }
-        
+        return self.executeJSPromise("hybrid.dispatchExtendableEvent('" + name + "')")        
     }
     
     func dispatchFetchEvent(fetch: FetchRequest) -> Promise<FetchResponse> {

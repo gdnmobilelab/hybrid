@@ -22,7 +22,7 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                 waitUntil { done in
                     
                     
-                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
+                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, installState: ServiceWorkerInstallState.Installed)
 
                     sw.loadServiceWorker(
                         "var currentValue = 1;" +
@@ -46,7 +46,7 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                 
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
+                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, installState: ServiceWorkerInstallState.Installed)
 
                     
                     sw.loadServiceWorker(
@@ -70,7 +70,7 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                 
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
+                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, installState: ServiceWorkerInstallState.Installed)
  
                     sw.loadServiceWorker(
                         "var test = function() { return new Promise(function(fulfill, reject) { reject(new Error('hello'));});}"
@@ -94,7 +94,7 @@ class ServiceWorkerInstanceSpec: QuickSpec {
             it("should fire a extendable event") {
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
+                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, installState: ServiceWorkerInstallState.Installed)
  
                     sw.loadServiceWorker(
                         "self.addEventListener('test', function(e) {" +
@@ -120,7 +120,7 @@ class ServiceWorkerInstanceSpec: QuickSpec {
             }
             
             it("should map a URL within scope") {
-                let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
+                let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, installState: ServiceWorkerInstallState.Installed)
                 
                 do {
                     let mappedURL = try sw.getURLInsideServiceWorkerScope(NSURL(string:"file://test/file.html")!)
@@ -140,7 +140,7 @@ class ServiceWorkerInstanceSpec: QuickSpec {
             }
             
             it("should handle fetch events") {
-                let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!)
+                let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, installState: ServiceWorkerInstallState.Installed)
                 
                 waitUntil { done in
                     sw.loadServiceWorker(
