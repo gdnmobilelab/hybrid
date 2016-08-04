@@ -11,6 +11,7 @@ def global_pods
     pod 'Alamofire'
     pod 'PromiseKit', '~> 3.2'
     pod 'ObjectMapper', '~> 1.3'
+    pod 'JSCoreBom', :git => 'https://github.com/artemyarulin/JSCoreBom.git'
 end
 
 target 'hybrid' do

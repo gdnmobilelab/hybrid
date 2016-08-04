@@ -62,6 +62,7 @@ struct ServiceWorkerCacheResponseData {
     var response: NSData!
     var url: String!
     var headers: [String : String]!
+    var status:Int!
 }
 
 class ServiceWorkerCache {
@@ -97,7 +98,7 @@ class ServiceWorkerCache {
                         
                         let headersAsJSON = Mapper().toJSONString(headers)!
                         
-                        try db.executeUpdate("INSERT INTO cache (service_worker_url, cache_id, resource_url, contents, headers) VALUES (?,?,?,?,?)", values: [self.serviceWorkerURL.absoluteString, self.cacheName, r.request.URL!.absoluteString, r.data!, headersAsJSON] as [AnyObject])
+                        try db.executeUpdate("INSERT INTO cache (service_worker_url, cache_id, resource_url, contents, headers, status) VALUES (?,?,?,?,?,?)", values: [self.serviceWorkerURL.absoluteString, self.cacheName, r.request.URL!.absoluteString, r.data!, headersAsJSON, r.response.statusCode] as [AnyObject])
                         
                         return Promise<Void>()
                     }
@@ -157,6 +158,7 @@ class ServiceWorkerCache {
             response!.url = resultSet.stringForColumn("resource_url")
             response!.response = resultSet.dataForColumn("contents")
             response!.headers = headerCollection.headers
+            response!.status = Int(resultSet.intForColumn("status"))
 
         }
         

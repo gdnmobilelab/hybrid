@@ -10,6 +10,7 @@ import Foundation
 import JavaScriptCore
 import PromiseKit
 import ObjectMapper
+import JSCoreBom
 
 
 class JSContextError : ErrorType {
@@ -19,6 +20,7 @@ class JSContextError : ErrorType {
     init(message:String){
         self.message = message
         self.stack = nil
+        
     }
     
     init(jsValue:JSValue) {
@@ -43,6 +45,7 @@ class ServiceWorkerOutOfScopeError : ErrorType {
 public class ServiceWorkerInstance {
     
     var jsContext:JSContext!
+    var jsBom:JSCoreBom!
     var contextErrorValue:JSValue?
     let url:NSURL!
     let scope:NSURL!
@@ -64,10 +67,26 @@ public class ServiceWorkerInstance {
         self.installState = installState
         
         self.jsContext = JSContext()
+        self.jsBom = JSCoreBom()
         self.webSQL = WebSQL(url: self.url)
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.hookFunctions()
         
+        self.jsBom.extend(self.jsContext, logHandler: self.swLog)
+        
+        
+    }
+    
+    private func swLog(level:String!, params:[AnyObject]!, formattedLogEntry:String!) {
+        if level == "info" || level == "log" {
+            log.info(formattedLogEntry)
+        }
+        else if level == "warn" {
+            log.warning(formattedLogEntry)
+        }
+        else if level == "error" {
+            log.error(formattedLogEntry)
+        }
     }
     
     static func getById(id:Int) -> Promise<ServiceWorkerInstance?> {
@@ -103,11 +122,14 @@ public class ServiceWorkerInstance {
         
         let promiseCallbackAsConvention: @convention(block) (JSValue, JSValue, JSValue) -> Void = self.promiseCallback
         self.jsContext.setObject(unsafeBitCast(promiseCallbackAsConvention, AnyObject.self), forKeyedSubscript: "__promiseCallback")
+
         
-        let consoleAsConvention: @convention(block) (JSValue) -> Void = self.consoleLog
-        self.jsContext.setObject(unsafeBitCast(consoleAsConvention, AnyObject.self), forKeyedSubscript: "__console")
+        // JSCoreBom makes these irrelevant
         
-        self.timeoutManager.hookFunctions(self.jsContext)
+//        let consoleAsConvention: @convention(block) (JSValue) -> Void = self.consoleLog
+//        self.jsContext.setObject(unsafeBitCast(consoleAsConvention, AnyObject.self), forKeyedSubscript: "__console")
+//        
+//        self.timeoutManager.hookFunctions(self.jsContext)
         self.webSQL.hookFunctions(self.jsContext)
     }
     

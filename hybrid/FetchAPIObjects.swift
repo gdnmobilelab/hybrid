@@ -41,10 +41,23 @@ class FetchResponse : Mappable {
     var _bodyInit: Any!
     var _bodyText: String?
     var type:String!
-    var __hybridCacheResponse: ServiceWorkerCacheMatchResponse?
+    private var hybridCacheResponse: ServiceWorkerCacheMatchResponse?
     
     required init?(_ map: Map) {
         
+    }
+    
+    func checkForCacheMatchResponse(serviceWorkerURL:NSURL) throws {
+        
+        if self.hybridCacheResponse == nil {
+            return
+        }
+        
+        let cacheResponse = try ServiceWorkerCache.getResponse(self.url.absoluteString, serviceWorkerURL: serviceWorkerURL.absoluteString, cacheId: hybridCacheResponse!.cacheId)!
+        
+        self._bodyInit = cacheResponse.response
+        self.headersAsAnyObject = cacheResponse.headers
+//        self.stat
     }
 
     
@@ -54,8 +67,14 @@ class FetchResponse : Mappable {
     }
     
     func getBody() -> NSData {
-        // Need to build functionality for non-string responses
-        return self._bodyText!.dataUsingEncoding(NSUTF8StringEncoding)!
+        
+        if (self._bodyText != nil) {
+            return self._bodyText!.dataUsingEncoding(NSUTF8StringEncoding)!
+        }
+        
+        // TODO: What if this isn't NSData? Right now it always is, but that could change.
+        return self._bodyInit as! NSData
+    
     }
     
     func mapping(map: Map) {
@@ -65,6 +84,6 @@ class FetchResponse : Mappable {
         status      <- map["status"]
         _bodyInit   <- map["_bodyInit"]
         _bodyText   <- map["_bodyText"]
-        __hybridCacheResponse <- map["__hybridCacheResponse"]
+        hybridCacheResponse <- map["__hybridCacheResponse"]
     }
 }

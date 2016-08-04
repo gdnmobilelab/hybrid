@@ -6,5 +6,6 @@ CREATE TABLE "cache" (
     "etag" text,
     "contents" blob NOT NULL,
     "headers" text NOT NULL,
+    "status" integer NOT NULL,
     PRIMARY KEY("service_worker_url", "cache_id","resource_url")
 );
