@@ -45,6 +45,7 @@ class ServiceWorkerOutOfScopeError : ErrorType {
 public class ServiceWorkerInstance {
     
     var jsContext:JSContext!
+    var cache:ServiceWorkerCache!
     var jsBom:JSCoreBom!
     var contextErrorValue:JSValue?
     let url:NSURL!
@@ -70,11 +71,18 @@ public class ServiceWorkerInstance {
         self.jsBom = JSCoreBom()
         self.webSQL = WebSQL(url: self.url)
         self.jsContext.exceptionHandler = self.exceptionHandler
-        self.hookFunctions()
+        self.cache = ServiceWorkerCache(swURL: url)
+        
         
         self.jsBom.extend(self.jsContext, logHandler: self.swLog)
         
+        // JSBom adds XMLHTTPRequest and console logging. It also
+        // adds setTimeout, but without also adding clearTimeout
+        // so we override it in the TimeoutManager
         
+        self.jsContext.setObject(JSValue(undefinedInContext: self.jsContext), forKeyedSubscript: "setTimeout")
+        
+        self.hookFunctions()
     }
     
     private func swLog(level:String!, params:[AnyObject]!, formattedLogEntry:String!) {
@@ -91,45 +99,95 @@ public class ServiceWorkerInstance {
     
     static func getById(id:Int) -> Promise<ServiceWorkerInstance?> {
         
-        return DbTransactionPromise<ServiceWorkerInstance?>(toRun: { db in
-            let serviceWorkerContents = try db.executeQuery("SELECT url, scope, contents, install_state FROM service_workers WHERE instance_id = ?", values: [id])
+        
+        return Promise<Void>()
+        .then { () -> Promise<ServiceWorkerInstance?> in
             
-            if serviceWorkerContents.next() == false {
+            var instance:ServiceWorkerInstance? = nil
+            var contents:String? = nil
+            
+            try Db.mainDatabase.inDatabase({ (db) in
+                
+                let serviceWorkerContents = try db.executeQuery("SELECT url, scope, contents, install_state FROM service_workers WHERE instance_id = ?", values: [id])
+                
+                if serviceWorkerContents.next() == false {
+                    return serviceWorkerContents.close()
+                }
+                
+                instance = ServiceWorkerInstance(
+                    url: NSURL(string: serviceWorkerContents.stringForColumn("url"))!,
+                    scope: NSURL(string: serviceWorkerContents.stringForColumn("scope"))!,
+                    installState: ServiceWorkerInstallState(rawValue: Int(serviceWorkerContents.intForColumn("install_state")))!
+                )
+                
+                contents = serviceWorkerContents.stringForColumn("contents")
+                serviceWorkerContents.close()
+            })
+            
+            if instance == nil {
                 return Promise<ServiceWorkerInstance?>(nil)
             }
             
-            
-            let sw = ServiceWorkerInstance(
-                url: NSURL(string: serviceWorkerContents.stringForColumn("url"))!,
-                scope: NSURL(string: serviceWorkerContents.stringForColumn("scope"))!,
-                installState: ServiceWorkerInstallState(rawValue: Int(serviceWorkerContents.intForColumn("install_state")))!
-            )
-            
-            return sw.loadServiceWorker(serviceWorkerContents.stringForColumn("contents"))
+            return instance!.loadServiceWorker(contents!)
             .then { _ in
-                return sw
+                return instance
             }
             
-        })
-
+        }
+        
     }
     
     func scopeContainsURL(url:NSURL) -> Bool {
         return url.absoluteString.hasPrefix(self.scope.absoluteString)
     }
     
+    private func cacheOperation(callbackId:Int, operation:String, cacheName:String, args:JSValue) {
+        
+        Promise<Void>()
+        .then {
+            if operation == "addAll" {
+                
+                let filesToCache = args.toArray()[0]
+                
+                return self.cache.addAll(filesToCache as! [String], cacheName: cacheName)
+                    .then { successful in
+                        self.jsPromiseCallback(callbackId, fulfillValue: JSValue(bool:successful, inContext: self.jsContext), rejectValue: nil)
+                }
+            } else if operation == "match" {
+                let fileToLookup = args.toArray()[0] as! String
+                
+                return self.cache.match(NSURL(string:fileToLookup)!, cacheName: cacheName)
+                .then { match -> Void in
+                    
+                    var matchJSON = "null"
+                    if match != nil {
+                        matchJSON = match!.toJSONString()!
+                    }
+                    
+                    
+                    
+                    
+                    self.jsPromiseCallback(callbackId, fulfillValue: matchJSON, rejectValue: nil)
+                }
+                
+            }
+            throw CacheOperationNotSupportedError()
+        }
+        .recover { (err) -> Void in
+            self.jsPromiseCallback(callbackId, fulfillValue: nil, rejectValue: JSValue(newErrorFromMessage: String(err), inContext: self.jsContext))
+        }
+        
+    }
+    
     private func hookFunctions() {
         
-        let promiseCallbackAsConvention: @convention(block) (JSValue, JSValue, JSValue) -> Void = self.promiseCallback
+        let promiseCallbackAsConvention: @convention(block) (JSValue, JSValue, JSValue) -> Void = self.nativePromiseCallback
         self.jsContext.setObject(unsafeBitCast(promiseCallbackAsConvention, AnyObject.self), forKeyedSubscript: "__promiseCallback")
+        
+        let cacheOperationAsConvention: @convention(block) (Int, String, String, JSValue) -> Void = self.cacheOperation
+        self.jsContext.setObject(unsafeBitCast(cacheOperationAsConvention, AnyObject.self), forKeyedSubscript: "__cacheOperation")
 
-        
-        // JSCoreBom makes these irrelevant
-        
-//        let consoleAsConvention: @convention(block) (JSValue) -> Void = self.consoleLog
-//        self.jsContext.setObject(unsafeBitCast(consoleAsConvention, AnyObject.self), forKeyedSubscript: "__console")
-//        
-//        self.timeoutManager.hookFunctions(self.jsContext)
+        self.timeoutManager.hookFunctions(self.jsContext)
         self.webSQL.hookFunctions(self.jsContext)
     }
     
@@ -137,8 +195,28 @@ public class ServiceWorkerInstance {
         Console.logLevel(args.toString(), webviewURL: NSURL(string: self.url.absoluteString)!)
     }
     
+    private func jsPromiseCallback(pendingIndex: Int, fulfillValue:AnyObject?, rejectValue: AnyObject?) {
+        let funcToRun = self.jsContext
+            .objectForKeyedSubscript("hybrid")
+            .objectForKeyedSubscript("promiseCallback")
+        if rejectValue != nil {
+            funcToRun.callWithArguments([pendingIndex, NSNull(), rejectValue!])
+        } else {
+            
+            // TODO: investigate this. callWithArguments doesn't seem to like ? variables,
+            // but I'm not sure why.
+            
+            var fulfillValueToReturn:AnyObject = NSNull()
+            if fulfillValue != nil {
+                fulfillValueToReturn = fulfillValue!
+            }
+            
+            funcToRun.callWithArguments([pendingIndex, fulfillValueToReturn, NSNull()])
+        }
+        
+    }
     
-    private func promiseCallback(pendingIndex: JSValue, error: JSValue, response: JSValue) {
+    private func nativePromiseCallback(pendingIndex: JSValue, error: JSValue, response: JSValue) {
         let pendingIndexAsInt = Int(pendingIndex.toInt32())
         if (error.isNull == false) {
             pendingPromises[pendingIndexAsInt]?.reject(JSContextError(jsValue: error))

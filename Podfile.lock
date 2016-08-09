@@ -1,5 +1,6 @@
 PODS:
   - Alamofire (3.4.1)
+  - EmitterKit (4.0.2)
   - FMDB (2.6.2):
     - FMDB/standard (= 2.6.2)
   - FMDB/standard (2.6.2)
@@ -37,6 +38,7 @@ PODS:
 
 DEPENDENCIES:
   - Alamofire
+  - EmitterKit
   - FMDB
   - FMDBMigrationManager
   - GCDWebServer (~> 3.0)
@@ -58,6 +60,7 @@ CHECKOUT OPTIONS:
 
 SPEC CHECKSUMS:
   Alamofire: 01a82e2f6c0f860ade35534c8dd88be61bdef40c
+  EmitterKit: ac0dced2291745a6dd299a150665e1b3f0844a32
   FMDB: 854a0341b4726e53276f2a8996f06f1b80f9259a
   FMDBMigrationManager: d52007f328ea0665e8985ca8a33500707aef084f
   GCDWebServer: 2a375ec42839a41d7187d04e5b688d32fa5c4cd5
@@ -69,6 +72,6 @@ SPEC CHECKSUMS:
   Quick: 18d057bc66451eedd5d1c8dc99ba2a5db6e60226
   XCGLogger: d6e196e78940ff6daab17d6917107876f973fa31
 
-PODFILE CHECKSUM: ce0c66db692a694f01fcf5e4350665de564c2683
+PODFILE CHECKSUM: fc0f0a6b1e918bfb884dba4d16a468435fe540bd
 
 COCOAPODS: 1.0.1

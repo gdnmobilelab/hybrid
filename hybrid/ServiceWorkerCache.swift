@@ -56,6 +56,7 @@ class ServiceWorkerCacheMatchResponse : Mappable {
         serviceWorkerURL <- map["serviceWorkerURL"]
         cacheId <- map["cacheId"]
     }
+    
 }
 
 struct ServiceWorkerCacheResponseData {
@@ -65,20 +66,27 @@ struct ServiceWorkerCacheResponseData {
     var status:Int!
 }
 
+class CacheOperationNotSupportedError: ErrorType {}
+class CacheAddRequestFailedError : ErrorType {}
+
 class ServiceWorkerCache {
     
-    let escapedServiceWorkerURL:String
+//    let escapedServiceWorkerURL:String
     let serviceWorkerURL:NSURL
-    let cacheName:String
     
     
-    init(swURL:NSURL, cacheName:String) throws {
+    init(swURL:NSURL) {
         self.serviceWorkerURL = swURL
-        self.escapedServiceWorkerURL = swURL.absoluteString.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
-        self.cacheName = cacheName
+//        self.escapedServiceWorkerURL = swURL.absoluteString.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
     }
     
-    func addAll(urls: [String]) -> Promise<Bool> {
+    func hookFunctions(jsContext:JSContext) {
+//        let createConnectionConvention: @convention(block) (String) -> Int = self.addAll
+//        jsContext.setObject(unsafeBitCast(createConnectionConvention, AnyObject.self), forKeyedSubscript: "__createWebSQLConnection")
+    }
+
+    
+    func addAll(urls: [String], cacheName:String) -> Promise<Bool> {
         
         // TODO: what about URLs that redirect?
         
@@ -90,54 +98,83 @@ class ServiceWorkerCache {
         .thenInBackground({
             // wonder if thenInBackground will help
             
-            return DbTransactionPromise<Bool>(toRun: { (db) -> Promise<Bool> in
-                let downloadAndStoreTasks = urlsAsNSURLs.map { (url: NSURL) -> Promise<Void> in
-                    return Promisified.AlamofireRequest(Alamofire.Method.GET, url: url)
+            let downloadAndStoreTasks = urlsAsNSURLs.map { (url: NSURL) -> Promise<AlamofireResponse> in
+                return Promisified.AlamofireRequest("GET", url: url)
                     .then { r in
-                        let headers = MappableHTTPHeaderCollection(headersObj: r.response.allHeaderFields)
                         
-                        let headersAsJSON = Mapper().toJSONString(headers)!
+                        if r.response.statusCode < 200 || r.response.statusCode > 299 {
+                            log.error("Failed to cache: " + url.absoluteString)
+                            throw CacheAddRequestFailedError()
+                        }
                         
-                        try db.executeUpdate("INSERT INTO cache (service_worker_url, cache_id, resource_url, contents, headers, status) VALUES (?,?,?,?,?,?)", values: [self.serviceWorkerURL.absoluteString, self.cacheName, r.request.URL!.absoluteString, r.data!, headersAsJSON, r.response.statusCode] as [AnyObject])
+                        return Promise<AlamofireResponse>(r)
                         
-                        return Promise<Void>()
                     }
-                }
-                
-                return when(downloadAndStoreTasks)
-                .then {
+            }
+            
+            return when(downloadAndStoreTasks)
+                .then { responses in
+                    
+
+                    try Db.mainDatabase.inTransaction({ (db) in
+                        
+                        for r in responses {
+                            let headers = MappableHTTPHeaderCollection(headersObj: r.response.allHeaderFields)
+    
+                            let headersAsJSON = Mapper().toJSONString(headers)!
+    
+                            try db.executeUpdate("INSERT INTO cache (service_worker_url, cache_id, resource_url, contents, headers, status) VALUES (?,?,?,?,?,?)", values: [self.serviceWorkerURL.absoluteString, cacheName, r.request.URL!.absoluteString, r.data!, headersAsJSON, r.response.statusCode] as [AnyObject])
+                        }
+    
+                    })
+                    
+                    
+                    log.info("Successfully cached: " + urls.joinWithSeparator(", "))
                     return Promise<Bool>(true)
-                }
-            })
+            }
+
         })
         
     }
     
-    func match(url: NSURL) -> Promise<ServiceWorkerCacheMatchResponse?> {
+    func hookFunctions() {
+        
+    }
+
+    
+    func match(url: NSURL, cacheName:String) -> Promise<ServiceWorkerCacheMatchResponse?> {
         
         // match doesn't actually return the response object because sending to the JSContext
         // would be too costly. Instead we map it back again in the web server. That said, means
         // we can't touch/adjust response in JS. Is that a problem?
         
-        return DbTransactionPromise<ServiceWorkerCacheMatchResponse?>(toRun: { (db) -> Promise<ServiceWorkerCacheMatchResponse?> in
+        
+        return Promise<Void>()
+        .then {
             
-            let resultSet = try db.executeQuery("SELECT 1 FROM cache WHERE resource_url = ? AND service_worker_url = ? AND cache_id = ?", values: [url.absoluteString, self.serviceWorkerURL.absoluteString, self.cacheName])
+            var response:ServiceWorkerCacheMatchResponse? = nil
             
-            if resultSet.next() == false {
-                return Promise<ServiceWorkerCacheMatchResponse?>(nil)
+            try Db.mainDatabase.inDatabase { (db) in
+                let resultSet = try db.executeQuery("SELECT 1 FROM cache WHERE resource_url = ? AND service_worker_url = ? AND cache_id = ?", values: [url.absoluteString, self.serviceWorkerURL.absoluteString, cacheName])
+                
+                if resultSet.next() == false {
+                    log.info("Could not find cache match for: " + url.absoluteString)
+                    return resultSet.close()
+                }
+                
+                response = ServiceWorkerCacheMatchResponse(url: url.absoluteString, serviceWorkerURL: self.serviceWorkerURL.absoluteString, cacheId: cacheName)
+                
+                log.debug("Found cache match for: " + url.absoluteString)
+                
+                resultSet.close()
             }
             
-            // we actually don't need to respond with any data here, we just need to know
-            // that the row exists
-            
-            let response = ServiceWorkerCacheMatchResponse(url: url.absoluteString, serviceWorkerURL: self.serviceWorkerURL.absoluteString, cacheId: self.cacheName)
-            
             return Promise<ServiceWorkerCacheMatchResponse?>(response)
-
-        })
+        }
+       
     }
     
-    static func getResponse(url:String, serviceWorkerURL:String, cacheId: String) throws -> ServiceWorkerCacheResponseData? {
+    static func getResponse(url:String, serviceWorkerURL:String, cacheName: String) throws -> ServiceWorkerCacheResponseData? {
         
         // Static because this is being called from the web server, which doesn't need
         // or want to care about cache instances.
@@ -145,11 +182,11 @@ class ServiceWorkerCache {
         var response:ServiceWorkerCacheResponseData? = nil
         
         try Db.mainDatabase.inDatabase { (db) in
-            let resultSet = try db.executeQuery("SELECT * FROM cache WHERE resource_url = ? AND service_worker_url = ? AND cache_id = ?", values: [url, serviceWorkerURL, cacheId])
+            let resultSet = try db.executeQuery("SELECT * FROM cache WHERE resource_url = ? AND service_worker_url = ? AND cache_id = ?", values: [url, serviceWorkerURL, cacheName])
             
             if (resultSet.next() == false) {
                 // This shouldn't ever happen, but hey, you never know
-                return
+                return resultSet.close()
             }
             
             let headerCollection = Mapper<MappableHTTPHeaderCollection>().map(resultSet.stringForColumn("headers"))!
@@ -159,7 +196,7 @@ class ServiceWorkerCache {
             response!.response = resultSet.dataForColumn("contents")
             response!.headers = headerCollection.headers
             response!.status = Int(resultSet.intForColumn("status"))
-
+            resultSet.close()
         }
         
         return response

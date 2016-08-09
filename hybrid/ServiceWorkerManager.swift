@@ -83,7 +83,7 @@ class ServiceWorkerManager {
     
     static private func getLastUpdated(url:NSURL) -> Promise<NSDate?> {
         
-        return Promisified.AlamofireRequest(Alamofire.Method.HEAD, url: url)
+        return Promisified.AlamofireRequest("HEAD", url: url)
             .then({ container in
                 let lastModHeader = getHeaderCaseInsensitive(container.response, name: "last-modified")
                 
@@ -105,20 +105,29 @@ class ServiceWorkerManager {
             case DoNotUpdate
         }
         
-        return DbTransactionPromise<NSDate?> { db in
-            let result = try db.executeQuery("SELECT * FROM service_workers WHERE url = ? ORDER BY last_modified LIMIT 1", values: [urlOfServiceWorker])
+        return Promise<Void>()
+        .then { () -> Promise<NSDate?> in
             
-            if (result.next() == false) {
+            var lastSeenModifiedDate:NSDate? = nil
+            
+            try Db.mainDatabase.inDatabase({ (db) in
+                let result = try db.executeQuery("SELECT * FROM service_workers WHERE url = ? ORDER BY last_modified LIMIT 1", values: [urlOfServiceWorker])
                 
-                // If there's no existing service worker record, we must update
+                if result.next() == false {
+                    
+                    // If there's no existing service worker record, we must update
+                    return result.close()
+                }
                 
-                return Promise<NSDate?>(nil)
-            } else {
-                let lastSeenModifiedDate = NSDate(timeIntervalSince1970: result.doubleForColumn("last_modified"))
-                return Promise<NSDate?>(lastSeenModifiedDate)
-            }
+                lastSeenModifiedDate = NSDate(timeIntervalSince1970: result.doubleForColumn("last_modified"))
+                result.close()
+            })
+            
+            return Promise<NSDate?>(lastSeenModifiedDate)
+                
+        }
 
-        }.then { (storedLastModDate) -> Promise<ServiceWorkerUpdateType> in
+        .then { (storedLastModDate) -> Promise<ServiceWorkerUpdateType> in
             if (storedLastModDate == nil) {
                 // if we have no stored date, we need to update
                 return Promise<ServiceWorkerUpdateType>(ServiceWorkerUpdateType.New)
@@ -143,7 +152,7 @@ class ServiceWorkerManager {
                 return Promise<ServiceWorkerUpdateResult>(ServiceWorkerUpdateResult.NoUpdateNeeded)
             }
             
-            return Promisified.AlamofireRequest(Alamofire.Method.GET, url: urlOfServiceWorker)
+            return Promisified.AlamofireRequest("GET", url: urlOfServiceWorker)
             .then { container in
                 
                 let lastMod = getHeaderCaseInsensitive(container.response, name: "last-modified")
@@ -173,13 +182,22 @@ class ServiceWorkerManager {
     
     static func insertServiceWorkerIntoDB(serviceWorkerURL:NSURL, scope: NSURL, lastModified:NSTimeInterval, js:NSData, installState:ServiceWorkerInstallState = ServiceWorkerInstallState.Installing) -> Promise<Int> {
         
-        
-        return DbTransactionPromise<Int> { db in
-            try db.executeUpdate("INSERT INTO service_workers (url, scope, last_modified, contents, install_state) VALUES (?,?,?,?,?)", values: [serviceWorkerURL.absoluteString, scope.absoluteString, lastModified, js, installState.rawValue ] as [AnyObject])
+        return Promise<Void>()
+        .then {
             
-            let newId = db.lastInsertRowId()
+            var newId:Int64 = -1
+            
+            try Db.mainDatabase.inTransaction({ (db) in
+                try db.executeUpdate("INSERT INTO service_workers (url, scope, last_modified, contents, install_state) VALUES (?,?,?,?,?)", values: [serviceWorkerURL.absoluteString, scope.absoluteString, lastModified, js, installState.rawValue ] as [AnyObject])
+                
+                newId = db.lastInsertRowId()
+            })
+            
+            log.info("Installed service worker for URL: " + serviceWorkerURL.absoluteString)
+            
             return Promise<Int>(Int(newId))
         }
+       
     }
     
     static func installServiceWorker(id:Int) -> Promise<ServiceWorkerInstallState> {
@@ -226,8 +244,9 @@ class ServiceWorkerManager {
                 return Promise<ServiceWorkerInstallState>(ServiceWorkerInstallState.Redundant)
             }
             .then { installState in
-                return DbTransactionPromise<ServiceWorkerInstallState>(toRun: { (db) in
-                    
+                
+                
+                try Db.mainDatabase.inTransaction({ (db) in
                     let idAsNSNumber = NSNumber(longLong: Int64(id))
                     
                     // Update our service worker to be "current"
@@ -238,10 +257,11 @@ class ServiceWorkerManager {
                     // TODO: cleanup. Just delete the rows?
                     
                     try db.executeUpdate("UPDATE service_workers SET install_state = ? WHERE scope = ? AND instance_id != ?", values: [ServiceWorkerInstallState.Redundant.rawValue, swInstance!.scope.absoluteString, idAsNSNumber] as [AnyObject])
-                    
-                    
-                    return Promise<ServiceWorkerInstallState>(installState)
+
                 })
+                
+                return Promise<ServiceWorkerInstallState>(installState)
+                
             }
         }
         
@@ -279,28 +299,25 @@ class ServiceWorkerManager {
     
     static private func attemptWorkerActivate(sw:ServiceWorkerInstance, instanceId:Int) -> Promise<Void> {
         
-        return DbTransactionPromise<JSValue>(toRun: { db in
-            
-            // In its own transaction, so if an error occurs all is rolled back.
-            
-            return sw.dispatchExtendableEvent("activate", data: nil)
-                
-        })
-        .then { _ in
+        return sw.dispatchExtendableEvent("activate", data: nil)
+        .then { _ -> ServiceWorkerInstallState in
+            log.info("Successfully activated service worker: " + sw.url.absoluteString)
             return ServiceWorkerInstallState.Activated
         }
-        .recover { error in
+        .recover { error -> ServiceWorkerInstallState in
+            log.error("Failed to activate service worker:" + (error as! JSContextError).message)
             return ServiceWorkerInstallState.Redundant
         }
         .then { newStatus in
-            return DbTransactionPromise<Void>(toRun: { db in
-
+            
+            try Db.mainDatabase.inTransaction({ (db) in
                 try db.executeUpdate("UPDATE service_workers SET install_state = ? WHERE instance_id = ?", values: [newStatus.rawValue, instanceId])
                 
                 sw.installState = newStatus
-                
-                return Promise<Void>()
             })
+            
+            return Promise<Void>()
+
         }
         
     }
@@ -314,7 +331,7 @@ class ServiceWorkerManager {
         
         return ServiceWorkerInstance.getById(eligibleWorkerId)
         .then { (sw) -> Promise<ServiceWorkerInstance?> in
-            
+            log.debug("Eligible service worker with install state: " + String(sw?.installState))
             if (sw?.installState == ServiceWorkerInstallState.Installed) {
                 return self.attemptWorkerActivate(sw!, instanceId: eligibleWorkerId)
                 .then {
@@ -350,25 +367,27 @@ class ServiceWorkerManager {
         // has a status of Installed, we need to activate it. BUT if that activation fails
         // we need to use an older, installed worker.
         
-        
-        return DbTransactionPromise<[Int]>(toRun: { db in
-        
-            // Let's first make sure we're selecting with the most specific scope
-        
-            let selectScopeQuery = "SELECT scope FROM service_workers WHERE ? LIKE (scope || '%') ORDER BY length(scope) DESC LIMIT 1"
-            
-            let applicableWorkerResultSet = try db.executeQuery("SELECT instance_id FROM service_workers WHERE scope = (" + selectScopeQuery  + ") AND (install_state == ? OR install_state = ?) ORDER BY instance_id DESC", values: [url.absoluteString, ServiceWorkerInstallState.Activated.rawValue, ServiceWorkerInstallState.Installed.rawValue])
-            
+        return Promise<Void>()
+        .then { () -> Promise<[Int]> in
             var workerIds = [Int]()
             
-            while applicableWorkerResultSet.next() {
-                workerIds.append(Int(applicableWorkerResultSet.intForColumn("instance_id")))
-            }
+            try Db.mainDatabase.inDatabase({ (db) in
+                // Let's first make sure we're selecting with the most specific scope
+                
+                let selectScopeQuery = "SELECT scope FROM service_workers WHERE ? LIKE (scope || '%') ORDER BY length(scope) DESC LIMIT 1"
+                
+                let applicableWorkerResultSet = try db.executeQuery("SELECT instance_id FROM service_workers WHERE scope = (" + selectScopeQuery  + ") AND (install_state == ? OR install_state = ?) ORDER BY instance_id DESC", values: [url.absoluteString, ServiceWorkerInstallState.Activated.rawValue, ServiceWorkerInstallState.Installed.rawValue])
+               
+                while applicableWorkerResultSet.next() {
+                    workerIds.append(Int(applicableWorkerResultSet.intForColumn("instance_id")))
+                }
+                applicableWorkerResultSet.close()
+
+            })
             
             return Promise<[Int]>(workerIds)
-            
-        
-        }).then { ids in
+        }
+        .then { ids in
             if (ids.count == 0) {
                 return Promise<ServiceWorkerInstance?>(nil)
             }

@@ -12,39 +12,42 @@ import JavaScriptCore
 import FMDBMigrationManager
 import PromiseKit
 
-class DbTransactionPromise<T>: Promise<T> {
-    
-    typealias DBRun = (db:FMDatabase) throws -> Promise<T>
-    
-    init(toRun: DBRun) {
-        super.init(resolvers: { fulfill, reject in
-            Db.mainDatabase.dbQueue.inTransaction() {
-                db, rollback in
-                
-                do {
-                    // It can fail synchronously
-                    try toRun(db: db)
-                        
-                        .then { returnedPromise in
-                            
-                            fulfill(returnedPromise)
-                        }
-                        .error { error in
-                            // Or asynchronously
-                            db.rollback()
-                            rollback.initialize(true)
-                            reject(error)
-                    }
-                } catch {
-                    db.rollback()
-                    rollback.initialize(true)
-   
-                    reject(error)
-                }
-            }
-        })
-    }
-}
+//class DbTransactionPromise<T>: Promise<T> {
+//    
+//    typealias DBRun = (db:FMDatabase) throws -> Promise<T>
+//    
+//    init(toRun: DBRun) {
+//        super.init(resolvers: { fulfill, reject in
+//            Db.mainDatabase.dbQueue.inTransaction() {
+//                db, rollback in
+//                
+//                do {
+//                    // It can fail synchronously
+//                    try toRun(db: db)
+//                        
+//                        .then { returnedPromise -> Void in
+//
+//                            fulfill(returnedPromise)
+//                        }
+//                        .error { error in
+//                            // Or asynchronously
+//                            //db.rollback()
+//                            rollback.initialize(true)
+//                            rollback.memory = true
+//                            reject(error)
+//                    }
+//                } catch {
+//                   // db.rollback()
+//                    rollback.initialize(true)
+//                    rollback.memory = true
+//                    reject(error)
+//                }
+//            }
+//        })
+//    }
+//}
+
+class ResultSetsStillOpenError : ErrorType {}
 
 class Db {
     
@@ -93,9 +96,11 @@ class Db {
             
             do {
                 try toRun(db: db!)
+                if db.hasOpenResultSets() {
+                    throw ResultSetsStillOpenError()
+                }
             } catch {
-                
-                rollback.initialize(true)
+                rollback.memory = true
                 err = error
             }
         }
@@ -115,6 +120,9 @@ class Db {
             
             do {
                 try toRun(db: db!)
+                if db.hasOpenResultSets() {
+                    throw ResultSetsStillOpenError()
+                }
             } catch {
                 
                 err = error

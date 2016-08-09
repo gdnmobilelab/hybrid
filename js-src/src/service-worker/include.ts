@@ -1,9 +1,10 @@
-import './globals/console';
+// import './globals/console';
 import './globals/promise';
 import './globals/extended-event-types';
 import './globals/websql';
 import './globals/indexeddb';
 import './globals/fetch';
+import './globals/cache';
 
 import './hybrid/promise-bridge';
 import './hybrid/dispatch-extended-event';

@@ -17,13 +17,15 @@ struct AlamofireResponse {
 }
 
 class Promisified {
-    static func AlamofireRequest(method:Alamofire.Method, url:NSURL) -> Promise<AlamofireResponse> {
+    static func AlamofireRequest(method:String!, url:NSURL) -> Promise<AlamofireResponse> {
+        
         return Promise { fulfill, reject in
                 Alamofire
-                    .request(method, url)
+                    .request(Alamofire.Method(rawValue: method)!, url)
                     .response(completionHandler: { (req: NSURLRequest?, res: NSHTTPURLResponse?, data: NSData?, err: NSError?) in
                         if err != nil {
                             reject(err!)
+                            return
                         }
                         
                         fulfill(AlamofireResponse(request: req!, response: res!, data: data))

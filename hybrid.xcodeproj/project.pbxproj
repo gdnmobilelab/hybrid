@@ -21,10 +21,13 @@
 		8A8846091D3014AA00CF9369 /* ServiceWorkerInstance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8846081D3014AA00CF9369 /* ServiceWorkerInstance.swift */; };
 		8A88460D1D3504EA00CF9369 /* ServiceWorkerWebSql.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */; };
 		8AA0BF191D4278CA00DADF1C /* FetchAPIObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA0BF181D4278CA00DADF1C /* FetchAPIObjects.swift */; };
+		8AD283501D55070000D2DF07 /* test-workers in Resources */ = {isa = PBXBuildFile; fileRef = 8AD2834F1D55070000D2DF07 /* test-workers */; };
+		8AD283521D55076D00D2DF07 /* TestUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AD283511D55076D00D2DF07 /* TestUtil.swift */; };
 		8ADAAE181D10E2F5009F3898 /* console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADAAE171D10E2F5009F3898 /* console.swift */; };
 		8ADAAE1A1D119F7E009F3898 /* ServiceWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADAAE191D119F7E009F3898 /* ServiceWorker.swift */; };
 		8AE082041D47EF2700CCF00C /* Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE082031D47EF2700CCF00C /* Events.swift */; };
 		8AE082071D47F32900CCF00C /* PromisedEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE082061D47F32900CCF00C /* PromisedEvents.swift */; };
+		8AEA3F261D54056C000A7C70 /* server-test-data in Resources */ = {isa = PBXBuildFile; fileRef = 8AEA3F251D54056C000A7C70 /* server-test-data */; };
 		8AEBD0D21D42E6230042A4AB /* WebServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEBD0D11D42E6230042A4AB /* WebServer.swift */; };
 		8AEEDE5C1D26CF450032D588 /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
 		8AEEDE5E1D26ECE70032D588 /* url-resolve.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5D1D26ECE70032D588 /* url-resolve.swift */; };
@@ -80,10 +83,13 @@
 		8A8846081D3014AA00CF9369 /* ServiceWorkerInstance.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerInstance.swift; sourceTree = "<group>"; };
 		8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerWebSql.swift; sourceTree = "<group>"; };
 		8AA0BF181D4278CA00DADF1C /* FetchAPIObjects.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchAPIObjects.swift; sourceTree = "<group>"; };
+		8AD2834F1D55070000D2DF07 /* test-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "test-workers"; sourceTree = "<group>"; };
+		8AD283511D55076D00D2DF07 /* TestUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtil.swift; sourceTree = "<group>"; };
 		8ADAAE171D10E2F5009F3898 /* console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = console.swift; path = commands/console.swift; sourceTree = "<group>"; };
 		8ADAAE191D119F7E009F3898 /* ServiceWorker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ServiceWorker.swift; path = commands/ServiceWorker.swift; sourceTree = "<group>"; };
 		8AE082031D47EF2700CCF00C /* Events.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Events.swift; sourceTree = "<group>"; };
 		8AE082061D47F32900CCF00C /* PromisedEvents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PromisedEvents.swift; sourceTree = "<group>"; };
+		8AEA3F251D54056C000A7C70 /* server-test-data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "server-test-data"; sourceTree = "<group>"; };
 		8AEBD0D11D42E6230042A4AB /* WebServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServer.swift; sourceTree = "<group>"; };
 		8AEEDE5B1D26CF450032D588 /* db.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = db.swift; sourceTree = "<group>"; };
 		8AEEDE5D1D26ECE70032D588 /* url-resolve.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "url-resolve.swift"; sourceTree = "<group>"; };
@@ -262,10 +268,13 @@
 		D31BC1201CD534CF00CF6BEB /* hybridTests */ = {
 			isa = PBXGroup;
 			children = (
+				8AD2834F1D55070000D2DF07 /* test-workers */,
+				8AEA3F251D54056C000A7C70 /* server-test-data */,
 				8A878AC81D4AC95B00D31F85 /* cache-test-data */,
 				8A8846071D30149600CF9369 /* service-worker */,
 				D31BC1231CD534CF00CF6BEB /* Info.plist */,
 				8AEBD0D11D42E6230042A4AB /* WebServer.swift */,
+				8AD283511D55076D00D2DF07 /* TestUtil.swift */,
 			);
 			path = hybridTests;
 			sourceTree = "<group>";
@@ -405,6 +414,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A878AC91D4AC95B00D31F85 /* cache-test-data in Resources */,
+				8AEA3F261D54056C000A7C70 /* server-test-data in Resources */,
+				8AD283501D55070000D2DF07 /* test-workers in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -585,6 +596,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A878ACB1D4AC9C700D31F85 /* ServiceWorkerCacheSpec.swift in Sources */,
+				8AD283521D55076D00D2DF07 /* TestUtil.swift in Sources */,
 				8A8846091D3014AA00CF9369 /* ServiceWorkerInstance.swift in Sources */,
 				8A263A7D1D353D9300B6505E /* ServiceWorkerWebSql.swift in Sources */,
 				8A54109D1D3819DE00F44F38 /* ServiceWorkerManager.swift in Sources */,

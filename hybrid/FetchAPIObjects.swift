@@ -34,9 +34,11 @@ class FetchRequest : Mappable {
     }
 }
 
+class FetchHasNoBodyError: ErrorType {}
+
 class FetchResponse : Mappable {
     var url: NSURL!
-    var status: Int!
+    var status: Int?
     private var headersAsAnyObject: [String: AnyObject] = [:]
     var _bodyInit: Any!
     var _bodyText: String?
@@ -47,13 +49,13 @@ class FetchResponse : Mappable {
         
     }
     
-    func checkForCacheMatchResponse(serviceWorkerURL:NSURL) throws {
+    func checkForCacheMatchResponse() throws {
         
         if self.hybridCacheResponse == nil {
             return
         }
         
-        let cacheResponse = try ServiceWorkerCache.getResponse(self.url.absoluteString, serviceWorkerURL: serviceWorkerURL.absoluteString, cacheId: hybridCacheResponse!.cacheId)!
+        let cacheResponse = try ServiceWorkerCache.getResponse(self.url.absoluteString, serviceWorkerURL: hybridCacheResponse!.serviceWorkerURL, cacheName: hybridCacheResponse!.cacheId)!
         
         self._bodyInit = cacheResponse.response
         self.headersAsAnyObject = cacheResponse.headers
@@ -63,13 +65,36 @@ class FetchResponse : Mappable {
     
     func getHeader(name:String) -> String? {
         // again, remove case-sensitivity in headers
-        return self.headersAsAnyObject[name.lowercaseString] as? String
+        let header = self.headersAsAnyObject[name.lowercaseString]
+        if header == nil {
+            return nil
+        }
+        
+        // The Fetch JS library returns headers as an array. Not 100% sure why - need to 
+        // make sure commas are the correct way to bring these together.
+        
+        return (header as! NSArray).componentsJoinedByString(",")
     }
     
-    func getBody() -> NSData {
+    func getAllHeaders() -> [String: AnyObject] {
         
-        if (self._bodyText != nil) {
+        let headersAsArray = self.headersAsAnyObject as! [String: NSArray]
+        var headersAsString = [String:String]()
+        
+        for (key, val) in headersAsArray {
+            headersAsString[key] = val.componentsJoinedByString(",")
+        }
+        return headersAsString
+    }
+    
+    func getBody() throws -> NSData {
+        
+        if self._bodyText != nil {
             return self._bodyText!.dataUsingEncoding(NSUTF8StringEncoding)!
+        }
+        
+        if self._bodyInit == nil {
+            throw FetchHasNoBodyError()
         }
         
         // TODO: What if this isn't NSData? Right now it always is, but that could change.

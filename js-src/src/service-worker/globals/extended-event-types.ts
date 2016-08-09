@@ -25,13 +25,13 @@ export class ExtendableEvent {
 
 export class FetchEvent {
 
-    private data:Object;
+    private request:Object;
     public type:string;
     private respondWithPromise:Promise<any> = null;
 
-    constructor(type:string, data?: Object) {
-        this.type = type;
-        this.data = data;
+    constructor(data?: FetchEventOptions) {
+        this.type = "fetch";
+        this.request = data.request;
     }
 
     respondWith(promise:Promise<any>) {

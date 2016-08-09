@@ -3,6 +3,7 @@ declare function __execDatabaseQuery(nativeDbId:number, queries:string, readOnly
 declare function __setGlobals(keys: [string]): void;
 declare function __console(message:string): void;
 declare function __createWebSQLConnection(name:string): number;
+declare function __cacheOperation(callbackIndex:number, operation:String, cacheName:String, args:[any]): number;
 
 declare interface ConsoleMessage {
     level:string;
@@ -14,7 +15,13 @@ declare class ExtendableEvent extends Event {
     resolve():Promise<any>
 }
 
+declare interface FetchEventOptions {
+    request: any
+}
+
 declare class FetchEvent extends Event {
+    constructor(eventOptions: FetchEventOptions)
+    new(eventOptions: FetchEventOptions): FetchEvent;
     responseWith(promise: Promise<any>): void
     resolve():Promise<any>
 }

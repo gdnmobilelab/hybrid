@@ -15,7 +15,10 @@ hybrid.dispatchExtendableEvent = function(name:string, data:Object) {
 
 
 hybrid.dispatchFetchEvent = function(data:Object) {
-    let respondWithEvent = new FetchEvent("fetch", data);
+    
+    let respondWithEvent = new FetchEvent({
+        request: data
+    });
 
     self.dispatchEvent(respondWithEvent);
 
