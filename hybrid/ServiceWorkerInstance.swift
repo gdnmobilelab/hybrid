@@ -53,7 +53,7 @@ public class ServiceWorkerInstance {
     let timeoutManager = ServiceWorkerTimeoutManager()
     let webSQL: WebSQL!
     var installState:ServiceWorkerInstallState!
-    let events = PromisedEvents()
+//    let events = PromisedEvents()
     
     var pendingPromises = Dictionary<Int, PromiseReturn>()
     
@@ -189,6 +189,8 @@ public class ServiceWorkerInstance {
 
         self.timeoutManager.hookFunctions(self.jsContext)
         self.webSQL.hookFunctions(self.jsContext)
+        
+        self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
     }
     
     private func consoleLog(args: JSValue) {

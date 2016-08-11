@@ -39,25 +39,7 @@ class ServiceWorkerManager {
         self.currentlyActiveServiceWorkers.removeAll(keepCapacity: false)
     }
     
-//    static private func getOrCreateActiveServiceWorker(instanceId:Int) -> Promise<ServiceWorkerInstance> {
-//        
-//        // If an active instance already exists then we should return that one. Otherwise,
-//        // create a new instance and store it in the dictionary.
-//        
-//        // TODO: When do we evict workers?
-//        
-//        if (currentlyActiveServiceWorkers[instanceId] != nil) {
-//            return Promise<ServiceWorkerInstance>(currentlyActiveServiceWorkers[instanceId]!)
-//        }
-//        
-//        return ServiceWorkerInstance.getById(instanceId)
-//        .then { sw in
-//            currentlyActiveServiceWorkers[instanceId] = sw!
-//            return Promise<ServiceWorkerInstance>(sw!)
-//        }
-//    
-//    }
-    
+   
     // Amazon S3, at least, seems to return headers in lowercase. So we need to accommodate that.
     static private func getHeaderCaseInsensitive(res:NSHTTPURLResponse, name:String) -> String? {
         let nameLowerCase = name.lowercaseString

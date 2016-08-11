@@ -1,6 +1,8 @@
 import {send} from './wk-messaging';
 
-const makeSuitable = (val) => {
+let consoleAsAny:any = console;
+
+const makeSuitable = (val:any) => {
     if (val instanceof Error) {
         return val.toString()
     } else {
@@ -8,12 +10,12 @@ const makeSuitable = (val) => {
     }
 }
 
-if (!console._hybridHooked) {
+if (!consoleAsAny._hybridHooked) {
     let levels = ['info', 'log', 'error'];
 
     levels.forEach((level) => {
-        let original = console[level];
-        console[level] = function() {
+        let original = consoleAsAny[level];
+        consoleAsAny[level] = function() {
             
             // Still output to web console in case we have Safari debugger attached.
             if (original) {
@@ -42,6 +44,6 @@ if (!console._hybridHooked) {
     }
     
         
-    console._hybridHooked = true;
+    consoleAsAny._hybridHooked = true;
 }
 
