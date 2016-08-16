@@ -53,7 +53,6 @@ class WebServer {
         
         let hostPortSplit = url.pathComponents![2].componentsSeparatedByString(":")
         
-        
 
 //        Int32(<#T##text: String##String#>)
         let fetchURL = NSURLComponents()

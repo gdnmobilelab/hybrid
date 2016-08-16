@@ -20,19 +20,13 @@ class ServiceWorkerManagerSpec: QuickSpec {
     
     override func spec() {
         
-        beforeEach {
-            do {
-                ServiceWorkerManager.clearActiveServiceWorkers()
-                try Db.mainDatabase.inDatabase({ (db) in
-                    try db.executeUpdate("DELETE FROM service_workers", values: [])
-                })
-            } catch {
-                expect(error).to(beNil())
-            }
-            
-        }
         
         describe("Service Worker Manager") {
+            
+            beforeEach {
+                TestUtil.clearServiceWorkers()
+            }
+            
             
             it("should return nil with no service worker") {
                 

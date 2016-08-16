@@ -28,14 +28,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             try WebServer.initialize()
             
-            let serviceWorkerHandler = try ServiceWorkerHandler();
-            let messageHandler = HybridMessageHandler();
+           // let serviceWorkerHandler = try ServiceWorkerHandler();
+          //  let messageHandler = HybridMessageHandler();
             
-            try messageHandler.setPort(serviceWorkerHandler.webServerPort);
+          //  try messageHandler.setPort(serviceWorkerHandler.webServerPort);
             
             let rootWindow = UIWindow(frame: UIScreen.mainScreen().bounds);
             //rootWindow.backgroundColor = UIColor.whiteColor();
-            rootWindow.rootViewController = ViewController(config: messageHandler.webviewConfiguration);
+            rootWindow.rootViewController = UIViewController()//ViewController(config: messageHandler.webviewConfiguration);
             
             self.window = rootWindow;
             rootWindow.makeKeyAndVisible();

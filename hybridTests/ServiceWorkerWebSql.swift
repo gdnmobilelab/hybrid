@@ -19,22 +19,26 @@ class ServiceWorkerWebSQLSpec: QuickSpec {
     override func spec() {
         
         
-        beforeEach({
-            do {
-                let dbPath = try Db.getFullDatabasePath("filetest", dbFilename: "test_db")
-                try NSFileManager.defaultManager().removeItemAtPath(dbPath)
-            } catch {
-                
-            }
-            
-        })
+       
         
         describe("Service Worker WebSQL") {
+            
+            beforeEach({
+                ServiceWorkerManager.clearActiveServiceWorkers()
+                do {
+                    let dbPath = try Db.getFullDatabasePath("filetest", dbFilename: "test_db")
+                    try NSFileManager.defaultManager().removeItemAtPath(dbPath)
+                } catch {
+                    
+                }
+                
+            })
+            
             it("should successfully run a read-only query") {
                 
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, installState: ServiceWorkerInstallState.Installed)
+                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, instanceId:0, installState: ServiceWorkerInstallState.Installed)
  
                     sw.loadServiceWorker("")
                         .then {_ in
@@ -71,7 +75,7 @@ class ServiceWorkerWebSQLSpec: QuickSpec {
                 
                 waitUntil { done in
                     
-                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, installState: ServiceWorkerInstallState.Installed)
+                    let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, instanceId:0, installState: ServiceWorkerInstallState.Installed)
 
                     let sql = "CREATE TABLE test (" +
                         "\"testvalue\" TEXT NOT NULL" +
@@ -117,52 +121,52 @@ class ServiceWorkerWebSQLSpec: QuickSpec {
                 }
             }
             
-            xit("should pass IndexedDB tests") {
-                
-                var mochaJS = ""
-                var testJS = ""
-                
-                do {
-                    let mochaJSPath = NSBundle.mainBundle().pathForResource("mocha", ofType: "js", inDirectory: "js-dist")!
-                    let testJSPath = NSBundle.mainBundle().pathForResource("indexeddb-test", ofType: "js", inDirectory: "js-dist")!
-                    
-                    testJS = try NSString(contentsOfFile: testJSPath, encoding: NSUTF8StringEncoding) as String
-                    mochaJS = try NSString(contentsOfFile: mochaJSPath, encoding: NSUTF8StringEncoding) as String
-                    
-                } catch {
-                    expect(error).to(beNil())
-                }
-                
-                let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, installState: ServiceWorkerInstallState.Installed)
-
-                
-                waitUntil(timeout: 30) { done in
- 
-                    sw.loadServiceWorker("global.Date = Date; global.setTimeout = setTimeout; global.clearTimeout = clearTimeout;" + mochaJS)
-                        
-                        .then {_ in
-                            return sw.applyGlobalVariables()
-                        }
-                        .then {_ in
-                            return sw.runScript(testJS + ";0;")
-                        }
-                        .then {_ in
-                            return sw.executeJSPromise("global.runTests()")
-                        }
-                        .then { (result:JSValue) -> Void in
-//                            let resultAsObj = result.toObject() as! [String: JSValue]
-//                            
-//                            let failuresArray = resultAsObj["failures"]!.toArray()
-//                            let f = failuresArray.count
-                            done()
-                    }.error { error in
-                        expect(error).to(beNil())
-                        done()
-                    }
-                }
-                
-                
-            }
+//            xit("should pass IndexedDB tests") {
+//                
+//                var mochaJS = ""
+//                var testJS = ""
+//                
+//                do {
+//                    let mochaJSPath = NSBundle.mainBundle().pathForResource("mocha", ofType: "js", inDirectory: "js-dist")!
+//                    let testJSPath = NSBundle.mainBundle().pathForResource("indexeddb-test", ofType: "js", inDirectory: "js-dist")!
+//                    
+//                    testJS = try NSString(contentsOfFile: testJSPath, encoding: NSUTF8StringEncoding) as String
+//                    mochaJS = try NSString(contentsOfFile: mochaJSPath, encoding: NSUTF8StringEncoding) as String
+//                    
+//                } catch {
+//                    expect(error).to(beNil())
+//                }
+//                
+//                let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, installState: ServiceWorkerInstallState.Installed)
+//
+//                
+//                waitUntil(timeout: 30) { done in
+// 
+//                    sw.loadServiceWorker("global.Date = Date; global.setTimeout = setTimeout; global.clearTimeout = clearTimeout;" + mochaJS)
+//                        
+//                        .then {_ in
+//                            return sw.applyGlobalVariables()
+//                        }
+//                        .then {_ in
+//                            return sw.runScript(testJS + ";0;")
+//                        }
+//                        .then {_ in
+//                            return sw.executeJSPromise("global.runTests()")
+//                        }
+//                        .then { (result:JSValue) -> Void in
+////                            let resultAsObj = result.toObject() as! [String: JSValue]
+////                            
+////                            let failuresArray = resultAsObj["failures"]!.toArray()
+////                            let f = failuresArray.count
+//                            done()
+//                    }.error { error in
+//                        expect(error).to(beNil())
+//                        done()
+//                    }
+//                }
+//                
+//                
+//            }
             
             
         

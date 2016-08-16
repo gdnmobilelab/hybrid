@@ -26,9 +26,19 @@ declare class FetchEvent extends Event {
     resolve():Promise<any>
 }
 
+declare class WebviewClientManager {
+    claim(callback: (err:string) => void): Promise<void>
+    matchAll(options:ServiceWorkerClientsMatchOptions): Promise<ServiceWorkerClient[]>
+    openWindow(url:String): Promise<WindowClient>
+}
+
+declare var __WebviewClientManager: WebviewClientManager;
+
 declare var hybrid: any;
 
 declare var global: any;
+
+// declare var self: ServiceWorkerGlobalScope;
 
 declare module "websql/custom" {
     var _temp:any;

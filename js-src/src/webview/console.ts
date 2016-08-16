@@ -10,7 +10,13 @@ const makeSuitable = (val:any) => {
     } else if (val === null || val === undefined) {
         return "null"
     } else {
-        return JSON.stringify(val);
+        let returnString = "(not stringifyable): "
+        try {
+            returnString = JSON.stringify(val);
+        } catch (err) {
+            returnString += err.toString()
+        }
+        return returnString
     }
 }
 

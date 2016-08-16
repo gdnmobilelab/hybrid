@@ -17,37 +17,11 @@ import GCDWebServer
 
 class WebServerTests: QuickSpec {
     override func spec() {
+        
+
         describe("Web Server") {
             
-//            var gcdWeb:GCDWebServer?
-//            
-//            beforeEach {
-//                let bundle = NSBundle(forClass: ServiceWorkerCacheSpec.self)
-//                
-//                // can't work out how to get directory path. So we get file path first
-//                
-//                let filePath = bundle.pathForResource("demo-live", ofType: "txt", inDirectory: "server-test-data")!
-//                
-//                let fileURL = NSURL(string: filePath)
-//                
-//                // now remove last URL component
-//                let directoryPath = fileURL!.URLByDeletingLastPathComponent?.absoluteString
-//                
-//                
-//                gcdWeb = GCDWebServer()
-//                gcdWeb!.addGETHandlerForBasePath("/", directoryPath: directoryPath, indexFilename: "index.html", cacheAge: 0, allowRangeRequests: false)
-//                
-//                gcdWeb!.start()
-//                let p = gcdWeb!.port
-//                NSLog("wat", String(p))
-//
-//            }
-//            
-//            afterEach {
-//                gcdWeb!.stop()
-//            }
-            
-            beforeSuite {
+            beforeEach {
                 do {
                     try Db.mainDatabase.inDatabase({ (db) in
                         NSLog("Clearing service workers before test...")
@@ -77,47 +51,46 @@ class WebServerTests: QuickSpec {
                 expect(modified.absoluteString).to(equal("https://www.test.com:3124/hello/test.html"))
             }
             
-            it("should process a service worker fetch event through the browser") {
-                let bundle = NSBundle(forClass: ServiceWorkerCacheSpec.self)
-                
-                // can't work out how to get directory path. So we get file path first
-                
-                let filePath = bundle.pathForResource("test-fetch-event", ofType: "js", inDirectory: "test-workers")!
+            it("should map a server request URL with port to the full service worker URL") {
+            
+                let filePath = TestUtil.getFilePath("test-workers/test-fetch-event.js")
                 
                 waitUntil(timeout: 500) { done in
                     ServiceWorkerManager.insertServiceWorkerIntoDB(NSURL(string:"https://test.local/test.js")!, scope: NSURL(string: "https://test.local")!, lastModified: 1, js: NSData(contentsOfFile: filePath)!, installState: ServiceWorkerInstallState.Activated)
-                    
-                    .then { (_) -> Promise<AlamofireResponse> in
-                        let serverMappedURL = WebServer.current!.mapRequestURLToServerURL(NSURL(string:"https://test.local/test.html")!)
                         
-                        return Promisified.AlamofireRequest("GET", url: serverMappedURL)
-                
-                    }
-                    .then {(r) -> Void in
-                        let responseAsText = String(data: r.data!, encoding: NSUTF8StringEncoding)
-                        expect(responseAsText).to(equal("DO NOT KNOW THIS"))
+                        .then { (_) -> Promise<AlamofireResponse> in
+                            let serverMappedURL = WebServer.current!.mapRequestURLToServerURL(NSURL(string:"https://test.local/test.html")!)
+                            
+                            return Promisified.AlamofireRequest("GET", url: serverMappedURL)
+                            
+                        }
+                        .then {(r) -> Void in
+                            let responseAsText = String(data: r.data!, encoding: NSUTF8StringEncoding)
+                            expect(responseAsText).to(equal("DO NOT KNOW THIS"))
+                            
+                        }
                         
-                    }
-                        
-                    .then { (_) -> Promise<AlamofireResponse> in
-                        let serverMappedURL = WebServer.current!.mapRequestURLToServerURL(NSURL(string:"https://test.local/fetch-this-url.html")!)
-                        
-                        return Promisified.AlamofireRequest("GET", url: serverMappedURL)
-                        
-                    }
-                    .then {(r) -> Void in
-                        let responseAsText = String(data: r.data!, encoding: NSUTF8StringEncoding)
-                        expect(responseAsText).to(equal("FETCHED THIS"))
-                        done()
-                        
-                    }
-                    .error { err in
-                        expect(err).to(beNil())
-                        done()
+                        .then { (_) -> Promise<AlamofireResponse> in
+                            let serverMappedURL = WebServer.current!.mapRequestURLToServerURL(NSURL(string:"https://test.local/fetch-this-url.html")!)
+                            
+                            return Promisified.AlamofireRequest("GET", url: serverMappedURL)
+                            
+                        }
+                        .then {(r) -> Void in
+                            let responseAsText = String(data: r.data!, encoding: NSUTF8StringEncoding)
+                            expect(responseAsText).to(equal("FETCHED THIS"))
+                            done()
+                            
+                        }
+                        .error { err in
+                            expect(err).to(beNil())
+                            done()
                     }
                     
                 }
             }
         }
+        
+        
     }
 }

@@ -15,11 +15,13 @@ class HandleMessageNotImplementedError : ErrorType {}
 
 class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     
-    let webview:WKWebView
+    let webview:HybridWebview
     let userController:WKUserContentController
     let handlerName:String
     
-    init(userController: WKUserContentController, webView: WKWebView, handlerName:String) {
+    
+    
+    init(userController: WKUserContentController, webView: HybridWebview, handlerName:String) {
         self.webview = webView
         self.userController = userController
         self.handlerName = handlerName
@@ -35,6 +37,10 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
         
     }
     
+    func sendEvent(name:String, arguments: [String]) {
+         self.webview.evaluateJavaScript("window.__promiseBridges['" + self.handlerName + "'].emit('" + name + "'," + arguments.joinWithSeparator(",") +  ")", completionHandler: nil)
+    }
+    
     @objc func userContentController(userContentController: WKUserContentController, didReceiveScriptMessage message: WKScriptMessage) {
         
         let callbackIndex = message.body["callbackIndex"] as? Int
@@ -46,18 +52,18 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
             
             let errorCatcher = { (resp:AnyObject?, err: NSError?) in
                 if err != nil {
-                    log.error(String(err))
+                    log.error("it failed: " + String(err))
                 }
             }
             
             processResult!
                 .then { result -> Void in
-                   
+                    
                     self.webview.evaluateJavaScript(functionName + "(" + String(callbackIndex!) + ",null," + result + ")", completionHandler: errorCatcher)
                 }
                 .error { err in
-                    log.error(String(err))
-                    self.webview.evaluateJavaScript(functionName + "(" + String(callbackIndex!) + "," + String(err) + ")", completionHandler: errorCatcher)
+                    log.error("Error in promise: " + String(err))
+                    self.webview.evaluateJavaScript(functionName + "(" + String(callbackIndex!) + ",'" + String(err) + "')", completionHandler: errorCatcher)
             }
         }
     }

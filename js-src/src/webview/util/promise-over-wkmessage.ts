@@ -3,7 +3,9 @@ const webkit = (window as any).webkit;
 
 // We need these callbacks to be globally accessible.
 const promiseCallbacks: {[key:string]: Function} = {};
+const promiseBridges: {[key:string]: PromiseOverWKMessage} = {};
 (window as any).__promiseBridgeCallbacks = promiseCallbacks;
+(window as any).__promiseBridges = promiseBridges;
 
 export class PromiseOverWKMessage extends EventEmitter {
 
@@ -22,6 +24,7 @@ export class PromiseOverWKMessage extends EventEmitter {
         }
         
         promiseCallbacks[name] = this.receiveResponse.bind(this);
+        promiseBridges[name] = this;
     }
 
     bridgePromise(message:any) {

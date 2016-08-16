@@ -44,7 +44,7 @@ class MessageChannelManager: ScriptMessageManager {
     var activePorts = [Int: MessagePort]()
     var portListeners = [Int:Listener]()
     
-    init(userController:WKUserContentController, webView:WKWebView) {
+    init(userController:WKUserContentController, webView:HybridWebview) {
         super.init(userController: userController, webView: webView, handlerName: "messageChannel")
     }
     
@@ -119,7 +119,6 @@ class MessageChannelManager: ScriptMessageManager {
             })
             
             let objToPass = MessagePortMessage(data: msg.data, passedPortIds: portsAsIndexes)
-            NSLog("window.__messageChannelBridge.emit('emit'," + String(index) + "," + objToPass.toJSONString()! + ")")
             self.webview.evaluateJavaScript("window.__messageChannelBridge.emit('emit'," + String(index) + "," + objToPass.toJSONString()! + ")", completionHandler: nil)
         })
         

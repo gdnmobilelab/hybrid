@@ -74,9 +74,9 @@ class MessageChannelManagerSpec: QuickSpec {
                 }
             }
             
-            it("should communicate between a service worker and webview") {
-                
-            }
+//            it("should communicate between a service worker and webview") {
+//                TestUtil.makeTestWebServer("server-test-data")
+//            }
 
             
             

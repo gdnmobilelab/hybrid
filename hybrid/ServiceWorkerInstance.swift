@@ -52,12 +52,14 @@ public class ServiceWorkerInstance {
     let scope:NSURL!
     let timeoutManager = ServiceWorkerTimeoutManager()
     let webSQL: WebSQL!
+    var clientManager:WebviewClientManager?
     var installState:ServiceWorkerInstallState!
-//    let events = PromisedEvents()
+    let instanceId:Int
+    var attachedHybridWebviews = Set<HybridWebview>()
     
     var pendingPromises = Dictionary<Int, PromiseReturn>()
     
-    init(url:NSURL, scope: NSURL?, installState: ServiceWorkerInstallState) {
+    init(url:NSURL, scope: NSURL?, instanceId:Int, installState: ServiceWorkerInstallState) {
         self.url = url
         if (scope != nil) {
             self.scope = scope
@@ -66,13 +68,12 @@ public class ServiceWorkerInstance {
         }
         
         self.installState = installState
-        
+        self.instanceId = instanceId
         self.jsContext = JSContext()
         self.jsBom = JSCoreBom()
         self.webSQL = WebSQL(url: self.url)
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.cache = ServiceWorkerCache(swURL: url)
-        
         
         self.jsBom.extend(self.jsContext, logHandler: self.swLog)
         
@@ -82,7 +83,16 @@ public class ServiceWorkerInstance {
         
         self.jsContext.setObject(JSValue(undefinedInContext: self.jsContext), forKeyedSubscript: "setTimeout")
         
+        self.clientManager = WebviewClientManager(serviceWorker: self)
+        
+        
         self.hookFunctions()
+        
+        if ServiceWorkerManager.currentlyActiveServiceWorkers[instanceId] != nil {
+            NSLog("THIS SHOULD NOT OCCUR")
+        }
+        
+        ServiceWorkerManager.currentlyActiveServiceWorkers[instanceId] = self
     }
     
     private func swLog(level:String!, params:[AnyObject]!, formattedLogEntry:String!) {
@@ -99,9 +109,17 @@ public class ServiceWorkerInstance {
     
     static func getById(id:Int) -> Promise<ServiceWorkerInstance?> {
         
-        
+        log.debug("Request for service worker with ID " + String(id))
         return Promise<Void>()
         .then { () -> Promise<ServiceWorkerInstance?> in
+            
+            let existingWorker = ServiceWorkerManager.currentlyActiveServiceWorkers[id]
+            
+            if existingWorker != nil {
+                log.debug("Returning existing service worker for ID " + String(id))
+                return Promise<ServiceWorkerInstance?>(existingWorker)
+            }
+            
             
             var instance:ServiceWorkerInstance? = nil
             var contents:String? = nil
@@ -117,9 +135,10 @@ public class ServiceWorkerInstance {
                 instance = ServiceWorkerInstance(
                     url: NSURL(string: serviceWorkerContents.stringForColumn("url"))!,
                     scope: NSURL(string: serviceWorkerContents.stringForColumn("scope"))!,
+                    instanceId: id,
                     installState: ServiceWorkerInstallState(rawValue: Int(serviceWorkerContents.intForColumn("install_state")))!
                 )
-                
+                log.debug("Created new instance of service worker with ID " + String(id))
                 contents = serviceWorkerContents.stringForColumn("contents")
                 serviceWorkerContents.close()
             })
@@ -191,6 +210,7 @@ public class ServiceWorkerInstance {
         self.webSQL.hookFunctions(self.jsContext)
         
         self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
+        self.jsContext.setObject(self.clientManager, forKeyedSubscript: "__WebviewClientManager")
     }
     
     private func consoleLog(args: JSValue) {

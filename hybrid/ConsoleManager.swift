@@ -13,7 +13,7 @@ import ObjectMapper
 
 class ConsoleManager: ScriptMessageManager {
     
-    init(userController:WKUserContentController, webView:WKWebView) {
+    init(userController:WKUserContentController, webView:HybridWebview) {
         super.init(userController: userController, webView: webView, handlerName: "console")
     }
     

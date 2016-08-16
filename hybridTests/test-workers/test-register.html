@@ -1,0 +1,44 @@
+<html>
+    <body>
+        <script>
+            navigator.serviceWorker.register("./test-register-sw.js")
+            .then(function(reg) {
+                  hybridEvents.emit("first/installing", {
+                    state: reg.installing.state,
+                    url: reg.installing.scriptURL
+                  });
+                  
+                  var installing = reg.installing;
+                  installing.onstatechange = function(e) {
+                    hybridEvents.emit("first/" + e.target.state)
+                  }
+                  
+            })
+            
+            navigator.serviceWorker.oncontrollerchange = function() {
+                hybridEvents.emit('controllerchange')
+            }
+            
+            window.updateReg = function() {
+
+                navigator.serviceWorker.getRegistration().then(function(reg){
+
+                   reg.onupdatefound = function () {
+                       reg.installing.onstatechange = function(e) {
+                           hybridEvents.emit("second/" + e.target.state)
+                       }
+                   }
+                                                               
+                   reg.update();
+                })
+                .catch(function(err) {
+                    console.error(err)
+                       console.error(err.stack)
+                })
+            }
+        
+      
+            
+        </script>
+    </body>
+</html>

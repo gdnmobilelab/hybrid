@@ -5,6 +5,7 @@ import './globals/websql';
 import './globals/indexeddb';
 import './globals/fetch';
 import './globals/cache';
+import './globals/clients';
 
 import './hybrid/promise-bridge';
 import './hybrid/dispatch-extended-event';

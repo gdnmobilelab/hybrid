@@ -11,8 +11,12 @@ import WebKit
 
 class HybridWebview : WKWebView, WKNavigationDelegate {
     
-    var console:ConsoleManager? = nil
-    var messageChannelManager:MessageChannelManager? = nil
+    var console:ConsoleManager?
+    var messageChannelManager:MessageChannelManager?
+    var serviceWorkerAPI:ServiceWorkerAPI?
+    var eventManager: EventManager?
+    
+    static var activeWebviews = [HybridWebview]()
     
     init(frame: CGRect) {
         let config = WKWebViewConfiguration()
@@ -29,8 +33,10 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         }
         self.console = ConsoleManager(userController: config.userContentController, webView: self)
         self.messageChannelManager = MessageChannelManager(userController: config.userContentController, webView: self)
-        
+        self.serviceWorkerAPI = ServiceWorkerAPI(userController: config.userContentController, webView: self)
+        self.eventManager = EventManager(userController: config.userContentController, webView: self)
         self.navigationDelegate = self
+        
     }
     
     func injectJS(userController: WKUserContentController) throws {
@@ -75,7 +81,24 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
             decisionHandler(WKNavigationActionPolicy.Allow)
             
         }
-        
-       
+    }
+    
+    var mappedURL:NSURL? {
+        get {
+            let currentURL = self.URL
+            if currentURL == nil {
+                return nil
+            }
+            
+            // If it's a local URL for a service worker, map it
+            
+            if currentURL!.host! == "localhost" && currentURL!.port! == WebServer.current?.port {
+                return WebServer.mapServerURLToRequestURL(currentURL!)
+            }
+            
+            // Otherwise just return it.
+            
+            return currentURL
+        }
     }
 }
