@@ -36,8 +36,19 @@
                        console.error(err.stack)
                 })
             }
+
+            window.testMessage = function() {
+                var mc = new MessageChannel();
+                mc.port2.onmessage = function(ev) {
+                    hybridEvents.emit('reply', String(ev.data));
+                }
+                
+                navigator.serviceWorker.controller.postMessage("test", [mc.port1])
+            }
         
-      
+        navigator.serviceWorker.ready.then(function() {
+            hybridEvents.emit("ready-promise")
+        })
             
         </script>
     </body>

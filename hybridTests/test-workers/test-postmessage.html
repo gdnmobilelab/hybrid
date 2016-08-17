@@ -1,0 +1,27 @@
+<html>
+    <body>
+        <script>
+            navigator.serviceWorker.register("./test-postmessage-sw.js")
+            
+            
+            navigator.serviceWorker.ready
+            .then(function() {
+                                               
+               var mc = new MessageChannel();
+               mc.port2.onmessage = function(ev) {
+                   hybridEvents.emit('reply', String(ev.data.number));
+               }
+             
+               navigator.serviceWorker.controller.postMessage({
+                 number:1
+               }, [mc.port1])
+            })
+            .catch(function(err) {
+                console.error(err)
+            })
+          
+
+        
+            </script>
+    </body>
+</html>

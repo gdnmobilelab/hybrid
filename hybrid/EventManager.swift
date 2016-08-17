@@ -15,7 +15,7 @@ import PromiseKit
 
 class EventManager: ScriptMessageManager {
     
-    var events = Event<[String:AnyObject]?>()
+    var events = Event<String?>()
     
     init(userController:WKUserContentController, webView:HybridWebview) {
         super.init(userController: userController, webView: webView, handlerName: "events")
@@ -23,8 +23,7 @@ class EventManager: ScriptMessageManager {
     
     override func handleMessage(message:AnyObject) -> Promise<String>? {
         let eventName = message["name"] as! String
-        let eventData = message["data"] as? [String:AnyObject]
-        
+        let eventData = message["data"] as? String
         self.events.emit(eventName, eventData)
         
         return nil

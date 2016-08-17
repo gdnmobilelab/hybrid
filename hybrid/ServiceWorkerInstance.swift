@@ -156,6 +156,12 @@ public class ServiceWorkerInstance {
         
     }
     
+    func receiveMessage(message:String, ports: [MessagePort]) {
+        self.jsContext.objectForKeyedSubscript("hybrid")
+            .objectForKeyedSubscript("dispatchMessageEvent")
+            .callWithArguments([message, ports])
+    }
+    
     func scopeContainsURL(url:NSURL) -> Bool {
         return url.absoluteString.hasPrefix(self.scope.absoluteString)
     }
@@ -209,7 +215,7 @@ public class ServiceWorkerInstance {
         self.timeoutManager.hookFunctions(self.jsContext)
         self.webSQL.hookFunctions(self.jsContext)
         
-        self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
+        self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "__MessagePort")
         self.jsContext.setObject(self.clientManager, forKeyedSubscript: "__WebviewClientManager")
     }
     
@@ -287,7 +293,8 @@ public class ServiceWorkerInstance {
     }
     
     func dispatchExtendableEvent(name: String, data: Mappable?) -> Promise<JSValue> {
-        return self.executeJSPromise("hybrid.dispatchExtendableEvent('" + name + "')")        
+        return self.executeJSPromise("hybrid.dispatchExtendableEvent('" + name + "')")
+
     }
     
     func dispatchFetchEvent(fetch: FetchRequest) -> Promise<FetchResponse> {

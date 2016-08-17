@@ -44,16 +44,28 @@ class ServiceWorkerRegisterFailedError: ErrorType {}
 class ServiceWorkerAPI: ScriptMessageManager {
     
     private var swChangeListener:Listener?
+    
     var currentActiveServiceWorker:ServiceWorkerInstance?
     
     init(userController:WKUserContentController, webView:HybridWebview) {
         super.init(userController: userController, webView: webView, handlerName: "serviceWorker")
         
         self.swChangeListener = ServiceWorkerManager.events.on(ServiceWorkerManager.STATUS_CHANGE_EVENT, self.serviceWorkerChange)
+        
+        self.webview.messageChannelManager!.onMessage = self.handleIncomingPostMessage
+    }
+    
+    func handleIncomingPostMessage(message:String, ports:[MessagePort]) {
+        
+        self.currentActiveServiceWorker!.receiveMessage(message, ports: ports)
     }
     
     func serviceWorkerChange(match:ServiceWorkerMatch) {
         
+        if self.webview.mappedURL == nil {
+            // often because it's a test webview that has a URL of about:blank
+            return
+        }
         if self.webview.mappedURL!.absoluteString.hasPrefix(match.scope.absoluteString) == false {
             // Is not in this scope, so ignore it
             return
@@ -66,6 +78,9 @@ class ServiceWorkerAPI: ScriptMessageManager {
         self.currentActiveServiceWorker = newWorker
         
         let match = ServiceWorkerMatch(instanceId: newWorker.instanceId, url: newWorker.url, installState: newWorker.installState, scope: newWorker.scope)
+        
+        self.webview.messageChannelManager!.activePorts.removeAll()
+        self.webview.messageChannelManager!.portListeners.removeAll()
         
         self.sendEvent("claimed", arguments: [match.toJSONString()!])
     }

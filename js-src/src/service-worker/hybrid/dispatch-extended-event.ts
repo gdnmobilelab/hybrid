@@ -24,3 +24,13 @@ hybrid.dispatchFetchEvent = function(data:Object) {
 
     return respondWithEvent.resolve()
 }
+
+hybrid.dispatchMessageEvent = function(message:string, ports: [MessagePort]) {
+    let ev = {
+        type: "message",
+        ports: ports,
+        data: JSON.parse(message)
+    }
+
+    self.dispatchEvent(ev as MessageEvent);
+}

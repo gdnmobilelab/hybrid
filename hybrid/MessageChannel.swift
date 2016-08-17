@@ -33,11 +33,13 @@ import WebKit
 }
 
 @objc protocol MessagePortExports : JSExport {
-    func postMessage(message:String, ports: [MessagePort]) -> Void
-    func postMessage(message:String) -> Void
+    func postMessage(message:JSValue, ports: [MessagePort]) -> Void
+    func postMessage(message:JSValue) -> Void
     var onmessage:JSValue? {get set }
     init()
 }
+
+class CannotConvertToJSONError: ErrorType {}
 
 @objc public class MessagePort : NSObject, MessagePortExports {
     
@@ -61,15 +63,49 @@ import WebKit
         onmessage!.callWithArguments([message])
     }
     
-    func postMessage(data: String) {
-        self.eventEmitter.emit("emit", MessageEvent(data: data, ports: []))
+    func jsValueToString(val:JSValue) throws -> String {
+        if val.isString == true {
+            return val.toString()
+        }
+        
+        var converted:AnyObject?
+        
+        if val.isObject == true {
+            converted = val.toObject()
+        }
+        if val.isArray == true {
+            converted = val.toArray()
+        }
+        if val.isNumber == true {
+            return String(val.toNumber())
+        }
+        
+        if converted == nil {
+            throw CannotConvertToJSONError()
+        }
+        let data = try NSJSONSerialization.dataWithJSONObject(converted!, options: NSJSONWritingOptions())
+        return String(data: data, encoding: NSUTF8StringEncoding)!
     }
     
-    func postMessage(data:String, ports:[MessagePort]) {
-        self.eventEmitter.emit("emit", MessageEvent(data: data, ports: ports))
+    func postMessage(data: JSValue) {
+        self.postMessage(data, ports: [], fromWebView: nil)
     }
-    func postMessage(data:String, ports:[MessagePort], fromWebView:WKWebView) {
-        self.eventEmitter.emit("emit", MessageEvent(data: data, ports: ports,fromWebView: fromWebView))
+    
+    func postMessage(data:JSValue, ports:[MessagePort]) {
+        self.postMessage(data, ports: ports, fromWebView: nil)
+    }
+    func postMessage(data:JSValue, ports:[MessagePort], fromWebView:WKWebView?) {
+        
+        do {
+            let converted = try self.jsValueToString(data)
+            self.postStringMessage(converted, ports: ports, fromWebView: fromWebView)
+        } catch {
+            log.error("JSValue conversion FAILED: " + String(error))
+        }
+    }
+    
+    func postStringMessage(message:String, ports:[MessagePort] = [], fromWebView:WKWebView? = nil) {
+        self.eventEmitter.emit("emit", MessageEvent(data: message, ports: ports,fromWebView: fromWebView))
     }
 }
 

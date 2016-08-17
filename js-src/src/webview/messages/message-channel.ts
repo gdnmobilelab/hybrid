@@ -31,8 +31,8 @@ function receiveMessage(portIndex:number, message:MessagePortMessage) {
             return PortStore.findOrCreateByNativeIndex(id).jsMessagePort;
         })
         
-        console.debug("Posting message to native index", thisPort.nativePortIndex)
-        thisPort.sendOriginalPostMessage(message.data, mappedPorts);
+        console.debug("Posting message to native index", thisPort.nativePortIndex);
+        thisPort.sendOriginalPostMessage(JSON.parse(message.data), mappedPorts);
     } catch (err) {
         console.error(err)
     }
@@ -48,7 +48,6 @@ export class MessagePortWrapper {
     jsMessagePort:MessagePort;
     jsMessageChannel:MessageChannel;
     private originalJSPortClose:Function;
-    originalJSPortPost:Function;
 
     constructor(jsPort:MessagePort = null) {
         this.nativePortIndex = null;
@@ -85,7 +84,7 @@ export class MessagePortWrapper {
         MessagePort.prototype.postMessage.apply(this.jsMessagePort, [data, ports]);
     }
 
-    handleJSMessage(data:any, ports: MessagePort[]) {
+    handleJSMessage(data:any, ports: MessagePort[], isExplicitPost:boolean = false) {
         console.debug("Posting new message...")
        
         // Get our custom port instances, creating them if necessary
@@ -103,10 +102,15 @@ export class MessagePortWrapper {
             return PromiseTools.map(customPorts, (port:MessagePortWrapper) => port.checkForNativePort()) as Promise<any>
         })
         .then(() => {
+
+            // If this is an explicit postMessage call, we need the native
+            // side to pick up on it (so it does something with the MessagePort)
+
             promiseBridge.bridgePromise({
-                operation: "post",
+                operation: "sendToPort",
                 portIndex: this.nativePortIndex,
                 data: JSON.stringify(data),
+                isExplicitPost: isExplicitPost,
                 additionalPortIndexes: customPorts.map((p) => p.nativePortIndex)
             })
         })
@@ -150,7 +154,30 @@ export class MessagePortWrapper {
     }
 }
 
-// let windowAsAny = (window as any);
-// windowAsAny.MessagePort = CustomMessagePort;
-// windowAsAny.CustomMessagePort = CustomMessagePort;
-// windowAsAny.MessageChannel = CustomMessageChannel;
+export function postMessage(message:any, ports: [MessagePort]) {
+
+    let portIndexes:number[] = [];
+
+    Promise.resolve()
+    .then(() => {
+
+        return PromiseTools.map(ports, (port:MessagePort) => {
+            let wrapper = new MessagePortWrapper(port);
+            return wrapper.checkForNativePort()
+            .then(() => {
+                return wrapper.nativePortIndex;
+            })
+        })
+    })
+    .then((portIndexes:number[]) => {
+        promiseBridge.bridgePromise({
+            operation: "postMessage",
+            data: JSON.stringify(message),
+            additionalPortIndexes: portIndexes
+        })
+    })
+    
+
+    
+
+}

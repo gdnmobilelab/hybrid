@@ -1,7 +1,7 @@
 import {PromiseOverWKMessage} from '../util/promise-over-wkmessage';
 import EventEmitter from 'eventemitter3';
 import * as path from 'path-browserify';
-
+import {postMessage} from '../messages/message-channel';
 
 export const serviceWorkerBridge = new PromiseOverWKMessage("serviceWorker");
 
@@ -70,7 +70,16 @@ class HybridServiceWorker extends EventEmitterToJSEvent implements ServiceWorker
     }
 
     
-    postMessage() {
+    postMessage(message:any, options: any[]) {
+        if (RegistrationInstance.active !== this) {
+            throw new Error("Can only postMessage to active service worker");
+        }
+
+        if (options.length > 1 || options[0] instanceof MessagePort === false) {
+            throw new Error("Currently only supports sending one MessagePort");
+        }
+
+        postMessage(message, [options[0] as MessagePort]);
 
     } 
 
@@ -164,10 +173,27 @@ const RegistrationInstance = new HybridRegistration();
 
 class HybridServiceWorkerContainer extends EventEmitter implements ServiceWorkerContainer  {
     controller: HybridServiceWorker
-    ready: Promise<ServiceWorkerRegistration>
+    
     oncontrollerchange: () => void
     onerror: () => void
     onmessage: () => void
+
+    get ready(): Promise<ServiceWorkerRegistration> {
+        if (this.controller) {
+            console.debug("ServiceWorker ready returning immediately with activated instance");
+            return Promise.resolve(RegistrationInstance);
+        }
+
+        return new Promise((fulfill, reject) => {
+            console.debug("ServiceWorker ready returning promise and waiting...");
+            this.once("controllerchange", () => {
+                console.debug("ServiceWorker ready received response")
+                fulfill()
+            });
+        })
+    }
+
+   
 
     constructor() {
         super();
@@ -180,10 +206,6 @@ class HybridServiceWorkerContainer extends EventEmitter implements ServiceWorker
             }
         });
 
-        RegistrationInstance.on("active", (sw:HybridServiceWorker) => {
-            this.controller = sw;
-            this.emit("controllerchange");
-        })
     }
 
     register(url:string, options: ServiceWorkerRegisterOptions): Promise<ServiceWorkerRegistration> {
@@ -207,6 +229,7 @@ class HybridServiceWorkerContainer extends EventEmitter implements ServiceWorker
     claimedByNewWorker(sw:HybridServiceWorker) {
         RegistrationInstance.clearAllInstancesOfServiceWorker(sw);
         RegistrationInstance.active = sw;
+        this.controller = sw;
         this.emit("controllerchange", sw);
     }
 

@@ -1,7 +1,6 @@
 
 class WebviewClientManagerWrapper {
     claim(): Promise<void> {
-        console.log('here', __WebviewClientManager)
         return new Promise<void>((fulfill, reject) => {
             __WebviewClientManager.claim((err) => {
                 if (err) {

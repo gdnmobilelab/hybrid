@@ -19,13 +19,8 @@ import Foundation
     func claim(callback:JSValue) {
         
         // Allows a worker to take control of clients within its scope.
-
-        for webview in HybridWebview.activeWebviews {
-            // Only claim workers within scope
-            if webview.mappedURL!.absoluteString.hasPrefix(self.serviceWorker.scope.absoluteString) {
-                webview.serviceWorkerAPI!.setNewActiveServiceWorker(self.serviceWorker)
-            }
-        }
+        HybridWebview.claimWebviewsForServiceWorker(self.serviceWorker)
+        
         
         callback.callWithArguments([])
     }

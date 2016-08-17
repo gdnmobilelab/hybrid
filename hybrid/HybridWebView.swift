@@ -16,7 +16,33 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     var serviceWorkerAPI:ServiceWorkerAPI?
     var eventManager: EventManager?
     
-    static var activeWebviews = [HybridWebview]()
+    private static var activeWebviews = [HybridWebview]()
+    
+    static func registerWebviewForServiceWorkerEvents(hw:HybridWebview) {
+        self.activeWebviews.append(hw);
+    }
+    
+    static func clearRegisteredWebviews() {
+        activeWebviews.removeAll()
+    }
+    
+    static func claimWebviewsForServiceWorker(sw:ServiceWorkerInstance) {
+        
+        let applicableWebviews = HybridWebview.activeWebviews.filter({ hw in
+            return hw.mappedURL!.absoluteString.hasPrefix(sw.scope.absoluteString)
+        })
+        
+        if applicableWebviews.count == 0 {
+            log.warning("Didn't find any webviews to claim for: " + sw.scope.absoluteString)
+        }
+        
+        for webview in applicableWebviews {
+            // Only claim workers within scope
+            if webview.mappedURL!.absoluteString.hasPrefix(sw.scope.absoluteString) {
+                webview.serviceWorkerAPI!.setNewActiveServiceWorker(sw)
+            }
+        }
+    }
     
     init(frame: CGRect) {
         let config = WKWebViewConfiguration()
@@ -90,6 +116,9 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
                 return nil
             }
             
+            if currentURL!.scheme == "about" {
+                return nil
+            }
             // If it's a local URL for a service worker, map it
             
             if currentURL!.host! == "localhost" && currentURL!.port! == WebServer.current?.port {

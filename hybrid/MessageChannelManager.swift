@@ -43,6 +43,7 @@ class MessageChannelManager: ScriptMessageManager {
     
     var activePorts = [Int: MessagePort]()
     var portListeners = [Int:Listener]()
+    var onMessage: ((String, [MessagePort]) -> Void)? = nil
     
     init(userController:WKUserContentController, webView:HybridWebview) {
         super.init(userController: userController, webView: webView, handlerName: "messageChannel")
@@ -60,19 +61,31 @@ class MessageChannelManager: ScriptMessageManager {
             self.deletePort(index)
             return nil
         }
-        if (operation == "post") {
+        if (operation == "sendToPort") {
             let index = message["portIndex"] as! Int
             let data = message["data"] as! String
             let additionalPortIndexes = message["additionalPortIndexes"] as! [Int]
             
-            self.postMessage(index, data: data, additionalPortIndexes: additionalPortIndexes)
+            self.sendToPort(index, data: data, additionalPortIndexes: additionalPortIndexes)
             return nil
+        }
+        if (operation == "postMessage") {
+            if self.onMessage == nil {
+                return nil
+            }
+            let data = message["data"] as! String
+            let additionalPortIndexes = message["additionalPortIndexes"] as! [Int]
+            let actualPorts = additionalPortIndexes.map({ index in
+                return self.activePorts[index]!
+            })
+            
+            self.onMessage!(data, actualPorts)
         }
         log.error("Operation not supported: " + operation)
         return nil
     }
     
-    func postMessage(portIndex:Int, data:String, additionalPortIndexes:[Int]) {
+    func sendToPort(portIndex:Int, data:String, additionalPortIndexes:[Int]) {
         let port = self.activePorts[portIndex]
         
         if port == nil {
@@ -84,7 +97,7 @@ class MessageChannelManager: ScriptMessageManager {
             return self.activePorts[index]!
         }
         
-        port!.postMessage(data, ports: portsFromIndexes, fromWebView: self.webview)
+        port!.postStringMessage(data, ports: portsFromIndexes, fromWebView: self.webview)
     }
     
     func manuallyAddPort(port:MessagePort) -> Int {

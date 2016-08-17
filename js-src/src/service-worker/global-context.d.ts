@@ -38,6 +38,14 @@ declare var hybrid: any;
 
 declare var global: any;
 
+declare class __MessagePort {
+    postMessage(message:String, ports: MessagePort[]):void
+    postMessage(message:String):void
+    onmessage(ev:MessageEvent):any
+    close():void
+    start():void
+}
+
 // declare var self: ServiceWorkerGlobalScope;
 
 declare module "websql/custom" {

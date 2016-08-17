@@ -55,7 +55,7 @@ class MessageChannelManagerSpec: QuickSpec {
                             done()
                         })
                         
-                        msg.ports[0].postMessage("and back", ports: [secondChannel.port2])
+                        msg.ports[0].postStringMessage("\"and back\"", ports: [secondChannel.port2])
                     })
                     
                     let channelIndex = hw.messageChannelManager!.manuallyAddPort(msgChannel.port2)
@@ -73,12 +73,7 @@ class MessageChannelManagerSpec: QuickSpec {
                         "</script></body></html>", baseURL: nil)
                 }
             }
-            
-//            it("should communicate between a service worker and webview") {
-//                TestUtil.makeTestWebServer("server-test-data")
-//            }
-
-            
+        
             
         }
     }
