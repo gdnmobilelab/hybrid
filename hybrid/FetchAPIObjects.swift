@@ -10,7 +10,7 @@ import Foundation
 import ObjectMapper
 
 
-class FetchRequest : Mappable {
+class OldFetchRequest : Mappable {
     var url:NSURL!
     var method:String!
     var headers: [String: String]!
@@ -36,7 +36,7 @@ class FetchRequest : Mappable {
 
 class FetchHasNoBodyError: ErrorType {}
 
-class FetchResponse : Mappable {
+class OldFetchResponse : Mappable {
     var url: NSURL!
     var status: Int?
     private var headersAsAnyObject: [String: AnyObject] = [:]

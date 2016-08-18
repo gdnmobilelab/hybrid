@@ -25,8 +25,19 @@ class JSContextError : ErrorType {
     
     init(jsValue:JSValue) {
         let dict = jsValue.toObject() as! [String: String]
-        self.message = dict["message"]!
-        self.stack = dict["stack"]
+        if let message = dict["message"] {
+            self.message = message
+            self.stack = dict["stack"]
+        } else {
+            var msg = ""
+            for (key, val) in dict {
+                msg = msg + key + " : " + val
+            }
+            self.message = msg
+            self.stack = nil
+        }
+        
+        
     }
 
 }
@@ -82,6 +93,8 @@ public class ServiceWorkerInstance {
         // so we override it in the TimeoutManager
         
         self.jsContext.setObject(JSValue(undefinedInContext: self.jsContext), forKeyedSubscript: "setTimeout")
+        
+        GlobalFetch.addToJSContext(self.jsContext)
         
         self.clientManager = WebviewClientManager(serviceWorker: self)
         
@@ -215,7 +228,7 @@ public class ServiceWorkerInstance {
         self.timeoutManager.hookFunctions(self.jsContext)
         self.webSQL.hookFunctions(self.jsContext)
         
-        self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "__MessagePort")
+        self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
         self.jsContext.setObject(self.clientManager, forKeyedSubscript: "__WebviewClientManager")
     }
     
@@ -297,7 +310,7 @@ public class ServiceWorkerInstance {
 
     }
     
-    func dispatchFetchEvent(fetch: FetchRequest) -> Promise<FetchResponse> {
+    func dispatchFetchEvent(fetch: OldFetchRequest) -> Promise<OldFetchResponse> {
         
         let json = Mapper().toJSONString(fetch)!
         
@@ -306,10 +319,10 @@ public class ServiceWorkerInstance {
             
             let returnAsString = returnVal.toString()
             
-            let queryMapper = Mapper<FetchResponse>()
+            let queryMapper = Mapper<OldFetchResponse>()
             let response = queryMapper.map(returnAsString)!
 
-            return Promise<FetchResponse>(response)
+            return Promise<OldFetchResponse>(response)
         }
     }
     

@@ -46,6 +46,10 @@ declare class __MessagePort {
     start():void
 }
 
+declare var Request: Function;
+declare var Response: Function;
+declare var GlobalFetch: any;
+
 // declare var self: ServiceWorkerGlobalScope;
 
 declare module "websql/custom" {

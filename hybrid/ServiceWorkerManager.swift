@@ -55,7 +55,7 @@ class ServiceWorkerMatch : Mappable {
 }
 
 class ServiceWorkerDoesNotExistError : ErrorType {}
-
+class ServiceWorkerNotHTTPSError : ErrorType {}
 
 
 class ServiceWorkerManager {
@@ -193,7 +193,7 @@ class ServiceWorkerManager {
                 
                 let selectScopeQuery = "SELECT scope FROM service_workers WHERE ? LIKE (scope || '%') ORDER BY length(scope) DESC LIMIT 1"
                 
-                let allWorkersResultSet = try db.executeQuery("SELECT instance_id, install_state, url FROM service_workers WHERE scope = (" + selectScopeQuery + ")", values: [pageURL.absoluteString])
+                let allWorkersResultSet = try db.executeQuery("SELECT instance_id, install_state, url, scope FROM service_workers WHERE scope = (" + selectScopeQuery + ")", values: [pageURL.absoluteString])
                 
                 
                 while allWorkersResultSet.next() {
@@ -215,8 +215,15 @@ class ServiceWorkerManager {
     
     static func insertServiceWorkerIntoDB(serviceWorkerURL:NSURL, scope: NSURL, lastModified:NSTimeInterval, js:NSData, installState:ServiceWorkerInstallState = ServiceWorkerInstallState.Installing) -> Promise<Int> {
         
+        
+        
         return Promise<Void>()
         .then {
+            
+            if serviceWorkerURL.scheme != "https" || scope.scheme != "https" {
+                log.error("Both scope and service worker URL must be under HTTPS")
+                throw ServiceWorkerNotHTTPSError()
+            }
             
             var newId:Int64 = -1
             

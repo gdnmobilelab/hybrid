@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		6491E65D29F89B3EE240B4B9 /* Pods_hybridTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 63CFC906FE82B28A71289383 /* Pods_hybridTests.framework */; };
+		8A0156CA1D650C170091995E /* gdn-mobile-lab-build in Resources */ = {isa = PBXBuildFile; fileRef = 8A0156C91D650C170091995E /* gdn-mobile-lab-build */; };
+		8A0156CC1D654B530091995E /* ServiceWorkerCoreFunctionsSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156CB1D654B530091995E /* ServiceWorkerCoreFunctionsSpec.swift */; };
+		8A0156CE1D654C240091995E /* fetch-test in Resources */ = {isa = PBXBuildFile; fileRef = 8A0156CD1D654C240091995E /* fetch-test */; };
+		8A0156D01D65FCAE0091995E /* GlobalFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */; };
 		8A2475881D623BDA008906FB /* EventManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2475871D623BDA008906FB /* EventManager.swift */; };
 		8A263A7D1D353D9300B6505E /* ServiceWorkerWebSql.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A263A7C1D353D9300B6505E /* ServiceWorkerWebSql.swift */; };
 		8A263A7F1D354D7C00B6505E /* TimeoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */; };
@@ -80,6 +84,10 @@
 		63CFC906FE82B28A71289383 /* Pods_hybridTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_hybridTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		695FE77A434866D84BFDEBDC /* Pods_hybridUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_hybridUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		84E193CC866643238C24DE55 /* Pods-hybridTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybridTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-hybridTests/Pods-hybridTests.debug.xcconfig"; sourceTree = "<group>"; };
+		8A0156C91D650C170091995E /* gdn-mobile-lab-build */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "gdn-mobile-lab-build"; sourceTree = "<group>"; };
+		8A0156CB1D654B530091995E /* ServiceWorkerCoreFunctionsSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerCoreFunctionsSpec.swift; sourceTree = "<group>"; };
+		8A0156CD1D654C240091995E /* fetch-test */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "fetch-test"; sourceTree = "<group>"; };
+		8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GlobalFetch.swift; sourceTree = "<group>"; };
 		8A2475871D623BDA008906FB /* EventManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventManager.swift; sourceTree = "<group>"; };
 		8A263A7C1D353D9300B6505E /* ServiceWorkerWebSql.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerWebSql.swift; sourceTree = "<group>"; };
 		8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeoutManager.swift; sourceTree = "<group>"; };
@@ -196,6 +204,7 @@
 				8AA0BF181D4278CA00DADF1C /* FetchAPIObjects.swift */,
 				8A878AC51D4A8F7600D31F85 /* ServiceWorkerCache.swift */,
 				8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */,
+				8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */,
 			);
 			name = "service-worker";
 			sourceTree = "<group>";
@@ -207,6 +216,7 @@
 				8A263A7C1D353D9300B6505E /* ServiceWorkerWebSql.swift */,
 				8A54109C1D3819DE00F44F38 /* ServiceWorkerManager.swift */,
 				8A878ACA1D4AC9C700D31F85 /* ServiceWorkerCacheSpec.swift */,
+				8A0156CB1D654B530091995E /* ServiceWorkerCoreFunctionsSpec.swift */,
 			);
 			name = "service-worker";
 			sourceTree = "<group>";
@@ -296,6 +306,7 @@
 		D31BC10B1CD534CF00CF6BEB /* hybrid */ = {
 			isa = PBXGroup;
 			children = (
+				8A0156C91D650C170091995E /* gdn-mobile-lab-build */,
 				8A932BD41D5A61B500FA15F8 /* webview-sw-bridge */,
 				8A932BD31D5A619100FA15F8 /* webview */,
 				8A8846041D30072100CF9369 /* service-worker */,
@@ -330,6 +341,7 @@
 				8AD2834F1D55070000D2DF07 /* test-workers */,
 				8AD283511D55076D00D2DF07 /* TestUtil.swift */,
 				8AEBD0D11D42E6230042A4AB /* WebServer.swift */,
+				8A0156CD1D654C240091995E /* fetch-test */,
 				8A7786351D5B881D0062E12B /* webview */,
 				8A932BD51D5A61C900FA15F8 /* webview-sw-bridge */,
 			);
@@ -459,6 +471,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D381163A1CD5AE96004A3CCD /* js-dist in Resources */,
+				8A0156CA1D650C170091995E /* gdn-mobile-lab-build in Resources */,
 				8AEEDE631D2D90DF0032D588 /* 201606290.sql in Resources */,
 				8AEEDE671D2D93570032D588 /* 201607060.sql in Resources */,
 				D31BC1171CD534CF00CF6BEB /* LaunchScreen.storyboard in Resources */,
@@ -471,6 +484,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A878AC91D4AC95B00D31F85 /* cache-test-data in Resources */,
+				8A0156CE1D654C240091995E /* fetch-test in Resources */,
 				8A55C6361D626F38004AFD21 /* update-worker-test in Resources */,
 				8A55C6381D636B34004AFD21 /* update-worker-skip-waiting in Resources */,
 				8AEA3F261D54056C000A7C70 /* server-test-data in Resources */,
@@ -629,6 +643,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */,
+				8A0156D01D65FCAE0091995E /* GlobalFetch.swift in Sources */,
 				8ADAAE1A1D119F7E009F3898 /* ServiceWorker.swift in Sources */,
 				8A54109F1D381EF000F44F38 /* HybridWebView.swift in Sources */,
 				D31BC10F1CD534CF00CF6BEB /* ViewController.swift in Sources */,
@@ -666,6 +681,7 @@
 				8A7786371D5B882F0062E12B /* ConsoleManagerSpec.swift in Sources */,
 				8A263A7D1D353D9300B6505E /* ServiceWorkerWebSql.swift in Sources */,
 				8A54109D1D3819DE00F44F38 /* ServiceWorkerManager.swift in Sources */,
+				8A0156CC1D654B530091995E /* ServiceWorkerCoreFunctionsSpec.swift in Sources */,
 				8AEBD0D21D42E6230042A4AB /* WebServer.swift in Sources */,
 				8A3A74F01D5E0B9400A7940C /* ServiceWorkerAPI.swift in Sources */,
 				8A77863B1D5BCE050062E12B /* MessageChannelManagerSpec.swift in Sources */,

@@ -84,7 +84,7 @@ class WebServer {
             }
             
             
-            let fetch = FetchRequest()
+            let fetch = OldFetchRequest()
             fetch.url = WebServer.mapServerURLToRequestURL(request.URL)// fetchURL.URL!
             fetch.method = request.method
             fetch.headers = request.headers as! [String:String]

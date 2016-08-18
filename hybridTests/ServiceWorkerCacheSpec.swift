@@ -149,37 +149,37 @@ class ServiceWorkerCacheSpec: QuickSpec {
             }
             
             it("should successfully return from a fetch event") {
-               
-                let filePath = TestUtil.getFilePath("test-workers/test-cache-in-worker.js")
-                
-                waitUntil(timeout: 500) { done in
-                    ServiceWorkerManager.insertServiceWorkerIntoDB(NSURL(string: "https://test.local/sw.js")!, scope: NSURL(string: "https://test.local/")!, lastModified: 1, js: NSData(contentsOfFile: filePath)!, installState: ServiceWorkerInstallState.Installed)
-                        .then { _ in
-                            return ServiceWorkerManager.getServiceWorkerForURL(NSURL(string: "https://test.local/index.html")!)
-                        }
-                        .then { sw -> Promise<FetchResponse> in
-                            
-                            let fetch = FetchRequest()
-                            fetch.method = "GET"
-                            fetch.url = NSURL(string: "http://localhost:9111/text-file.txt")!
-                            
-                            return sw!.dispatchFetchEvent(fetch)
-                        }
-                        .then { response -> Void in
-                            expect(response).notTo(beNil())
-                            
-                            // response body is not sent into JSContext - we need to grab it manually
-                            try response.checkForCacheMatchResponse()
-                            
-                            let responseBodyText = try String(data: response.getBody(), encoding: NSUTF8StringEncoding)
-                            expect(responseBodyText).to(equal("THIS IS TEXT"))
-                            done()
-                        }
-                        .error { err in
-                            expect(err).to(beNil())
-                            done()
-                        }
-                }
+               expect(1).to(equal(2))
+//                let filePath = TestUtil.getFilePath("test-workers/test-cache-in-worker.js")
+//                
+//                waitUntil(timeout: 500) { done in
+//                    ServiceWorkerManager.insertServiceWorkerIntoDB(NSURL(string: "https://test.local/sw.js")!, scope: NSURL(string: "https://test.local/")!, lastModified: 1, js: NSData(contentsOfFile: filePath)!, installState: ServiceWorkerInstallState.Installed)
+//                        .then { _ in
+//                            return ServiceWorkerManager.getServiceWorkerForURL(NSURL(string: "https://test.local/index.html")!)
+//                        }
+//                        .then { sw -> Promise<FetchResponse> in
+//                            
+//                            let fetch = FetchRequest()
+//                            fetch.method = "GET"
+//                            fetch.url = NSURL(string: "http://localhost:9111/text-file.txt")!
+//                            
+//                            return sw!.dispatchFetchEvent(fetch)
+//                        }
+//                        .then { response -> Void in
+//                            expect(response).notTo(beNil())
+//                            
+//                            // response body is not sent into JSContext - we need to grab it manually
+//                            try response.checkForCacheMatchResponse()
+//                            
+//                            let responseBodyText = try String(data: response.getBody(), encoding: NSUTF8StringEncoding)
+//                            expect(responseBodyText).to(equal("THIS IS TEXT"))
+//                            done()
+//                        }
+//                        .error { err in
+//                            expect(err).to(beNil())
+//                            done()
+//                        }
+//                }
             }
         }
     }

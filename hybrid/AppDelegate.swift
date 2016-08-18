@@ -8,6 +8,7 @@
 
 import UIKit
 import XCGLogger;
+import PromiseKit
 
 let log = XCGLogger.defaultInstance()
 
@@ -35,10 +36,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             let rootWindow = UIWindow(frame: UIScreen.mainScreen().bounds);
             //rootWindow.backgroundColor = UIColor.whiteColor();
-            rootWindow.rootViewController = UIViewController()//ViewController(config: messageHandler.webviewConfiguration);
+            
+            let rootController = UINavigationController()
+            let hwController = UIViewController()
+            let hw = HybridWebview(frame: CGRect(x: 0, y: 0, width: 0, height: 0))
+            
+            hwController.view = hw
+            
+            rootController.pushViewController(hwController, animated: false)
+            
+            rootWindow.rootViewController = rootController
             
             self.window = rootWindow;
             rootWindow.makeKeyAndVisible();
+            
+            // todo: remove
+            ServiceWorkerManager.clearActiveServiceWorkers()
+            
+            ServiceWorkerManager.getServiceWorkerForURL(NSURL(string:"http://www.gdnmobilelab.com")!)
+            .then { sw -> Promise<Void>  in
+                if sw != nil {
+                    return Promise<Void>()
+                }
+                
+                let workerContextPath = NSBundle.mainBundle().pathForResource("sw", ofType: "js", inDirectory: "gdn-mobile-lab-build")!
+                let workerJS = NSData(contentsOfFile: workerContextPath)
+  
+                return ServiceWorkerManager.insertServiceWorkerIntoDB(NSURL(string:"https://www.gdnmobilelab.com/sw.js")!, scope: NSURL(string:"https://www.gdnmsdobilelab.com/")!, lastModified: -1, js: workerJS!, installState: ServiceWorkerInstallState.Activated)
+                .then { _ in
+                    hw.loadRequest(NSURLRequest(URL: NSURL(string:"https://www.gdnmobilelab.com/apps/notify")!))
+                    return Promise<Void>()
+                }
+                
+            }.onError { err -> Void in
+                log.error(String(err))
+            }
+            
             
             return true
             

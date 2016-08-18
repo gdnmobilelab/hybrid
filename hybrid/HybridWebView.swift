@@ -97,7 +97,8 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
                 return
             }
             
-            let mappedURL = try serviceWorker!.getURLInsideServiceWorkerScope(navigationAction.request.URL!)
+            let mappedURL = WebServer.current!.mapRequestURLToServerURL(navigationAction.request.URL!)
+//            try serviceWorker!.getURLInsideServiceWorkerScope(navigationAction.request.URL!)
             decisionHandler(WKNavigationActionPolicy.Cancel)
             webView.loadRequest(NSURLRequest(URL: mappedURL))
             
