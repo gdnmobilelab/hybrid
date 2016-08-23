@@ -220,7 +220,7 @@ class ServiceWorkerManager {
         return Promise<Void>()
         .then {
             
-            if serviceWorkerURL.scheme != "https" || scope.scheme != "https" {
+            if serviceWorkerURL.host != "localhost" && (serviceWorkerURL.scheme == "http" || scope.scheme == "http") {
                 log.error("Both scope and service worker URL must be under HTTPS")
                 throw ServiceWorkerNotHTTPSError()
             }
@@ -321,7 +321,20 @@ class ServiceWorkerManager {
                     
                     try db.executeUpdate("UPDATE service_workers SET install_state = ? WHERE instance_id = ?", values: [ServiceWorkerInstallState.Activated.rawValue, idAsNSNumber] as [AnyObject])
                     
-                    try db.executeUpdate("UPDATE service_workers SET install_state = ? WHERE instance_id IN (?)", values: [ServiceWorkerInstallState.Redundant.rawValue, idsToInvalidate] as [AnyObject])
+                    let placeholders = idsToInvalidate.map({ _ in
+                        return "?"
+                    }).joinWithSeparator(",")
+                    
+                    var params = [AnyObject]()
+                    
+                    params.append(ServiceWorkerInstallState.Redundant.rawValue)
+                    
+                    for id in idsToInvalidate {
+                        params.append(id)
+                    }
+                    
+        
+                    try db.executeUpdate("UPDATE service_workers SET install_state = ? WHERE instance_id IN (" + placeholders + ")", values: params)
 
                 })
                 
@@ -351,35 +364,35 @@ class ServiceWorkerManager {
                 
                 try self.updateServiceWorkerInstallState(id, state: ServiceWorkerInstallState.Installed)
                 
-                /*
-                    COMPLICATED LIFECYCLE ALERT:
-                    Service Workers go through two activation stages - install and activate.
-                    If there is a previous version of this service worker currently running,
-                    a new one will run install but NOT activate. UNLESS the worker calls
-                    self.skipWaiting() in the install process.
- 
-                */
+                // This logic was wrong. Service Workers shouldn't ever automatically
+                // activate on install - only on navigation event
                 
-                let otherVersionsOfThisServiceWorker = self.currentlyActiveServiceWorkers.filter({ (id, sw) in
-                    return sw.url.absoluteString == swInstance!.url.absoluteString && sw !== swInstance
-                })
+//                let otherVersionsOfThisServiceWorker = self.currentlyActiveServiceWorkers.filter({ (id, sw) in
+//                    return sw.url.absoluteString == swInstance!.url.absoluteString && sw !== swInstance
+//                })
+//                
+//                var runActivate = otherVersionsOfThisServiceWorker.count == 0
+//                
+//                if runActivate == true {
+//                    log.info("No existing service workers for " + swInstance!.url.absoluteString + ", activating immediately")
+//                } else {
+//                    log.info("Existing active service worker for " + swInstance!.url.absoluteString)
+//                }
                 
-                var runActivate = otherVersionsOfThisServiceWorker.count == 0
+//                if runActivate == false {
+//                    // there are other workers. But has this one called skipWaiting()?
+//                    runActivate = swInstance!.executeJS("hybrid.__getSkippedWaitingStatus()").toBool()
+//                    
+//                    if runActivate == true {
+//                        log.info("Service worker " + swInstance!.url.absoluteString + " called skipWaiting()")
+//                    }
+//                    
+//                }
+                
+                let runActivate = swInstance!.executeJS("hybrid.__getSkippedWaitingStatus()").toBool()
                 
                 if runActivate == true {
-                    log.info("No existing service workers for " + swInstance!.url.absoluteString + ", activating immediately")
-                } else {
-                    log.info("Existing active service worker for " + swInstance!.url.absoluteString)
-                }
-                
-                if runActivate == false {
-                    // there are other workers. But has this one called skipWaiting()?
-                    runActivate = swInstance!.executeJS("hybrid.__getSkippedWaitingStatus()").toBool()
-                    
-                    if runActivate == true {
-                        log.info("Service worker " + swInstance!.url.absoluteString + " called skipWaiting()")
-                    }
-                    
+                    log.info("Service worker " + swInstance!.url.absoluteString + " called skipWaiting()")
                 }
                 
                 if runActivate == false {
@@ -488,9 +501,9 @@ class ServiceWorkerManager {
             try Db.mainDatabase.inDatabase({ (db) in
                 // Let's first make sure we're selecting with the most specific scope
                 
-                let selectScopeQuery = "SELECT scope FROM service_workers WHERE ? LIKE (scope || '%') ORDER BY length(scope) DESC LIMIT 1"
+                let selectScopeQuery = "SELECT scope FROM service_workers WHERE ? LIKE (scope || '%') OR ? = scope ORDER BY length(scope) DESC LIMIT 1"
                 
-                let applicableWorkerResultSet = try db.executeQuery("SELECT instance_id FROM service_workers WHERE scope = (" + selectScopeQuery  + ") AND (install_state == ? OR install_state = ?) ORDER BY instance_id DESC", values: [url.absoluteString, ServiceWorkerInstallState.Activated.rawValue, ServiceWorkerInstallState.Installed.rawValue])
+                let applicableWorkerResultSet = try db.executeQuery("SELECT instance_id FROM service_workers WHERE scope = (" + selectScopeQuery  + ") AND (install_state == ? OR install_state = ?) ORDER BY instance_id DESC", values: [url.absoluteString, url.absoluteString, ServiceWorkerInstallState.Activated.rawValue, ServiceWorkerInstallState.Installed.rawValue])
                
                 while applicableWorkerResultSet.next() {
                     workerIds.append(Int(applicableWorkerResultSet.intForColumn("instance_id")))

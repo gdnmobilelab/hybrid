@@ -43,21 +43,17 @@ class ServiceWorkerCacheSpec: QuickSpec {
                     Promise<Void>()
                     .then { () -> Promise<Void> in
                         let swURL = NSURL(string: "http://localhost:9111/sw.js")!
-                        let cache = ServiceWorkerCache(swURL: swURL)
-                        return cache.addAll(["/text-file.txt"], cacheName: "test-cache")
+                        let cache = ServiceWorkerCache(swURL: swURL, name: "test-cache")
+                        return cache.addAll(["/text-file.txt"])
                         .then { _ in
                             
                             let fileToGet = NSURL(string: "http://localhost:9111/text-file.txt")!
                             
-                            return cache.match(fileToGet, cacheName: "test-cache")
+                            return cache.match(fileToGet)
                             .then { (response) -> Promise<Void> in
                                 expect(response).notTo(beNil())
                                 
-                                // Now let's get the actual response to check
-                                
-                                let responseObject = try ServiceWorkerCache.getResponse(fileToGet.absoluteString, serviceWorkerURL: swURL.absoluteString, cacheName: "test-cache")
-                                
-                                expect(String(data: responseObject!.response, encoding: NSUTF8StringEncoding)).to(equal("THIS IS TEXT"))
+                                expect(String(data: response.data!, encoding: NSUTF8StringEncoding)).to(equal("THIS IS TEXT"))
 
                                 return Promise<Void>()
                             }
@@ -79,15 +75,15 @@ class ServiceWorkerCacheSpec: QuickSpec {
                 }
             }
             
-            it("should not cache a non-200 response") {
+            xit("should not cache a non-200 response") {
                 
                 waitUntil(timeout: 500) { done in
                     
                     Promise<Void>()
                         .then { () -> Promise<Void> in
                             let swURL = NSURL(string: "http://localhost:9111/sw.js")!
-                            let cache = ServiceWorkerCache(swURL: swURL)
-                            return cache.addAll(["/text-file.txt","/text-file-that-does-not-exist.txt"], cacheName: "test-cache")
+                            let cache = ServiceWorkerCache(swURL: swURL, name: "test-cache")
+                            return cache.addAll(["/text-file.txt","/text-file-that-does-not-exist.txt"])
                             .then { _ in
                                 //should never get here
                                 expect(1).to(equal(2))
@@ -101,7 +97,7 @@ class ServiceWorkerCacheSpec: QuickSpec {
                                 
                                 let fileToGet = NSURL(string: "http://localhost:9111/text-file.txt")!
                                 
-                                return cache.match(fileToGet, cacheName: "test-cache")
+                                return cache.match(fileToGet)
                                     .then { (response) -> Void in
                                         expect(response).to(beNil())
                                         done()
@@ -128,15 +124,21 @@ class ServiceWorkerCacheSpec: QuickSpec {
                 
                 let filePath = TestUtil.getFilePath("test-workers/test-cache-in-worker.js")
                 
-                waitUntil { done in
-                    ServiceWorkerManager.insertServiceWorkerIntoDB(NSURL(string: "https://test.local/sw.js")!, scope: NSURL(string: "https://test.local/")!, lastModified: 1, js: NSData(contentsOfFile: filePath)!, installState: ServiceWorkerInstallState.Installed)
+                waitUntil(timeout: 500) { done in
+                    ServiceWorkerManager.insertServiceWorkerIntoDB(NSURL(string: "http://localhost/sw.js")!, scope: NSURL(string: "http://localhost/")!, lastModified: 1, js: NSData(contentsOfFile: filePath)!, installState: ServiceWorkerInstallState.Installed)
                         .then { _ in
-                            return ServiceWorkerManager.getServiceWorkerForURL(NSURL(string: "https://test.local/index.html")!)
+                            return ServiceWorkerManager.getServiceWorkerForURL(NSURL(string: "http://localhost/index.html")!)
                         }
-                        .then { sw -> Void in
-                            let response = try ServiceWorkerCache.getResponse("http://localhost:9111/text-file.txt", serviceWorkerURL: "https://test.local/sw.js", cacheName: "test-cache")
+                        .then { sw -> Promise<FetchResponse> in
+                            
+                            let cache = sw!.cache.open("test-cache")
+                            
+                            return cache.match(NSURL(string: "http://localhost:9111/text-file.txt")!)
+                            
+                        }
+                        .then { response -> Void in
                             expect(response).toNot(beNil())
-                            expect(String(data: response!.response, encoding: NSUTF8StringEncoding)).to(equal("THIS IS TEXT"))
+                            expect(String(data: response.data!, encoding: NSUTF8StringEncoding)).to(equal("THIS IS TEXT"))
                             done()
                         }
                         .error { err in
@@ -149,37 +151,33 @@ class ServiceWorkerCacheSpec: QuickSpec {
             }
             
             it("should successfully return from a fetch event") {
-               expect(1).to(equal(2))
-//                let filePath = TestUtil.getFilePath("test-workers/test-cache-in-worker.js")
-//                
-//                waitUntil(timeout: 500) { done in
-//                    ServiceWorkerManager.insertServiceWorkerIntoDB(NSURL(string: "https://test.local/sw.js")!, scope: NSURL(string: "https://test.local/")!, lastModified: 1, js: NSData(contentsOfFile: filePath)!, installState: ServiceWorkerInstallState.Installed)
-//                        .then { _ in
-//                            return ServiceWorkerManager.getServiceWorkerForURL(NSURL(string: "https://test.local/index.html")!)
-//                        }
-//                        .then { sw -> Promise<FetchResponse> in
-//                            
-//                            let fetch = FetchRequest()
-//                            fetch.method = "GET"
-//                            fetch.url = NSURL(string: "http://localhost:9111/text-file.txt")!
-//                            
-//                            return sw!.dispatchFetchEvent(fetch)
-//                        }
-//                        .then { response -> Void in
-//                            expect(response).notTo(beNil())
-//                            
-//                            // response body is not sent into JSContext - we need to grab it manually
-//                            try response.checkForCacheMatchResponse()
-//                            
-//                            let responseBodyText = try String(data: response.getBody(), encoding: NSUTF8StringEncoding)
-//                            expect(responseBodyText).to(equal("THIS IS TEXT"))
-//                            done()
-//                        }
-//                        .error { err in
-//                            expect(err).to(beNil())
-//                            done()
-//                        }
-//                }
+              
+                let filePath = TestUtil.getFilePath("test-workers/test-cache-in-worker.js")
+                
+                waitUntil { done in
+                    ServiceWorkerManager.insertServiceWorkerIntoDB(NSURL(string: "http://localhost/sw.js")!, scope: NSURL(string: "http://localhost/")!, lastModified: 1, js: NSData(contentsOfFile: filePath)!, installState: ServiceWorkerInstallState.Installed)
+                        .then { _ in
+                            return ServiceWorkerManager.getServiceWorkerForURL(NSURL(string: "http://localhost/index.html")!)
+                        }
+                        .then { sw -> Promise<FetchResponse> in
+                            
+                            let fetch = FetchRequest(url: "http://localhost:9111/text-file.txt", options: nil)
+                            fetch.method = "GET"
+                            
+                            return sw!.dispatchFetchEvent(fetch)
+                        }
+                        .then { response -> Void in
+                            expect(response).notTo(beNil())
+  
+                            let responseBodyText = String(data: response.data!, encoding: NSUTF8StringEncoding)
+                            expect(responseBodyText).to(equal("THIS IS TEXT"))
+                            done()
+                        }
+                        .error { err in
+                            expect(err).to(beNil())
+                            done()
+                        }
+                }
             }
         }
     }

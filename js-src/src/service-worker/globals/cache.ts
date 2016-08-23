@@ -1,52 +1,30 @@
-import {storePromiseResult} from '../hybrid/promise-bridge';
-
-class CacheInstance {
-
-    name:String;
-
-    constructor(name:String) {
-        this.name = name;
+const stringToErr = function(reject:Function) {
+    return (err: string) => {
+        reject(new Error(err));
     }
-
-    addAll(urls:[String]) {
-        return new Promise((fulfill, reject) => {
-            let promiseIndex = storePromiseResult(fulfill, reject);
-            
-            __cacheOperation(promiseIndex, "addAll", this.name, [urls]);
-
-        })
-    }
-
-    add(url:String) {
-        return this.addAll([url]);
-    }
-
-    match(url:String) {
-        return new Promise((fulfill, reject) => {
-            let promiseIndex = storePromiseResult(fulfill, reject);
-            __cacheOperation(promiseIndex, "match", this.name, [url]);
-        })
-        .then((cacheResponse:string) => {
-            
-            console.log("response?", cacheResponse)
-            if (!cacheResponse) {
-                throw new Error("Entry does not exist in cache.")
-            }
-            
-            let response = {
-                url: url,
-                status: 0,
-                __hybridCacheResponse: JSON.parse(cacheResponse)
-            }
-
-            return response;
-        })
-    }
+    
 }
 
+caches.open = function(name:String): Promise<Cache> {
+    return new Promise((fulfill, reject) => {
+        caches.openCallbackSuccessFailure(name, fulfill, stringToErr);
+    })
+}
+console.log(Object.keys(Cache))
+Cache.prototype.add = function(url:string) {
+    return new Promise<void>((fulfull, reject) => {
+        Cache.prototype.addCallbackSuccessFailure.apply(this, [url, fulfull, stringToErr(reject)]);
+    })
+}
 
-global.caches = {
-    open: function(id:String):Promise<CacheInstance> {
-        return Promise.resolve(new CacheInstance(id))
-    }
+Cache.prototype.addAll = function(urls: string[]) {
+    return new Promise<void>((fulfull, reject) => {
+        Cache.prototype.addAllCallbackSuccessFailure.apply(this, [urls, fulfull, stringToErr(reject)]);
+    })
+}
+
+Cache.prototype.match = function(url:string) {
+    return new Promise<void>((fulfull, reject) => {
+        Cache.prototype.matchCallbackSuccessFailure.apply(this, [url, fulfull, stringToErr(reject)]);
+    })
 }

@@ -24,18 +24,24 @@ class JSContextError : ErrorType {
     }
     
     init(jsValue:JSValue) {
-        let dict = jsValue.toObject() as! [String: String]
-        if let message = dict["message"] {
-            self.message = message
-            self.stack = dict["stack"]
-        } else {
-            var msg = ""
-            for (key, val) in dict {
-                msg = msg + key + " : " + val
+        if jsValue.isObject == true {
+            let dict = jsValue.toObject() as! [String: String]
+            if let message = dict["message"] {
+                self.message = message
+                self.stack = dict["stack"]
+            } else {
+                var msg = ""
+                for (key, val) in dict {
+                    msg = msg + key + " : " + val
+                }
+                self.message = msg
+                self.stack = nil
             }
-            self.message = msg
+        } else {
+            self.message = jsValue.toString()
             self.stack = nil
         }
+       
         
         
     }
@@ -56,13 +62,13 @@ class ServiceWorkerOutOfScopeError : ErrorType {
 public class ServiceWorkerInstance {
     
     var jsContext:JSContext!
-    var cache:ServiceWorkerCache!
+    var cache:ServiceWorkerCacheHandler!
     var jsBom:JSCoreBom!
     var contextErrorValue:JSValue?
     let url:NSURL!
     let scope:NSURL!
     let timeoutManager = ServiceWorkerTimeoutManager()
-    let webSQL: WebSQL!
+    let webSQL: WebSQLDatabaseCreator!
     var clientManager:WebviewClientManager?
     var installState:ServiceWorkerInstallState!
     let instanceId:Int
@@ -82,9 +88,13 @@ public class ServiceWorkerInstance {
         self.instanceId = instanceId
         self.jsContext = JSContext()
         self.jsBom = JSCoreBom()
-        self.webSQL = WebSQL(url: self.url)
+        
+        let urlComponents = NSURLComponents(URL: url, resolvingAgainstBaseURL: false)!
+        urlComponents.path = nil
+        
+        self.webSQL = WebSQLDatabaseCreator(context: self.jsContext, origin: urlComponents.URLString)
         self.jsContext.exceptionHandler = self.exceptionHandler
-        self.cache = ServiceWorkerCache(swURL: url)
+        self.cache = ServiceWorkerCacheHandler(jsContext: self.jsContext, serviceWorkerURL: url)
         
         self.jsBom.extend(self.jsContext, logHandler: self.swLog)
         
@@ -145,13 +155,18 @@ public class ServiceWorkerInstance {
                     return serviceWorkerContents.close()
                 }
                 
+                let url = NSURL(string: serviceWorkerContents.stringForColumn("url"))!
+                let scope = NSURL(string: serviceWorkerContents.stringForColumn("scope"))!
+                let installState = ServiceWorkerInstallState(rawValue: Int(serviceWorkerContents.intForColumn("install_state")))!
+                
                 instance = ServiceWorkerInstance(
-                    url: NSURL(string: serviceWorkerContents.stringForColumn("url"))!,
-                    scope: NSURL(string: serviceWorkerContents.stringForColumn("scope"))!,
+                    url: url,
+                    scope: scope,
                     instanceId: id,
-                    installState: ServiceWorkerInstallState(rawValue: Int(serviceWorkerContents.intForColumn("install_state")))!
+                    installState: installState
                 )
-                log.debug("Created new instance of service worker with ID " + String(id))
+                
+                log.debug("Created new instance of service worker with ID " + String(id) + " and install state: " + String(instance!.installState))
                 contents = serviceWorkerContents.stringForColumn("contents")
                 serviceWorkerContents.close()
             })
@@ -179,54 +194,13 @@ public class ServiceWorkerInstance {
         return url.absoluteString.hasPrefix(self.scope.absoluteString)
     }
     
-    private func cacheOperation(callbackId:Int, operation:String, cacheName:String, args:JSValue) {
-        
-        Promise<Void>()
-        .then {
-            if operation == "addAll" {
-                
-                let filesToCache = args.toArray()[0]
-                
-                return self.cache.addAll(filesToCache as! [String], cacheName: cacheName)
-                    .then { successful in
-                        self.jsPromiseCallback(callbackId, fulfillValue: JSValue(bool:successful, inContext: self.jsContext), rejectValue: nil)
-                }
-            } else if operation == "match" {
-                let fileToLookup = args.toArray()[0] as! String
-                
-                return self.cache.match(NSURL(string:fileToLookup)!, cacheName: cacheName)
-                .then { match -> Void in
-                    
-                    var matchJSON = "null"
-                    if match != nil {
-                        matchJSON = match!.toJSONString()!
-                    }
-                    
-                    
-                    
-                    
-                    self.jsPromiseCallback(callbackId, fulfillValue: matchJSON, rejectValue: nil)
-                }
-                
-            }
-            throw CacheOperationNotSupportedError()
-        }
-        .recover { (err) -> Void in
-            self.jsPromiseCallback(callbackId, fulfillValue: nil, rejectValue: JSValue(newErrorFromMessage: String(err), inContext: self.jsContext))
-        }
-        
-    }
     
     private func hookFunctions() {
         
         let promiseCallbackAsConvention: @convention(block) (JSValue, JSValue, JSValue) -> Void = self.nativePromiseCallback
         self.jsContext.setObject(unsafeBitCast(promiseCallbackAsConvention, AnyObject.self), forKeyedSubscript: "__promiseCallback")
-        
-        let cacheOperationAsConvention: @convention(block) (Int, String, String, JSValue) -> Void = self.cacheOperation
-        self.jsContext.setObject(unsafeBitCast(cacheOperationAsConvention, AnyObject.self), forKeyedSubscript: "__cacheOperation")
 
         self.timeoutManager.hookFunctions(self.jsContext)
-        self.webSQL.hookFunctions(self.jsContext)
         
         self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
         self.jsContext.setObject(self.clientManager, forKeyedSubscript: "__WebviewClientManager")
@@ -297,7 +271,7 @@ public class ServiceWorkerInstance {
             // We don't want to auto-close DB connections after runScript because the promise
             // will continue to execute after that. So instead, we tidy up our webSQL connections
             // once the promise has fulfilled (or errored out)
-            self.webSQL.closeAll()
+            //self.webSQL.closeAll()
         }
     }
     
@@ -310,20 +284,13 @@ public class ServiceWorkerInstance {
 
     }
     
-    func dispatchFetchEvent(fetch: OldFetchRequest) -> Promise<OldFetchResponse> {
+    func dispatchFetchEvent(fetch: FetchRequest) -> Promise<FetchResponse> {
         
-        let json = Mapper().toJSONString(fetch)!
+        let dispatch = self.jsContext.objectForKeyedSubscript("hybrid")
+            .objectForKeyedSubscript("dispatchFetchEvent")
+            .callWithArguments([fetch])
         
-        return self.executeJSPromise("hybrid.dispatchFetchEvent(" + json + ").then(function(resp){return JSON.stringify(resp)})")
-        .then { returnVal in
-            
-            let returnAsString = returnVal.toString()
-            
-            let queryMapper = Mapper<OldFetchResponse>()
-            let response = queryMapper.map(returnAsString)!
-
-            return Promise<OldFetchResponse>(response)
-        }
+        return PromiseBridge<FetchResponse>(jsPromise: dispatch)
     }
     
     func loadServiceWorker(workerJS:String) -> Promise<JSValue> {
@@ -378,7 +345,7 @@ public class ServiceWorkerInstance {
                 // There is no standard hook on closing WebSQL connections, so we handle
                 // it manually. We assume we'll close unless told otherwise (as we do with
                 // promises)
-                self.webSQL.closeAll()
+               // self.webSQL.closeAll()
             }
         }
     }

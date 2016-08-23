@@ -52,11 +52,13 @@ class ServiceWorkerAPI: ScriptMessageManager {
         
         self.swChangeListener = ServiceWorkerManager.events.on(ServiceWorkerManager.STATUS_CHANGE_EVENT, self.serviceWorkerChange)
         
+        
+        
         self.webview.messageChannelManager!.onMessage = self.handleIncomingPostMessage
     }
     
     func handleIncomingPostMessage(message:String, ports:[MessagePort]) {
-        
+
         self.currentActiveServiceWorker!.receiveMessage(message, ports: ports)
     }
     
@@ -123,7 +125,23 @@ class ServiceWorkerAPI: ScriptMessageManager {
     
     func getAllWorkers(webviewURL:NSURL) -> Promise<String> {
         return ServiceWorkerManager.getAllServiceWorkersForURL(webviewURL)
-        .then { matches in
+        .then { matches -> String in
+            
+            let activeWorkers = matches.filter({ match in
+                return match.installState == ServiceWorkerInstallState.Activated
+            })
+            
+            if activeWorkers.count > 0 {
+                // if we have an active worker, load it and save it
+                
+                ServiceWorkerInstance.getById(activeWorkers[0].instanceId)
+                .then { sw in
+                    self.currentActiveServiceWorker = sw
+                }
+                
+            }
+            
+            
             return matches.toJSONString()!
         }
     }

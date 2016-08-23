@@ -11,82 +11,76 @@ import Alamofire
 import PromiseKit
 import ObjectMapper
 import FMDB
-
-class MappableHTTPHeaderCollection : Mappable {
-    
-    var headers:[String:String]!
-    
-    required init?(_ map: Map) {
-        
-    }
-    
-    init(headersObj:[NSObject: AnyObject]) {
-        self.headers = headersObj as! [String:String]
-    }
-    
-    func mapping(map: Map) {
-        headers      <- map["headers"]
-    }
-
-}
-
-class ServiceWorkerCacheMatchResponse : Mappable {
-    // We don't want to send the whole response directly to the service
-    // worker as transferring this blob content into the JSContext, only
-    // for it to transfer it straight back to the GCDWebServer is wasteful.
-    // instead we just pass back the primary key values we can use with
-    // getResponse() later.
-    
-    var url:String!
-    var serviceWorkerURL:String!
-    var cacheId:String!
-    
-    required init?(_ map: Map) {
-        
-    }
-    
-    init(url: String, serviceWorkerURL: String, cacheId: String) {
-        self.url = url
-        self.serviceWorkerURL = serviceWorkerURL
-        self.cacheId = cacheId
-    }
-    
-    func mapping(map: Map) {
-        url      <- map["url"]
-        serviceWorkerURL <- map["serviceWorkerURL"]
-        cacheId <- map["cacheId"]
-    }
-    
-}
-
-struct ServiceWorkerCacheResponseData {
-    var response: NSData!
-    var url: String!
-    var headers: [String : String]!
-    var status:Int!
-}
+import JavaScriptCore
 
 class CacheOperationNotSupportedError: ErrorType {}
 class CacheAddRequestFailedError : ErrorType {}
+class CacheNoMatchError : ErrorType {}
 
-class ServiceWorkerCache {
+@objc protocol ServiceWorkerCacheHandlerExports: JSExport {
+    func openCallback(name:String, success: JSValue, failure: JSValue) -> Void
+}
+
+@objc class ServiceWorkerCacheHandler : NSObject, ServiceWorkerCacheHandlerExports {
     
-//    let escapedServiceWorkerURL:String
+    let swURL: NSURL
+    let jsContext: JSContext
+    
+    init(jsContext: JSContext, serviceWorkerURL: NSURL) {
+        self.jsContext = jsContext
+        self.swURL = serviceWorkerURL
+        
+        super.init()
+        
+        jsContext.setObject(self, forKeyedSubscript: "caches")
+        jsContext.setObject(ServiceWorkerCache.self, forKeyedSubscript: "Cache")
+        
+        
+    }
+    
+    func openCallback(name: String, success: JSValue, failure: JSValue) {
+        success.callWithArguments([ServiceWorkerCache(swURL: self.swURL, name: name)])
+    }
+    
+    func open(name:String) -> ServiceWorkerCache {
+        return ServiceWorkerCache(swURL: self.swURL, name: name)
+    }
+}
+
+
+@objc protocol ServiceWorkerCacheExports : JSExport {
+    func addAllCallback(urls:[String], success:JSValue, failure: JSValue) -> Void
+    func addCallback(url:String, success:JSValue, failure: JSValue) -> Void
+    func matchCallback(url: String, success: JSValue, failure: JSValue) -> Void
+}
+
+
+@objc class ServiceWorkerCache: NSObject, ServiceWorkerCacheExports {
+    
     let serviceWorkerURL:NSURL
+    let name:String
     
     
-    init(swURL:NSURL) {
+    init(swURL:NSURL, name:String) {
         self.serviceWorkerURL = swURL
-//        self.escapedServiceWorkerURL = swURL.absoluteString.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
+        self.name = name
     }
     
-    func hookFunctions(jsContext:JSContext) {
-//        let createConnectionConvention: @convention(block) (String) -> Int = self.addAll
-//        jsContext.setObject(unsafeBitCast(createConnectionConvention, AnyObject.self), forKeyedSubscript: "__createWebSQLConnection")
+    func addCallback(url:String, success: JSValue, failure:JSValue) {
+        self.addAllCallback([url], success: success, failure: failure)
     }
-
     
-    func addAll(urls: [String], cacheName:String) -> Promise<Bool> {
+    func addAllCallback(urls:[String], success:JSValue, failure: JSValue) {
+        self.addAll(urls)
+        .then { returnBool in
+            success.callWithArguments([returnBool])
+        }
+        .error { err in
+            failure.callWithArguments([String(err)])
+        }
+    }
+    
+    func addAll(urls: [String]) -> Promise<Bool> {
         
         // TODO: what about URLs that redirect?
         
@@ -119,11 +113,12 @@ class ServiceWorkerCache {
                     try Db.mainDatabase.inTransaction({ (db) in
                         
                         for r in responses {
-                            let headers = MappableHTTPHeaderCollection(headersObj: r.response.allHeaderFields)
+                            
+                            let fh = FetchHeaders(dictionary: r.response.allHeaderFields as! [String: AnyObject])
+                            
+                            let headersAsJSON = try fh.toJSON()
     
-                            let headersAsJSON = Mapper().toJSONString(headers)!
-    
-                            try db.executeUpdate("INSERT INTO cache (service_worker_url, cache_id, resource_url, contents, headers, status) VALUES (?,?,?,?,?,?)", values: [self.serviceWorkerURL.absoluteString, cacheName, r.request.URL!.absoluteString, r.data!, headersAsJSON, r.response.statusCode] as [AnyObject])
+                            try db.executeUpdate("INSERT INTO cache (service_worker_url, cache_id, resource_url, contents, headers, status) VALUES (?,?,?,?,?,?)", values: [self.serviceWorkerURL.absoluteString, self.name, r.request.URL!.absoluteString, r.data!, headersAsJSON, r.response.statusCode] as [AnyObject])
                         }
     
                     })
@@ -137,12 +132,16 @@ class ServiceWorkerCache {
         
     }
     
-    func hookFunctions() {
-        
+    func matchCallback(url: String, success: JSValue, failure: JSValue) {
+        self.match(NSURL(string: url)!)
+        .then { response in
+            success.callWithArguments([response])
+        }.error { error in
+            failure.callWithArguments([String(error)])
+        }
     }
-
     
-    func match(url: NSURL, cacheName:String) -> Promise<ServiceWorkerCacheMatchResponse?> {
+    func match(url: NSURL) -> Promise<FetchResponse> {
         
         // match doesn't actually return the response object because sending to the JSContext
         // would be too costly. Instead we map it back again in the web server. That said, means
@@ -152,56 +151,41 @@ class ServiceWorkerCache {
         return Promise<Void>()
         .then {
             
-            var response:ServiceWorkerCacheMatchResponse? = nil
+            var response:FetchResponse? = nil
             
             try Db.mainDatabase.inDatabase { (db) in
-                let resultSet = try db.executeQuery("SELECT 1 FROM cache WHERE resource_url = ? AND service_worker_url = ? AND cache_id = ?", values: [url.absoluteString, self.serviceWorkerURL.absoluteString, cacheName])
+                let resultSet = try db.executeQuery("SELECT * FROM cache WHERE resource_url = ? AND service_worker_url = ? AND cache_id = ?", values: [url.absoluteString, self.serviceWorkerURL.absoluteString, self.name])
                 
                 if resultSet.next() == false {
                     log.info("Could not find cache match for: " + url.absoluteString)
                     return resultSet.close()
                 }
                 
-                response = ServiceWorkerCacheMatchResponse(url: url.absoluteString, serviceWorkerURL: self.serviceWorkerURL.absoluteString, cacheId: cacheName)
+                
+                let fh = try FetchHeaders.fromJSON(resultSet.stringForColumn("headers"))
+                
+                let opts: [String: AnyObject] = [
+                    "status": Int(resultSet.intForColumn("status")),
+                    "headers": fh
+                ]
+                
+                
+                response = try FetchResponse(body: resultSet.dataForColumn(("contents")), options: opts)
+                
                 
                 log.debug("Found cache match for: " + url.absoluteString)
                 
                 resultSet.close()
             }
             
-            return Promise<ServiceWorkerCacheMatchResponse?>(response)
+            if response == nil {
+                throw CacheNoMatchError()
+            }
+            
+            return Promise<FetchResponse>(response!)
         }
        
     }
-    
-    static func getResponse(url:String, serviceWorkerURL:String, cacheName: String) throws -> ServiceWorkerCacheResponseData? {
-        
-        // Static because this is being called from the web server, which doesn't need
-        // or want to care about cache instances.
-        
-        var response:ServiceWorkerCacheResponseData? = nil
-        
-        try Db.mainDatabase.inDatabase { (db) in
-            let resultSet = try db.executeQuery("SELECT * FROM cache WHERE resource_url = ? AND service_worker_url = ? AND cache_id = ?", values: [url, serviceWorkerURL, cacheName])
-            
-            if (resultSet.next() == false) {
-                // This shouldn't ever happen, but hey, you never know
-                return resultSet.close()
-            }
-            
-            let headerCollection = Mapper<MappableHTTPHeaderCollection>().map(resultSet.stringForColumn("headers"))!
-            
-            response = ServiceWorkerCacheResponseData()
-            response!.url = resultSet.stringForColumn("resource_url")
-            response!.response = resultSet.dataForColumn("contents")
-            response!.headers = headerCollection.headers
-            response!.status = Int(resultSet.intForColumn("status"))
-            resultSet.close()
-        }
-        
-        return response
-    }
-    
    
     
 }

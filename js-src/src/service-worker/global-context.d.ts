@@ -49,6 +49,16 @@ declare class __MessagePort {
 declare var Request: Function;
 declare var Response: Function;
 declare var GlobalFetch: any;
+declare var Cache: any;
+
+declare class caches {
+    static openCallbackSuccessFailure(name: String, success: Function, failure: Function):void
+    static open: (name:string) => Promise<Cache>
+}
+
+declare class __WebSQLDatabaseCreator {
+    static createDB(name:String): [any]
+}
 
 // declare var self: ServiceWorkerGlobalScope;
 

@@ -37,7 +37,17 @@ class WebServer {
             fetchURL.path! += ":" + String(url.port!)
         }
         
-        fetchURL.path! += url.path!
+        
+        var path = url.path!
+        
+        // for some reason NSURL strips trailing slashes. Grr.
+        // http://www.cocoabuilder.com/archive/cocoa/316298-nsurl-path-if-the-path-has-trailing-slash-it-is-stripped.html
+        
+        if url.absoluteString.hasSuffix("/")  && path.hasSuffix("/") == false {
+            path += "/"
+        }
+        
+        fetchURL.path! += path
         
         fetchURL.query = url.query
         
@@ -56,12 +66,23 @@ class WebServer {
 
 //        Int32(<#T##text: String##String#>)
         let fetchURL = NSURLComponents()
-        fetchURL.scheme = "https"
+        if hostPortSplit[0] == "localhost" {
+            // just for testing, really
+            fetchURL.scheme = "http"
+        } else {
+            fetchURL.scheme = "https"
+        }
+        
         fetchURL.host = hostPortSplit[0]
         if hostPortSplit.count == 2 {
             fetchURL.port = Int(hostPortSplit[1])
         }
         fetchURL.path = "/" + url.pathComponents!.dropFirst(3).joinWithSeparator("/")
+        
+        if url.absoluteString.hasSuffix("/") && fetchURL.path!.hasSuffix("/") == false {
+            fetchURL.path! += "/"
+        }
+        
         fetchURL.query = url.query
         return fetchURL.URL!
     }
@@ -69,7 +90,7 @@ class WebServer {
     func handleServiceWorkerRequest(request:GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
         
         let mappedURL = WebServer.mapServerURLToRequestURL(request.URL)
-        
+        log.info("Request for " + request.URL.absoluteString)
         ServiceWorkerManager.getServiceWorkerForURL(mappedURL)
         .then { (sw) -> Promise<Void> in
             if (sw == nil) {
@@ -84,28 +105,34 @@ class WebServer {
             }
             
             
-            let fetch = OldFetchRequest()
-            fetch.url = WebServer.mapServerURLToRequestURL(request.URL)// fetchURL.URL!
-            fetch.method = request.method
-            fetch.headers = request.headers as! [String:String]
+            let fetch = FetchRequest(url: mappedURL.absoluteString, options: [
+                "method": request.method,
+                "headers": request.headers as! [String:String]
+            ])
             
-            if fetch.headers["Referrer"] != nil {
-                fetch.referrer = NSURL(string: fetch.headers["Referrer"]!)
-            }
-        
+            fetch.headers.set("host", value: mappedURL.host!)
+            
             return sw!.dispatchFetchEvent(fetch)
+            .recover { err -> Promise<FetchResponse> in
+                log.error(String(err))
+                // If fetch event failed, just go to net
+                return GlobalFetch.fetchRequest(fetch)
+            }
             .then { response in
             
+                var contentType:String? = response.headers.get("content-type")
                 
-                let gcdresponse = try GCDWebServerDataResponse(data: response.getBody(), contentType: response.getHeader("content-type")!)
-                if response.status != nil {
-                    gcdresponse.statusCode = response.status!
-                } else {
-                    gcdresponse.statusCode = 200
+                if contentType == nil {
+                    contentType = "text/plain"
                 }
                 
-                for (key, val) in response.getAllHeaders() {
-                    gcdresponse.setValue(val as! String, forAdditionalHeader: key)
+                
+                let gcdresponse = GCDWebServerDataResponse(data: response.data, contentType: contentType)
+                
+                gcdresponse.statusCode = response.status
+                
+                for key in response.headers.keys() {
+                    gcdresponse.setValue(response.headers.get(key), forAdditionalHeader: key)
                 }
                 
                 completionBlock(gcdresponse)

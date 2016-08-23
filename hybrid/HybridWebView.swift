@@ -63,6 +63,9 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         self.eventManager = EventManager(userController: config.userContentController, webView: self)
         self.navigationDelegate = self
         
+        // For testing mimicking Chrome - to remove!
+        self.customUserAgent = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.23 Mobile Safari/537.36"
+        
     }
     
     func injectJS(userController: WKUserContentController) throws {

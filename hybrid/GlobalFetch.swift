@@ -8,12 +8,14 @@
 
 import Foundation
 import Alamofire
+import PromiseKit
 
 class FetchSetupError : ErrorType {}
 
 @objc protocol FetchHeadersExports {
     func set(name: String, value:String)
     func get(name: String) -> String?
+    func deleteValue(name:String)
     func getAll(name:String) -> [String]?
     func append(name:String, value:String)
     func keys() -> [String]
@@ -27,6 +29,10 @@ class FetchSetupError : ErrorType {}
     
     func set(name: String, value: String) {
         values[name.lowercaseString] = [value]
+    }
+    
+    func deleteValue(name:String) {
+        values.removeValueForKey(name.lowercaseString)
     }
     
     func append(name: String, value: String) {
@@ -76,6 +82,34 @@ class FetchSetupError : ErrorType {}
                 log.error("Invalid value when creating FetchHeaders.")
             }
         }
+    }
+    
+    static func fromJSON(json:String) throws -> FetchHeaders {
+        let headersObj = try NSJSONSerialization.JSONObjectWithData(json.dataUsingEncoding(NSUTF8StringEncoding)!, options: NSJSONReadingOptions()) as! [String: [String]]
+        
+        let fh = FetchHeaders()
+        
+        for (key, values) in headersObj {
+            for value in values {
+                fh.append(key, value: value)
+            }
+        }
+        return fh
+    }
+    
+    func toJSON() throws -> String {
+        var dict = [String: [String]]()
+        
+        for key in self.keys() {
+            dict[key] = []
+            for value in self.getAll(key)! {
+                dict[key]!.append(value)
+            }
+        }
+        
+        let jsonData = try NSJSONSerialization.dataWithJSONObject(dict, options: NSJSONWritingOptions())
+        
+        return String(data: jsonData, encoding: NSUTF8StringEncoding)!
     }
     
 }
@@ -135,14 +169,17 @@ class FetchSetupError : ErrorType {}
 
 @objc protocol FetchRequestExports : FetchBodyExports, JSExport {
     init(url:String, options: [String:AnyObject]?)
+    var referrer:String? {get}
+    var url:String {get}
 }
 
 @objc public class FetchRequest : FetchBody, FetchRequestExports {
     
-    let url:String
-    let method:String
-    let headers:FetchHeaders
+    var url:String
+    var method:String
+    var headers:FetchHeaders
     
+   
     required public init(url:String, options: [String: AnyObject]?)  {
         self.url = url
         
@@ -162,13 +199,19 @@ class FetchSetupError : ErrorType {}
         }
         
     }
+    
+    var referrer:String? {
+        get {
+            return self.headers.get("referrer")
+        }
+    }
    
     
     func toNSURLRequest() -> NSURLRequest {
-       
-        let request = NSMutableURLRequest()
-        request.URL = NSURL(string: self.url)!
+
+        let request = NSMutableURLRequest(URL: NSURL(string: self.url)!)
         request.HTTPMethod = self.method
+        
         
         for key in self.headers.keys() {
             let allValsJoined = self.headers.getAll(key)?.joinWithSeparator(",")
@@ -180,10 +223,12 @@ class FetchSetupError : ErrorType {}
 }
 
 @objc protocol FetchResponseExports : FetchBodyExports, JSExport {
-    init(body:String?, options: [String:AnyObject]?)
+    init(body:AnyObject?, options: [String:AnyObject]?)
     
 //    func json(callback: JSValue, errorCallback: JSValue)
 }
+
+class FetchResponseBodyTypeNotRecognisedError : ErrorType {}
 
 @objc public class FetchResponse : FetchBody, FetchResponseExports {
     
@@ -191,9 +236,19 @@ class FetchSetupError : ErrorType {}
     let status:Int
     let statusText:String
     
-    var testValue: String = "HELLO"
+    init(body: NSData?, status: Int, statusText:String, headers: FetchHeaders) {
+        self.status = status
+        self.headers = headers
+        self.statusText = statusText
+        super.init()
+        
+        self.data = body
+        
+        
+    }
     
-    required public init(body: String?, options: [String:AnyObject]?) {
+    
+    required public init(body: AnyObject?, options: [String:AnyObject]?) {
         
         var status = 200
         var statusText = "OK"
@@ -222,16 +277,27 @@ class FetchSetupError : ErrorType {}
         super.init()
         
         if body != nil {
-            self.data = body!.dataUsingEncoding(NSUTF8StringEncoding)
+            
+            if let bodyText = body as? String {
+                self.data = bodyText.dataUsingEncoding(NSUTF8StringEncoding)
+            } else if let bodyData = body as? NSData {
+                self.data = bodyData
+            } else {
+                log.error("Body provided is not a recognised type.")
+            }
+            
         }
         
     }
+    
   
 }
 
 @objc protocol GlobalFetchExports: JSExport {
     static func fetch(url:JSValue, options:JSValue, callback:JSValue, errorCallback:JSValue) -> Void
 }
+
+class NoErrorButNoResponseError : ErrorType {}
 
 @objc class GlobalFetch: NSObject, GlobalFetchExports {
     
@@ -246,44 +312,56 @@ class FetchSetupError : ErrorType {}
         return FetchRequest(url: request.toString(), options: options.toObject() as? [String : AnyObject])
     }
     
+    static func fetchRequest(request: FetchRequest) -> Promise<FetchResponse> {
+        log.debug("Fetching " + request.toNSURLRequest().URL!.absoluteString)
+        return Promise<FetchResponse>() {fulfill, reject in
+            Alamofire
+                .request(request.toNSURLRequest())
+                .response(completionHandler: { (req: NSURLRequest?, res: NSHTTPURLResponse?, data: NSData?, err: NSError?) in
+                    
+                    if err != nil {
+                        reject(err!)
+                        return
+                    }
+                    
+                    if let response = res {
+                        
+                        let fh = FetchHeaders(dictionary: response.allHeaderFields as! [String: AnyObject])
+                        
+                        if fh.get("Content-Encoding") != nil {
+                            // it already ungzips stuff automatically, so this just
+                            // confuses things. Need to flesh this out more.
+                            fh.deleteValue("Content-Encoding")
+                        }
+                        
+                        
+                        // TODO: Status text
+                        
+                        let resp = FetchResponse(body: data, status: response.statusCode, statusText: "", headers: fh)
+                        
+                        fulfill(resp)
+                        
+                    } else {
+                        reject(NoErrorButNoResponseError())
+                    }
+
+                    
+            })
+        }
+    }
+    
     static func fetch(requestVal: JSValue, options:JSValue, callback:JSValue, errorCallback:JSValue) {
         
         let request = self.getRequest(requestVal, options: options)
         
-        
-        
-        
-        Alamofire
-            .request(request.toNSURLRequest())
-            .response(completionHandler: { (req: NSURLRequest?, res: NSHTTPURLResponse?, data: NSData?, err: NSError?) in
-        
-                if err != nil {
-                    errorCallback.callWithArguments([String(err)])
-                    return
-                }
-                
-                if let response = res {
-                    let headersAsString = response.allHeaderFields as! [String: AnyObject]
-                    
-                    let resp = FetchResponse(body: nil, options: [
-                        "status": response.statusCode,
-                        "headers": headersAsString
-                    ])
-                    
-                    resp.data = data
-                    
-                    callback.callWithArguments([resp])
-                    
-                } else {
-                    errorCallback.callWithArguments(["No error, but no response?"])
-                }
-                
-               
-            
-            })
+        self.fetchRequest(request)
+        .then { fetchResponse in
+            callback.callWithArguments([fetchResponse])
+        }
+        .error { err in
+            errorCallback.callWithArguments([String(err)])
+        }
 
-        
-        
     }
     
     static func addToJSContext(context:JSContext) {

@@ -55,7 +55,7 @@ class WebServerTests: QuickSpec {
             
                 let filePath = TestUtil.getFilePath("test-workers/test-fetch-event.js")
                 
-                waitUntil(timeout: 500) { done in
+                waitUntil { done in
                     ServiceWorkerManager.insertServiceWorkerIntoDB(NSURL(string:"https://test.local/test.js")!, scope: NSURL(string: "https://test.local")!, lastModified: 1, js: NSData(contentsOfFile: filePath)!, installState: ServiceWorkerInstallState.Activated)
                         
                         .then { (_) -> Promise<AlamofireResponse> in

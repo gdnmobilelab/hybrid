@@ -129,7 +129,7 @@ class ServiceWorkerAPISpec: QuickSpec {
             
             it("Should activate a new worker that calls skipWaiting() and clients.claim()") {
                 
-                waitUntil(timeout: 500) { done in
+                waitUntil { done in
                     let hw = HybridWebview(frame: CGRect(x: 0,y: 0, width: 10, height: 10))
                     
                     HybridWebview.registerWebviewForServiceWorkerEvents(hw)

@@ -40,6 +40,38 @@ class ServiceWorkerCoreFunctionSpec: QuickSpec {
                 
             }
             
+            it("should be able to bridge promises") {
+                let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, instanceId:0, installState: ServiceWorkerInstallState.Installed)
+                
+                waitUntil(timeout: 500) { done in
+                    sw.loadServiceWorker("var test = Promise.resolve(123); var test2 = new Promise(function(fulfill, reject) {reject(new Error('no'))})")
+                    .then { _ in
+                        
+                        return PromiseBridge<NSNumber>(jsPromise: sw.jsContext.objectForKeyedSubscript("test"))
+                        .then { result -> Void in
+                            expect(result).to(equal(123))
+                            
+                            PromiseBridge<NSNumber>(jsPromise: sw.jsContext.objectForKeyedSubscript("test2"))
+                            .then { _ -> Void in
+                                // we should never get here
+                                expect(1).to(equal(2))
+                                done()
+                            }
+                            .recover { err in
+                                done()
+                            }
+                            
+                            
+                        }
+                        .error { err in
+                            expect(err).to(beNil())
+                            done()
+                        }
+                    }
+                    
+                }
+            }
+            
             it("should promisify functions") {
                 
                 // Our JS library wraps the native functions in promised versions. Let's check that works.

@@ -11,6 +11,7 @@ self.addEventListener("fetch", function(event){
     event.respondWith(
         caches.open("test-cache")
         .then(function(cache){
+              console.log("TRY TO MATCH", event.request)
             return cache.match(event.request.url)
         })
         .catch(function() {

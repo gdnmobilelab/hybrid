@@ -78,7 +78,7 @@ class HybridServiceWorker extends EventEmitterToJSEvent implements ServiceWorker
         if (options.length > 1 || options[0] instanceof MessagePort === false) {
             throw new Error("Currently only supports sending one MessagePort");
         }
-
+        console.log('post message?', message)
         postMessage(message, [options[0] as MessagePort]);
 
     } 
@@ -110,6 +110,10 @@ class HybridRegistration extends EventEmitterToJSEvent implements ServiceWorkerR
                 this.onupdatefound();
             }
         })
+
+        this.pushManager = function() {
+            console.log('push?')
+        }
     }
 
     getMostRecentWorker():HybridServiceWorker {
@@ -157,6 +161,7 @@ class HybridRegistration extends EventEmitterToJSEvent implements ServiceWorkerR
         
         if (sw.installState === ServiceWorkerInstallState.Activated && !this.active) {
             this.active = sw;
+            ServiceWorkerContainer.controller = sw;
         }
 
         if (sw.installState === ServiceWorkerInstallState.Installed) {
@@ -206,6 +211,7 @@ class HybridServiceWorkerContainer extends EventEmitter implements ServiceWorker
             }
         });
 
+        this.controller = RegistrationInstance.active;
     }
 
     register(url:string, options: ServiceWorkerRegisterOptions): Promise<ServiceWorkerRegistration> {

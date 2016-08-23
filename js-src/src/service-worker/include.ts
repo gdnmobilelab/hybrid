@@ -6,6 +6,7 @@ import './globals/indexeddb';
 import './globals/fetch';
 import './globals/cache';
 import './globals/clients';
+import './globals/push';
 
 import './hybrid/promise-bridge';
 import './hybrid/dispatch-extended-event';

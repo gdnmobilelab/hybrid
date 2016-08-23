@@ -15,14 +15,15 @@ hybrid.dispatchExtendableEvent = function(name:string, data:Object) {
 
 
 hybrid.dispatchFetchEvent = function(data:Object) {
-    
-    let respondWithEvent = new FetchEvent({
-        request: data
-    });
+    return Promise.resolve()
+    .then(() => {
+          let respondWithEvent = new FetchEvent({
+              request: data
+          });
 
-    self.dispatchEvent(respondWithEvent);
-
-    return respondWithEvent.resolve()
+          self.dispatchEvent(respondWithEvent);
+          return respondWithEvent.resolve();
+    })
 }
 
 hybrid.dispatchMessageEvent = function(message:string, ports: [MessagePort]) {

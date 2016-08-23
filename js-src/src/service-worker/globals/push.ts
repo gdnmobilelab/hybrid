@@ -1,0 +1,1 @@
+(self as any).PushMessageData = {};
