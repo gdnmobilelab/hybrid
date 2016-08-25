@@ -1,6 +1,6 @@
 import {PromiseOverWKMessage} from '../util/promise-over-wkmessage';
 import EventEmitter from 'eventemitter3';
-import * as path from 'path-browserify';
+import * as url from 'url';
 import {postMessage} from '../messages/message-channel';
 
 export const serviceWorkerBridge = new PromiseOverWKMessage("serviceWorker");
@@ -86,12 +86,6 @@ class HybridServiceWorker extends EventEmitterToJSEvent implements ServiceWorker
     terminate() {
         throw new Error("Should not implement this.");
     }
-
-    // addEventListener(type: "error", listener: (ev: ErrorEvent) => any, useCapture?: boolean): void {
-
-    // }
-
-    
 }
 
 class HybridRegistration extends EventEmitterToJSEvent implements ServiceWorkerRegistration {
@@ -193,7 +187,7 @@ class HybridServiceWorkerContainer extends EventEmitter implements ServiceWorker
             console.debug("ServiceWorker ready returning promise and waiting...");
             this.once("controllerchange", () => {
                 console.debug("ServiceWorker ready received response")
-                fulfill()
+                fulfill(RegistrationInstance)
             });
         })
     }
@@ -214,21 +208,25 @@ class HybridServiceWorkerContainer extends EventEmitter implements ServiceWorker
         this.controller = RegistrationInstance.active;
     }
 
-    register(url:string, options: ServiceWorkerRegisterOptions): Promise<ServiceWorkerRegistration> {
-
-        let pathToSW = window.location.origin + path.resolve(window.location.pathname, url); 
+    register(urlToRegister:string, options: ServiceWorkerRegisterOptions): Promise<ServiceWorkerRegistration> {
         
+        let pathToSW = url.resolve(window.location.href, urlToRegister)
+
         console.info("Attempting to register service worker at", pathToSW);
     
         return serviceWorkerBridge.bridgePromise({
             operation: "register",
-            swPath: url,
+            swPath: pathToSW,
             scope: options ? options.scope : null
         })
         .then((response:ServiceWorkerMatch) => {
             let worker = processNewWorkerMatch(response);
         
             return RegistrationInstance;
+        })
+        .catch((err) => {
+            console.error(err);
+            return null;
         })
     }
 

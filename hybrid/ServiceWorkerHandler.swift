@@ -26,7 +26,7 @@ class ServiceWorkerHandler {
         let dataRequest = request as! GCDWebServerDataRequest;
         
         let pathPieces = dataRequest.URL.path!.componentsSeparatedByString("/");
-        log.info("Received request for " + dataRequest.URL.absoluteString);
+        log.info("Received request for " + dataRequest.URL.absoluteString!);
         
         
         

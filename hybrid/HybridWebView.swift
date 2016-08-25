@@ -13,6 +13,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     
     var console:ConsoleManager?
     var messageChannelManager:MessageChannelManager?
+    var notificationPermissionHandler:NotificationPermissionHandler?
     var serviceWorkerAPI:ServiceWorkerAPI?
     var eventManager: EventManager?
     
@@ -29,16 +30,16 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     static func claimWebviewsForServiceWorker(sw:ServiceWorkerInstance) {
         
         let applicableWebviews = HybridWebview.activeWebviews.filter({ hw in
-            return hw.mappedURL!.absoluteString.hasPrefix(sw.scope.absoluteString)
+            return hw.mappedURL!.absoluteString!.hasPrefix(sw.scope.absoluteString!)
         })
         
         if applicableWebviews.count == 0 {
-            log.warning("Didn't find any webviews to claim for: " + sw.scope.absoluteString)
+            log.warning("Didn't find any webviews to claim for: " + sw.scope.absoluteString!)
         }
         
         for webview in applicableWebviews {
             // Only claim workers within scope
-            if webview.mappedURL!.absoluteString.hasPrefix(sw.scope.absoluteString) {
+            if webview.mappedURL!.absoluteString!.hasPrefix(sw.scope.absoluteString!) {
                 webview.serviceWorkerAPI!.setNewActiveServiceWorker(sw)
             }
         }
@@ -59,6 +60,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         }
         self.console = ConsoleManager(userController: config.userContentController, webView: self)
         self.messageChannelManager = MessageChannelManager(userController: config.userContentController, webView: self)
+        self.notificationPermissionHandler = NotificationPermissionHandler(userController: config.userContentController, webView: self)
         self.serviceWorkerAPI = ServiceWorkerAPI(userController: config.userContentController, webView: self)
         self.eventManager = EventManager(userController: config.userContentController, webView: self)
         self.navigationDelegate = self
@@ -66,6 +68,10 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         // For testing mimicking Chrome - to remove!
         self.customUserAgent = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.23 Mobile Safari/537.36"
         
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     
     func injectJS(userController: WKUserContentController) throws {

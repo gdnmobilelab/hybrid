@@ -141,7 +141,7 @@ class Db {
 class DbMigrate {
     static func migrate() throws {
         
-        try Db.mainDatabase.inTransaction { (db) in
+        try Db.mainDatabase.inDatabase { (db) in
             let migrateManager = FMDBMigrationManager(database: db, migrationsBundle: NSBundle.mainBundle())!
             
             if migrateManager.hasMigrationsTable == false {

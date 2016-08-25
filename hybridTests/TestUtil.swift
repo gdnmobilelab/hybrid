@@ -18,10 +18,10 @@ class TestUtil {
 
         let base = NSURL(fileURLWithPath: bundle.resourcePath!)
         let directory = base.URLByAppendingPathComponent(directoryName)
-        NSLog(directory.path!)
+        NSLog(directory!.path!)
         
         let gcdWeb = GCDWebServer()
-        gcdWeb.addGETHandlerForBasePath("/", directoryPath: directory.path, indexFilename: "index.html", cacheAge: 0, allowRangeRequests: false)
+        gcdWeb.addGETHandlerForBasePath("/", directoryPath: directory!.path, indexFilename: "index.html", cacheAge: 0, allowRangeRequests: false)
         
         if port != nil {
             gcdWeb.startWithPort(UInt(port!), bonjourName: nil)

@@ -50,6 +50,7 @@ declare var Request: Function;
 declare var Response: Function;
 declare var GlobalFetch: any;
 declare var Cache: any;
+declare var __timeoutManager:any;
 
 declare class caches {
     static openCallbackSuccessFailure(name: String, success: Function, failure: Function):void
@@ -59,6 +60,10 @@ declare class caches {
 declare class __WebSQLDatabaseCreator {
     static createDB(name:String): [any]
 }
+
+declare var __serviceWorkerRegistration:any;
+
+declare var PushManager:any;
 
 // declare var self: ServiceWorkerGlobalScope;
 

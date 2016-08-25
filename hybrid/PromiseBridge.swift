@@ -37,7 +37,7 @@ import JavaScriptCore
 
 class TestError : ErrorType {}
 
-class PromiseBridge<T: NSObject> : Promise<T> {
+class PromiseBridge<T: NSObject> : Promise<T?> {
     
 //    init(jsContext: JSContext, path: String, args: [AnyObject]) {
 //        
@@ -53,7 +53,12 @@ class PromiseBridge<T: NSObject> : Promise<T> {
                     reject(JSContextError(message: failure!.toString()))
                     
                 } else {
-                    let convertedObject = success!.toObjectOfClass(T.self as! AnyClass) as! T
+                    if success!.isUndefined || success!.isNull {
+                        fulfill(nil)
+                        return
+                    }
+                    log.debug("Converting " + success!.toString() + " to instance of " + String(T.self))
+                    let convertedObject = success!.toObjectOfClass(T.self as AnyClass) as! T
                     fulfill(convertedObject)
                 }
                 

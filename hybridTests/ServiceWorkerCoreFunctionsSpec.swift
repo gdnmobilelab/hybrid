@@ -109,7 +109,7 @@ class ServiceWorkerCoreFunctionSpec: QuickSpec {
                     urlToGrab.port = gcdWeb.port
                     sw.loadServiceWorker("")
                     .then { _ in
-                        return sw.executeJSPromise("fetch('" + urlToGrab.URL!.absoluteString + "').then(function(res){ return res.text()})")
+                        return sw.executeJSPromise("fetch('" + urlToGrab.URL!.absoluteString! + "').then(function(res){ return res.text()})")
                     }
                     
                     .then { response -> Void in

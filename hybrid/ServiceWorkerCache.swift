@@ -89,15 +89,14 @@ class CacheNoMatchError : ErrorType {}
         }
         
         return Promise<Void>()
-        .thenInBackground({
-            // wonder if thenInBackground will help
+        .then({
             
             let downloadAndStoreTasks = urlsAsNSURLs.map { (url: NSURL) -> Promise<AlamofireResponse> in
                 return Promisified.AlamofireRequest("GET", url: url)
                     .then { r in
                         
                         if r.response.statusCode < 200 || r.response.statusCode > 299 {
-                            log.error("Failed to cache: " + url.absoluteString)
+                            log.error("Failed to cache: " + url.absoluteString!)
                             throw CacheAddRequestFailedError()
                         }
                         
@@ -118,7 +117,7 @@ class CacheNoMatchError : ErrorType {}
                             
                             let headersAsJSON = try fh.toJSON()
     
-                            try db.executeUpdate("INSERT INTO cache (service_worker_url, cache_id, resource_url, contents, headers, status) VALUES (?,?,?,?,?,?)", values: [self.serviceWorkerURL.absoluteString, self.name, r.request.URL!.absoluteString, r.data!, headersAsJSON, r.response.statusCode] as [AnyObject])
+                            try db.executeUpdate("INSERT INTO cache (service_worker_url, cache_id, resource_url, contents, headers, status) VALUES (?,?,?,?,?,?)", values: [self.serviceWorkerURL.absoluteString!, self.name, r.request.URL!.absoluteString!, r.data!, headersAsJSON, r.response.statusCode] as [AnyObject])
                         }
     
                     })
@@ -154,10 +153,10 @@ class CacheNoMatchError : ErrorType {}
             var response:FetchResponse? = nil
             
             try Db.mainDatabase.inDatabase { (db) in
-                let resultSet = try db.executeQuery("SELECT * FROM cache WHERE resource_url = ? AND service_worker_url = ? AND cache_id = ?", values: [url.absoluteString, self.serviceWorkerURL.absoluteString, self.name])
+                let resultSet = try db.executeQuery("SELECT * FROM cache WHERE resource_url = ? AND service_worker_url = ? AND cache_id = ?", values: [url.absoluteString!, self.serviceWorkerURL.absoluteString!, self.name])
                 
                 if resultSet.next() == false {
-                    log.info("Could not find cache match for: " + url.absoluteString)
+                    log.info("Could not find cache match for: " + url.absoluteString!)
                     return resultSet.close()
                 }
                 
@@ -170,10 +169,10 @@ class CacheNoMatchError : ErrorType {}
                 ]
                 
                 
-                response = try FetchResponse(body: resultSet.dataForColumn(("contents")), options: opts)
+                response = FetchResponse(body: resultSet.dataForColumn(("contents")), options: opts)
                 
                 
-                log.debug("Found cache match for: " + url.absoluteString)
+                log.debug("Found cache match for: " + url.absoluteString!)
                 
                 resultSet.close()
             }

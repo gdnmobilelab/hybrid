@@ -19,7 +19,7 @@ class URLUtilities {
                 // is a file, let's go back to directory
                 baseDirectory = baseDirectory.URLByDeletingLastPathComponent!
             }
-            urlToReturn = baseDirectory.URLByAppendingPathComponent(targetURL.path!)
+            urlToReturn = baseDirectory.URLByAppendingPathComponent(targetURL.path!)!
             
             // is there really no better way to normalise paths?
             let pathAsNormalisedString = NSString(string: urlToReturn.path!).stringByStandardizingPath;

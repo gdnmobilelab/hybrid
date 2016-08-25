@@ -68,6 +68,7 @@ public class ServiceWorkerInstance {
     let url:NSURL!
     let scope:NSURL!
     let timeoutManager = ServiceWorkerTimeoutManager()
+    let registration: ServiceWorkerRegistration!
     let webSQL: WebSQLDatabaseCreator!
     var clientManager:WebviewClientManager?
     var installState:ServiceWorkerInstallState!
@@ -88,6 +89,7 @@ public class ServiceWorkerInstance {
         self.instanceId = instanceId
         self.jsContext = JSContext()
         self.jsBom = JSCoreBom()
+        self.registration = ServiceWorkerRegistration(url: url, scope: self.scope)
         
         let urlComponents = NSURLComponents(URL: url, resolvingAgainstBaseURL: false)!
         urlComponents.path = nil
@@ -191,7 +193,7 @@ public class ServiceWorkerInstance {
     }
     
     func scopeContainsURL(url:NSURL) -> Bool {
-        return url.absoluteString.hasPrefix(self.scope.absoluteString)
+        return url.absoluteString!.hasPrefix(self.scope.absoluteString!)
     }
     
     
@@ -204,10 +206,12 @@ public class ServiceWorkerInstance {
         
         self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
         self.jsContext.setObject(self.clientManager, forKeyedSubscript: "__WebviewClientManager")
+        self.jsContext.setObject(self.registration, forKeyedSubscript: "__serviceWorkerRegistration")
+        self.jsContext.setObject(PushManager.self, forKeyedSubscript: "PushManager")
     }
     
     private func consoleLog(args: JSValue) {
-        Console.logLevel(args.toString(), webviewURL: NSURL(string: self.url.absoluteString)!)
+        Console.logLevel(args.toString(), webviewURL: NSURL(string: self.url.absoluteString!)!)
     }
     
     private func jsPromiseCallback(pendingIndex: Int, fulfillValue:AnyObject?, rejectValue: AnyObject?) {
@@ -284,7 +288,7 @@ public class ServiceWorkerInstance {
 
     }
     
-    func dispatchFetchEvent(fetch: FetchRequest) -> Promise<FetchResponse> {
+    func dispatchFetchEvent(fetch: FetchRequest) -> Promise<FetchResponse?> {
         
         let dispatch = self.jsContext.objectForKeyedSubscript("hybrid")
             .objectForKeyedSubscript("dispatchFetchEvent")
@@ -360,15 +364,15 @@ public class ServiceWorkerInstance {
     func getURLInsideServiceWorkerScope(url: NSURL) throws -> NSURL {
         
         //let startRange = self.scope.absoluteString.ra
-        let range = url.absoluteString.rangeOfString(self.scope.absoluteString)
+        let range = url.absoluteString!.rangeOfString(self.scope.absoluteString!)
         
-        if range == nil || range!.startIndex != self.scope.absoluteString.startIndex {
+        if range == nil || range!.startIndex != self.scope.absoluteString!.startIndex {
             throw ServiceWorkerOutOfScopeError()
         }
         
-        let escapedServiceWorkerURL = self.url.absoluteString.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
+        let escapedServiceWorkerURL = self.url.absoluteString!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
         
-        let escapedTargetURL = url.absoluteString.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
+        let escapedTargetURL = url.absoluteString!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
         
         
         let returnComponents = NSURLComponents(string: "http://localhost")!

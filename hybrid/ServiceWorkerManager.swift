@@ -132,7 +132,7 @@ class ServiceWorkerManager {
                 if result.next() == false {
                     
                     // If there's no existing service worker record, we must update
-                    log.debug("No existing version for worker " + urlOfServiceWorker.absoluteString)
+                    log.debug("No existing version for worker " + urlOfServiceWorker.absoluteString!)
                     result.close()
                     return
                 }
@@ -156,15 +156,15 @@ class ServiceWorkerManager {
                 if existingJS != nil && existingJS == newJS {
                     // No new code, so just return the ID of the existing worker.
                     if existingJS == nil {
-                        log.info("New worker to be installed at " + urlOfServiceWorker.absoluteString)
+                        log.info("New worker to be installed at " + urlOfServiceWorker.absoluteString!)
                     } else {
-                        log.info("Checked for update to " + urlOfServiceWorker.absoluteString + ", but no change.")
+                        log.info("Checked for update to " + urlOfServiceWorker.absoluteString! + ", but no change.")
                         
                     }
                     return Promise<Int>(serviceWorkerId!)
                 }
                 
-                log.info("Installing new service worker from: " + urlOfServiceWorker.absoluteString)
+                log.info("Installing new service worker from: " + urlOfServiceWorker.absoluteString!)
                 
                 return self.insertServiceWorkerIntoDB(
                     urlOfServiceWorker,
@@ -193,7 +193,7 @@ class ServiceWorkerManager {
                 
                 let selectScopeQuery = "SELECT scope FROM service_workers WHERE ? LIKE (scope || '%') ORDER BY length(scope) DESC LIMIT 1"
                 
-                let allWorkersResultSet = try db.executeQuery("SELECT instance_id, install_state, url, scope FROM service_workers WHERE scope = (" + selectScopeQuery + ")", values: [pageURL.absoluteString])
+                let allWorkersResultSet = try db.executeQuery("SELECT instance_id, install_state, url, scope FROM service_workers WHERE scope = (" + selectScopeQuery + ")", values: [pageURL.absoluteString!])
                 
                 
                 while allWorkersResultSet.next() {
@@ -228,12 +228,12 @@ class ServiceWorkerManager {
             var newId:Int64 = -1
             
             try Db.mainDatabase.inTransaction({ (db) in
-                try db.executeUpdate("INSERT INTO service_workers (url, scope, last_modified, contents, install_state) VALUES (?,?,?,?,?)", values: [serviceWorkerURL.absoluteString, scope.absoluteString, lastModified, js, installState.rawValue ] as [AnyObject])
+                try db.executeUpdate("INSERT INTO service_workers (url, scope, last_modified, contents, install_state) VALUES (?,?,?,?,?)", values: [serviceWorkerURL.absoluteString!, scope.absoluteString!, lastModified, js, installState.rawValue ] as [AnyObject])
                 
                 newId = db.lastInsertRowId()
             })
             
-            log.debug("Inserted service worker into DB for URL: " + serviceWorkerURL.absoluteString + " with installation state " + String(installState))
+            log.debug("Inserted service worker into DB for URL: " + serviceWorkerURL.absoluteString! + " with installation state " + String(installState))
             
             let match = ServiceWorkerMatch(instanceId: Int(newId), url: serviceWorkerURL, installState: installState, scope: scope)
             
@@ -308,7 +308,7 @@ class ServiceWorkerManager {
                 let idAsNSNumber = NSNumber(longLong: Int64(id))
                 
                 try Db.mainDatabase.inTransaction({ (db) in
-                    let workersToMakeRedundant = try db.executeQuery("SELECT instance_id FROM service_workers WHERE url = ? AND NOT instance_id = ?", values: [swInstance!.url.absoluteString, idAsNSNumber])
+                    let workersToMakeRedundant = try db.executeQuery("SELECT instance_id FROM service_workers WHERE url = ? AND NOT instance_id = ?", values: [swInstance!.url.absoluteString!, idAsNSNumber])
                     
                     while workersToMakeRedundant.next() {
                         idsToInvalidate.append(Int(workersToMakeRedundant.intForColumn("instance_id")))
@@ -364,35 +364,10 @@ class ServiceWorkerManager {
                 
                 try self.updateServiceWorkerInstallState(id, state: ServiceWorkerInstallState.Installed)
                 
-                // This logic was wrong. Service Workers shouldn't ever automatically
-                // activate on install - only on navigation event
-                
-//                let otherVersionsOfThisServiceWorker = self.currentlyActiveServiceWorkers.filter({ (id, sw) in
-//                    return sw.url.absoluteString == swInstance!.url.absoluteString && sw !== swInstance
-//                })
-//                
-//                var runActivate = otherVersionsOfThisServiceWorker.count == 0
-//                
-//                if runActivate == true {
-//                    log.info("No existing service workers for " + swInstance!.url.absoluteString + ", activating immediately")
-//                } else {
-//                    log.info("Existing active service worker for " + swInstance!.url.absoluteString)
-//                }
-                
-//                if runActivate == false {
-//                    // there are other workers. But has this one called skipWaiting()?
-//                    runActivate = swInstance!.executeJS("hybrid.__getSkippedWaitingStatus()").toBool()
-//                    
-//                    if runActivate == true {
-//                        log.info("Service worker " + swInstance!.url.absoluteString + " called skipWaiting()")
-//                    }
-//                    
-//                }
-                
                 let runActivate = swInstance!.executeJS("hybrid.__getSkippedWaitingStatus()").toBool()
                 
                 if runActivate == true {
-                    log.info("Service worker " + swInstance!.url.absoluteString + " called skipWaiting()")
+                    log.info("Service worker " + swInstance!.url.absoluteString! + " called skipWaiting()")
                 }
                 
                 if runActivate == false {
@@ -424,7 +399,7 @@ class ServiceWorkerManager {
         
         return sw.dispatchExtendableEvent("activate", data: nil)
         .then { _ -> ServiceWorkerInstallState in
-            log.info("Successfully activated service worker: " + sw.url.absoluteString)
+            log.info("Successfully activated service worker: " + sw.url.absoluteString!)
             return ServiceWorkerInstallState.Activated
         }
         .recover { error -> ServiceWorkerInstallState in
@@ -503,7 +478,7 @@ class ServiceWorkerManager {
                 
                 let selectScopeQuery = "SELECT scope FROM service_workers WHERE ? LIKE (scope || '%') OR ? = scope ORDER BY length(scope) DESC LIMIT 1"
                 
-                let applicableWorkerResultSet = try db.executeQuery("SELECT instance_id FROM service_workers WHERE scope = (" + selectScopeQuery  + ") AND (install_state == ? OR install_state = ?) ORDER BY instance_id DESC", values: [url.absoluteString, url.absoluteString, ServiceWorkerInstallState.Activated.rawValue, ServiceWorkerInstallState.Installed.rawValue])
+                let applicableWorkerResultSet = try db.executeQuery("SELECT instance_id FROM service_workers WHERE scope = (" + selectScopeQuery  + ") AND (install_state == ? OR install_state = ?) ORDER BY instance_id DESC", values: [url.absoluteString!, url.absoluteString!, ServiceWorkerInstallState.Activated.rawValue, ServiceWorkerInstallState.Installed.rawValue])
                
                 while applicableWorkerResultSet.next() {
                     workerIds.append(Int(applicableWorkerResultSet.intForColumn("instance_id")))

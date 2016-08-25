@@ -1,3 +1,6 @@
+import * as url from 'url';
+
+
 function promisifyFunction(obj:any, nameOfFunction:string) {
     let originalFunction = obj.prototype[nameOfFunction + "ErrorCallback"] as Function;
 
@@ -22,9 +25,12 @@ promisifyFunction(Response, "text");
 promisifyFunction(Request, "json");
 promisifyFunction(Request, "text");
 
-GlobalFetch.fetch = function(url:String, options:any) {
+GlobalFetch.fetch = function(urlToFetch:string, options:any) {
     return new Promise((fulfill, reject) => {
-        GlobalFetch.fetchOptionsCallbackErrorCallback(url, options, fulfill, (err:string) => reject(new Error(err)))
+
+        let resolvedURL = url.resolve(self.registration.scope, urlToFetch);
+
+        GlobalFetch.fetchOptionsCallbackErrorCallback(resolvedURL, options, fulfill, (err:string) => reject(new Error(err)))
     })
 }
 

@@ -68,7 +68,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
             // often because it's a test webview that has a URL of about:blank
             return
         }
-        if self.webview.mappedURL!.absoluteString.hasPrefix(match.scope.absoluteString) == false {
+        if self.webview.mappedURL!.absoluteString!.hasPrefix(match.scope.absoluteString!) == false {
             // Is not in this scope, so ignore it
             return
         }
@@ -150,6 +150,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
         let operation = message["operation"] as! String
         
         var webviewURL = self.webview.URL!
+        
         
         // check nil on webviewURL.host as it could be about:blank, which is fine for, say, console operations
         if webviewURL.host != nil && webviewURL.host! == "localhost" && webviewURL.port! == WebServer.current!.port {

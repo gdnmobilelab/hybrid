@@ -27,6 +27,7 @@
     "tape": "^4.6.0",
     "ts-node": "^0.9.3",
     "typescript-register": "^1.1.0",
+    "url": "^0.11.0",
     "util": "^0.10.3",
     "websql": "^0.4.4",
     "whatwg-fetch": "^1.0.0"

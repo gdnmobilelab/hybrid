@@ -7,15 +7,23 @@
 //
 
 import UIKit
-import XCGLogger;
+import XCGLogger
 import PromiseKit
+import EmitterKit
+import UserNotifications
 
 let log = XCGLogger.defaultInstance()
+let ApplicationEvents = Event<AnyObject>()
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
+    
+    func application(application: UIApplication, willFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
+        UNUserNotificationCenter.currentNotificationCenter().delegate = NotificationDelegateInstance
+        return true
+    }
     
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         
@@ -29,10 +37,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             try WebServer.initialize()
             
-           // let serviceWorkerHandler = try ServiceWorkerHandler();
-          //  let messageHandler = HybridMessageHandler();
+            PushManager.listenForDeviceToken()
             
-          //  try messageHandler.setPort(serviceWorkerHandler.webServerPort);
+            application.registerForRemoteNotifications()
+            
             
             let rootWindow = UIWindow(frame: UIScreen.mainScreen().bounds);
             //rootWindow.backgroundColor = UIColor.whiteColor();
@@ -51,8 +59,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             rootWindow.makeKeyAndVisible();
             
             // todo: remove
-//            ServiceWorkerManager.clearActiveServiceWorkers()
-//            
+            ServiceWorkerManager.clearActiveServiceWorkers()
+            try Db.mainDatabase.inDatabase({ (db) in
+                db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
+            })
+//
 //            ServiceWorkerManager.getServiceWorkerForURL(NSURL(string:"http://www.gdnmobilelab.com")!)
 //            .then { sw -> Promise<Void>  in
 //                if sw != nil {
@@ -72,7 +83,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //                log.error(String(err))
 //            }
             
-                hw.loadRequest(NSURLRequest(URL: NSURL(string:"http://localhost:8080/")!))
+                hw.loadRequest(NSURLRequest(URL: NSURL(string:"https://1ca85428.ngrok.io/")!))
             return true
             
             
@@ -81,6 +92,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return false;
         }
         
+    }
+    
+   
+    
+    func application(application: UIApplication, didRegisterUserNotificationSettings notificationSettings: UIUserNotificationSettings) {
+        ApplicationEvents.emit("didRegisterUserNotificationSettings", notificationSettings)
+    }
+    
+    func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {
+        ApplicationEvents.emit("didRegisterForRemoteNotificationsWithDeviceToken", deviceToken)
+    }
+    
+    func application(application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: NSError) {
+        ApplicationEvents.emit("didFailToRegisterForRemoteNotificationsWithError", error)
     }
     
     func applicationWillResignActive(application: UIApplication) {

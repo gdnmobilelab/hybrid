@@ -80,6 +80,7 @@ class MessageChannelManager: ScriptMessageManager {
             })
             
             self.onMessage!(data, actualPorts)
+            return nil
         }
         log.error("Operation not supported: " + operation)
         return nil

@@ -43,7 +43,7 @@ class WebServer {
         // for some reason NSURL strips trailing slashes. Grr.
         // http://www.cocoabuilder.com/archive/cocoa/316298-nsurl-path-if-the-path-has-trailing-slash-it-is-stripped.html
         
-        if url.absoluteString.hasSuffix("/")  && path.hasSuffix("/") == false {
+        if url.absoluteString!.hasSuffix("/")  && path.hasSuffix("/") == false {
             path += "/"
         }
         
@@ -79,7 +79,7 @@ class WebServer {
         }
         fetchURL.path = "/" + url.pathComponents!.dropFirst(3).joinWithSeparator("/")
         
-        if url.absoluteString.hasSuffix("/") && fetchURL.path!.hasSuffix("/") == false {
+        if url.absoluteString!.hasSuffix("/") && fetchURL.path!.hasSuffix("/") == false {
             fetchURL.path! += "/"
         }
         
@@ -90,11 +90,11 @@ class WebServer {
     func handleServiceWorkerRequest(request:GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
         
         let mappedURL = WebServer.mapServerURLToRequestURL(request.URL)
-        log.info("Request for " + request.URL.absoluteString)
+        log.info("Request for " + request.URL.absoluteString!)
         ServiceWorkerManager.getServiceWorkerForURL(mappedURL)
         .then { (sw) -> Promise<Void> in
             if (sw == nil) {
-                log.error("Service worker request that has no valid worker: " + mappedURL.absoluteString)
+                log.error("Service worker request that has no valid worker: " + mappedURL.absoluteString!)
                 
                 let response = GCDWebServerErrorResponse(data: "404 NOT FOUND".dataUsingEncoding(NSUTF8StringEncoding), contentType: "text/plain")
                 
@@ -105,7 +105,7 @@ class WebServer {
             }
             
             
-            let fetch = FetchRequest(url: mappedURL.absoluteString, options: [
+            let fetch = FetchRequest(url: mappedURL.absoluteString!, options: [
                 "method": request.method,
                 "headers": request.headers as! [String:String]
             ])
@@ -113,6 +113,12 @@ class WebServer {
             fetch.headers.set("host", value: mappedURL.host!)
             
             return sw!.dispatchFetchEvent(fetch)
+            .then { maybeResponse -> Promise<FetchResponse> in
+                if maybeResponse == nil {
+                    return GlobalFetch.fetchRequest(fetch)
+                }
+                return Promise<FetchResponse>(maybeResponse!)
+            }
             .recover { err -> Promise<FetchResponse> in
                 log.error(String(err))
                 // If fetch event failed, just go to net
@@ -157,7 +163,7 @@ class WebServer {
         
         let urlToActuallyFetch = WebServer.mapServerURLToRequestURL(request.URL)
         
-        log.info("Going to network to fetch: " + urlToActuallyFetch.absoluteString)
+        log.info("Going to network to fetch: " + urlToActuallyFetch.absoluteString!)
         
         
         Promisified.AlamofireRequest(request.method, url: urlToActuallyFetch)

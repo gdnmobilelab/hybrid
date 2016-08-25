@@ -313,7 +313,7 @@ class NoErrorButNoResponseError : ErrorType {}
     }
     
     static func fetchRequest(request: FetchRequest) -> Promise<FetchResponse> {
-        log.debug("Fetching " + request.toNSURLRequest().URL!.absoluteString)
+        log.debug("Fetching " + request.toNSURLRequest().URL!.absoluteString!)
         return Promise<FetchResponse>() {fulfill, reject in
             Alamofire
                 .request(request.toNSURLRequest())
