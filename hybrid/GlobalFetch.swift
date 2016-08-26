@@ -12,7 +12,7 @@ import PromiseKit
 
 class FetchSetupError : ErrorType {}
 
-@objc protocol FetchHeadersExports {
+@objc protocol FetchHeadersExports : JSExport {
     func set(name: String, value:String)
     func get(name: String) -> String?
     func deleteValue(name:String)
@@ -20,10 +20,10 @@ class FetchSetupError : ErrorType {}
     func append(name:String, value:String)
     func keys() -> [String]
     init()
-    init(dictionary: [String: AnyObject])
+//    init(dictionary: [String: AnyObject])
 }
 
-@objc class FetchHeaders : NSObject, FetchHeadersExports {
+@objc public class FetchHeaders : NSObject, FetchHeadersExports {
     
     private var values = [String: [String]]()
     
@@ -59,12 +59,13 @@ class FetchSetupError : ErrorType {}
         return values[name.lowercaseString]
     }
     
-    override required init() {
+    override public required init() {
         super.init()
     }
     
     
-    required init(dictionary: [String: AnyObject]) {
+    
+    public required init(dictionary: [String: AnyObject]) {
         super.init()
         
         for (key, val) in dictionary {
@@ -294,7 +295,7 @@ class FetchResponseBodyTypeNotRecognisedError : ErrorType {}
 }
 
 @objc protocol GlobalFetchExports: JSExport {
-    static func fetch(url:JSValue, options:JSValue, callback:JSValue, errorCallback:JSValue) -> Void
+    static func fetch(url:JSValue, options:JSValue, scope:String, callback:JSValue, errorCallback:JSValue) -> Void
 }
 
 class NoErrorButNoResponseError : ErrorType {}
@@ -350,9 +351,14 @@ class NoErrorButNoResponseError : ErrorType {}
         }
     }
     
-    static func fetch(requestVal: JSValue, options:JSValue, callback:JSValue, errorCallback:JSValue) {
+    static func fetch(requestVal: JSValue, options:JSValue, scope:String, callback:JSValue, errorCallback:JSValue) {
         
         let request = self.getRequest(requestVal, options: options)
+        
+        let scopeURL = NSURL(string:scope)
+        
+        // It's possible to request relative to scope. So we need to make sure we handle that.
+        request.url = NSURL(string: request.url, relativeToURL: scopeURL)!.absoluteString!
         
         self.fetchRequest(request)
         .then { fetchResponse in

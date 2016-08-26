@@ -209,14 +209,21 @@ class HybridServiceWorkerContainer extends EventEmitter implements ServiceWorker
     }
 
     register(urlToRegister:string, options: ServiceWorkerRegisterOptions): Promise<ServiceWorkerRegistration> {
-        
-        let pathToSW = url.resolve(window.location.href, urlToRegister)
+        console.log('url register?')
+        let fullSWURL = url.resolve(window.location.href, urlToRegister);
+        // let fullScopeURL:string = null;
 
-        console.info("Attempting to register service worker at", pathToSW);
+        // if (options && options.scope) {
+        //     fullScopeURL = url.resolve(window.location.href, options.scope);
+        // }
+
+
+
+        console.info("Attempting to register service worker at", fullSWURL);
     
         return serviceWorkerBridge.bridgePromise({
             operation: "register",
-            swPath: pathToSW,
+            swPath: fullSWURL,
             scope: options ? options.scope : null
         })
         .then((response:ServiceWorkerMatch) => {

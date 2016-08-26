@@ -17,6 +17,9 @@
 		8A24493F1D6CF71500052D92 /* PushManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493E1D6CF71500052D92 /* PushManager.swift */; };
 		8A2449421D6D0B6E00052D92 /* NotificationPermissionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449411D6D0B6E00052D92 /* NotificationPermissionHandler.swift */; };
 		8A2449441D6E118300052D92 /* NotificationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449431D6E118300052D92 /* NotificationDelegate.swift */; };
+		8A2449471D6F374D00052D92 /* HybridWebviewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449461D6F374C00052D92 /* HybridWebviewController.swift */; };
+		8A2449491D6F676700052D92 /* HybridNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449481D6F676700052D92 /* HybridNavigationController.swift */; };
+		8A24494B1D6F760300052D92 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24494A1D6F760300052D92 /* Util.swift */; };
 		8A2475881D623BDA008906FB /* EventManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2475871D623BDA008906FB /* EventManager.swift */; };
 		8A263A7D1D353D9300B6505E /* ServiceWorkerWebSql.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A263A7C1D353D9300B6505E /* ServiceWorkerWebSql.swift */; };
 		8A263A7F1D354D7C00B6505E /* TimeoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */; };
@@ -45,24 +48,18 @@
 		8AA0BF191D4278CA00DADF1C /* FetchAPIObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA0BF181D4278CA00DADF1C /* FetchAPIObjects.swift */; };
 		8AD283501D55070000D2DF07 /* test-workers in Resources */ = {isa = PBXBuildFile; fileRef = 8AD2834F1D55070000D2DF07 /* test-workers */; };
 		8AD283521D55076D00D2DF07 /* TestUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AD283511D55076D00D2DF07 /* TestUtil.swift */; };
-		8ADAAE181D10E2F5009F3898 /* console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADAAE171D10E2F5009F3898 /* console.swift */; };
-		8ADAAE1A1D119F7E009F3898 /* ServiceWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADAAE191D119F7E009F3898 /* ServiceWorker.swift */; };
 		8AEA3F261D54056C000A7C70 /* server-test-data in Resources */ = {isa = PBXBuildFile; fileRef = 8AEA3F251D54056C000A7C70 /* server-test-data */; };
 		8AEBD0D21D42E6230042A4AB /* WebServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEBD0D11D42E6230042A4AB /* WebServer.swift */; };
 		8AEEDE5C1D26CF450032D588 /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
-		8AEEDE5E1D26ECE70032D588 /* url-resolve.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5D1D26ECE70032D588 /* url-resolve.swift */; };
 		8AEEDE601D2D88F10032D588 /* promisified.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5F1D2D88F10032D588 /* promisified.swift */; };
 		8AEEDE631D2D90DF0032D588 /* 201606290.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AEEDE621D2D90DF0032D588 /* 201606290.sql */; };
 		8AEEDE671D2D93570032D588 /* 201607060.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AEEDE661D2D93570032D588 /* 201607060.sql */; };
 		939622D25030CFD4641F37FD /* Pods_hybridUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 695FE77A434866D84BFDEBDC /* Pods_hybridUITests.framework */; };
 		CA84C83AD6F1B9C9CE1C18A7 /* Pods_hybrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 311DE092863FE59F27435153 /* Pods_hybrid.framework */; };
 		D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */; };
-		D31BC10F1CD534CF00CF6BEB /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BC10E1CD534CF00CF6BEB /* ViewController.swift */; };
 		D31BC1141CD534CF00CF6BEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D31BC1131CD534CF00CF6BEB /* Assets.xcassets */; };
 		D31BC1171CD534CF00CF6BEB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D31BC1151CD534CF00CF6BEB /* LaunchScreen.storyboard */; };
 		D31BC12D1CD534CF00CF6BEB /* hybridUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BC12C1CD534CF00CF6BEB /* hybridUITests.swift */; };
-		D38116301CD58473004A3CCD /* ServiceWorkerHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D381162F1CD58473004A3CCD /* ServiceWorkerHandler.swift */; };
-		D38116351CD59AED004A3CCD /* MessageHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D38116341CD59AED004A3CCD /* MessageHandler.swift */; };
 		D381163A1CD5AE96004A3CCD /* js-dist in Resources */ = {isa = PBXBuildFile; fileRef = D38116391CD5AE96004A3CCD /* js-dist */; };
 /* End PBXBuildFile section */
 
@@ -99,6 +96,9 @@
 		8A2449401D6D0ABD00052D92 /* hybrid.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = hybrid.entitlements; sourceTree = "<group>"; };
 		8A2449411D6D0B6E00052D92 /* NotificationPermissionHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationPermissionHandler.swift; sourceTree = "<group>"; };
 		8A2449431D6E118300052D92 /* NotificationDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationDelegate.swift; sourceTree = "<group>"; };
+		8A2449461D6F374C00052D92 /* HybridWebviewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridWebviewController.swift; sourceTree = "<group>"; };
+		8A2449481D6F676700052D92 /* HybridNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridNavigationController.swift; sourceTree = "<group>"; };
+		8A24494A1D6F760300052D92 /* Util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
 		8A2475871D623BDA008906FB /* EventManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventManager.swift; sourceTree = "<group>"; };
 		8A263A7C1D353D9300B6505E /* ServiceWorkerWebSql.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerWebSql.swift; sourceTree = "<group>"; };
 		8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeoutManager.swift; sourceTree = "<group>"; };
@@ -128,12 +128,9 @@
 		8AA0BF181D4278CA00DADF1C /* FetchAPIObjects.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchAPIObjects.swift; sourceTree = "<group>"; };
 		8AD2834F1D55070000D2DF07 /* test-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "test-workers"; sourceTree = "<group>"; };
 		8AD283511D55076D00D2DF07 /* TestUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtil.swift; sourceTree = "<group>"; };
-		8ADAAE171D10E2F5009F3898 /* console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = console.swift; path = commands/console.swift; sourceTree = "<group>"; };
-		8ADAAE191D119F7E009F3898 /* ServiceWorker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ServiceWorker.swift; path = commands/ServiceWorker.swift; sourceTree = "<group>"; };
 		8AEA3F251D54056C000A7C70 /* server-test-data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "server-test-data"; sourceTree = "<group>"; };
 		8AEBD0D11D42E6230042A4AB /* WebServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServer.swift; sourceTree = "<group>"; };
 		8AEEDE5B1D26CF450032D588 /* db.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = db.swift; sourceTree = "<group>"; };
-		8AEEDE5D1D26ECE70032D588 /* url-resolve.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "url-resolve.swift"; sourceTree = "<group>"; };
 		8AEEDE5F1D2D88F10032D588 /* promisified.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = promisified.swift; sourceTree = "<group>"; };
 		8AEEDE621D2D90DF0032D588 /* 201606290.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 201606290.sql; sourceTree = "<group>"; };
 		8AEEDE661D2D93570032D588 /* 201607060.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 201607060.sql; sourceTree = "<group>"; };
@@ -141,7 +138,6 @@
 		B46C29523D9C4D0AF532ADC1 /* Pods-hybrid.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid.debug.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid/Pods-hybrid.debug.xcconfig"; sourceTree = "<group>"; };
 		D31BC1091CD534CF00CF6BEB /* hybrid.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = hybrid.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		D31BC10E1CD534CF00CF6BEB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		D31BC1131CD534CF00CF6BEB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D31BC1161CD534CF00CF6BEB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D31BC1181CD534CF00CF6BEB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -150,9 +146,7 @@
 		D31BC1281CD534CF00CF6BEB /* hybridUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = hybridUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D31BC12C1CD534CF00CF6BEB /* hybridUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = hybridUITests.swift; sourceTree = "<group>"; };
 		D31BC12E1CD534CF00CF6BEB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D381162F1CD58473004A3CCD /* ServiceWorkerHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerHandler.swift; sourceTree = "<group>"; };
 		D38116311CD584B6004A3CCD /* hybrid-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "hybrid-Bridging-Header.h"; sourceTree = "<group>"; };
-		D38116341CD59AED004A3CCD /* MessageHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageHandler.swift; sourceTree = "<group>"; };
 		D38116391CD5AE96004A3CCD /* js-dist */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "js-dist"; sourceTree = "<group>"; };
 		EE95409F0E5100951E6BC0AC /* Pods-hybridUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybridUITests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-hybridUITests/Pods-hybridUITests.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -193,6 +187,15 @@
 				695FE77A434866D84BFDEBDC /* Pods_hybridUITests.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		8A2449451D6F373D00052D92 /* native */ = {
+			isa = PBXGroup;
+			children = (
+				8A2449461D6F374C00052D92 /* HybridWebviewController.swift */,
+				8A2449481D6F676700052D92 /* HybridNavigationController.swift */,
+			);
+			name = native;
 			sourceTree = "<group>";
 		};
 		8A7786351D5B881D0062E12B /* webview */ = {
@@ -265,15 +268,6 @@
 			name = "webview-sw-bridge";
 			sourceTree = "<group>";
 		};
-		8ADAAE161D10E2D3009F3898 /* commands */ = {
-			isa = PBXGroup;
-			children = (
-				8ADAAE171D10E2F5009F3898 /* console.swift */,
-				8ADAAE191D119F7E009F3898 /* ServiceWorker.swift */,
-			);
-			name = commands;
-			sourceTree = "<group>";
-		};
 		8AEEDE611D2D90C00032D588 /* migrations */ = {
 			isa = PBXGroup;
 			children = (
@@ -321,27 +315,24 @@
 		D31BC10B1CD534CF00CF6BEB /* hybrid */ = {
 			isa = PBXGroup;
 			children = (
+				8A2449451D6F373D00052D92 /* native */,
 				8A0156C91D650C170091995E /* gdn-mobile-lab-build */,
 				8A2449401D6D0ABD00052D92 /* hybrid.entitlements */,
 				8A932BD41D5A61B500FA15F8 /* webview-sw-bridge */,
 				8A932BD31D5A619100FA15F8 /* webview */,
 				8A8846041D30072100CF9369 /* service-worker */,
 				8AEEDE611D2D90C00032D588 /* migrations */,
-				8ADAAE161D10E2D3009F3898 /* commands */,
 				D38116391CD5AE96004A3CCD /* js-dist */,
 				D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */,
-				D31BC10E1CD534CF00CF6BEB /* ViewController.swift */,
 				D31BC1131CD534CF00CF6BEB /* Assets.xcassets */,
 				D31BC1151CD534CF00CF6BEB /* LaunchScreen.storyboard */,
 				D31BC1181CD534CF00CF6BEB /* Info.plist */,
-				D381162F1CD58473004A3CCD /* ServiceWorkerHandler.swift */,
 				D38116311CD584B6004A3CCD /* hybrid-Bridging-Header.h */,
-				D38116341CD59AED004A3CCD /* MessageHandler.swift */,
 				8AEEDE5B1D26CF450032D588 /* db.swift */,
-				8AEEDE5D1D26ECE70032D588 /* url-resolve.swift */,
 				8AEEDE5F1D2D88F10032D588 /* promisified.swift */,
 				8A5410A01D38235000F44F38 /* WebServer.swift */,
 				8A2449431D6E118300052D92 /* NotificationDelegate.swift */,
+				8A24494A1D6F760300052D92 /* Util.swift */,
 			);
 			path = hybrid;
 			sourceTree = "<group>";
@@ -670,34 +661,31 @@
 			files = (
 				8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */,
 				8A0156D01D65FCAE0091995E /* GlobalFetch.swift in Sources */,
-				8ADAAE1A1D119F7E009F3898 /* ServiceWorker.swift in Sources */,
 				8A54109F1D381EF000F44F38 /* HybridWebView.swift in Sources */,
 				8A24493D1D6CF6F400052D92 /* ServiceWorkerRegistration.swift in Sources */,
 				8A2449421D6D0B6E00052D92 /* NotificationPermissionHandler.swift in Sources */,
-				D31BC10F1CD534CF00CF6BEB /* ViewController.swift in Sources */,
 				8A54109B1D38179E00F44F38 /* ServiceWorkerManager.swift in Sources */,
 				8A24493F1D6CF71500052D92 /* PushManager.swift in Sources */,
 				D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */,
 				8A88460D1D3504EA00CF9369 /* ServiceWorkerWebSql.swift in Sources */,
 				8AEEDE601D2D88F10032D588 /* promisified.swift in Sources */,
+				8A24494B1D6F760300052D92 /* Util.swift in Sources */,
+				8A2449471D6F374D00052D92 /* HybridWebviewController.swift in Sources */,
 				8A878AC61D4A8F7600D31F85 /* ServiceWorkerCache.swift in Sources */,
 				8A263A7F1D354D7C00B6505E /* TimeoutManager.swift in Sources */,
 				8A4A265F1D5A32930021B0A2 /* MessageChannel.swift in Sources */,
 				8A5410A11D38235000F44F38 /* WebServer.swift in Sources */,
 				8AEEDE5C1D26CF450032D588 /* db.swift in Sources */,
 				8A932BD71D5A668500FA15F8 /* MessageChannelManager.swift in Sources */,
-				8AEEDE5E1D26ECE70032D588 /* url-resolve.swift in Sources */,
 				8A8846061D30074500CF9369 /* ServiceWorkerInstance.swift in Sources */,
 				8A7786391D5B98130062E12B /* ScriptMessageHandler.swift in Sources */,
 				8A77863D1D5D1C520062E12B /* ServiceWorkerAPI.swift in Sources */,
-				8ADAAE181D10E2F5009F3898 /* console.swift in Sources */,
-				D38116351CD59AED004A3CCD /* MessageHandler.swift in Sources */,
 				8A7786341D5B74E30062E12B /* ConsoleManager.swift in Sources */,
 				8A2449441D6E118300052D92 /* NotificationDelegate.swift in Sources */,
+				8A2449491D6F676700052D92 /* HybridNavigationController.swift in Sources */,
 				8A2475881D623BDA008906FB /* EventManager.swift in Sources */,
 				8AA0BF191D4278CA00DADF1C /* FetchAPIObjects.swift in Sources */,
 				8A0156D21D66402D0091995E /* PromiseBridge.swift in Sources */,
-				D38116301CD58473004A3CCD /* ServiceWorkerHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

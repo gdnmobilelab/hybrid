@@ -27,6 +27,10 @@ class WebServer {
         log.info("Web server started on port " + String(server.port))
     }
     
+    func isLocalServerURL(url:NSURL) -> Bool {
+        return url.host! == "localhost" && url.port! == self.port
+    }
+    
     func mapRequestURLToServerURL(url:NSURL) -> NSURL {
         let fetchURL = NSURLComponents()
         fetchURL.scheme = "http"
@@ -129,7 +133,7 @@ class WebServer {
                 var contentType:String? = response.headers.get("content-type")
                 
                 if contentType == nil {
-                    contentType = "text/plain"
+                    contentType = ""
                 }
                 
                 
@@ -178,7 +182,65 @@ class WebServer {
         }
     }
     
+    static func checkServerURLForReferrer(url: NSURL, referrer:String?) -> NSURL {
+        
+        if url.pathComponents?.count > 1 && url.pathComponents![1] == "__service_worker" {
+            // we're already OK
+            return url
+        }
+        
+        if referrer == nil {
+            // No referrer, nothing we can do anyway
+            return url
+        }
+        
+        var originalPath = url.path!
+        
+        if url.absoluteString!.hasSuffix("/") && originalPath.hasSuffix("/") == false {
+            // NSURL strips this out and I don't know why. Very annoying.
+            
+            originalPath += "/"
+        }
+        
+        let referrerURL = NSURL(string: referrer!)
+        
+        if referrerURL?.pathComponents?.count < 2 || referrerURL?.pathComponents?[1] != "__service_worker" {
+            // isn't a service worker URL, so we can't map it
+            return url
+        }
+        
+        let redirectComponents = NSURLComponents(URL: referrerURL!, resolvingAgainstBaseURL: false)!
+        
+        let pathComponents:[String] = [
+            referrerURL!.pathComponents![0], // /
+            referrerURL!.pathComponents![1], // __service_worker
+            "/",
+            referrerURL!.pathComponents![2], // [hostname]
+            originalPath
+        ]
+        
+        
+        redirectComponents.path = pathComponents.joinWithSeparator("")
+        
+        return redirectComponents.URL!
+
+    }
+    
     func handleRequest(request: GCDWebServerRequest?, completionBlock:GCDWebServerCompletionBlock?) {
+        log.info("Request for " + request!.URL.absoluteString!)
+        
+        
+        let checkedURL = WebServer.checkServerURLForReferrer(request!.URL, referrer: request!.headers["Referer"] as? String)
+        
+        if checkedURL != request!.URL {
+            
+            // A service worker has requested a URL from /, which wipes out our domain info. So we forward it.
+
+            log.info("Redirecting from " + request!.URL.absoluteString! + " to " + checkedURL.absoluteString!)
+            
+            completionBlock!(GCDWebServerResponse(redirect: checkedURL, permanent: false))
+            return
+        }
         
         if (request!.URL.pathComponents![1] == "__service_worker") {
             // URL is within scope of service worker

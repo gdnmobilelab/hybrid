@@ -25,13 +25,23 @@ promisifyFunction(Response, "text");
 promisifyFunction(Request, "json");
 promisifyFunction(Request, "text");
 
-GlobalFetch.fetch = function(urlToFetch:string, options:any) {
+GlobalFetch.fetch = function(toFetch:any, options:any) {
     return new Promise((fulfill, reject) => {
 
-        let resolvedURL = url.resolve(self.registration.scope, urlToFetch);
+        // let actualURL = urlToFetch;
+        // if (actualURL instanceof Request) {
+        //     actualURL = actualURL.url
+        // }
 
-        GlobalFetch.fetchOptionsCallbackErrorCallback(resolvedURL, options, fulfill, (err:string) => reject(new Error(err)))
+        // let resolvedURL = url.resolve(self.registration.scope, urlToFetch);
+
+        GlobalFetch.fetchOptionsScopeCallbackErrorCallback(toFetch, options, self.registration.scope, fulfill, reject)
     })
 }
+
+Headers.prototype.set = Headers.prototype.setValue
+Headers.prototype.append = Headers.prototype.appendValue
+Headers.prototype.delete = Headers.prototype.deleteValue
+
 
 global.fetch = GlobalFetch.fetch

@@ -8,6 +8,16 @@
 
 import Foundation
 import WebKit
+import PromiseKit
+
+struct HybridWebviewMetadata {
+    var color:UIColor?
+    var title:String
+    
+    init() {
+        title = ""
+    }
+}
 
 class HybridWebview : WKWebView, WKNavigationDelegate {
     
@@ -17,10 +27,14 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     var serviceWorkerAPI:ServiceWorkerAPI?
     var eventManager: EventManager?
     
-    private static var activeWebviews = [HybridWebview]()
+    private static var activeWebviews = Set<HybridWebview>()
     
     static func registerWebviewForServiceWorkerEvents(hw:HybridWebview) {
-        self.activeWebviews.append(hw);
+        self.activeWebviews.insert(hw)
+    }
+    
+    static func deregisterWebviewFromServiceWorkerEvents(hw: HybridWebview) {
+        self.activeWebviews.remove(hw)
     }
     
     static func clearRegisteredWebviews() {
@@ -63,10 +77,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         self.notificationPermissionHandler = NotificationPermissionHandler(userController: config.userContentController, webView: self)
         self.serviceWorkerAPI = ServiceWorkerAPI(userController: config.userContentController, webView: self)
         self.eventManager = EventManager(userController: config.userContentController, webView: self)
-        self.navigationDelegate = self
-        
-        // For testing mimicking Chrome - to remove!
-        self.customUserAgent = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.23 Mobile Safari/537.36"
+
         
     }
 
@@ -82,12 +93,37 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         userController.addUserScript(userScript)
     }
     
+    func getMetadata() -> Promise<HybridWebviewMetadata> {
+        return Promise<HybridWebviewMetadata> { fulfill, reject in
+            self.evaluateJavaScript("var t = document.querySelector(\"meta[name='theme-color']\"); [t ? t.getAttribute('content') : '', document.title]", completionHandler: { (result, err) in
+                if err != nil {
+                    reject(err!)
+                    return
+                }
+                
+                let responses = result as! [String]
+                
+                var metadata = HybridWebviewMetadata()
+                
+                if responses[0] != "" {
+                    metadata.color = Util.hexStringToUIColor(responses[0])
+                }
+                
+                metadata.title = responses[1]
+                
+                fulfill(metadata)
+            })
+        }
+    }
+    
+    
     func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
         
         // If the URL falls within the scope of any service worker, we want to redirect the
         // browser to our local web server with the cached responses rather than the internet.
        
         let urlForRequest = navigationAction.request.URL!
+        
             
         if urlForRequest.host == "localhost" && urlForRequest.port == WebServer.current!.port {
             // Is already a request to our local web server, so allow

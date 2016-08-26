@@ -20,6 +20,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     var window: UIWindow?
     
+    var test:HybridWebviewController?
+    
     func application(application: UIApplication, willFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
         UNUserNotificationCenter.currentNotificationCenter().delegate = NotificationDelegateInstance
         return true
@@ -45,24 +47,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let rootWindow = UIWindow(frame: UIScreen.mainScreen().bounds);
             //rootWindow.backgroundColor = UIColor.whiteColor();
             
-            let rootController = UINavigationController()
-            let hwController = UIViewController()
-            let hw = HybridWebview(frame: CGRect(x: 0, y: 0, width: 0, height: 0))
-            HybridWebview.registerWebviewForServiceWorkerEvents(hw)
-            hwController.view = hw
+            let rootController = HybridNavigationController()
             
-            rootController.pushViewController(hwController, animated: false)
+            // todo: remove
+//            ServiceWorkerManager.clearActiveServiceWorkers()
+//            try Db.mainDatabase.inDatabase({ (db) in
+//                db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
+//            })
+            
+            rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://edb72bde.ngrok.io/")!)
+            
+//            rootController.pushViewController(UIViewController(), animated: false)
+//            rootController.pushViewController(test!, animated: false)
             
             rootWindow.rootViewController = rootController
             
             self.window = rootWindow;
             rootWindow.makeKeyAndVisible();
             
-            // todo: remove
-            ServiceWorkerManager.clearActiveServiceWorkers()
-            try Db.mainDatabase.inDatabase({ (db) in
-                db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
-            })
+           
 //
 //            ServiceWorkerManager.getServiceWorkerForURL(NSURL(string:"http://www.gdnmobilelab.com")!)
 //            .then { sw -> Promise<Void>  in
@@ -83,7 +86,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //                log.error(String(err))
 //            }
             
-                hw.loadRequest(NSURLRequest(URL: NSURL(string:"https://1ca85428.ngrok.io/")!))
+//                hw.loadRequest(NSURLRequest(URL: NSURL(string:"https://fbc96a18.ngrok.io/")!))
             return true
             
             

@@ -210,10 +210,7 @@ public class ServiceWorkerInstance {
         self.jsContext.setObject(PushManager.self, forKeyedSubscript: "PushManager")
     }
     
-    private func consoleLog(args: JSValue) {
-        Console.logLevel(args.toString(), webviewURL: NSURL(string: self.url.absoluteString!)!)
-    }
-    
+
     private func jsPromiseCallback(pendingIndex: Int, fulfillValue:AnyObject?, rejectValue: AnyObject?) {
         let funcToRun = self.jsContext
             .objectForKeyedSubscript("hybrid")

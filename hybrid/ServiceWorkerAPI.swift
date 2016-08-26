@@ -87,16 +87,26 @@ class ServiceWorkerAPI: ScriptMessageManager {
         self.sendEvent("claimed", arguments: [match.toJSONString()!])
     }
     
-    func register(swPath:NSURL, scope:NSURL?, webviewURL:NSURL) -> Promise<String> {
+    func register(swPath:NSURL, scope:String?, webviewURL:NSURL) -> Promise<String> {
         
-        let urlOfServiceWorker = URLUtilities.resolveToBaseURL(swPath, baseURL: webviewURL)
-       
-        var serviceWorkerScope:NSURL = urlOfServiceWorker.URLByDeletingLastPathComponent!
-        if scope != nil {
-            serviceWorkerScope = URLUtilities.resolveToBaseURL(scope!, baseURL: webviewURL)
+        var actualSWPath = swPath
+        
+        if WebServer.current!.isLocalServerURL(actualSWPath) {
+            
+            // Register calls can come from both outside and inside local server scenarios.
+            // So we need to account for both.
+            
+            actualSWPath = WebServer.mapServerURLToRequestURL(actualSWPath)
         }
         
-        return ServiceWorkerManager.update(urlOfServiceWorker, scope: serviceWorkerScope)
+        var serviceWorkerScope:NSURL = actualSWPath.URLByDeletingLastPathComponent!
+        if scope != nil {
+            serviceWorkerScope = NSURL(string: scope!, relativeToURL: actualSWPath)!
+            
+            NSLog(serviceWorkerScope.absoluteString!)
+        }
+        
+        return ServiceWorkerManager.update(actualSWPath, scope: serviceWorkerScope)
         .then { response in
             
             return ServiceWorkerInstance.getById(response)
@@ -161,13 +171,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
             let swPath = message["swPath"] as! String
             let scope = message["scope"] as? String
             
-            var scopeURL:NSURL? = nil
-            
-            if scope != nil {
-                scopeURL = NSURL(string: scope!)!
-            }
-            
-            return self.register(NSURL(string:swPath)!, scope: scopeURL, webviewURL: webviewURL)
+            return self.register(NSURL(string:swPath)!, scope: scope, webviewURL: webviewURL)
         }
         
         if operation == "update" {

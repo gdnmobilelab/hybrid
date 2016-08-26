@@ -51,6 +51,7 @@ declare var Response: Function;
 declare var GlobalFetch: any;
 declare var Cache: any;
 declare var __timeoutManager:any;
+declare var Headers: any;
 
 declare class caches {
     static openCallbackSuccessFailure(name: String, success: Function, failure: Function):void
