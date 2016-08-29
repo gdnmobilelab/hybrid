@@ -161,11 +161,13 @@ class ServiceWorkerAPI: ScriptMessageManager {
         
         var webviewURL = self.webview.URL!
         
-        
-        // check nil on webviewURL.host as it could be about:blank, which is fine for, say, console operations
-        if webviewURL.host != nil && webviewURL.host! == "localhost" && webviewURL.port! == WebServer.current!.port {
+        if WebServer.current!.isLocalServiceWorkerURL(webviewURL) {
             webviewURL = WebServer.mapServerURLToRequestURL(webviewURL)
         }
+        // check nil on webviewURL.host as it could be about:blank, which is fine for, say, console operations
+//        if webviewURL.host != nil && webviewURL.host! == "localhost" && webviewURL.port! == WebServer.current!.port {
+//            webviewURL = WebServer.mapServerURLToRequestURL(webviewURL)
+//        }
         
         if operation == "register" {
             let swPath = message["swPath"] as! String

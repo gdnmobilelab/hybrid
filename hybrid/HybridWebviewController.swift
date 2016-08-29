@@ -15,7 +15,9 @@ import WebKit
 class HybridWebviewController : UIViewController, WKNavigationDelegate {
     
     private var observeContext = 0
+    private var progressContext = 0
     private var lastObservedScrollViewHeight:CGFloat = 0
+    private var isObserving = false
     
     var currentMetadata:HybridWebviewMetadata?
     
@@ -43,37 +45,71 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
      
         self.lastObservedScrollViewHeight = self.view.frame.height
         
-        if navController.availableWebViewPool.count > 0 {
-            self.view = navController.availableWebViewPool.removeFirst()
-        } else {
-            self.view = HybridWebview(frame: self.view.frame)
-        }
-        
+        self.view = WaitingArea.get()
+
         HybridWebview.registerWebviewForServiceWorkerEvents(self.webview)
         
         self.webview.navigationDelegate = self
         
-//        self.webview.scrollView.addObserver(self, forKeyPath: "contentSize", options: NSKeyValueObservingOptions(), context: &self.observeContext)
         
-        self.checkIfURLInsideServiceWorker(urlToLoad)
-        .then { url -> Void in
-            self.webview.loadRequest(NSURLRequest(URL: url))
-        }
-        
+
+        self.loadURL(urlToLoad)
     }
     
-    func checkIfURLInsideServiceWorker(url:NSURL) -> Promise<NSURL> {
+    func loadURL(urlToLoad:NSURL) {
+        
+        
+        
+        
+        self.checkIfURLInsideServiceWorker(urlToLoad)
+        .then { (url, sw) -> Promise<Void> in
+            
+            
+            if self.webview.URL == nil || self.webview.URL!.host != "localhost" {
+                self.webview.loadRequest(NSURLRequest(URL: url))
+                return Promise<Void>()
+            }
+            
+            
+            let fr = FetchRequest(url: urlToLoad.absoluteString!, options: nil)
+            
+            return sw!.dispatchFetchEvent(fr)
+            .then { response -> Promise<Void> in
+                let responseAsString = String(data: response!.data!, encoding: NSUTF8StringEncoding)!
+                
+                let responseEscaped = responseAsString.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
+                
+                self.webview.scrollView.addObserver(self, forKeyPath: "contentSize", options: NSKeyValueObservingOptions(), context: &self.observeContext)
+                self.webview.addObserver(self, forKeyPath: "estimatedProgress", options: NSKeyValueObservingOptions(), context: &self.progressContext)
+                
+                self.isObserving = true
+                self.webview.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + url.absoluteString! + "\");", completionHandler: nil)
+                self.webview.scrollView.contentOffset = CGPoint(x: 0,y: 0)
+                
+                //self.events.emit("ready", "test")
+                return Promise<Void>()
+            }
+            
+            
+            
+        }
+        .error {err in
+            self.webview.loadRequest(NSURLRequest(URL: urlToLoad))
+        }
+    }
+    
+    func checkIfURLInsideServiceWorker(url:NSURL) -> Promise<(NSURL,ServiceWorkerInstance?)> {
         return ServiceWorkerManager.getServiceWorkerForURL(url)
-        .then { (serviceWorker) -> NSURL in
+        .then { (serviceWorker) -> (NSURL,ServiceWorkerInstance?) in
             
             if (serviceWorker == nil) {
                 
                 // This is not inside any service worker scope, so allow
                 
-                return url
+                return (url,nil)
             }
             
-            return WebServer.current!.mapRequestURLToServerURL(url)
+            return (WebServer.current!.mapRequestURLToServerURL(url), serviceWorker)
         }
 
     }
@@ -116,18 +152,46 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     override func viewDidDisappear(animated: Bool) {
         
         super.viewDidDisappear(animated)
-        
-        if self.isMovingToParentViewController() {
-            self.hybridNavigationController.availableWebViewPool.append(self.webview)
+        let nav = self.navigationController
+        if nav == nil {
+            WaitingArea.add(self.webview)
             HybridWebview.deregisterWebviewFromServiceWorkerEvents(self.webview)
             self.webview.navigationDelegate = nil
+            if self.isObserving == true {
+                self.webview.scrollView.removeObserver(self, forKeyPath: "contentSize")
+            }
             self.view = nil
+            
+
         }
     }
     
     override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
-       
-        let newHeight = self.webview.scrollView.contentSize.height
+        if (keyPath == "contentSize") {
+            let newHeight = self.webview.scrollView.contentSize.height
+            
+            NSLog("New height: " + String(self.webview.scrollView.contentSize.height))
+            NSLog("New area:" + String(self.webview.frame.height))
+            
+            if newHeight >= self.webview.frame.height {
+                
+                let triggerTime = (Double(NSEC_PER_SEC) * 0.12)
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(triggerTime)), dispatch_get_main_queue(), { () -> Void in
+//                    self.events.emit("ready", "test")
+                })
+                
+                
+                self.webview.scrollView.removeObserver(self, forKeyPath: "contentSize")
+                self.isObserving = false
+            }
+
+        }
+        if self.view != nil {
+            if self.webview.estimatedProgress == 1 {
+                self.events.emit("ready", "test")
+            }
+            NSLog("Progress? " + String(self.webview.estimatedProgress))
+        }
         
         
 //        if self.loadState == LoadState.InitialRequest && newHeight < self.lastObservedScrollViewHeight {
@@ -144,8 +208,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
 //        
 //        self.lastObservedScrollViewHeight = newHeight
         
-        NSLog("New height: " + String(self.webview.scrollView.contentSize.height))
-        NSLog("New area:" + String(self.webview.frame.height))
+        
     }
     
     required init?(coder aDecoder: NSCoder) {

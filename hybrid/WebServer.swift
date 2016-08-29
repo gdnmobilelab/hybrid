@@ -31,6 +31,22 @@ class WebServer {
         return url.host! == "localhost" && url.port! == self.port
     }
     
+    func isLocalServiceWorkerURL(url:NSURL) -> Bool {
+        if isLocalServerURL(url) == false {
+            return false
+        }
+        
+        if url.pathComponents?.count < 2 {
+            return false
+        }
+        
+        if url.pathComponents?[1] == "__service_worker" {
+            return true
+        }
+        
+        return false
+    }
+    
     func mapRequestURLToServerURL(url:NSURL) -> NSURL {
         let fetchURL = NSURLComponents()
         fetchURL.scheme = "http"
@@ -164,6 +180,13 @@ class WebServer {
     
     func passRequestThroughToNetwork(request: GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
         
+        if request.URL.pathComponents?.count < 1 || request.URL.pathComponents![1] != "__service_worker" {
+            // if we're not looking for a service worker URL then we can't go to network.
+            log.info("Request for an unknown local URL: " + request.URL.absoluteString!)
+            let resp = GCDWebServerResponse(statusCode: 404)
+            completionBlock(resp)
+            return
+        }
         
         let urlToActuallyFetch = WebServer.mapServerURLToRequestURL(request.URL)
         
@@ -229,6 +252,10 @@ class WebServer {
     func handleRequest(request: GCDWebServerRequest?, completionBlock:GCDWebServerCompletionBlock?) {
         log.info("Request for " + request!.URL.absoluteString!)
         
+        if request!.URL.path! == "/__placeholder" {
+            self.respondWithPlaceholder(completionBlock!);
+            return
+        }
         
         let checkedURL = WebServer.checkServerURLForReferrer(request!.URL, referrer: request!.headers["Referer"] as? String)
         
@@ -250,24 +277,15 @@ class WebServer {
         
         self.passRequestThroughToNetwork(request!, completionBlock: completionBlock!)
         
-//        
-//        
-//        log.error("Trying to access a URL we don't handle? " + request!.URL.absoluteString)
-//        
-//        completionBlock!(GCDWebServerDataResponse(statusCode: 404))
-//
-//        
-//        let dataRequest = request as! GCDWebServerDataRequest;
-//        
-//        let pathPieces = dataRequest.URL.path!.componentsSeparatedByString("/");
-//        log.info("Received request for " + dataRequest.URL.absoluteString);
-//        
-//        
-//        
-//        let resp = GCDWebServerDataResponse(JSONObject: ["hello": "yes"])!
-//        resp.setValue("*", forAdditionalHeader: "Access-Control-Allow-Origin");
-//        
-//        completionBlock!(resp);
+    }
+    
+    func respondWithPlaceholder(completionBlock:GCDWebServerCompletionBlock) {
+        // The placeholder we load in webviews when we're waiting for their final content
+        
+        let template = "<html><body><div style='position:absolute; top:0;left:0;width:100%;height:100%;padding-bottom:50px'></div></body></html>"
+        
+        let resp = GCDWebServerDataResponse(data: template.dataUsingEncoding(NSUTF8StringEncoding), contentType: "text/html")
+        completionBlock(resp)
     }
     
     var port:Int {

@@ -11,9 +11,6 @@ import UIKit
 
 class HybridNavigationController : UINavigationController {
     
-   
-    
-    var availableWebViewPool = [HybridWebview]()
     
     func pushNewHybridWebViewControllerFor(url:NSURL) {
         let startRequestTime = NSDate().timeIntervalSince1970
@@ -65,6 +62,13 @@ class HybridNavigationController : UINavigationController {
     
     override func preferredStatusBarStyle() -> UIStatusBarStyle {
         return UIStatusBarStyle.LightContent
+    }
+    
+    static var current:HybridNavigationController?
+    
+    static func create() -> HybridNavigationController {
+        self.current = HybridNavigationController()
+        return self.current!
     }
 
 }

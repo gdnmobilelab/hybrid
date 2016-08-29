@@ -18,7 +18,7 @@ let ApplicationEvents = Event<AnyObject>()
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
-    var window: UIWindow?
+    static var window: UIWindow?
     
     var test:HybridWebviewController?
     
@@ -44,10 +44,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             application.registerForRemoteNotifications()
             
             
-            let rootWindow = UIWindow(frame: UIScreen.mainScreen().bounds);
-            //rootWindow.backgroundColor = UIColor.whiteColor();
+            AppDelegate.window = UIWindow(frame: UIScreen.mainScreen().bounds);
             
-            let rootController = HybridNavigationController()
+            
+            
+            let rootController = HybridNavigationController.create()
             
             // todo: remove
 //            ServiceWorkerManager.clearActiveServiceWorkers()
@@ -60,11 +61,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //            rootController.pushViewController(UIViewController(), animated: false)
 //            rootController.pushViewController(test!, animated: false)
             
-            rootWindow.rootViewController = rootController
+            AppDelegate.window!.rootViewController = rootController
             
-            self.window = rootWindow;
-            rootWindow.makeKeyAndVisible();
-            
+            AppDelegate.window!.makeKeyAndVisible();
            
 //
 //            ServiceWorkerManager.getServiceWorkerForURL(NSURL(string:"http://www.gdnmobilelab.com")!)
