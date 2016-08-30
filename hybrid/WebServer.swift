@@ -282,7 +282,7 @@ class WebServer {
     func respondWithPlaceholder(completionBlock:GCDWebServerCompletionBlock) {
         // The placeholder we load in webviews when we're waiting for their final content
         
-        let template = "<html><body><div style='position:absolute; top:0;left:0;width:100%;height:100%;padding-bottom:50px'></div></body></html>"
+        let template = "<html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1,user-scalable=no\" /></head><body><div style='background:red;position:absolute; top:0;left:0;width:100%;height:100%;padding-bottom:50px'>Hello</div></body></html>"
         
         let resp = GCDWebServerDataResponse(data: template.dataUsingEncoding(NSUTF8StringEncoding), contentType: "text/html")
         completionBlock(resp)

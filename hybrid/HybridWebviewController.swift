@@ -30,43 +30,38 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     let events = Event<AnyObject>()
     private var loadState:LoadState
     
-    var webview:HybridWebview {
+    var webview:HybridWebview? {
         get {
-            return self.view as! HybridWebview
+            return self.view as? HybridWebview
         }
     }
     
+   
     let hybridNavigationController:HybridNavigationController
     
-    init(urlToLoad:NSURL, navController: HybridNavigationController) {
+    init(navController: HybridNavigationController) {
         self.loadState = LoadState.InitialRequest
         self.hybridNavigationController = navController
         super.init(nibName: nil, bundle: nil)
-     
+        
         self.lastObservedScrollViewHeight = self.view.frame.height
         
-        self.view = WaitingArea.get()
+        self.view = HybridWebview(frame: self.view.frame)
 
-        HybridWebview.registerWebviewForServiceWorkerEvents(self.webview)
+        HybridWebview.registerWebviewForServiceWorkerEvents(self.webview!)
         
-        self.webview.navigationDelegate = self
+        self.webview!.navigationDelegate = self
         
-        
-
-        self.loadURL(urlToLoad)
     }
     
     func loadURL(urlToLoad:NSURL) {
-        
-        
-        
-        
         self.checkIfURLInsideServiceWorker(urlToLoad)
         .then { (url, sw) -> Promise<Void> in
             
             
-            if self.webview.URL == nil || self.webview.URL!.host != "localhost" {
-                self.webview.loadRequest(NSURLRequest(URL: url))
+            if self.webview!.URL == nil || self.webview!.URL!.host != "localhost" {
+                self.webview!.loadRequest(NSURLRequest(URL: url))
+                self.view = self.webview
                 return Promise<Void>()
             }
             
@@ -79,14 +74,10 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
                 
                 let responseEscaped = responseAsString.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
                 
-                self.webview.scrollView.addObserver(self, forKeyPath: "contentSize", options: NSKeyValueObservingOptions(), context: &self.observeContext)
-                self.webview.addObserver(self, forKeyPath: "estimatedProgress", options: NSKeyValueObservingOptions(), context: &self.progressContext)
+                self.webview!.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + url.absoluteString! + "\");", completionHandler: nil)
+                self.waitForRendered()
                 
-                self.isObserving = true
-                self.webview.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + url.absoluteString! + "\");", completionHandler: nil)
-                self.webview.scrollView.contentOffset = CGPoint(x: 0,y: 0)
                 
-                //self.events.emit("ready", "test")
                 return Promise<Void>()
             }
             
@@ -94,7 +85,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
             
         }
         .error {err in
-            self.webview.loadRequest(NSURLRequest(URL: urlToLoad))
+            self.webview!.loadRequest(NSURLRequest(URL: urlToLoad))
         }
     }
     
@@ -135,7 +126,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     
     func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
         
-        self.webview.getMetadata()
+        self.webview!.getMetadata()
         .then { metadata -> Void in
             self.currentMetadata = metadata
             self.title = metadata.title
@@ -154,60 +145,67 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         super.viewDidDisappear(animated)
         let nav = self.navigationController
         if nav == nil {
-            WaitingArea.add(self.webview)
-            HybridWebview.deregisterWebviewFromServiceWorkerEvents(self.webview)
-            self.webview.navigationDelegate = nil
-            if self.isObserving == true {
-                self.webview.scrollView.removeObserver(self, forKeyPath: "contentSize")
-            }
-            self.view = nil
-            
-
+            self.hybridNavigationController.addControllerToWaitingArea(self)
         }
     }
     
-    override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
-        if (keyPath == "contentSize") {
-            let newHeight = self.webview.scrollView.contentSize.height
+    var renderCheckContext:CGContext?
+    var pixel:UnsafeMutablePointer<CUnsignedChar>?
+    
+    func checkIfRendered() -> Bool {
+        
+        // Because WKWebView lives on a separate process, it's very difficult to guarantee when
+        // rendering has actually happened. To avoid the flash of white when we push a controller,
+        // we take a width * 1px screenshot, and detect a dummy pixel we've put in the top right of
+        // the page in a custom color. If it isn't detected, waitForRender() fires again at the next
+        // interval.
+        
+        let height = 1
+        let width = Int(self.view.frame.width)
+        
+        if self.renderCheckContext == nil {
             
-            NSLog("New height: " + String(self.webview.scrollView.contentSize.height))
-            NSLog("New area:" + String(self.webview.frame.height))
-            
-            if newHeight >= self.webview.frame.height {
-                
-                let triggerTime = (Double(NSEC_PER_SEC) * 0.12)
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(triggerTime)), dispatch_get_main_queue(), { () -> Void in
-//                    self.events.emit("ready", "test")
-                })
-                
-                
-                self.webview.scrollView.removeObserver(self, forKeyPath: "contentSize")
-                self.isObserving = false
-            }
+            self.pixel = UnsafeMutablePointer<CUnsignedChar>.alloc(4 * width * height)
+            let colorSpace = CGColorSpaceCreateDeviceRGB()
+            let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.PremultipliedLast.rawValue)
+            self.renderCheckContext = CGBitmapContextCreate(pixel!, width, height, 8, width * 4, colorSpace, bitmapInfo.rawValue)!
+        }
+        
 
-        }
-        if self.view != nil {
-            if self.webview.estimatedProgress == 1 {
-                self.events.emit("ready", "test")
-            }
-            NSLog("Progress? " + String(self.webview.estimatedProgress))
-        }
+        self.webview!.scrollView.layer.renderInContext(self.renderCheckContext!)
         
+        let startAt = 4 * width * height - 4
         
-//        if self.loadState == LoadState.InitialRequest && newHeight < self.lastObservedScrollViewHeight {
-//            self.loadState = LoadState.BeneathInitialSize
-////            self.lastObservedScrollViewHeight = newHeight
-//        } else if self.loadState == LoadState.BeneathInitialSize && newHeight > self.lastObservedScrollViewHeight {
-//            self.loadState = LoadState.PossiblyReady
-////            
-//            self.webview.scrollView.removeObserver(self, forKeyPath: "contentSize")
-//            
-//            NSLog("Pushing view")
-//            self.events.emit("ready", "test")
-//        }
+        let red = CGFloat(pixel![startAt])
+        let green = CGFloat(pixel![startAt + 1])
+        let blue =  CGFloat(pixel![startAt + 2])
+//        let alpha = CGFloat(pixel![startAt + 3])
+        
+       
+        return red == 0 && blue == 255 && green == 255
+        
+//        let imgref = CGBitmapContextCreateImage(self.renderCheckContext!)
+//        let uiImage = UIImage(CGImage: imgref!)
 //        
-//        self.lastObservedScrollViewHeight = newHeight
+//        AppDelegate.window!.addSubview(UIImageView(image: uiImage))
+    }
+    
+    func waitForRendered() {
         
+        if self.checkIfRendered() == true {
+            
+            self.renderCheckContext = nil
+            self.pixel!.destroy()
+            self.pixel = nil
+            
+            self.webview!.evaluateJavaScript("__removeLoadedIndicator()", completionHandler: nil)
+            self.events.emit("ready", "test")
+        } else {
+            let triggerTime = (Double(NSEC_PER_SEC) * 0.05)
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(triggerTime)), dispatch_get_main_queue(), { () -> Void in
+                self.waitForRendered()
+            })
+        }
         
     }
     

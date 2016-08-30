@@ -300,11 +300,16 @@ serviceWorkerBridge.addListener('claimed', function(match:ServiceWorkerMatch) {
 })
 // On page load we grab all the currently applicable service workers
 
-serviceWorkerBridge.bridgePromise({
-    operation: "getAll"
-}).then((workers: ServiceWorkerMatch[]) => {
-    workers.forEach((worker) => {
-        serviceWorkerRecords[worker.instanceId] = new HybridServiceWorker(worker.instanceId, worker.url, "", worker.installState);
-        RegistrationInstance.assignAccordingToInstallState(serviceWorkerRecords[worker.instanceId]);
+export function refreshServiceWorkers() {
+    serviceWorkerBridge.bridgePromise({
+        operation: "getAll"
+    }).then((workers: ServiceWorkerMatch[]) => {
+        workers.forEach((worker) => {
+            serviceWorkerRecords[worker.instanceId] = new HybridServiceWorker(worker.instanceId, worker.url, "", worker.installState);
+            RegistrationInstance.assignAccordingToInstallState(serviceWorkerRecords[worker.instanceId]);
+        })
     })
-})
+}
+
+refreshServiceWorkers();
+

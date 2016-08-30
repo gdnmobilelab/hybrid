@@ -20,7 +20,6 @@
 		8A2449471D6F374D00052D92 /* HybridWebviewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449461D6F374C00052D92 /* HybridWebviewController.swift */; };
 		8A2449491D6F676700052D92 /* HybridNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449481D6F676700052D92 /* HybridNavigationController.swift */; };
 		8A24494B1D6F760300052D92 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24494A1D6F760300052D92 /* Util.swift */; };
-		8A24494D1D7489C300052D92 /* WaitingArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24494C1D7489C300052D92 /* WaitingArea.swift */; };
 		8A2475881D623BDA008906FB /* EventManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2475871D623BDA008906FB /* EventManager.swift */; };
 		8A263A7D1D353D9300B6505E /* ServiceWorkerWebSql.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A263A7C1D353D9300B6505E /* ServiceWorkerWebSql.swift */; };
 		8A263A7F1D354D7C00B6505E /* TimeoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */; };
@@ -100,7 +99,6 @@
 		8A2449461D6F374C00052D92 /* HybridWebviewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridWebviewController.swift; sourceTree = "<group>"; };
 		8A2449481D6F676700052D92 /* HybridNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridNavigationController.swift; sourceTree = "<group>"; };
 		8A24494A1D6F760300052D92 /* Util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
-		8A24494C1D7489C300052D92 /* WaitingArea.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WaitingArea.swift; sourceTree = "<group>"; };
 		8A2475871D623BDA008906FB /* EventManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventManager.swift; sourceTree = "<group>"; };
 		8A263A7C1D353D9300B6505E /* ServiceWorkerWebSql.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerWebSql.swift; sourceTree = "<group>"; };
 		8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeoutManager.swift; sourceTree = "<group>"; };
@@ -196,7 +194,6 @@
 			children = (
 				8A2449461D6F374C00052D92 /* HybridWebviewController.swift */,
 				8A2449481D6F676700052D92 /* HybridNavigationController.swift */,
-				8A24494C1D7489C300052D92 /* WaitingArea.swift */,
 			);
 			name = native;
 			sourceTree = "<group>";
@@ -662,7 +659,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8A24494D1D7489C300052D92 /* WaitingArea.swift in Sources */,
 				8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */,
 				8A0156D01D65FCAE0091995E /* GlobalFetch.swift in Sources */,
 				8A54109F1D381EF000F44F38 /* HybridWebView.swift in Sources */,

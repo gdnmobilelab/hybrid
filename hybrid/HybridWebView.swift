@@ -77,8 +77,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         self.notificationPermissionHandler = NotificationPermissionHandler(userController: config.userContentController, webView: self)
         self.serviceWorkerAPI = ServiceWorkerAPI(userController: config.userContentController, webView: self)
         self.eventManager = EventManager(userController: config.userContentController, webView: self)
-
-        
+//        self.scrollView.contentInset = UIEdgeInsets(top: 60, left: 0, bottom: 0, right: 0)
     }
     
 
