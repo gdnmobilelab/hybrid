@@ -55,7 +55,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //            try Db.mainDatabase.inDatabase({ (db) in
 //                db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
 //            })
-            
+//            
             rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://edb72bde.ngrok.io/")!)
             
 //            rootController.pushViewController(UIViewController(), animated: false)

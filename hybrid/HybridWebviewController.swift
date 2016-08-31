@@ -75,10 +75,14 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
                 let responseEscaped = responseAsString.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
                 
                 self.webview!.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + url.absoluteString! + "\");", completionHandler: nil)
-                self.waitForRendered()
                 
-                
-                return Promise<Void>()
+                return when(
+                    self.waitForRendered(),
+                    self.setMetadata()
+                )
+            }
+            .then {
+                self.events.emit("ready", "test")
             }
             
             
@@ -125,15 +129,18 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     }
     
     func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
-        
-        self.webview!.getMetadata()
+        self.setMetadata()
+        .then {
+            self.events.emit("ready", "test")
+        }
+    }
+    
+    func setMetadata() -> Promise<Void> {
+        return self.webview!.getMetadata()
         .then { metadata -> Void in
             self.currentMetadata = metadata
             self.title = metadata.title
-            self.events.emit("ready", "test")
-
         }
-        
     }
     
     override func preferredStatusBarStyle() -> UIStatusBarStyle {
@@ -190,23 +197,29 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
 //        AppDelegate.window!.addSubview(UIImageView(image: uiImage))
     }
     
-    func waitForRendered() {
-        
+    private func waitRenderWithFulfill(fulfill: () -> ()) {
         if self.checkIfRendered() == true {
-            
+            log.debug("Checked if webview was ready, it WAS")
             self.renderCheckContext = nil
             self.pixel!.destroy()
             self.pixel = nil
             
             self.webview!.evaluateJavaScript("__removeLoadedIndicator()", completionHandler: nil)
-            self.events.emit("ready", "test")
+//            self.events.emit("ready", "test")
+            fulfill()
         } else {
+            log.debug("Checked if webview was ready, it was not")
             let triggerTime = (Double(NSEC_PER_SEC) * 0.05)
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(triggerTime)), dispatch_get_main_queue(), { () -> Void in
-                self.waitForRendered()
+                self.waitRenderWithFulfill(fulfill)
             })
         }
-        
+    }
+    
+    func waitForRendered() -> Promise<Void> {
+        return Promise<Void> { fulfill, reject in
+            self.waitRenderWithFulfill(fulfill)
+        }
     }
     
     required init?(coder aDecoder: NSCoder) {

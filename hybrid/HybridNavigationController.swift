@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-class HybridNavigationController : UINavigationController {
+class HybridNavigationController : UINavigationController, UINavigationControllerDelegate {
     
     let waitingArea:UINavigationController
     
@@ -20,14 +20,30 @@ class HybridNavigationController : UINavigationController {
         // We render this in the same size as the original controller, but off-screen
         self.waitingArea.view.frame = CGRect(origin: CGPoint(x: self.view.frame.width, y:0), size: self.view.frame.size)
         self.view.addSubview(self.waitingArea.view)
+        self.delegate = self
     }
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func popViewControllerAnimated(animated: Bool) -> UIViewController? {
+        
+        // We want to restore the color/styles of the last viewcontroller.
+        // So, let's check if it has metadata, and if so, apply it.
+        
+        let poppedController = super.popViewControllerAnimated(animated)
+        let top = self.topViewController as? HybridWebviewController
+        if top != nil && top?.currentMetadata != nil {
+            self.applyMetadata(top!.currentMetadata!)
+        }
+        
+        return poppedController
+    }
+    
     func getNewController() -> HybridWebviewController {
-        let inWaitingArea = self.waitingArea.viewControllers.first
+        
+        let inWaitingArea = self.waitingArea.topViewController
         if inWaitingArea != nil {
             return inWaitingArea as! HybridWebviewController
         }
@@ -56,6 +72,12 @@ class HybridNavigationController : UINavigationController {
             let readyTime = NSDate().timeIntervalSince1970
             
             NSLog("LOADED IN " + String(readyTime - startRequestTime))
+            
+//            let indexInWaitingArea = self.waitingArea.viewControllers.indexOf(newInstance)
+//            
+//            if indexInWaitingArea != nil {
+//                self.waitingArea.viewControllers.removeAtIndex(indexInWaitingArea!)
+//            }
             
             self.pushViewController(newInstance, animated: true)
         })
@@ -93,6 +115,15 @@ class HybridNavigationController : UINavigationController {
         
         self.setNeedsStatusBarAppearanceUpdate()
         
+    }
+    
+    func navigationController(navigationController: UINavigationController, didShowViewController viewController: UIViewController, animated: Bool) {
+        
+        // Ensure we have a cached view ready to go
+        
+        if self.waitingArea.viewControllers.count == 0 {
+            self.addControllerToWaitingArea(HybridWebviewController(navController: self))
+        }
     }
     
     private var statusBarStyle = UIStatusBarStyle.Default

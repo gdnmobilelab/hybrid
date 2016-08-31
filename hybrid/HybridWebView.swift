@@ -44,6 +44,9 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     static func claimWebviewsForServiceWorker(sw:ServiceWorkerInstance) {
         
         let applicableWebviews = HybridWebview.activeWebviews.filter({ hw in
+            if hw.mappedURL == nil {
+                return false
+            }
             return hw.mappedURL!.absoluteString!.hasPrefix(sw.scope.absoluteString!)
         })
         
@@ -78,6 +81,8 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         self.serviceWorkerAPI = ServiceWorkerAPI(userController: config.userContentController, webView: self)
         self.eventManager = EventManager(userController: config.userContentController, webView: self)
 //        self.scrollView.contentInset = UIEdgeInsets(top: 60, left: 0, bottom: 0, right: 0)
+        
+        self.allowsLinkPreview = false
     }
     
 
@@ -168,6 +173,9 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
             // If it's a local URL for a service worker, map it
             
             if currentURL!.host! == "localhost" && currentURL!.port! == WebServer.current?.port {
+                if currentURL?.path! == "/__placeholder" {
+                    return nil
+                }
                 return WebServer.mapServerURLToRequestURL(currentURL!)
             }
             
