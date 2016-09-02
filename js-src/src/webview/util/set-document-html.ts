@@ -3,8 +3,7 @@ import {refreshServiceWorkers} from '../navigator/sw-manager';
 let loadedIndicator:HTMLDivElement = null;
 
 (window as any).__setHTML = function(htmlString:string, baseURL:string) {
-    let insideHTMLTag = /<html(?:.*?)>((?:.|\n)*)<\/html>/gim.exec(htmlString)[1].replace("</body>","TEXT</body>");
-    // insideHTMLTag = insideHTMLTag.replace("<head>",`<head><base href='${baseURL}'/>`)
+    let insideHTMLTag = /<html(?:.*?)>((?:.|\n)*)<\/html>/gim.exec(htmlString)[1];
     history.replaceState(null,null,baseURL);
     refreshServiceWorkers();
     document.documentElement.innerHTML = insideHTMLTag;

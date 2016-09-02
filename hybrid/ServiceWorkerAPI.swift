@@ -91,10 +91,14 @@ class ServiceWorkerAPI: ScriptMessageManager {
         
         var actualSWPath = swPath
         
+        
+        
         if WebServer.current!.isLocalServerURL(actualSWPath) {
             
             // Register calls can come from both outside and inside local server scenarios.
             // So we need to account for both.
+            
+            var actualSWPath = WebServer.checkServerURLForReferrer(actualSWPath, referrer: self.webview.URL!.absoluteString)
             
             actualSWPath = WebServer.mapServerURLToRequestURL(actualSWPath)
         }

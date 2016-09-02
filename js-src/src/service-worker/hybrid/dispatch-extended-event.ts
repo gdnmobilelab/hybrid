@@ -14,7 +14,7 @@ hybrid.dispatchExtendableEvent = function(name:string, data:Object) {
 }
 
 
-hybrid.dispatchFetchEvent = function(data:Object) {
+hybrid.dispatchFetchEvent = function(data:any) {
     return Promise.resolve()
     .then(() => {
           let respondWithEvent = new FetchEvent({
@@ -32,6 +32,6 @@ hybrid.dispatchMessageEvent = function(message:string, ports: [MessagePort]) {
         ports: ports,
         data: JSON.parse(message)
     }
-
+    console.log("Received message", message);
     self.dispatchEvent(ev as MessageEvent);
 }

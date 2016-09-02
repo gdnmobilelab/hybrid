@@ -65,6 +65,17 @@ import UserNotifications
             content.categoryIdentifier = categoryIdentifier
         }
         
+        if let image = options["image"] as? String {
+            do {
+                let imageURL = NSURL(string: image, relativeToURL: self.workerScope)!
+                
+                let attach = try UNNotificationAttachment(identifier: "notify-image", URL: imageURL, options: [:])
+                content.attachments.append(attach);
+            } catch {
+                log.error("Adding image to notification failed:" + String(error))
+            }
+        }
+        
         content.userInfo["originalNotificationOptions"] = options
         content.userInfo["originalTitle"] = title
         content.userInfo["workerURL"] = self.workerURL.absoluteString

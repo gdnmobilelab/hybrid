@@ -28,7 +28,7 @@ export class ExtendableEvent {
 
 export class FetchEvent {
 
-    private request:Object;
+    private request:any;
     public type:string;
     private respondWithPromise:Promise<any> = null;
 

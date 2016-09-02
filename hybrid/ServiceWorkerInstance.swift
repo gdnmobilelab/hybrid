@@ -369,8 +369,6 @@ public class ServiceWorkerInstance {
         
         let escapedServiceWorkerURL = self.url.absoluteString!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
         
-        let escapedTargetURL = url.absoluteString!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
-        
         
         let returnComponents = NSURLComponents(string: "http://localhost")!
         returnComponents.port = WebServer.current!.port

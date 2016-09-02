@@ -10,7 +10,7 @@ caches.open = function(name:String): Promise<Cache> {
         caches.openCallbackSuccessFailure(name, fulfill, stringToErr);
     })
 }
-console.log(Object.keys(Cache))
+
 Cache.prototype.add = function(url:string) {
     return new Promise<void>((fulfull, reject) => {
         Cache.prototype.addCallbackSuccessFailure.apply(this, [url, fulfull, stringToErr(reject)]);
@@ -23,8 +23,9 @@ Cache.prototype.addAll = function(urls: string[]) {
     })
 }
 
-Cache.prototype.match = function(url:string) {
+Cache.prototype.match = function(request:any) {
     return new Promise<void>((fulfull, reject) => {
-        Cache.prototype.matchCallbackSuccessFailure.apply(this, [url, fulfull, stringToErr(reject)]);
+        console.log('request', request, request.prototype)
+        Cache.prototype.matchCallbackSuccessFailure.apply(this, [request, fulfull, stringToErr(reject)]);
     })
 }

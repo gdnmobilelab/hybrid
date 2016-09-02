@@ -51,7 +51,7 @@ class CacheNoMatchError : ErrorType {}
 @objc protocol ServiceWorkerCacheExports : JSExport {
     func addAllCallback(urls:[String], success:JSValue, failure: JSValue) -> Void
     func addCallback(url:String, success:JSValue, failure: JSValue) -> Void
-    func matchCallback(url: String, success: JSValue, failure: JSValue) -> Void
+    func matchCallback(url: JSValue, success: JSValue, failure: JSValue) -> Void
 }
 
 
@@ -116,7 +116,11 @@ class CacheNoMatchError : ErrorType {}
                             let fh = FetchHeaders(dictionary: r.response.allHeaderFields as! [String: AnyObject])
                             
                             let headersAsJSON = try fh.toJSON()
-    
+                            
+                            // It's valid to overwrite an existing cache entry. So, let's make sure we've deleted any existing ones
+                            
+                            try db.executeUpdate("DELETE FROM cache WHERE service_worker_url = ? AND cache_id = ? AND resource_url = ?", values: [self.serviceWorkerURL.absoluteString!, self.name, r.request.URL!.absoluteString!])
+                            
                             try db.executeUpdate("INSERT INTO cache (service_worker_url, cache_id, resource_url, contents, headers, status) VALUES (?,?,?,?,?,?)", values: [self.serviceWorkerURL.absoluteString!, self.name, r.request.URL!.absoluteString!, r.data!, headersAsJSON, r.response.statusCode] as [AnyObject])
                         }
     
@@ -131,7 +135,16 @@ class CacheNoMatchError : ErrorType {}
         
     }
     
-    func matchCallback(url: String, success: JSValue, failure: JSValue) {
+    func matchCallback(request: JSValue, success: JSValue, failure: JSValue) {
+        
+        var url = ""
+
+        if request.isObject {
+            url = (request.toObjectOfClass(FetchRequest) as! FetchRequest).url
+        } else {
+            url = request.toString()
+        }
+        
         self.match(NSURL(string: url)!)
         .then { response in
             success.callWithArguments([response])

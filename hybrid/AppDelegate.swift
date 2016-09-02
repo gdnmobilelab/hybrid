@@ -51,12 +51,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let rootController = HybridNavigationController.create()
             
             // todo: remove
-//            ServiceWorkerManager.clearActiveServiceWorkers()
-//            try Db.mainDatabase.inDatabase({ (db) in
-//                db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
-//            })
-//            
-            rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://edb72bde.ngrok.io/")!)
+            ServiceWorkerManager.clearActiveServiceWorkers()
+            try Db.mainDatabase.inDatabase({ (db) in
+                db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
+            })
+//
+            rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo/")!)
             
 //            rootController.pushViewController(UIViewController(), animated: false)
 //            rootController.pushViewController(test!, animated: false)

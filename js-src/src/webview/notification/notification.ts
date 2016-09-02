@@ -2,12 +2,18 @@ import promiseBridge from './notification-bridge';
 
 export const notification = {
     permission: "unknown",
-    requestPermission: function() {
-       promiseBridge.bridgePromise({
+    requestPermission: function(callback: Function) {
+     
+
+       return promiseBridge.bridgePromise({
             operation: "requestPermission"
        })
-       .then((result) => {
-           console.log("request result:", result);
+       .then((newStatus) => {
+           // Support deprecated callback method
+           if (callback) {
+               callback(newStatus);
+           }
+           return newStatus
        })
     }
 };

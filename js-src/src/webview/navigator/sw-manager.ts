@@ -179,12 +179,12 @@ class HybridServiceWorkerContainer extends EventEmitter implements ServiceWorker
 
     get ready(): Promise<ServiceWorkerRegistration> {
         if (this.controller) {
-            console.debug("ServiceWorker ready returning immediately with activated instance");
+            console.info("ServiceWorker ready returning immediately with activated instance");
             return Promise.resolve(RegistrationInstance);
         }
 
         return new Promise((fulfill, reject) => {
-            console.debug("ServiceWorker ready returning promise and waiting...");
+            console.info("ServiceWorker ready returning promise and waiting...");
             this.once("controllerchange", () => {
                 console.debug("ServiceWorker ready received response")
                 fulfill(RegistrationInstance)
