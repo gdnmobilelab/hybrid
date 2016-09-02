@@ -9,7 +9,7 @@
 import Foundation
 import WebKit
 import PromiseKit
-
+import UserNotifications
 
 class NotificationPermissionHandler: ScriptMessageManager {
 
@@ -17,71 +17,80 @@ class NotificationPermissionHandler: ScriptMessageManager {
         super.init(userController: userController, webView: webView, handlerName: "notifications")
     }
     
-    func hasNotificationPermission() -> Bool {
-        let notificationType = UIApplication.sharedApplication().currentUserNotificationSettings()!.types
-        return notificationType != UIUserNotificationType.None
+    func getAuthStatus() -> Promise<UNAuthorizationStatus> {
+        return Promise<UNAuthorizationStatus> { fulfill, reject in
+            UNUserNotificationCenter.currentNotificationCenter().getNotificationSettingsWithCompletionHandler { (settings:UNNotificationSettings) in
+                fulfill(settings.authorizationStatus)
+            }
+        }
+    }
+    
+    func authStatusToBrowserString(status:UNAuthorizationStatus) -> String {
+        if status == UNAuthorizationStatus.Authorized {
+            return "granted"
+        }
+        if status == UNAuthorizationStatus.Denied {
+            return "denied"
+        }
+        
+        return "default"
+    }
+    
+    private func makeJSONSafe(str:String) -> String {
+        return "\"" + str + "\""
     }
     
     override func handleMessage(message:AnyObject) -> Promise<String>? {
         
         let operation = message["operation"] as! String
         
-        let userDefaults = NSUserDefaults.standardUserDefaults()
-        
         if operation == "getStatus" {
             
-            var setting = userDefaults.stringForKey("userPermissionNotification")
-            
-            if self.hasNotificationPermission() == true && setting != "granted" {
-                // Despite saved settings, users can manually enable notifications
-                // so let's check if they have done that.
-                
-                userDefaults.setValue("granted", forKey: "userPermissionNotification")
-                setting = "granted"
+            return getAuthStatus()
+            .then { authStatus in
+                return self.makeJSONSafe(self.authStatusToBrowserString(authStatus))
             }
-            
-            
-            if setting == nil {
-                // We haven't asked.
-                return Promise<String>("\"default\"")
-            }
-            
-            return Promise<String>("\"" + setting! + "\"")
 
         }
         
         if operation == "requestPermission" {
             
-            return Promise<Void>()
-            .then { () -> Promise<String> in
-                if self.hasNotificationPermission() == true {
-                    return Promise<String>("\"granted\"")
+            return self.getAuthStatus()
+            .then { authStatus -> Promise<String> in
+                if authStatus != UNAuthorizationStatus.NotDetermined {
+                    return Promise<String>(self.makeJSONSafe(self.authStatusToBrowserString(authStatus)))
                 }
                 
-                return Promise<String> {fulfill, reject in
-                    ApplicationEvents.once("didRegisterUserNotificationSettings", { _ in
+                return Promise<Bool> {fulfill, reject in
+                    UIApplication.sharedApplication().registerForRemoteNotifications()
+                    UNUserNotificationCenter.currentNotificationCenter().requestAuthorizationWithOptions([.Alert, .Sound, .Badge], completionHandler: { (result:Bool, err:NSError?) in
                         
-                        let result:String
-                        
-                        if self.hasNotificationPermission() == false {
-                            result = "denied"
-                        } else {
-                            result = "granted"
+                        if err != nil {
+                            reject(err!)
                         }
                         
-                        userDefaults.setValue(result, forKey: "userPermissionNotification")
-                        fulfill("\"" + result + "\"")
+                        fulfill(result)
                         
                     })
+                }
+                .then { gavePermission -> String in
                     
-                    let settings = UIUserNotificationSettings(forTypes: [.Badge, .Sound, .Alert], categories: nil)
-                    UIApplication.sharedApplication().registerUserNotificationSettings(settings)
+                    let result:String
+                    
+                    if gavePermission == false {
+                        result = "denied"
+                    } else {
+                        result = "granted"
+                    }
+                    
+                    return self.makeJSONSafe(result)
+                }
+                .then { newStatus -> String in
+                    self.sendEvent("notification-permission-change", arguments: [newStatus])
+                    return newStatus
                 }
             }
-            .then { newStatus -> String in
-                self.sendEvent("notification-permission-change", arguments: [newStatus])
-                return newStatus
-            }
+            
             
             
         }

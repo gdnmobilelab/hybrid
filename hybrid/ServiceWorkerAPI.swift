@@ -89,7 +89,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
     
     func register(swPath:NSURL, scope:String?, webviewURL:NSURL) -> Promise<String> {
         
-        var actualSWPath = swPath
+        let actualSWPath = swPath
         
         
         

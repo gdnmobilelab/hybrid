@@ -97,11 +97,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
    
-    
-    func application(application: UIApplication, didRegisterUserNotificationSettings notificationSettings: UIUserNotificationSettings) {
-        ApplicationEvents.emit("didRegisterUserNotificationSettings", notificationSettings)
-    }
-    
+
     func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {
         ApplicationEvents.emit("didRegisterForRemoteNotificationsWithDeviceToken", deviceToken)
     }
