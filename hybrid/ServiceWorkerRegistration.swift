@@ -8,6 +8,8 @@
 
 import Foundation
 import UserNotifications
+import JavaScriptCore
+import PromiseKit
 
 @objc protocol ServiceWorkerRegistrationExports : JSExport {
     var pushManager:PushManager {get}
@@ -17,19 +19,60 @@ import UserNotifications
 
 @objc class ServiceWorkerRegistration: NSObject, ServiceWorkerRegistrationExports {
     var pushManager:PushManager
-    var workerURL:NSURL
-    var workerScope:NSURL
+    var worker:ServiceWorkerInstance
+    
+    static let WORKER_ID = "workerID"
     
     var scope:String {
         get {
-            return self.workerScope.absoluteString!
+            return self.worker.scope.absoluteString!
         }
     }
     
-    init(url:NSURL, scope:NSURL) {
+    init(worker:ServiceWorkerInstance) {
         self.pushManager = PushManager()
-        self.workerURL = url
-        self.workerScope = scope
+        self.worker = worker
+    }
+    
+    static let assetStoreDirectory = Fs.sharedStoreURL.URLByAppendingPathComponent("NotificationStore", isDirectory: true)!
+    
+    static func getStoredPathForURL(url:NSURL) -> NSURL {
+        
+        let escapedAssetURL = url.absoluteString!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
+        
+        return assetStoreDirectory
+            .URLByAppendingPathComponent(escapedAssetURL)!
+            .URLByAppendingPathExtension(url.pathExtension!)!
+    }
+    
+    private func getIcon(options: [String:AnyObject], content:UNMutableNotificationContent) -> Promise<Void> {
+        
+        if options["icon"] == nil {
+            return Promise<Void>()
+        }
+        
+        let icon = options["icon"] as! String
+        
+        let iconURL = NSURL(string: icon, relativeToURL: NSURL(string:self.scope)!)!
+        
+        return self.worker.dispatchFetchEvent(FetchRequest(url: iconURL.absoluteString!, options: nil))
+        .then { r in
+            
+            let destPath = ServiceWorkerRegistration.getStoredPathForURL(iconURL)
+            
+            if NSFileManager.defaultManager().fileExistsAtPath(ServiceWorkerRegistration.assetStoreDirectory.path!) == false {
+                try NSFileManager.defaultManager().createDirectoryAtPath(ServiceWorkerRegistration.assetStoreDirectory.path!, withIntermediateDirectories: true, attributes: nil)
+            }
+            
+            
+            try r!.data!.writeToFile(destPath.path!, options: NSDataWritingOptions.DataWritingFileProtectionNone)
+            let attachment = try UNNotificationAttachment(identifier: "icon", URL: destPath, options: [
+                UNNotificationAttachmentOptionsThumbnailClippingRectKey: CGRectCreateDictionaryRepresentation(CGRect(x:0, y: 0, width: 1, height: 1))
+            ])
+            content.attachments.append(attachment)
+            
+            return Promise<Void>()
+        }
     }
     
     func showNotification(title:String, options: [String:AnyObject]) {
@@ -40,13 +83,19 @@ import UserNotifications
             content.body = body
         }
         
+        content.threadIdentifier = "THREADY"
+        
+        var categoryIdentifier = "extended-content"
+        
+        var nativeActions = [UNNotificationAction]()
+        
         if let actions = options["actions"] as? [AnyObject] {
             
             // How do we identify categories/tidy up after ourselves?
-            var nativeActions = [UNNotificationAction]()
+            
             
             // attempt at deduping. necessary?
-            var categoryIdentifier = ""
+            
             
             for action in actions {
                 
@@ -55,37 +104,44 @@ import UserNotifications
                 
                 let newAction = UNNotificationAction(identifier: identifier, title: title, options: UNNotificationActionOptions())
                 nativeActions.append(newAction)
-                categoryIdentifier += identifier + "_" + title
+//                categoryIdentifier += identifier + "_" + title
             }
             
-            let category = UNNotificationCategory(identifier: categoryIdentifier, actions: nativeActions, intentIdentifiers: [], options: UNNotificationCategoryOptions())
-            
-            UNUserNotificationCenter.currentNotificationCenter().setNotificationCategories([category])
-            
-            content.categoryIdentifier = categoryIdentifier
         }
         
-        if let image = options["image"] as? String {
-            do {
-                let imageURL = NSURL(string: image, relativeToURL: self.workerScope)!
+        let category = UNNotificationCategory(identifier: categoryIdentifier, actions: nativeActions, intentIdentifiers: [], options: UNNotificationCategoryOptions())
+        
+        UNUserNotificationCenter.currentNotificationCenter().setNotificationCategories([category])
+        
+        content.categoryIdentifier = categoryIdentifier
+        
+        self.getIcon(options, content: content)
+        .then { () -> Void in
+            if let image = options["image"] as? String {
+                let imageURL = NSURL(string: image, relativeToURL: NSURL(string: self.scope))!
+                content.userInfo["image"] = imageURL.absoluteString
                 
-                let attach = try UNNotificationAttachment(identifier: "notify-image", URL: imageURL, options: [:])
-                content.attachments.append(attach);
-            } catch {
-                log.error("Adding image to notification failed:" + String(error))
             }
+            
+            content.userInfo["originalNotificationOptions"] = options
+            content.userInfo["originalTitle"] = title
+            content.userInfo["serviceWorkerScope"] = self.worker.scope.absoluteString
+            content.userInfo[ServiceWorkerRegistration.WORKER_ID] = self.worker.instanceId
+            
+            let id = String(NSDate().timeIntervalSince1970)
+            
+            let request = UNNotificationRequest(identifier: "test", content: content, trigger: nil)
+            
+            UNUserNotificationCenter.currentNotificationCenter().addNotificationRequest(request) { (err) in
+                NSLog(String(err))
+            }
+
+        }
+        .error { err in
+            log.error(String(err))
         }
         
-        content.userInfo["originalNotificationOptions"] = options
-        content.userInfo["originalTitle"] = title
-        content.userInfo["workerURL"] = self.workerURL.absoluteString
-        
-        let id = String(NSDate().timeIntervalSince1970)
-        
-        let request = UNNotificationRequest(identifier: id, content: content, trigger: nil)
-     
-        UNUserNotificationCenter.currentNotificationCenter().addNotificationRequest(request) { (err) in
-            NSLog(String(err))
-        }
+       
+    
     }
 }

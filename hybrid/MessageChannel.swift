@@ -9,7 +9,7 @@
 import Foundation
 import EmitterKit
 import WebKit
-
+import JavaScriptCore
 
 
 @objc protocol MessageEventExports {

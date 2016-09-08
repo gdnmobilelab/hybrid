@@ -8,6 +8,12 @@
 
 import Foundation
 import UIKit
+import XCGLogger
+import EmitterKit
+
+let log = XCGLogger.defaultInstance()
+let ApplicationEvents = Event<AnyObject>()
+
 
 class Util {
     static func hexStringToUIColor (hex:String) -> UIColor {

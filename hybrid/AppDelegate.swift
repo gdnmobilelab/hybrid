@@ -7,13 +7,9 @@
 //
 
 import UIKit
-import XCGLogger
 import PromiseKit
 import EmitterKit
 import UserNotifications
-
-let log = XCGLogger.defaultInstance()
-let ApplicationEvents = Event<AnyObject>()
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -29,12 +25,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         
-        
-        
+       
         log.setup(.Debug, showLogIdentifier: false, showFunctionName: false, showThreadName: true, showLogLevel: true, showFileNames: false, showLineNumbers: false, showDate: false, writeToFile: nil, fileLogLevel: nil)
         
         do {
-            
+            try Db.createMainDatabase()
             try DbMigrate.migrate()
             
             try WebServer.initialize()
@@ -43,6 +38,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             application.registerForRemoteNotifications()
             
+            // We need to reset the list of active webviews if we're re-launching the app
+            WebviewClientManager.setWebViewArray(nil)
+            
+            
+            // Copy over js-dist. Future improvements might be to allow this to be updated over the wire
+            // Needs to be copied so notification extension can access it.
+            
+            let jsDistTargetURL = Fs.sharedStoreURL.URLByAppendingPathComponent("js-dist")!
+
+            
+            
+            if NSFileManager.defaultManager().fileExistsAtPath(jsDistTargetURL.path!) == true {
+                // need to tidy all this up. Shouldn't overwrite on every open
+                try NSFileManager.defaultManager().removeItemAtURL(jsDistTargetURL)
+            }
+            
+            
+            let jsDistURL = NSURL(fileURLWithPath: NSBundle.mainBundle().bundlePath)
+                .URLByAppendingPathComponent("js-dist")!
+            
+            try NSFileManager.defaultManager().copyItemAtURL(jsDistURL, toURL: jsDistTargetURL)
+
             
             AppDelegate.window = UIWindow(frame: UIScreen.mainScreen().bounds);
             
@@ -56,36 +73,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
             })
 //
-            rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo/")!)
+//            rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo")!)
             
-//            rootController.pushViewController(UIViewController(), animated: false)
-//            rootController.pushViewController(test!, animated: false)
-            
+            rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://eac8a863.ngrok.io/app-demo")!)
+        
             AppDelegate.window!.rootViewController = rootController
             
             AppDelegate.window!.makeKeyAndVisible();
-           
-//
-//            ServiceWorkerManager.getServiceWorkerForURL(NSURL(string:"http://www.gdnmobilelab.com")!)
-//            .then { sw -> Promise<Void>  in
-//                if sw != nil {
-//                    return Promise<Void>()
-//                }
-//                
-//                let workerContextPath = NSBundle.mainBundle().pathForResource("sw", ofType: "js", inDirectory: "gdn-mobile-lab-build")!
-//                let workerJS = NSData(contentsOfFile: workerContextPath)
-//  
-//                return ServiceWorkerManager.insertServiceWorkerIntoDB(NSURL(string:"https://www.gdnmobilelab.com/sw.js")!, scope: NSURL(string:"https://www.gdnmsdobilelab.com/")!, lastModified: -1, js: workerJS!, installState: ServiceWorkerInstallState.Activated)
-//                .then { _ in
-//                    
-//                    return Promise<Void>()
-//                }
-//                
-//            }.onError { err -> Void in
-//                log.error(String(err))
-//            }
-            
-//                hw.loadRequest(NSURLRequest(URL: NSURL(string:"https://fbc96a18.ngrok.io/")!))
+
             return true
             
             

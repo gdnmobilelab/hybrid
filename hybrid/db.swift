@@ -53,34 +53,45 @@ class Db {
     
     let dbQueue:FMDatabaseQueue!
     
-    init(dbFilename:String) {
-        let dbPath = NSHomeDirectory() + "/Library/" + dbFilename + ".sqlite"
-        
-        log.debug("Creating database queue for: " + dbPath)
-        
-        self.dbQueue = FMDatabaseQueue(path: dbPath)!
-        
+    private static var databasesURL:NSURL {
+        get {
+            return Fs.sharedStoreURL.URLByAppendingPathComponent("Databases", isDirectory: true)!
+        }
     }
     
-    init(dbDir:String, dbFilename: String) throws {
+    init(dbFilename:String) throws {
         
-        let fullPath = try Db.getFullDatabasePath(dbDir, dbFilename: dbFilename)
+        try Db.createDirectoryFor(Db.databasesURL)
         
-        log.debug("Creating database queue for: " + fullPath)
+        let dbURL = Db.databasesURL
+            .URLByAppendingPathComponent(dbFilename)!
+            .URLByAppendingPathExtension("sqlite")!
         
-        self.dbQueue = FMDatabaseQueue(path: fullPath)!
+    
+        log.debug("Creating database queue for: " + dbURL.path!)
+        
+        self.dbQueue = FMDatabaseQueue(path: dbURL.path!)!
         
     }
     
     static func getFullDatabasePath(dbDir:String, dbFilename: String) throws -> String {
-        let fullDirPath = NSHomeDirectory() + "/Library/" + dbDir
         
+        let dbDirURL = Db.databasesURL
+            .URLByAppendingPathComponent(dbDir, isDirectory: true)!
+        
+        try Db.createDirectoryFor(dbDirURL)
+        
+        return dbDirURL
+            .URLByAppendingPathComponent(dbFilename)!
+            .URLByAppendingPathExtension("sqlite")!
+            .path!
+    }
+    
+    static private func createDirectoryFor(url:NSURL) throws {
         let fm = NSFileManager.defaultManager()
-        if fm.fileExistsAtPath(fullDirPath) == false {
-            try fm.createDirectoryAtPath(fullDirPath, withIntermediateDirectories: true, attributes: nil)
+        if fm.fileExistsAtPath(url.path!) == false {
+            try fm.createDirectoryAtPath(url.path!, withIntermediateDirectories: true, attributes: nil)
         }
-        
-        return fullDirPath + "/" + dbFilename
     }
     
     func destroy() {
@@ -134,8 +145,19 @@ class Db {
         }
         
     }
+
+    private static var mainDB:Db?
     
-    static let mainDatabase = Db(dbFilename: "db")
+    static func createMainDatabase() throws {
+        Db.mainDB = try Db(dbFilename: "db")
+    }
+    
+    static var mainDatabase:Db {
+        get {
+            return self.mainDB!
+        }
+    }
+    
 }
 
 class DbMigrate {

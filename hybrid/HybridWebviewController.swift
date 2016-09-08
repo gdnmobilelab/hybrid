@@ -16,7 +16,6 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     
     private var observeContext = 0
     private var progressContext = 0
-    private var lastObservedScrollViewHeight:CGFloat = 0
     private var isObserving = false
     
     var currentMetadata:HybridWebviewMetadata?
@@ -44,11 +43,9 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         self.hybridNavigationController = navController
         super.init(nibName: nil, bundle: nil)
         
-        self.lastObservedScrollViewHeight = self.view.frame.height
-        
         self.view = HybridWebview(frame: self.view.frame)
 
-        HybridWebview.registerWebviewForServiceWorkerEvents(self.webview!)
+        self.webview!.registerWebviewForServiceWorkerEvents()
         
         self.webview!.navigationDelegate = self
         

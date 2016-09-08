@@ -66,6 +66,10 @@ declare var __serviceWorkerRegistration:any;
 
 declare var PushManager:any;
 
+declare class NativeConsole {
+    static logMessageArguments(level:string, args: any[]):void
+}
+
 // declare var self: ServiceWorkerGlobalScope;
 
 declare module "websql/custom" {

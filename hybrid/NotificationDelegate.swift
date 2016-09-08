@@ -8,6 +8,8 @@
 
 import Foundation
 import UserNotifications
+import JavaScriptCore
+import PromiseKit
 
 class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
     
@@ -18,27 +20,54 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
     func userNotificationCenter(center: UNUserNotificationCenter, didReceiveNotificationResponse response: UNNotificationResponse, withCompletionHandler completionHandler: () -> Void) {
         completionHandler()
         
+        NotificationDelegate.processAction(response)
+        
+    }
+    
+    static func processAction(response:UNNotificationResponse) -> Promise<JSValue> {
         let ui = response.notification.request.content.userInfo
         
         let notificationData = ui["originalNotificationOptions"]!
         
-        let workerURL = NSURL(string: ui["workerURL"] as! String)!
+        let workerID = ui[ServiceWorkerRegistration.WORKER_ID] as! Int
         
-        ServiceWorkerManager.getServiceWorkerForURL(workerURL)
-        .then { sw -> Void in
-            
-            let jsFuncToRun = sw!.jsContext.objectForKeyedSubscript("hybrid")
-                .objectForKeyedSubscript("dispatchExtendableEvent")!
-            
-            let args = [
-                "notification" : notificationData,
-                "action": response.actionIdentifier
-            ]
-            
-            jsFuncToRun.callWithArguments(["notificationclick", args])
+        var action = ""
+        
+        if response.actionIdentifier != UNNotificationDefaultActionIdentifier {
+            action = response.actionIdentifier
         }
         
-        NSLog("Got to here")
+        return Promise<JSValue> { fulfill, reject in
+            let returnFunc = { (err: JSValue, success:JSValue) in
+                if err.isNull {
+                    fulfill(success)
+                    return
+                }
+                
+                reject(JSContextError(jsValue: err))
+            }
+            
+            let cb = JSCallbackWrapper(callbackFunc: returnFunc)
+            
+            ServiceWorkerInstance.getById(workerID)
+            .then { sw -> Void in
+                
+                let jsFuncToRun = sw!.jsContext.objectForKeyedSubscript("hybrid")
+                    .objectForKeyedSubscript("dispatchExtendableEvent")!
+                
+                let args = [
+                    "notification" : notificationData,
+                    "action": action
+                ]
+                
+                jsFuncToRun.callWithArguments(["notificationclick", args, cb])
+            }
+
+        }
+        
+        
+        
+        
     }
     
 }

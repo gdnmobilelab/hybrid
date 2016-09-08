@@ -9,6 +9,7 @@
 import Foundation
 import Alamofire
 import PromiseKit
+import JavaScriptCore
 
 class FetchSetupError : ErrorType {}
 

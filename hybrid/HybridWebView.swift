@@ -9,6 +9,7 @@
 import Foundation
 import WebKit
 import PromiseKit
+import EmitterKit
 
 struct HybridWebviewMetadata {
     var color:UIColor?
@@ -26,41 +27,77 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     var notificationPermissionHandler:NotificationPermissionHandler?
     var serviceWorkerAPI:ServiceWorkerAPI?
     var eventManager: EventManager?
+//    private var weasdbviewClientManagerListener: String?
     
-    private static var activeWebviews = Set<HybridWebview>()
+    private static var activeWebviews = [HybridWebview]()
     
-    static func registerWebviewForServiceWorkerEvents(hw:HybridWebview) {
-        self.activeWebviews.insert(hw)
+    // The easiest way I could find to connect these two together in a way that doesn't bind them - the
+    // notification target doesn't include HybridWebView so we can't reference the class in WebviewClientManager
+    
+    static var webviewClientListener:Listener?
+    
+    func registerWebviewForServiceWorkerEvents() {
+        if HybridWebview.activeWebviews.contains(self) {
+            return
+        }
+        HybridWebview.activeWebviews.append(self)
+        
+        if HybridWebview.webviewClientListener == nil {
+            HybridWebview.webviewClientListener = WebviewClientManager.claimEvents.on(HybridWebview.processClaimOnWebview)
+        }
+      
+        HybridWebview.updateWebviewStore()
     }
     
-    static func deregisterWebviewFromServiceWorkerEvents(hw: HybridWebview) {
-        self.activeWebviews.remove(hw)
+    private static func updateWebviewStore() {
+        // We need to manually update our list of active webviews that propogates
+        // cross-process, letting us access from inside the notification context
+        
+        let records = HybridWebview.activeWebviews.enumerate().map { (idx, wv) in
+            return WebviewClientManager.WebviewRecord(
+                url: wv.mappedURL,
+                index: idx,
+                workerId: wv.serviceWorkerAPI!.currentActiveServiceWorker?.instanceId
+            )
+        }
+        
+        WebviewClientManager.setWebViewArray(records)
+
+    }
+    
+    func deregisterWebviewFromServiceWorkerEvents(hw: HybridWebview) {
+        let idx = HybridWebview.activeWebviews.indexOf(hw)
+        HybridWebview.activeWebviews.removeAtIndex(idx!)
+    }
+    
+    static func processClaimOnWebview(record: WebviewClientManager.WebviewRecord, serviceWorkerId:Int) {
+        let webView = HybridWebview.activeWebviews[record.index]
+        
+        ServiceWorkerInstance.getById(serviceWorkerId)
+        .then { sw -> Void in
+            webView.serviceWorkerAPI!.setNewActiveServiceWorker(sw!)
+            
+            // We need to keep our records consistent
+            self.updateWebviewStore()
+        }
+        
+        
+    }
+    
+    func checkClaim(sw: ServiceWorkerInstance) {
+        if self.mappedURL == nil {
+            return
+        }
+        if self.mappedURL!.absoluteString!.hasPrefix(sw.scope.absoluteString!) {
+            self.serviceWorkerAPI?.setNewActiveServiceWorker(sw)
+        }
     }
     
     static func clearRegisteredWebviews() {
         activeWebviews.removeAll()
+        WebviewClientManager.setWebViewArray(nil)
     }
     
-    static func claimWebviewsForServiceWorker(sw:ServiceWorkerInstance) {
-        
-        let applicableWebviews = HybridWebview.activeWebviews.filter({ hw in
-            if hw.mappedURL == nil {
-                return false
-            }
-            return hw.mappedURL!.absoluteString!.hasPrefix(sw.scope.absoluteString!)
-        })
-        
-        if applicableWebviews.count == 0 {
-            log.warning("Didn't find any webviews to claim for: " + sw.scope.absoluteString!)
-        }
-        
-        for webview in applicableWebviews {
-            // Only claim workers within scope
-            if webview.mappedURL!.absoluteString!.hasPrefix(sw.scope.absoluteString!) {
-                webview.serviceWorkerAPI!.setNewActiveServiceWorker(sw)
-            }
-        }
-    }
     
     init(frame: CGRect) {
         let config = WKWebViewConfiguration()

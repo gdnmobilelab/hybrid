@@ -30,9 +30,14 @@
 		8A54109D1D3819DE00F44F38 /* ServiceWorkerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109C1D3819DE00F44F38 /* ServiceWorkerManager.swift */; };
 		8A54109F1D381EF000F44F38 /* HybridWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109E1D381EF000F44F38 /* HybridWebView.swift */; };
 		8A5410A11D38235000F44F38 /* WebServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5410A01D38235000F44F38 /* WebServer.swift */; };
+		8A54D3651D806B7100592112 /* fs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54D3641D806B7100592112 /* fs.swift */; };
+		8A54D3661D806BE800592112 /* fs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54D3641D806B7100592112 /* fs.swift */; };
 		8A55C6361D626F38004AFD21 /* update-worker-test in Resources */ = {isa = PBXBuildFile; fileRef = 8A55C6351D626F38004AFD21 /* update-worker-test */; };
 		8A55C6381D636B34004AFD21 /* update-worker-skip-waiting in Resources */ = {isa = PBXBuildFile; fileRef = 8A55C6371D636B34004AFD21 /* update-worker-skip-waiting */; };
 		8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */; };
+		8A6EA5151D81F6D0003FDA00 /* JSCallbackWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5141D81F6D0003FDA00 /* JSCallbackWrapper.swift */; };
+		8A6EA5161D81F9EE003FDA00 /* JSCallbackWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5141D81F6D0003FDA00 /* JSCallbackWrapper.swift */; };
+		8A6EA5181D8200E7003FDA00 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5171D8200E7003FDA00 /* Notification.swift */; };
 		8A7786341D5B74E30062E12B /* ConsoleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7786331D5B74E30062E12B /* ConsoleManager.swift */; };
 		8A7786371D5B882F0062E12B /* ConsoleManagerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7786361D5B882F0062E12B /* ConsoleManagerSpec.swift */; };
 		8A7786391D5B98130062E12B /* ScriptMessageHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7786381D5B98130062E12B /* ScriptMessageHandler.swift */; };
@@ -45,6 +50,27 @@
 		8A8846091D3014AA00CF9369 /* ServiceWorkerInstance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8846081D3014AA00CF9369 /* ServiceWorkerInstance.swift */; };
 		8A88460D1D3504EA00CF9369 /* ServiceWorkerWebSql.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */; };
 		8A932BD71D5A668500FA15F8 /* MessageChannelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A932BD61D5A668500FA15F8 /* MessageChannelManager.swift */; };
+		8A9565351D80A70B00CBAF9F /* NotificationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449431D6E118300052D92 /* NotificationDelegate.swift */; };
+		8AA112911D79E3CD001EC463 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA112901D79E3CD001EC463 /* UserNotifications.framework */; };
+		8AA112931D79E3CD001EC463 /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA112921D79E3CD001EC463 /* UserNotificationsUI.framework */; };
+		8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA112951D79E3CD001EC463 /* NotificationViewController.swift */; };
+		8AA1129D1D79E3CD001EC463 /* hybrid-notification-content.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 8AA1128F1D79E3CD001EC463 /* hybrid-notification-content.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		8ACCDCCF1D7A0CD700A137E1 /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ACCDCCE1D7A0CD700A137E1 /* Console.swift */; };
+		8ACCDCD01D7A131900A137E1 /* ServiceWorkerInstance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8846051D30074500CF9369 /* ServiceWorkerInstance.swift */; };
+		8ACCDCD11D7A131900A137E1 /* ServiceWorkerWebSql.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */; };
+		8ACCDCD21D7A131900A137E1 /* TimeoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */; };
+		8ACCDCD31D7A131900A137E1 /* ServiceWorkerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109A1D38179E00F44F38 /* ServiceWorkerManager.swift */; };
+		8ACCDCD41D7A131900A137E1 /* ServiceWorkerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A878AC51D4A8F7600D31F85 /* ServiceWorkerCache.swift */; };
+		8ACCDCD61D7A131900A137E1 /* GlobalFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */; };
+		8ACCDCD71D7A131900A137E1 /* PromiseBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156D11D66402D0091995E /* PromiseBridge.swift */; };
+		8ACCDCD81D7A131900A137E1 /* ServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */; };
+		8ACCDCD91D7A131900A137E1 /* PushManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493E1D6CF71500052D92 /* PushManager.swift */; };
+		8ACCDCDA1D7A131900A137E1 /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ACCDCCE1D7A0CD700A137E1 /* Console.swift */; };
+		8ACCDCDC1D7A163700A137E1 /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
+		8ACCDCDD1D7A163700A137E1 /* promisified.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5F1D2D88F10032D588 /* promisified.swift */; };
+		8ACCDCDE1D7A163700A137E1 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24494A1D6F760300052D92 /* Util.swift */; };
+		8ACCDCDF1D7A1A7C00A137E1 /* MessageChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4A265E1D5A32930021B0A2 /* MessageChannel.swift */; };
+		8ACCDCE31D7A323800A137E1 /* WebviewClientManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */; };
 		8AD283501D55070000D2DF07 /* test-workers in Resources */ = {isa = PBXBuildFile; fileRef = 8AD2834F1D55070000D2DF07 /* test-workers */; };
 		8AD283521D55076D00D2DF07 /* TestUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AD283511D55076D00D2DF07 /* TestUtil.swift */; };
 		8AEA3F261D54056C000A7C70 /* server-test-data in Resources */ = {isa = PBXBuildFile; fileRef = 8AEA3F251D54056C000A7C70 /* server-test-data */; };
@@ -54,6 +80,7 @@
 		8AEEDE631D2D90DF0032D588 /* 201606290.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AEEDE621D2D90DF0032D588 /* 201606290.sql */; };
 		8AEEDE671D2D93570032D588 /* 201607060.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AEEDE661D2D93570032D588 /* 201607060.sql */; };
 		939622D25030CFD4641F37FD /* Pods_hybridUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 695FE77A434866D84BFDEBDC /* Pods_hybridUITests.framework */; };
+		AE1910F234581D6C9883C010 /* Pods_hybrid_notification_content.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 393685B7B6A75F7DDF465A46 /* Pods_hybrid_notification_content.framework */; };
 		CA84C83AD6F1B9C9CE1C18A7 /* Pods_hybrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 311DE092863FE59F27435153 /* Pods_hybrid.framework */; };
 		D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */; };
 		D31BC1141CD534CF00CF6BEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D31BC1131CD534CF00CF6BEB /* Assets.xcassets */; };
@@ -63,6 +90,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		8AA1129B1D79E3CD001EC463 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D31BC1011CD534CE00CF6BEB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 8AA1128E1D79E3CD001EC463;
+			remoteInfo = "hybrid-notification-content";
+		};
 		D31BC11E1CD534CF00CF6BEB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D31BC1011CD534CE00CF6BEB /* Project object */;
@@ -79,8 +113,23 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		8AA112A11D79E3CE001EC463 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				8AA1129D1D79E3CD001EC463 /* hybrid-notification-content.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		311DE092863FE59F27435153 /* Pods_hybrid.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_hybrid.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		393685B7B6A75F7DDF465A46 /* Pods_hybrid_notification_content.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_hybrid_notification_content.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		55666D40BD5FD498074F5FE7 /* Pods-hybridTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybridTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-hybridTests/Pods-hybridTests.release.xcconfig"; sourceTree = "<group>"; };
 		63CFC906FE82B28A71289383 /* Pods_hybridTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_hybridTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		695FE77A434866D84BFDEBDC /* Pods_hybridUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_hybridUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -108,10 +157,14 @@
 		8A54109C1D3819DE00F44F38 /* ServiceWorkerManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerManager.swift; sourceTree = "<group>"; };
 		8A54109E1D381EF000F44F38 /* HybridWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridWebView.swift; sourceTree = "<group>"; };
 		8A5410A01D38235000F44F38 /* WebServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServer.swift; sourceTree = "<group>"; };
+		8A54D3631D80612D00592112 /* hybrid-notification-content.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "hybrid-notification-content.entitlements"; sourceTree = "<group>"; };
+		8A54D3641D806B7100592112 /* fs.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = fs.swift; sourceTree = "<group>"; };
 		8A55C6351D626F38004AFD21 /* update-worker-test */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "update-worker-test"; sourceTree = "<group>"; };
 		8A55C6371D636B34004AFD21 /* update-worker-skip-waiting */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "update-worker-skip-waiting"; sourceTree = "<group>"; };
 		8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebviewClientManager.swift; sourceTree = "<group>"; };
 		8A61C2718D624655AC9BD4D7 /* Pods-hybrid.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid.release.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid/Pods-hybrid.release.xcconfig"; sourceTree = "<group>"; };
+		8A6EA5141D81F6D0003FDA00 /* JSCallbackWrapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSCallbackWrapper.swift; sourceTree = "<group>"; };
+		8A6EA5171D8200E7003FDA00 /* Notification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		8A7786331D5B74E30062E12B /* ConsoleManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleManager.swift; sourceTree = "<group>"; };
 		8A7786361D5B882F0062E12B /* ConsoleManagerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleManagerSpec.swift; sourceTree = "<group>"; };
 		8A7786381D5B98130062E12B /* ScriptMessageHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScriptMessageHandler.swift; sourceTree = "<group>"; };
@@ -124,6 +177,12 @@
 		8A8846081D3014AA00CF9369 /* ServiceWorkerInstance.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerInstance.swift; sourceTree = "<group>"; };
 		8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerWebSql.swift; sourceTree = "<group>"; };
 		8A932BD61D5A668500FA15F8 /* MessageChannelManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageChannelManager.swift; sourceTree = "<group>"; };
+		8AA1128F1D79E3CD001EC463 /* hybrid-notification-content.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "hybrid-notification-content.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8AA112901D79E3CD001EC463 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
+		8AA112921D79E3CD001EC463 /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
+		8AA112951D79E3CD001EC463 /* NotificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewController.swift; sourceTree = "<group>"; };
+		8AA1129A1D79E3CD001EC463 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		8ACCDCCE1D7A0CD700A137E1 /* Console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		8AD2834F1D55070000D2DF07 /* test-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "test-workers"; sourceTree = "<group>"; };
 		8AD283511D55076D00D2DF07 /* TestUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtil.swift; sourceTree = "<group>"; };
 		8AEA3F251D54056C000A7C70 /* server-test-data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "server-test-data"; sourceTree = "<group>"; };
@@ -133,6 +192,8 @@
 		8AEEDE621D2D90DF0032D588 /* 201606290.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 201606290.sql; sourceTree = "<group>"; };
 		8AEEDE661D2D93570032D588 /* 201607060.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 201607060.sql; sourceTree = "<group>"; };
 		94047B8822E7F4703DD0D1C4 /* Pods-hybridUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybridUITests.release.xcconfig"; path = "Pods/Target Support Files/Pods-hybridUITests/Pods-hybridUITests.release.xcconfig"; sourceTree = "<group>"; };
+		A574A3671639BA500C5F81F0 /* Pods-hybrid-notification-content.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid-notification-content.debug.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid-notification-content/Pods-hybrid-notification-content.debug.xcconfig"; sourceTree = "<group>"; };
+		AAE308DFFF75C7288575B903 /* Pods-hybrid-notification-content.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid-notification-content.release.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid-notification-content/Pods-hybrid-notification-content.release.xcconfig"; sourceTree = "<group>"; };
 		B46C29523D9C4D0AF532ADC1 /* Pods-hybrid.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid.debug.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid/Pods-hybrid.debug.xcconfig"; sourceTree = "<group>"; };
 		D31BC1091CD534CF00CF6BEB /* hybrid.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = hybrid.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -150,6 +211,16 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		8AA1128C1D79E3CD001EC463 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8AA112931D79E3CD001EC463 /* UserNotificationsUI.framework in Frameworks */,
+				8AA112911D79E3CD001EC463 /* UserNotifications.framework in Frameworks */,
+				AE1910F234581D6C9883C010 /* Pods_hybrid_notification_content.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D31BC1061CD534CE00CF6BEB /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -183,6 +254,9 @@
 				311DE092863FE59F27435153 /* Pods_hybrid.framework */,
 				63CFC906FE82B28A71289383 /* Pods_hybridTests.framework */,
 				695FE77A434866D84BFDEBDC /* Pods_hybridUITests.framework */,
+				8AA112901D79E3CD001EC463 /* UserNotifications.framework */,
+				8AA112921D79E3CD001EC463 /* UserNotificationsUI.framework */,
+				393685B7B6A75F7DDF465A46 /* Pods_hybrid_notification_content.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -190,6 +264,8 @@
 		8A2449451D6F373D00052D92 /* native */ = {
 			isa = PBXGroup;
 			children = (
+				8A932BD31D5A619100FA15F8 /* webview */,
+				8A54109E1D381EF000F44F38 /* HybridWebView.swift */,
 				8A2449461D6F374C00052D92 /* HybridWebviewController.swift */,
 				8A2449481D6F676700052D92 /* HybridNavigationController.swift */,
 			);
@@ -209,16 +285,18 @@
 		8A8846041D30072100CF9369 /* service-worker */ = {
 			isa = PBXGroup;
 			children = (
+				8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */,
 				8A8846051D30074500CF9369 /* ServiceWorkerInstance.swift */,
 				8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */,
 				8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */,
 				8A54109A1D38179E00F44F38 /* ServiceWorkerManager.swift */,
 				8A878AC51D4A8F7600D31F85 /* ServiceWorkerCache.swift */,
-				8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */,
 				8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */,
 				8A0156D11D66402D0091995E /* PromiseBridge.swift */,
 				8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */,
 				8A24493E1D6CF71500052D92 /* PushManager.swift */,
+				8ACCDCCE1D7A0CD700A137E1 /* Console.swift */,
+				8A6EA5171D8200E7003FDA00 /* Notification.swift */,
 			);
 			name = "service-worker";
 			sourceTree = "<group>";
@@ -238,7 +316,6 @@
 		8A932BD31D5A619100FA15F8 /* webview */ = {
 			isa = PBXGroup;
 			children = (
-				8A54109E1D381EF000F44F38 /* HybridWebView.swift */,
 				8A932BD61D5A668500FA15F8 /* MessageChannelManager.swift */,
 				8A7786331D5B74E30062E12B /* ConsoleManager.swift */,
 				8A7786381D5B98130062E12B /* ScriptMessageHandler.swift */,
@@ -265,6 +342,28 @@
 			name = "webview-sw-bridge";
 			sourceTree = "<group>";
 		};
+		8AA112941D79E3CD001EC463 /* hybrid-notification-content */ = {
+			isa = PBXGroup;
+			children = (
+				8A54D3631D80612D00592112 /* hybrid-notification-content.entitlements */,
+				8AA112951D79E3CD001EC463 /* NotificationViewController.swift */,
+				8AA1129A1D79E3CD001EC463 /* Info.plist */,
+			);
+			path = "hybrid-notification-content";
+			sourceTree = "<group>";
+		};
+		8ACCDCDB1D7A161D00A137E1 /* shared */ = {
+			isa = PBXGroup;
+			children = (
+				8AEEDE5B1D26CF450032D588 /* db.swift */,
+				8AEEDE5F1D2D88F10032D588 /* promisified.swift */,
+				8A24494A1D6F760300052D92 /* Util.swift */,
+				8A54D3641D806B7100592112 /* fs.swift */,
+				8A6EA5141D81F6D0003FDA00 /* JSCallbackWrapper.swift */,
+			);
+			name = shared;
+			sourceTree = "<group>";
+		};
 		8AEEDE611D2D90C00032D588 /* migrations */ = {
 			isa = PBXGroup;
 			children = (
@@ -283,6 +382,8 @@
 				55666D40BD5FD498074F5FE7 /* Pods-hybridTests.release.xcconfig */,
 				EE95409F0E5100951E6BC0AC /* Pods-hybridUITests.debug.xcconfig */,
 				94047B8822E7F4703DD0D1C4 /* Pods-hybridUITests.release.xcconfig */,
+				A574A3671639BA500C5F81F0 /* Pods-hybrid-notification-content.debug.xcconfig */,
+				AAE308DFFF75C7288575B903 /* Pods-hybrid-notification-content.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -293,6 +394,7 @@
 				D31BC10B1CD534CF00CF6BEB /* hybrid */,
 				D31BC1201CD534CF00CF6BEB /* hybridTests */,
 				D31BC12B1CD534CF00CF6BEB /* hybridUITests */,
+				8AA112941D79E3CD001EC463 /* hybrid-notification-content */,
 				D31BC10A1CD534CF00CF6BEB /* Products */,
 				BEF7120B410DE09F005FADF3 /* Pods */,
 				5249B1FBAB674F16EA74342E /* Frameworks */,
@@ -305,6 +407,7 @@
 				D31BC1091CD534CF00CF6BEB /* hybrid.app */,
 				D31BC11D1CD534CF00CF6BEB /* hybridTests.xctest */,
 				D31BC1281CD534CF00CF6BEB /* hybridUITests.xctest */,
+				8AA1128F1D79E3CD001EC463 /* hybrid-notification-content.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -312,11 +415,11 @@
 		D31BC10B1CD534CF00CF6BEB /* hybrid */ = {
 			isa = PBXGroup;
 			children = (
+				8ACCDCDB1D7A161D00A137E1 /* shared */,
 				8A2449451D6F373D00052D92 /* native */,
 				8A0156C91D650C170091995E /* gdn-mobile-lab-build */,
 				8A2449401D6D0ABD00052D92 /* hybrid.entitlements */,
 				8A932BD41D5A61B500FA15F8 /* webview-sw-bridge */,
-				8A932BD31D5A619100FA15F8 /* webview */,
 				8A8846041D30072100CF9369 /* service-worker */,
 				8AEEDE611D2D90C00032D588 /* migrations */,
 				D38116391CD5AE96004A3CCD /* js-dist */,
@@ -325,11 +428,8 @@
 				D31BC1151CD534CF00CF6BEB /* LaunchScreen.storyboard */,
 				D31BC1181CD534CF00CF6BEB /* Info.plist */,
 				D38116311CD584B6004A3CCD /* hybrid-Bridging-Header.h */,
-				8AEEDE5B1D26CF450032D588 /* db.swift */,
-				8AEEDE5F1D2D88F10032D588 /* promisified.swift */,
 				8A5410A01D38235000F44F38 /* WebServer.swift */,
 				8A2449431D6E118300052D92 /* NotificationDelegate.swift */,
-				8A24494A1D6F760300052D92 /* Util.swift */,
 			);
 			path = hybrid;
 			sourceTree = "<group>";
@@ -365,6 +465,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		8AA1128E1D79E3CD001EC463 /* hybrid-notification-content */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8AA112A01D79E3CE001EC463 /* Build configuration list for PBXNativeTarget "hybrid-notification-content" */;
+			buildPhases = (
+				5BDFC9DBFB3CFDAEAE839F1F /* [CP] Check Pods Manifest.lock */,
+				8AA1128B1D79E3CD001EC463 /* Sources */,
+				8AA1128C1D79E3CD001EC463 /* Frameworks */,
+				8AA1128D1D79E3CD001EC463 /* Resources */,
+				D32E453E73234BE87EEDD18E /* [CP] Embed Pods Frameworks */,
+				1BC3F9F632F6DDA8FBAE1BED /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "hybrid-notification-content";
+			productName = "hybrid-notification-content";
+			productReference = 8AA1128F1D79E3CD001EC463 /* hybrid-notification-content.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		D31BC1081CD534CE00CF6BEB /* hybrid */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D31BC1311CD534CF00CF6BEB /* Build configuration list for PBXNativeTarget "hybrid" */;
@@ -376,10 +496,12 @@
 				D31BC1071CD534CE00CF6BEB /* Resources */,
 				184824172DE97002887D2834 /* [CP] Embed Pods Frameworks */,
 				DE06B41D1E7E156132351F47 /* [CP] Copy Pods Resources */,
+				8AA112A11D79E3CE001EC463 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				8AA1129C1D79E3CD001EC463 /* PBXTargetDependency */,
 			);
 			name = hybrid;
 			productName = hybrid;
@@ -433,15 +555,30 @@
 		D31BC1011CD534CE00CF6BEB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0730;
+				LastSwiftUpdateCheck = 0800;
 				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = "Alastair Coote";
 				TargetAttributes = {
+					8AA1128E1D79E3CD001EC463 = {
+						CreatedOnToolsVersion = 8.0;
+						DevelopmentTeam = 6J2C5AEPEG;
+						LastSwiftMigration = 0800;
+						ProvisioningStyle = Manual;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
+						};
+					};
 					D31BC1081CD534CE00CF6BEB = {
 						CreatedOnToolsVersion = 7.3;
 						DevelopmentTeam = 6J2C5AEPEG;
 						LastSwiftMigration = 0800;
+						ProvisioningStyle = Manual;
 						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
 							com.apple.Push = {
 								enabled = 1;
 							};
@@ -475,11 +612,19 @@
 				D31BC1081CD534CE00CF6BEB /* hybrid */,
 				D31BC11C1CD534CF00CF6BEB /* hybridTests */,
 				D31BC1271CD534CF00CF6BEB /* hybridUITests */,
+				8AA1128E1D79E3CD001EC463 /* hybrid-notification-content */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		8AA1128D1D79E3CD001EC463 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D31BC1071CD534CE00CF6BEB /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -531,6 +676,21 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-hybrid/Pods-hybrid-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		1BC3F9F632F6DDA8FBAE1BED /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-hybrid-notification-content/Pods-hybrid-notification-content-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		2FC2BB3EE4D8B8156E92BDC9 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -559,6 +719,21 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-hybridTests/Pods-hybridTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		5BDFC9DBFB3CFDAEAE839F1F /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 		9B83742D19A3F00CD184577C /* [CP] Check Pods Manifest.lock */ = {
@@ -608,7 +783,7 @@
 		};
 		D32977D31CDE5D16008B3767 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 12;
 			files = (
 			);
 			inputPaths = (
@@ -618,6 +793,21 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "cd \"$PROJECT_DIR\"/js-src\nrm ../hybrid/js-dist/*\nnpm run rollup -- src/webview/document-start.ts -o ../hybrid/js-dist/document-start.js &&\nnpm run rollup -- src/service-worker/worker-context.ts -o ../hybrid/js-dist/worker-context.js\n";
+		};
+		D32E453E73234BE87EEDD18E /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-hybrid-notification-content/Pods-hybrid-notification-content-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
 		};
 		DE06B41D1E7E156132351F47 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -652,6 +842,32 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		8AA1128B1D79E3CD001EC463 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8A6EA5161D81F9EE003FDA00 /* JSCallbackWrapper.swift in Sources */,
+				8A9565351D80A70B00CBAF9F /* NotificationDelegate.swift in Sources */,
+				8A54D3661D806BE800592112 /* fs.swift in Sources */,
+				8ACCDCE31D7A323800A137E1 /* WebviewClientManager.swift in Sources */,
+				8ACCDCDF1D7A1A7C00A137E1 /* MessageChannel.swift in Sources */,
+				8ACCDCDC1D7A163700A137E1 /* db.swift in Sources */,
+				8ACCDCDD1D7A163700A137E1 /* promisified.swift in Sources */,
+				8ACCDCDE1D7A163700A137E1 /* Util.swift in Sources */,
+				8ACCDCD01D7A131900A137E1 /* ServiceWorkerInstance.swift in Sources */,
+				8ACCDCD11D7A131900A137E1 /* ServiceWorkerWebSql.swift in Sources */,
+				8ACCDCD21D7A131900A137E1 /* TimeoutManager.swift in Sources */,
+				8ACCDCD31D7A131900A137E1 /* ServiceWorkerManager.swift in Sources */,
+				8ACCDCD41D7A131900A137E1 /* ServiceWorkerCache.swift in Sources */,
+				8ACCDCD61D7A131900A137E1 /* GlobalFetch.swift in Sources */,
+				8ACCDCD71D7A131900A137E1 /* PromiseBridge.swift in Sources */,
+				8ACCDCD81D7A131900A137E1 /* ServiceWorkerRegistration.swift in Sources */,
+				8ACCDCD91D7A131900A137E1 /* PushManager.swift in Sources */,
+				8ACCDCDA1D7A131900A137E1 /* Console.swift in Sources */,
+				8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D31BC1051CD534CE00CF6BEB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -664,11 +880,14 @@
 				8A54109B1D38179E00F44F38 /* ServiceWorkerManager.swift in Sources */,
 				8A24493F1D6CF71500052D92 /* PushManager.swift in Sources */,
 				D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */,
+				8A6EA5151D81F6D0003FDA00 /* JSCallbackWrapper.swift in Sources */,
+				8A54D3651D806B7100592112 /* fs.swift in Sources */,
 				8A88460D1D3504EA00CF9369 /* ServiceWorkerWebSql.swift in Sources */,
 				8AEEDE601D2D88F10032D588 /* promisified.swift in Sources */,
 				8A24494B1D6F760300052D92 /* Util.swift in Sources */,
 				8A2449471D6F374D00052D92 /* HybridWebviewController.swift in Sources */,
 				8A878AC61D4A8F7600D31F85 /* ServiceWorkerCache.swift in Sources */,
+				8ACCDCCF1D7A0CD700A137E1 /* Console.swift in Sources */,
 				8A263A7F1D354D7C00B6505E /* TimeoutManager.swift in Sources */,
 				8A4A265F1D5A32930021B0A2 /* MessageChannel.swift in Sources */,
 				8A5410A11D38235000F44F38 /* WebServer.swift in Sources */,
@@ -679,6 +898,7 @@
 				8A77863D1D5D1C520062E12B /* ServiceWorkerAPI.swift in Sources */,
 				8A7786341D5B74E30062E12B /* ConsoleManager.swift in Sources */,
 				8A2449441D6E118300052D92 /* NotificationDelegate.swift in Sources */,
+				8A6EA5181D8200E7003FDA00 /* Notification.swift in Sources */,
 				8A2449491D6F676700052D92 /* HybridNavigationController.swift in Sources */,
 				8A2475881D623BDA008906FB /* EventManager.swift in Sources */,
 				8A0156D21D66402D0091995E /* PromiseBridge.swift in Sources */,
@@ -714,6 +934,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		8AA1129C1D79E3CD001EC463 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 8AA1128E1D79E3CD001EC463 /* hybrid-notification-content */;
+			targetProxy = 8AA1129B1D79E3CD001EC463 /* PBXContainerItemProxy */;
+		};
 		D31BC11F1CD534CF00CF6BEB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = D31BC1081CD534CE00CF6BEB /* hybrid */;
@@ -738,6 +963,49 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		8AA1129E1D79E3CE001EC463 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A574A3671639BA500C5F81F0 /* Pods-hybrid-notification-content.debug.xcconfig */;
+			buildSettings = {
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CODE_SIGN_ENTITLEMENTS = "hybrid-notification-content/hybrid-notification-content.entitlements";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				DEVELOPMENT_TEAM = 6J2C5AEPEG;
+				INFOPLIST_FILE = "hybrid-notification-content/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "gdmobilelab.hybrid.hybrid-notification-content";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "8bb0f6ed-9256-41fc-b26d-aae071fb9b6f";
+				PROVISIONING_PROFILE_SPECIFIER = "Ad Hoc notification";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 2.3;
+			};
+			name = Debug;
+		};
+		8AA1129F1D79E3CE001EC463 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AAE308DFFF75C7288575B903 /* Pods-hybrid-notification-content.release.xcconfig */;
+			buildSettings = {
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CODE_SIGN_ENTITLEMENTS = "hybrid-notification-content/hybrid-notification-content.entitlements";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				DEVELOPMENT_TEAM = 6J2C5AEPEG;
+				INFOPLIST_FILE = "hybrid-notification-content/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "gdmobilelab.hybrid.hybrid-notification-content";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "8bb0f6ed-9256-41fc-b26d-aae071fb9b6f";
+				PROVISIONING_PROFILE_SPECIFIER = "Ad Hoc notification";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 2.3;
+			};
+			name = Release;
+		};
 		D31BC12F1CD534CF00CF6BEB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -834,12 +1102,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = hybrid/hybrid.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				DEVELOPMENT_TEAM = 6J2C5AEPEG;
 				INFOPLIST_FILE = hybrid/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = gdmobilelab.hybrid;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "0d2f0a1f-b433-480b-90cc-3c387967608d";
+				PROVISIONING_PROFILE_SPECIFIER = "Ad Hoc app";
 				SWIFT_OBJC_BRIDGING_HEADER = "hybrid/hybrid-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 2.3;
@@ -854,12 +1125,15 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = hybrid/hybrid.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				DEVELOPMENT_TEAM = 6J2C5AEPEG;
 				INFOPLIST_FILE = hybrid/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = gdmobilelab.hybrid;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "0d2f0a1f-b433-480b-90cc-3c387967608d";
+				PROVISIONING_PROFILE_SPECIFIER = "Ad Hoc app";
 				SWIFT_OBJC_BRIDGING_HEADER = "hybrid/hybrid-Bridging-Header.h";
 				SWIFT_VERSION = 2.3;
 			};
@@ -924,6 +1198,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		8AA112A01D79E3CE001EC463 /* Build configuration list for PBXNativeTarget "hybrid-notification-content" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8AA1129E1D79E3CE001EC463 /* Debug */,
+				8AA1129F1D79E3CE001EC463 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		D31BC1041CD534CE00CF6BEB /* Build configuration list for PBXProject "hybrid" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

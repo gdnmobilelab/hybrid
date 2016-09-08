@@ -12,15 +12,22 @@ import UIKit
 class HybridNavigationController : UINavigationController, UINavigationControllerDelegate {
     
     let waitingArea:UINavigationController
+    var launchViewController:UIViewController?
     
     init() {
         self.waitingArea = UINavigationController()
+        let storyBoard = UIStoryboard(name: "LaunchScreen", bundle: nil)
+        self.launchViewController = storyBoard.instantiateInitialViewController()!
+
         super.init(nibName: nil, bundle: nil)
         
         // We render this in the same size as the original controller, but off-screen
         self.waitingArea.view.frame = CGRect(origin: CGPoint(x: self.view.frame.width, y:0), size: self.view.frame.size)
         self.view.addSubview(self.waitingArea.view)
+        self.navigationBar.translucent = false
         self.delegate = self
+        
+        self.view.addSubview(self.launchViewController!.view)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -73,13 +80,17 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             
             NSLog("LOADED IN " + String(readyTime - startRequestTime))
             
-//            let indexInWaitingArea = self.waitingArea.viewControllers.indexOf(newInstance)
-//            
-//            if indexInWaitingArea != nil {
-//                self.waitingArea.viewControllers.removeAtIndex(indexInWaitingArea!)
-//            }
-            
             self.pushViewController(newInstance, animated: true)
+            
+            if self.launchViewController != nil {
+                UIView.animateWithDuration(0.2, animations: {
+                    self.launchViewController!.view.transform = CGAffineTransformMakeScale(4, 4)
+                    self.launchViewController!.view.alpha = 0
+                }, completion: { finished in
+                    self.launchViewController!.view.removeFromSuperview()
+                    self.launchViewController = nil
+                })
+            }
         })
         
         newInstance.loadURL(url)

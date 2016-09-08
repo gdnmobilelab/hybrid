@@ -10,7 +10,6 @@ import Foundation
 import JavaScriptCore
 import PromiseKit
 import ObjectMapper
-import JSCoreBom
 
 
 class JSContextError : ErrorType {
@@ -61,19 +60,20 @@ class ServiceWorkerOutOfScopeError : ErrorType {
 
 public class ServiceWorkerInstance {
     
+
     var jsContext:JSContext!
     var cache:ServiceWorkerCacheHandler!
-    var jsBom:JSCoreBom!
     var contextErrorValue:JSValue?
     let url:NSURL!
     let scope:NSURL!
     let timeoutManager = ServiceWorkerTimeoutManager()
-    let registration: ServiceWorkerRegistration!
+    var registration: ServiceWorkerRegistration?
     let webSQL: WebSQLDatabaseCreator!
     var clientManager:WebviewClientManager?
+    
     var installState:ServiceWorkerInstallState!
     let instanceId:Int
-    var attachedHybridWebviews = Set<HybridWebview>()
+    
     
     var pendingPromises = Dictionary<Int, PromiseReturn>()
     
@@ -88,8 +88,6 @@ public class ServiceWorkerInstance {
         self.installState = installState
         self.instanceId = instanceId
         self.jsContext = JSContext()
-        self.jsBom = JSCoreBom()
-        self.registration = ServiceWorkerRegistration(url: url, scope: self.scope)
         
         let urlComponents = NSURLComponents(URL: url, resolvingAgainstBaseURL: false)!
         urlComponents.path = nil
@@ -97,19 +95,10 @@ public class ServiceWorkerInstance {
         self.webSQL = WebSQLDatabaseCreator(context: self.jsContext, origin: urlComponents.URLString)
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.cache = ServiceWorkerCacheHandler(jsContext: self.jsContext, serviceWorkerURL: url)
-        
-        self.jsBom.extend(self.jsContext, logHandler: self.swLog)
-        
-        // JSBom adds XMLHTTPRequest and console logging. It also
-        // adds setTimeout, but without also adding clearTimeout
-        // so we override it in the TimeoutManager
-        
-        self.jsContext.setObject(JSValue(undefinedInContext: self.jsContext), forKeyedSubscript: "setTimeout")
-        
         GlobalFetch.addToJSContext(self.jsContext)
         
+        self.registration = ServiceWorkerRegistration(worker: self)
         self.clientManager = WebviewClientManager(serviceWorker: self)
-        
         
         self.hookFunctions()
         
@@ -120,17 +109,17 @@ public class ServiceWorkerInstance {
         ServiceWorkerManager.currentlyActiveServiceWorkers[instanceId] = self
     }
     
-    private func swLog(level:String!, params:[AnyObject]!, formattedLogEntry:String!) {
-        if level == "info" || level == "log" {
-            log.info(formattedLogEntry)
-        }
-        else if level == "warn" {
-            log.warning(formattedLogEntry)
-        }
-        else if level == "error" {
-            log.error(formattedLogEntry)
-        }
-    }
+//    private func swLog(level:String!, params:[AnyObject]!, formattedLogEntry:String!) {
+//        if level == "info" || level == "log" {
+//            log.info(formattedLogEntry)
+//        }
+//        else if level == "warn" {
+//            log.warning(formattedLogEntry)
+//        }
+//        else if level == "error" {
+//            log.error(formattedLogEntry)
+//        }
+//    }
     
     static func getById(id:Int) -> Promise<ServiceWorkerInstance?> {
         
@@ -197,7 +186,7 @@ public class ServiceWorkerInstance {
     }
     
     
-    private func hookFunctions() {
+    func hookFunctions() {
         
         let promiseCallbackAsConvention: @convention(block) (JSValue, JSValue, JSValue) -> Void = self.nativePromiseCallback
         self.jsContext.setObject(unsafeBitCast(promiseCallbackAsConvention, AnyObject.self), forKeyedSubscript: "__promiseCallback")
@@ -205,9 +194,11 @@ public class ServiceWorkerInstance {
         self.timeoutManager.hookFunctions(self.jsContext)
         
         self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
-        self.jsContext.setObject(self.clientManager, forKeyedSubscript: "__WebviewClientManager")
+        
         self.jsContext.setObject(self.registration, forKeyedSubscript: "__serviceWorkerRegistration")
         self.jsContext.setObject(PushManager.self, forKeyedSubscript: "PushManager")
+        self.jsContext.setObject(Console.self, forKeyedSubscript: "NativeConsole")
+        self.jsContext.setObject(self.clientManager, forKeyedSubscript: "__WebviewClientManager")
     }
     
 
@@ -304,7 +295,13 @@ public class ServiceWorkerInstance {
     private func loadContextScript() -> Promise<JSValue> {
         
         return Promise<String> {fulfill, reject in
-            let workerContextPath = NSBundle.mainBundle().pathForResource("worker-context", ofType: "js", inDirectory: "js-dist")!
+            
+            let workerContextPath = Fs.sharedStoreURL
+                .URLByAppendingPathComponent("js-dist", isDirectory: true)!
+                .URLByAppendingPathComponent("worker-context")!
+                .URLByAppendingPathExtension("js")!
+                .path!
+           
             let contextJS = try NSString(contentsOfFile: workerContextPath, encoding: NSUTF8StringEncoding) as String
             fulfill(contextJS)
         }.then { js in
@@ -358,34 +355,34 @@ public class ServiceWorkerInstance {
         
     }
     
-    func getURLInsideServiceWorkerScope(url: NSURL) throws -> NSURL {
-        
-        //let startRange = self.scope.absoluteString.ra
-        let range = url.absoluteString!.rangeOfString(self.scope.absoluteString!)
-        
-        if range == nil || range!.startIndex != self.scope.absoluteString!.startIndex {
-            throw ServiceWorkerOutOfScopeError()
-        }
-        
-        let escapedServiceWorkerURL = self.url.absoluteString!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
-        
-        
-        let returnComponents = NSURLComponents(string: "http://localhost")!
-        returnComponents.port = WebServer.current!.port
-        
-        let pathComponents:[String] = [
-            "__service_worker",
-            escapedServiceWorkerURL,
-            url.host!,
-            url.path!.substringFromIndex(url.path!.startIndex.advancedBy(1))
-        ]
-        
-        
-        returnComponents.path = "/" + pathComponents.joinWithSeparator("/")
-        NSLog(pathComponents.joinWithSeparator("/"))
-        return returnComponents.URL!
-
-        
-        //stringByAddingPercentEncodingWithAllowedCharacters
-    }
+//    func getURLInsideServiceWorkerScope(url: NSURL) throws -> NSURL {
+//        
+//        //let startRange = self.scope.absoluteString.ra
+//        let range = url.absoluteString!.rangeOfString(self.scope.absoluteString!)
+//        
+//        if range == nil || range!.startIndex != self.scope.absoluteString!.startIndex {
+//            throw ServiceWorkerOutOfScopeError()
+//        }
+//        
+//        let escapedServiceWorkerURL = self.url.absoluteString!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
+//        
+//        
+//        let returnComponents = NSURLComponents(string: "http://localhost")!
+//        returnComponents.port = WebServer.current!.port
+//        
+//        let pathComponents:[String] = [
+//            "__service_worker",
+//            escapedServiceWorkerURL,
+//            url.host!,
+//            url.path!.substringFromIndex(url.path!.startIndex.advancedBy(1))
+//        ]
+//        
+//        
+//        returnComponents.path = "/" + pathComponents.joinWithSeparator("/")
+//        NSLog(pathComponents.joinWithSeparator("/"))
+//        return returnComponents.URL!
+//
+//        
+//        //stringByAddingPercentEncodingWithAllowedCharacters
+//    }
 }

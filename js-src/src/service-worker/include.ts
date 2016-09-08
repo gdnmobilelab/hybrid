@@ -1,4 +1,4 @@
-// import './globals/console';
+import './globals/console';
 import './globals/timer';
 import './globals/promise';
 import './globals/extended-event-types';

@@ -128,7 +128,10 @@ class ServiceWorkerAPI: ScriptMessageManager {
             // Promise doesn't return any info, but catches update errors
             return ServiceWorkerInstance.getById(newId)
             .then { sw in
-                sw!.attachedHybridWebviews.insert(self.webview)
+                
+                // TODO: PUT THIS BACK!
+                
+//                sw!.attachedHybridWebviews.insert(self.webview)
                 let match = ServiceWorkerMatch(instanceId: newId, url: sw!.url, installState: sw!.installState, scope: sw!.scope)
                 self.serviceWorkerChange(match)
                 return Promise<String>("null")

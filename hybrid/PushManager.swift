@@ -8,6 +8,7 @@
 
 import Foundation
 import EmitterKit
+import JavaScriptCore
 
 @objc protocol PushSubscriptionExports : JSExport {
     

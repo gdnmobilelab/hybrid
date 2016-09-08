@@ -1,16 +1,26 @@
 
-hybrid.dispatchExtendableEvent = function(name:string, data:Object) {
-    let extendedEvent = new ExtendableEvent(name, data);
+hybrid.dispatchExtendableEvent = function(name:string, data:Object, cb:any) {
+    
+    console.log("HAS CALLBACK?", cb)
+    
 
-    return new Promise((fulfill, reject) => {
-        try {
-            self.dispatchEvent(extendedEvent);
-            fulfill(extendedEvent.resolve());
-        } catch (err) {
-            reject(err);
-        }
+    let promise = Promise.resolve()
+    .then(() => {
+        let extendedEvent = new ExtendableEvent(name, data);
+        self.dispatchEvent(extendedEvent);
+        return extendedEvent.resolve();
     })
     
+    if (cb) {
+        promise = promise.then((result) => {
+            cb.success(result);
+        })
+        .catch((err) => {
+            cb.failure(err);
+        })
+    }
+    
+    return promise;
 }
 
 
