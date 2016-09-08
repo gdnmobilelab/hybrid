@@ -169,11 +169,21 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         
     }
     
+    
+    
     func didReceiveNotificationResponse(response: UNNotificationResponse, completionHandler completion: (UNNotificationContentExtensionResponseOption) -> Void) {
         NotificationDelegate.processAction(response)
         .then { _ -> Void in
-            NSLog("to here?")
-            completion(UNNotificationContentExtensionResponseOption.Dismiss)
+            
+            if PendingNotificationActions.closeNotification == true && PendingNotificationActions.urlToOpen == nil {
+                PendingNotificationActions.reset()
+                completion(UNNotificationContentExtensionResponseOption.Dismiss)
+            } else if PendingNotificationActions.closeNotification == true {
+                completion(UNNotificationContentExtensionResponseOption.DismissAndForwardAction)
+            } else {
+                completion(UNNotificationContentExtensionResponseOption.DoNotDismiss)
+            }
+            
         }
         
         

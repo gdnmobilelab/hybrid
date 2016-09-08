@@ -142,6 +142,12 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         }
     }
     
+//    override func viewDidAppear(animated: Bool) {
+//        super.viewDidAppear(animated)
+//        // Need this otherwise the title sometimes disappears
+//        self.navigationItem.title = self.currentMetadata?.title
+//    }
+    
     override func preferredStatusBarStyle() -> UIStatusBarStyle {
         return UIStatusBarStyle.LightContent
     }

@@ -11,7 +11,9 @@ import JavaScriptCore
 import EmitterKit
 
 @objc protocol WebviewClientManagerExports : JSExport {
-    func claim(callback:JSValue)
+    func claimCallback(callback:JSValue)
+    func matchAll(options:JSValue, callback:JSValue)
+    func openWindow(url:String, callback:JSValue)
 }
 
 @objc class WebviewClientManager : NSObject, WebviewClientManagerExports {
@@ -76,7 +78,7 @@ import EmitterKit
         }
     }
     
-    func claim(callback:JSValue) {
+    func claimCallback(callback:JSValue) {
         
         // Allows a worker to take control of clients within its scope.
         
@@ -94,9 +96,18 @@ import EmitterKit
             }
         }
         
-        
-        
         callback.callWithArguments([])
+    }
+    
+    func matchAll(options:JSValue, callback:JSValue) {
+        // TODO: implement
+        
+        callback.callWithArguments([JSValue(nullInContext: callback.context), JSValue(newArrayInContext: callback.context)])
+    }
+    
+    func openWindow(url:String, callback:JSValue) {
+        PendingNotificationActions.urlToOpen = url
+        callback.callWithArguments([JSValue(nullInContext: callback.context)])
     }
     
     required init(serviceWorker:ServiceWorkerInstance) {

@@ -1,20 +1,33 @@
-
-class WebviewClientManagerWrapper {
-    claim(): Promise<void> {
-        return new Promise<void>((fulfill, reject) => {
-            __WebviewClientManager.claim((err) => {
-                if (err) {
-                    return reject(new Error(err));
-                }
-                return fulfill();
-            })
+(clients as any).claim = function() {
+    return new Promise((fulfill, reject) => {
+        clients.claimCallback((err:Error) => {
+            if (err) {
+                return reject(err);
+            }
+            fulfill();
         })
-    }
-    matchAll(options:ServiceWorkerClientsMatchOptions): Promise<ServiceWorkerClient[]> {
-        throw new Error("Not implemented yet")
-    }
-    openWindow(url:string): Promise<WindowClient> {
-        throw new Error("Not implemented yet")
-    }
-}
-(self as ServiceWorkerGlobalScope).clients = new WebviewClientManagerWrapper();
+    })
+};
+
+(clients as any).matchAll = function(options: any) {
+    console.log("MATCH ALL")
+    return new Promise((fulfill, reject) => {
+        clients.matchAllCallback(options, (err:Error, result:any) => {
+            if (err) {
+                return reject(err);
+            }
+            fulfill(result);
+        })
+    });
+};
+
+(clients as any).openWindow = function(url:string) {
+    console.log("OPEN WINDOW")
+    return new Promise((fulfill, reject) => {
+        clients.openWindowCallback(url, () => {
+            fulfill();
+        })
+    })
+};
+
+(self as any).clients = clients;

@@ -70,6 +70,12 @@ declare class NativeConsole {
     static logMessageArguments(level:string, args: any[]):void
 }
 
+declare class clients {
+    static claimCallback(callback:Function):void;
+    static matchAllCallback(options:any, callback:Function):void;
+    static openWindowCallback(url:string, callback:Function):void
+}
+
 // declare var self: ServiceWorkerGlobalScope;
 
 declare module "websql/custom" {

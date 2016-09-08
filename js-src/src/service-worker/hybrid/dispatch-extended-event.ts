@@ -1,9 +1,6 @@
 
 hybrid.dispatchExtendableEvent = function(name:string, data:Object, cb:any) {
     
-    console.log("HAS CALLBACK?", cb)
-    
-
     let promise = Promise.resolve()
     .then(() => {
         let extendedEvent = new ExtendableEvent(name, data);

@@ -198,7 +198,7 @@ public class ServiceWorkerInstance {
         self.jsContext.setObject(self.registration, forKeyedSubscript: "__serviceWorkerRegistration")
         self.jsContext.setObject(PushManager.self, forKeyedSubscript: "PushManager")
         self.jsContext.setObject(Console.self, forKeyedSubscript: "NativeConsole")
-        self.jsContext.setObject(self.clientManager, forKeyedSubscript: "__WebviewClientManager")
+        self.jsContext.setObject(self.clientManager, forKeyedSubscript: "clients")
     }
     
 
