@@ -34,16 +34,15 @@ class ServiceWorkerAPISpec: QuickSpec {
         
         describe("Service Worker API") {
             it("Should register a worker") {
-                
-                waitUntil { done in
+                waitUntil(timeout: 5) { done in
                     let hw = HybridWebview(frame: CGRect(x: 0,y: 0, width: 10, height: 10))
-                   
-                    HybridWebview.registerWebviewForServiceWorkerEvents(hw)
+                    
+                    hw.registerWebviewForServiceWorkerEvents()
                     
                     var ranInstalling = false
                     var ranInstalled = false
                     var ranActivating = false
-                    var firedReadyEvent = false;
+                    var firedReadyEvent = false
                     
                     hw.eventManager!.events.once("first/installing", { ev in
                         ranInstalling = true
@@ -71,17 +70,16 @@ class ServiceWorkerAPISpec: QuickSpec {
                     })
                     
                     let url = NSURLComponents(string: "http://localhost/test-register.html")!
-                    url.port = webServer?.port
+                    url.port = webServer!.port
                     
                     hw.loadRequest(NSURLRequest(URL: url.URL!))
                 }
-
             }
             
             it("Should bridge messages with a worker") {
-                waitUntil(timeout:500) { done in
+                waitUntil(timeout: 5) { done in
                     let hw = HybridWebview(frame: CGRect(x: 0,y: 0, width: 10, height: 10))
-                    HybridWebview.registerWebviewForServiceWorkerEvents(hw)
+                    hw.registerWebviewForServiceWorkerEvents()
                     hw.eventManager!.events.once("reply", { evt in
                         expect(evt).to(equal("2"))
                         done()
@@ -96,7 +94,7 @@ class ServiceWorkerAPISpec: QuickSpec {
             
             it("Should update a worker") {
                 
-                waitUntil{ done in
+                waitUntil(timeout: 5) { done in
                     let hw = HybridWebview(frame: CGRect(x: 0,y: 0, width: 10, height: 10))
                     
                     hw.eventManager!.events.once("first/activated", { _ in
@@ -129,11 +127,10 @@ class ServiceWorkerAPISpec: QuickSpec {
             
             it("Should activate a new worker that calls skipWaiting() and clients.claim()") {
                 
-                waitUntil { done in
+                waitUntil(timeout: 5) { done in
                     let hw = HybridWebview(frame: CGRect(x: 0,y: 0, width: 10, height: 10))
                     
-                    HybridWebview.registerWebviewForServiceWorkerEvents(hw)
-                    
+                    hw.registerWebviewForServiceWorkerEvents()
     
                     var controllerChanged = false;
                     hw.eventManager!.events.once("controllerchange", { ev in

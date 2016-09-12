@@ -31,6 +31,9 @@ class WebServer {
     }
     
     func isLocalServerURL(url:NSURL) -> Bool {
+        if url.scheme! != "http" && url.scheme! != "https" {
+            return false
+        }
         return url.host! == "localhost" && url.port! == self.port
     }
     

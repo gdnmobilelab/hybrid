@@ -159,7 +159,7 @@ class ServiceWorkerCacheSpec: QuickSpec {
                         .then { _ in
                             return ServiceWorkerManager.getServiceWorkerForURL(NSURL(string: "http://localhost/index.html")!)
                         }
-                        .then { sw -> Promise<FetchResponse> in
+                        .then { sw -> Promise<FetchResponse?> in
                             
                             let fetch = FetchRequest(url: "http://localhost:9111/text-file.txt", options: nil)
                             fetch.method = "GET"
@@ -169,7 +169,7 @@ class ServiceWorkerCacheSpec: QuickSpec {
                         .then { response -> Void in
                             expect(response).notTo(beNil())
   
-                            let responseBodyText = String(data: response.data!, encoding: NSUTF8StringEncoding)
+                            let responseBodyText = String(data: response!.data!, encoding: NSUTF8StringEncoding)
                             expect(responseBodyText).to(equal("THIS IS TEXT"))
                             done()
                         }

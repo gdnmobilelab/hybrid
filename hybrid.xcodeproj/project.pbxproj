@@ -21,13 +21,13 @@
 		8A2449491D6F676700052D92 /* HybridNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449481D6F676700052D92 /* HybridNavigationController.swift */; };
 		8A24494B1D6F760300052D92 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24494A1D6F760300052D92 /* Util.swift */; };
 		8A2475881D623BDA008906FB /* EventManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2475871D623BDA008906FB /* EventManager.swift */; };
-		8A263A7D1D353D9300B6505E /* ServiceWorkerWebSql.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A263A7C1D353D9300B6505E /* ServiceWorkerWebSql.swift */; };
+		8A263A7D1D353D9300B6505E /* ServiceWorkerWebSqlSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A263A7C1D353D9300B6505E /* ServiceWorkerWebSqlSpec.swift */; };
 		8A263A7F1D354D7C00B6505E /* TimeoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */; };
-		8A3A74F01D5E0B9400A7940C /* ServiceWorkerAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3A74EF1D5E0B9400A7940C /* ServiceWorkerAPI.swift */; };
+		8A3A74F01D5E0B9400A7940C /* ServiceWorkerAPISpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3A74EF1D5E0B9400A7940C /* ServiceWorkerAPISpec.swift */; };
 		8A4A265F1D5A32930021B0A2 /* MessageChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4A265E1D5A32930021B0A2 /* MessageChannel.swift */; };
-		8A4A26611D5A3B890021B0A2 /* MessageChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4A26601D5A3B890021B0A2 /* MessageChannel.swift */; };
+		8A4A26611D5A3B890021B0A2 /* MessageChannelSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4A26601D5A3B890021B0A2 /* MessageChannelSpec.swift */; };
 		8A54109B1D38179E00F44F38 /* ServiceWorkerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109A1D38179E00F44F38 /* ServiceWorkerManager.swift */; };
-		8A54109D1D3819DE00F44F38 /* ServiceWorkerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109C1D3819DE00F44F38 /* ServiceWorkerManager.swift */; };
+		8A54109D1D3819DE00F44F38 /* ServiceWorkerManagerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109C1D3819DE00F44F38 /* ServiceWorkerManagerSpec.swift */; };
 		8A54109F1D381EF000F44F38 /* HybridWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109E1D381EF000F44F38 /* HybridWebView.swift */; };
 		8A5410A11D38235000F44F38 /* WebServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5410A01D38235000F44F38 /* WebServer.swift */; };
 		8A54D3651D806B7100592112 /* fs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54D3641D806B7100592112 /* fs.swift */; };
@@ -47,12 +47,13 @@
 		8A878AC91D4AC95B00D31F85 /* cache-test-data in Resources */ = {isa = PBXBuildFile; fileRef = 8A878AC81D4AC95B00D31F85 /* cache-test-data */; };
 		8A878ACB1D4AC9C700D31F85 /* ServiceWorkerCacheSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A878ACA1D4AC9C700D31F85 /* ServiceWorkerCacheSpec.swift */; };
 		8A8846061D30074500CF9369 /* ServiceWorkerInstance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8846051D30074500CF9369 /* ServiceWorkerInstance.swift */; };
-		8A8846091D3014AA00CF9369 /* ServiceWorkerInstance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8846081D3014AA00CF9369 /* ServiceWorkerInstance.swift */; };
+		8A8846091D3014AA00CF9369 /* ServiceWorkerInstanceSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8846081D3014AA00CF9369 /* ServiceWorkerInstanceSpec.swift */; };
 		8A88460D1D3504EA00CF9369 /* ServiceWorkerWebSql.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */; };
 		8A932BD71D5A668500FA15F8 /* MessageChannelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A932BD61D5A668500FA15F8 /* MessageChannelManager.swift */; };
 		8A933F651D8214F200F9DC72 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5171D8200E7003FDA00 /* Notification.swift */; };
 		8A933F671D87049500F9DC72 /* SharedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A933F661D87049500F9DC72 /* SharedSettings.swift */; };
 		8A933F681D87049500F9DC72 /* SharedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A933F661D87049500F9DC72 /* SharedSettings.swift */; };
+		8A933F8B1D87262900F9DC72 /* js-dist in Resources */ = {isa = PBXBuildFile; fileRef = D38116391CD5AE96004A3CCD /* js-dist */; };
 		8A9565351D80A70B00CBAF9F /* NotificationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449431D6E118300052D92 /* NotificationDelegate.swift */; };
 		8AA112911D79E3CD001EC463 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA112901D79E3CD001EC463 /* UserNotifications.framework */; };
 		8AA112931D79E3CD001EC463 /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA112921D79E3CD001EC463 /* UserNotificationsUI.framework */; };
@@ -77,7 +78,7 @@
 		8AD283501D55070000D2DF07 /* test-workers in Resources */ = {isa = PBXBuildFile; fileRef = 8AD2834F1D55070000D2DF07 /* test-workers */; };
 		8AD283521D55076D00D2DF07 /* TestUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AD283511D55076D00D2DF07 /* TestUtil.swift */; };
 		8AEA3F261D54056C000A7C70 /* server-test-data in Resources */ = {isa = PBXBuildFile; fileRef = 8AEA3F251D54056C000A7C70 /* server-test-data */; };
-		8AEBD0D21D42E6230042A4AB /* WebServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEBD0D11D42E6230042A4AB /* WebServer.swift */; };
+		8AEBD0D21D42E6230042A4AB /* WebServerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */; };
 		8AEEDE5C1D26CF450032D588 /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
 		8AEEDE601D2D88F10032D588 /* promisified.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5F1D2D88F10032D588 /* promisified.swift */; };
 		8AEEDE631D2D90DF0032D588 /* 201606290.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AEEDE621D2D90DF0032D588 /* 201606290.sql */; };
@@ -93,19 +94,19 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		8A933F8C1D8726D200F9DC72 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D31BC1011CD534CE00CF6BEB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D31BC1081CD534CE00CF6BEB;
+			remoteInfo = hybrid;
+		};
 		8AA1129B1D79E3CD001EC463 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D31BC1011CD534CE00CF6BEB /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 8AA1128E1D79E3CD001EC463;
 			remoteInfo = "hybrid-notification-content";
-		};
-		D31BC11E1CD534CF00CF6BEB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D31BC1011CD534CE00CF6BEB /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = D31BC1081CD534CE00CF6BEB;
-			remoteInfo = hybrid;
 		};
 		D31BC1291CD534CF00CF6BEB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -151,13 +152,13 @@
 		8A2449481D6F676700052D92 /* HybridNavigationController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridNavigationController.swift; sourceTree = "<group>"; };
 		8A24494A1D6F760300052D92 /* Util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
 		8A2475871D623BDA008906FB /* EventManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventManager.swift; sourceTree = "<group>"; };
-		8A263A7C1D353D9300B6505E /* ServiceWorkerWebSql.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerWebSql.swift; sourceTree = "<group>"; };
+		8A263A7C1D353D9300B6505E /* ServiceWorkerWebSqlSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerWebSqlSpec.swift; sourceTree = "<group>"; };
 		8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeoutManager.swift; sourceTree = "<group>"; };
-		8A3A74EF1D5E0B9400A7940C /* ServiceWorkerAPI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerAPI.swift; sourceTree = "<group>"; };
+		8A3A74EF1D5E0B9400A7940C /* ServiceWorkerAPISpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerAPISpec.swift; sourceTree = "<group>"; };
 		8A4A265E1D5A32930021B0A2 /* MessageChannel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageChannel.swift; sourceTree = "<group>"; };
-		8A4A26601D5A3B890021B0A2 /* MessageChannel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageChannel.swift; sourceTree = "<group>"; };
+		8A4A26601D5A3B890021B0A2 /* MessageChannelSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageChannelSpec.swift; sourceTree = "<group>"; };
 		8A54109A1D38179E00F44F38 /* ServiceWorkerManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerManager.swift; sourceTree = "<group>"; };
-		8A54109C1D3819DE00F44F38 /* ServiceWorkerManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerManager.swift; sourceTree = "<group>"; };
+		8A54109C1D3819DE00F44F38 /* ServiceWorkerManagerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerManagerSpec.swift; sourceTree = "<group>"; };
 		8A54109E1D381EF000F44F38 /* HybridWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridWebView.swift; sourceTree = "<group>"; };
 		8A5410A01D38235000F44F38 /* WebServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServer.swift; sourceTree = "<group>"; };
 		8A54D3631D80612D00592112 /* hybrid-notification-content.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "hybrid-notification-content.entitlements"; sourceTree = "<group>"; };
@@ -177,7 +178,7 @@
 		8A878AC81D4AC95B00D31F85 /* cache-test-data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "cache-test-data"; sourceTree = "<group>"; };
 		8A878ACA1D4AC9C700D31F85 /* ServiceWorkerCacheSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerCacheSpec.swift; sourceTree = "<group>"; };
 		8A8846051D30074500CF9369 /* ServiceWorkerInstance.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerInstance.swift; sourceTree = "<group>"; };
-		8A8846081D3014AA00CF9369 /* ServiceWorkerInstance.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerInstance.swift; sourceTree = "<group>"; };
+		8A8846081D3014AA00CF9369 /* ServiceWorkerInstanceSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerInstanceSpec.swift; sourceTree = "<group>"; };
 		8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerWebSql.swift; sourceTree = "<group>"; };
 		8A932BD61D5A668500FA15F8 /* MessageChannelManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageChannelManager.swift; sourceTree = "<group>"; };
 		8A933F661D87049500F9DC72 /* SharedSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharedSettings.swift; sourceTree = "<group>"; };
@@ -190,7 +191,7 @@
 		8AD2834F1D55070000D2DF07 /* test-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "test-workers"; sourceTree = "<group>"; };
 		8AD283511D55076D00D2DF07 /* TestUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtil.swift; sourceTree = "<group>"; };
 		8AEA3F251D54056C000A7C70 /* server-test-data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "server-test-data"; sourceTree = "<group>"; };
-		8AEBD0D11D42E6230042A4AB /* WebServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServer.swift; sourceTree = "<group>"; };
+		8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServerSpec.swift; sourceTree = "<group>"; };
 		8AEEDE5B1D26CF450032D588 /* db.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = db.swift; sourceTree = "<group>"; };
 		8AEEDE5F1D2D88F10032D588 /* promisified.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = promisified.swift; sourceTree = "<group>"; };
 		8AEEDE621D2D90DF0032D588 /* 201606290.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 201606290.sql; sourceTree = "<group>"; };
@@ -281,7 +282,7 @@
 			children = (
 				8A7786361D5B882F0062E12B /* ConsoleManagerSpec.swift */,
 				8A77863A1D5BCE050062E12B /* MessageChannelManagerSpec.swift */,
-				8A3A74EF1D5E0B9400A7940C /* ServiceWorkerAPI.swift */,
+				8A3A74EF1D5E0B9400A7940C /* ServiceWorkerAPISpec.swift */,
 			);
 			name = webview;
 			sourceTree = "<group>";
@@ -308,9 +309,9 @@
 		8A8846071D30149600CF9369 /* service-worker */ = {
 			isa = PBXGroup;
 			children = (
-				8A8846081D3014AA00CF9369 /* ServiceWorkerInstance.swift */,
-				8A263A7C1D353D9300B6505E /* ServiceWorkerWebSql.swift */,
-				8A54109C1D3819DE00F44F38 /* ServiceWorkerManager.swift */,
+				8A8846081D3014AA00CF9369 /* ServiceWorkerInstanceSpec.swift */,
+				8A263A7C1D353D9300B6505E /* ServiceWorkerWebSqlSpec.swift */,
+				8A54109C1D3819DE00F44F38 /* ServiceWorkerManagerSpec.swift */,
 				8A878ACA1D4AC9C700D31F85 /* ServiceWorkerCacheSpec.swift */,
 				8A0156CB1D654B530091995E /* ServiceWorkerCoreFunctionsSpec.swift */,
 			);
@@ -341,7 +342,7 @@
 		8A932BD51D5A61C900FA15F8 /* webview-sw-bridge */ = {
 			isa = PBXGroup;
 			children = (
-				8A4A26601D5A3B890021B0A2 /* MessageChannel.swift */,
+				8A4A26601D5A3B890021B0A2 /* MessageChannelSpec.swift */,
 			);
 			name = "webview-sw-bridge";
 			sourceTree = "<group>";
@@ -450,7 +451,7 @@
 				8A8846071D30149600CF9369 /* service-worker */,
 				8AD2834F1D55070000D2DF07 /* test-workers */,
 				8AD283511D55076D00D2DF07 /* TestUtil.swift */,
-				8AEBD0D11D42E6230042A4AB /* WebServer.swift */,
+				8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */,
 				8A0156CD1D654C240091995E /* fetch-test */,
 				8A7786351D5B881D0062E12B /* webview */,
 				8A932BD51D5A61C900FA15F8 /* webview-sw-bridge */,
@@ -527,7 +528,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				D31BC11F1CD534CF00CF6BEB /* PBXTargetDependency */,
+				8A933F8D1D8726D200F9DC72 /* PBXTargetDependency */,
 			);
 			name = hybridTests;
 			productName = hybridTests;
@@ -591,7 +592,9 @@
 					};
 					D31BC11C1CD534CF00CF6BEB = {
 						CreatedOnToolsVersion = 7.3;
+						DevelopmentTeam = 6J2C5AEPEG;
 						LastSwiftMigration = 0800;
+						ProvisioningStyle = Manual;
 						TestTargetID = D31BC1081CD534CE00CF6BEB;
 					};
 					D31BC1271CD534CF00CF6BEB = {
@@ -648,6 +651,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A878AC91D4AC95B00D31F85 /* cache-test-data in Resources */,
+				8A933F8B1D87262900F9DC72 /* js-dist in Resources */,
 				8A0156CE1D654C240091995E /* fetch-test in Resources */,
 				8A55C6361D626F38004AFD21 /* update-worker-test in Resources */,
 				8A55C6381D636B34004AFD21 /* update-worker-skip-waiting in Resources */,
@@ -917,16 +921,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8A4A26611D5A3B890021B0A2 /* MessageChannel.swift in Sources */,
+				8A4A26611D5A3B890021B0A2 /* MessageChannelSpec.swift in Sources */,
 				8A878ACB1D4AC9C700D31F85 /* ServiceWorkerCacheSpec.swift in Sources */,
 				8AD283521D55076D00D2DF07 /* TestUtil.swift in Sources */,
-				8A8846091D3014AA00CF9369 /* ServiceWorkerInstance.swift in Sources */,
+				8A8846091D3014AA00CF9369 /* ServiceWorkerInstanceSpec.swift in Sources */,
 				8A7786371D5B882F0062E12B /* ConsoleManagerSpec.swift in Sources */,
-				8A263A7D1D353D9300B6505E /* ServiceWorkerWebSql.swift in Sources */,
-				8A54109D1D3819DE00F44F38 /* ServiceWorkerManager.swift in Sources */,
+				8A263A7D1D353D9300B6505E /* ServiceWorkerWebSqlSpec.swift in Sources */,
+				8A54109D1D3819DE00F44F38 /* ServiceWorkerManagerSpec.swift in Sources */,
 				8A0156CC1D654B530091995E /* ServiceWorkerCoreFunctionsSpec.swift in Sources */,
-				8AEBD0D21D42E6230042A4AB /* WebServer.swift in Sources */,
-				8A3A74F01D5E0B9400A7940C /* ServiceWorkerAPI.swift in Sources */,
+				8AEBD0D21D42E6230042A4AB /* WebServerSpec.swift in Sources */,
+				8A3A74F01D5E0B9400A7940C /* ServiceWorkerAPISpec.swift in Sources */,
 				8A77863B1D5BCE050062E12B /* MessageChannelManagerSpec.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -942,15 +946,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		8A933F8D1D8726D200F9DC72 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D31BC1081CD534CE00CF6BEB /* hybrid */;
+			targetProxy = 8A933F8C1D8726D200F9DC72 /* PBXContainerItemProxy */;
+		};
 		8AA1129C1D79E3CD001EC463 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 8AA1128E1D79E3CD001EC463 /* hybrid-notification-content */;
 			targetProxy = 8AA1129B1D79E3CD001EC463 /* PBXContainerItemProxy */;
-		};
-		D31BC11F1CD534CF00CF6BEB /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = D31BC1081CD534CE00CF6BEB /* hybrid */;
-			targetProxy = D31BC11E1CD534CF00CF6BEB /* PBXContainerItemProxy */;
 		};
 		D31BC12A1CD534CF00CF6BEB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -1053,7 +1057,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -1094,7 +1098,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -1153,6 +1157,8 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = 6J2C5AEPEG;
 				INFOPLIST_FILE = hybridTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = gdmobilelab.hybridTests;
@@ -1168,6 +1174,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = 6J2C5AEPEG;
 				INFOPLIST_FILE = hybridTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = gdmobilelab.hybridTests;

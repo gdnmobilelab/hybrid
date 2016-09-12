@@ -38,7 +38,7 @@ class MessageChannelManagerSpec: QuickSpec {
             
             
             it("should send across channels") {
-                waitUntil { done in
+                waitUntil(timeout:1) { done in
                     
                     // Confusing test, but we want to make sure we can pass channels as arguments in postMessage calls.
                     

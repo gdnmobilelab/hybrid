@@ -127,20 +127,13 @@ class ServiceWorkerInstanceSpec: QuickSpec {
             it("should map a URL within scope") {
                 let sw = ServiceWorkerInstance(url: NSURL(string: "file://test/test.js")!, scope: NSURL(string: "file://test")!, instanceId:0, installState: ServiceWorkerInstallState.Installed)
                 
-                do {
-                    let mappedURL = try sw.getURLInsideServiceWorkerScope(NSURL(string:"file://test/file.html")!)
-                    expect(mappedURL.host!).to(equal("localhost"))
-                    expect(mappedURL.pathComponents![1]).to(equal("__service_worker"))
-                    
-                    let unescapedServiceWorkerURL = mappedURL.pathComponents![2].stringByRemovingPercentEncoding
-                   
-                    expect(unescapedServiceWorkerURL).to(equal("file://test/test.js"))
-                    expect(mappedURL.pathComponents![3]).to(equal("test"))
-                    expect(mappedURL.pathComponents![4]).to(equal("file.html"))
-                }
-                catch {
-                    expect(error).to(beNil())
-                }
+                let mappedURL = WebServer.current!.mapRequestURLToServerURL(NSURL(string:"file://test/file.html")!)
+                
+                expect(mappedURL.host!).to(equal("localhost"))
+                expect(mappedURL.pathComponents![1]).to(equal("__service_worker"))
+                expect(mappedURL.pathComponents![2]).to(equal("test"))
+                expect(mappedURL.pathComponents![3]).to(equal("file.html"))
+             
                 
             }
             
@@ -153,7 +146,7 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                         "self.addEventListener('fetch', function(event) {" +
                         "   event.respondWith(new Response('hello'));" +
                         "})"
-                    ).then {(_) -> Promise<FetchResponse> in
+                    ).then {(_) -> Promise<FetchResponse?> in
                         
                         let request = FetchRequest(url: "file://test/file.html", options: nil)
                         
@@ -161,7 +154,7 @@ class ServiceWorkerInstanceSpec: QuickSpec {
                         
                     }
                     .then { (response) -> Void in
-                        let bodyAsString = String(data: response.data!, encoding: NSUTF8StringEncoding)
+                        let bodyAsString = String(data: response!.data!, encoding: NSUTF8StringEncoding)
                         expect(bodyAsString).to(equal("hello"))
                         done()
                     }

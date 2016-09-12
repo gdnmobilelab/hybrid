@@ -11,7 +11,6 @@ PODS:
   - GCDWebServer (3.3.2):
     - GCDWebServer/Core (= 3.3.2)
   - GCDWebServer/Core (3.3.2)
-  - JSCoreBom (1.1.2)
   - Nimble (4.0.1)
   - ObjectMapper (1.3.0)
   - OMGHTTPURLRQ (3.1.3):
@@ -42,21 +41,11 @@ DEPENDENCIES:
   - FMDB
   - FMDBMigrationManager
   - GCDWebServer (~> 3.0)
-  - JSCoreBom (from `https://github.com/artemyarulin/JSCoreBom.git`)
   - Nimble
   - ObjectMapper (~> 1.3)
   - PromiseKit (~> 3.2.1)
   - Quick
   - XCGLogger
-
-EXTERNAL SOURCES:
-  JSCoreBom:
-    :git: https://github.com/artemyarulin/JSCoreBom.git
-
-CHECKOUT OPTIONS:
-  JSCoreBom:
-    :commit: 8979afe660cdca9da338f59eb6b64b7817b47c16
-    :git: https://github.com/artemyarulin/JSCoreBom.git
 
 SPEC CHECKSUMS:
   Alamofire: 01a82e2f6c0f860ade35534c8dd88be61bdef40c
@@ -64,7 +53,6 @@ SPEC CHECKSUMS:
   FMDB: 854a0341b4726e53276f2a8996f06f1b80f9259a
   FMDBMigrationManager: d52007f328ea0665e8985ca8a33500707aef084f
   GCDWebServer: 2a375ec42839a41d7187d04e5b688d32fa5c4cd5
-  JSCoreBom: 787dc056d5b933617a1772ca10fb8437fed0d790
   Nimble: 0f3c8b8b084cda391209c3c5efbb48bedeeb920a
   ObjectMapper: 4eb08a726e9791a93b2632049951b56a7c17e471
   OMGHTTPURLRQ: a547be1b9721ddfbf9d08aab56ab72dc4c1cc417
@@ -72,6 +60,6 @@ SPEC CHECKSUMS:
   Quick: 18d057bc66451eedd5d1c8dc99ba2a5db6e60226
   XCGLogger: d6e196e78940ff6daab17d6917107876f973fa31
 
-PODFILE CHECKSUM: 8055cae4b9c5b8848ec12710c64b4091bd35ad2c
+PODFILE CHECKSUM: d67f10357b8258bb47772501c4e4f45e66c4f83e
 
 COCOAPODS: 1.0.1

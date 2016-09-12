@@ -105,6 +105,9 @@ import PromiseKit
             
             callback.callWithArguments([])
         }
+        .error { err in
+            callback.callWithArguments([JSValue(newErrorFromMessage: String(err), inContext: callback.context)])
+        }
         
     }
     
