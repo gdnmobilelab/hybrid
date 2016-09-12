@@ -37,11 +37,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             PushManager.listenForDeviceToken()
             
             application.registerForRemoteNotifications()
-            
-            // We need to reset the list of active webviews if we're re-launching the app
-            WebviewClientManager.setWebViewArray(nil)
-            
-            
+                       
             // Copy over js-dist. Future improvements might be to allow this to be updated over the wire
             // Needs to be copied so notification extension can access it.
             
@@ -121,6 +117,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func applicationWillTerminate(application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+        WebServer.current!.stop()
     }
     
     

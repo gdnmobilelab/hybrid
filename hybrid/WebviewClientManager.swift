@@ -9,6 +9,7 @@
 import Foundation
 import JavaScriptCore
 import EmitterKit
+import PromiseKit
 
 @objc protocol WebviewClientManagerExports : JSExport {
     func claimCallback(callback:JSValue)
@@ -55,26 +56,30 @@ import EmitterKit
     
     static let claimEvents = Event<(WebviewRecord, Int)>()
     
-    static func setWebViewArray(records: [WebviewRecord]?) {
+    
+    static func getCurrentWebviewRecords() -> Promise<[WebviewRecord]> {
         
-        if records == nil {
-            groupDefaults.removeObjectForKey("currentActiveWebviews")
-        } else {
-            let encoded = NSKeyedArchiver.archivedDataWithRootObject(records!)
-            groupDefaults.setObject(encoded, forKey: "currentActiveWebviews")
+        // In order to communicate cross-process, we reuse our web server
+        
+        
+        let port = SharedSettings.storage.objectForKey(SharedSettings.WEBSERVER_PORT_KEY)
+        
+        if port == nil {
+            // If the web server is deactivated then we have no active webviews
+            return Promise<[WebviewRecord]>([WebviewRecord]())
         }
-    
-        groupDefaults.synchronize()
         
-    }
-    
-    static var currentWebviewRecords:[WebviewRecord] {
-        get {
-            let data = groupDefaults.objectForKey("currentActiveWebviews") as? NSData
-            if data == nil {
-                return [WebviewRecord]()
-            }
-            return NSKeyedUnarchiver.unarchiveObjectWithData(data!) as! [WebviewRecord]
+        let url = NSURLComponents(string: "http://localhost/__activeWebviews")!
+        url.port = port as! Int
+        
+        return Promisified.AlamofireRequest("GET", url: url.URL!)
+        .then { r in
+            return NSKeyedUnarchiver.unarchiveObjectWithData(r.data!) as! [WebviewRecord]
+        }
+        .recover { error -> [WebviewRecord] in
+            // Thus should have been caught by the above port check.
+            log.error(String(error))
+            return [WebviewRecord]()
         }
     }
     
@@ -82,21 +87,25 @@ import EmitterKit
         
         // Allows a worker to take control of clients within its scope.
         
-        WebviewClientManager.currentWebviewRecords.forEach { record in
-            if record.url == nil {
-                return
+        WebviewClientManager.getCurrentWebviewRecords()
+        .then { records -> Void in
+            records.forEach { record in
+                if record.url == nil {
+                    return
+                }
+                if record.url!.absoluteString!.hasPrefix(self.serviceWorker.scope.absoluteString!) {
+                    
+                    // We don't pass the service worker itself because (at some point) we're going to need
+                    // to allow this to execute inside the notification environment and (somehow) map
+                    // over to an existing app.
+                    
+                    WebviewClientManager.claimEvents.emit((record, self.serviceWorker.instanceId))
+                }
             }
-            if record.url!.absoluteString!.hasPrefix(self.serviceWorker.scope.absoluteString!) {
-                
-                // We don't pass the service worker itself because (at some point) we're going to need
-                // to allow this to execute inside the notification environment and (somehow) map
-                // over to an existing app.
-                
-                WebviewClientManager.claimEvents.emit((record, self.serviceWorker.instanceId))
-            }
+            
+            callback.callWithArguments([])
         }
         
-        callback.callWithArguments([])
     }
     
     func matchAll(options:JSValue, callback:JSValue) {

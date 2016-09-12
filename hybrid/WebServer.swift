@@ -22,7 +22,10 @@ class WebServer {
         
         self.server.addDefaultHandlerForMethod("GET", requestClass: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleRequest);
         
-        try server.startWithOptions([GCDWebServerOption_BindToLocalhost: true]);
+        try server.startWithOptions([
+            GCDWebServerOption_BindToLocalhost: true,
+            GCDWebServerOption_AutomaticallySuspendInBackground: false // we want to be able to communicate with notification process
+        ]);
         
         log.info("Web server started on port " + String(server.port))
     }
@@ -83,8 +86,6 @@ class WebServer {
         
         let hostPortSplit = url.pathComponents![2].componentsSeparatedByString(":")
         
-
-//        Int32(<#T##text: String##String#>)
         let fetchURL = NSURLComponents()
         if hostPortSplit[0] == "localhost" {
             // just for testing, really
@@ -249,11 +250,29 @@ class WebServer {
 
     }
     
+    func getActiveWebviews(completionBlock: GCDWebServerCompletionBlock) {
+        
+        // We need to be able to communicate with the notification process and tell it
+        // which webviews we have active. To do this, we bundle up the WebviewRecord
+        // into an NSData blob and send it over HTTP. Which feels kind of messy, but it
+        // is easier than creating yet another communication channel.
+        
+        let records = HybridWebview.getActiveWebviewInfo()
+        let encodedAsData = NSKeyedArchiver.archivedDataWithRootObject(records)
+        let response = GCDWebServerDataResponse(data: encodedAsData, contentType: "application/octet-stream")
+        completionBlock(response)
+    }
+    
     func handleRequest(request: GCDWebServerRequest?, completionBlock:GCDWebServerCompletionBlock?) {
         log.info("Request for " + request!.URL.absoluteString!)
         
         if request!.URL.path! == "/__placeholder" {
             self.respondWithPlaceholder(completionBlock!);
+            return
+        }
+        
+        if request!.URL.path! == "/__activeWebviews" {
+            self.getActiveWebviews(completionBlock!)
             return
         }
         
@@ -294,9 +313,20 @@ class WebServer {
         }
     }
     
+    func stop() {
+        self.server.stop()
+        SharedSettings.storage.removeObjectForKey(SharedSettings.WEBSERVER_PORT_KEY)
+    }
+    
+    static let PORT_KEY = "webServerPort"
+    
     static func initialize() throws {
         GCDWebServer.setLogLevel(2)
         WebServer.current = try WebServer()
+        
+        // For communication with notification process - it needs to know where to request!
+        
+        SharedSettings.storage.setInteger(WebServer.current!.port, forKey: SharedSettings.WEBSERVER_PORT_KEY)
     }
 
 }

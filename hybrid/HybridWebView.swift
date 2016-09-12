@@ -45,25 +45,18 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         if HybridWebview.webviewClientListener == nil {
             HybridWebview.webviewClientListener = WebviewClientManager.claimEvents.on(HybridWebview.processClaimOnWebview)
         }
-      
-        HybridWebview.updateWebviewStore()
     }
     
-    private static func updateWebviewStore() {
-        // We need to manually update our list of active webviews that propogates
-        // cross-process, letting us access from inside the notification context
-        
-        let records = HybridWebview.activeWebviews.enumerate().map { (idx, wv) in
+    static func getActiveWebviewInfo() -> [WebviewClientManager.WebviewRecord] {
+        return HybridWebview.activeWebviews.enumerate().map { (idx, wv) in
             return WebviewClientManager.WebviewRecord(
                 url: wv.mappedURL,
                 index: idx,
                 workerId: wv.serviceWorkerAPI!.currentActiveServiceWorker?.instanceId
             )
         }
-        
-        WebviewClientManager.setWebViewArray(records)
-
     }
+    
     
     func deregisterWebviewFromServiceWorkerEvents(hw: HybridWebview) {
         let idx = HybridWebview.activeWebviews.indexOf(hw)
@@ -76,9 +69,6 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         ServiceWorkerInstance.getById(serviceWorkerId)
         .then { sw -> Void in
             webView.serviceWorkerAPI!.setNewActiveServiceWorker(sw!)
-            
-            // We need to keep our records consistent
-            self.updateWebviewStore()
         }
         
         
@@ -95,7 +85,6 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     
     static func clearRegisteredWebviews() {
         activeWebviews.removeAll()
-        WebviewClientManager.setWebViewArray(nil)
     }
     
     
