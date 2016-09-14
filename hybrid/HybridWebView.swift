@@ -47,6 +47,9 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         }
     }
     
+    static func getActiveWebviewAtIndex(index:Int) -> HybridWebview {
+        return self.activeWebviews[index]
+    }
     static func getActiveWebviewInfo() -> [WebviewClientManager.WebviewRecord] {
         return HybridWebview.activeWebviews.enumerate().map { (idx, wv) in
             return WebviewClientManager.WebviewRecord(

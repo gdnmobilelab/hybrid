@@ -10,6 +10,7 @@ import Foundation
 import WebKit
 import PromiseKit
 import ObjectMapper
+import JavaScriptCore
 
 class HandleMessageNotImplementedError : ErrorType {}
 
@@ -19,7 +20,29 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     let userController:WKUserContentController
     let handlerName:String
     
+    struct PromiseStore {
+        var fulfill: (AnyObject) -> ()
+        var reject: (ErrorType) -> ()
+    }
     
+    // We use this to send callbacks into the webview and await responses
+    var pendingPromises = [Int: PromiseStore]()
+    
+    func sendEventAwaitResponse(name: String, arguments: [String]) -> Promise<AnyObject> {
+        return Promise<AnyObject> { fulfill, reject in
+            
+            // Find an available index
+            
+            var index = 0
+            while pendingPromises[index] != nil {
+                index = index + 1
+            }
+            
+            self.pendingPromises[index] = PromiseStore(fulfill: fulfill, reject: reject)
+
+            self.webview.evaluateJavaScript("window.__promiseBridges['" + self.handlerName + "'].emitWithResponse('" + name + "',[" + arguments.joinWithSeparator(",") + "]," + String(index) + ")", completionHandler: nil)
+        }
+    }
     
     init(userController: WKUserContentController, webView: HybridWebview, handlerName:String) {
         self.webview = webView
@@ -43,9 +66,29 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     
     @objc func userContentController(userContentController: WKUserContentController, didReceiveScriptMessage message: WKScriptMessage) {
         
+        let messageContents = message.body["message"] as! [String: AnyObject]
+        
+        
+        if let callbackResponseIndex = messageContents["callbackResponseIndex"] as? Int {
+            
+            // This is the response to an emitWithResponse() call, so we shortcut
+            // the usual handling of the message and send it directly to the waiting
+            // promise.
+            
+            let pendingPromise = self.pendingPromises[callbackResponseIndex]!
+            
+            if let rejectValue = messageContents["rejectValue"] as? String {
+                pendingPromise.reject(JSContextError(message: rejectValue))
+            } else {
+                pendingPromise.fulfill(messageContents["fulfillValue"]!)
+            }
+            
+            self.pendingPromises.removeValueForKey(callbackResponseIndex)
+            return
+        }
+        
         let callbackIndex = message.body["callbackIndex"] as? Int
-        let messageContents = message.body["message"]!
-        let processResult = self.handleMessage(messageContents!)
+        let processResult = self.handleMessage(messageContents)
         if processResult != nil && callbackIndex != nil {
             
             let functionName = "window.__promiseBridgeCallbacks['" + self.handlerName + "']"

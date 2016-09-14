@@ -48,6 +48,40 @@ export class PromiseOverWKMessage extends EventEmitter {
 
     }
 
+    emitWithResponse(name:string, args:string[], callbackIndex:number) {
+
+        // Allows us to emit events with callbacks
+
+        let respondValue:Promise<any> = null
+
+        let respondWith = function(p:any) {
+            respondValue = p;
+        }
+
+        let eventData = {
+            respondWith,
+            arguments: args
+        };
+        
+        this.emit(name, eventData);
+
+        Promise.resolve(respondValue)
+        .then((finalResponse) => {
+            console.log("FULFILL", callbackIndex)
+            this.send({
+                callbackResponseIndex: callbackIndex,
+                fulfillValue: finalResponse
+            })
+        })
+        .catch((err) => {
+            console.log("CATCH", callbackIndex)
+            this.send({
+                callbackResponseIndex: callbackIndex,
+                rejectValue: err.toString()
+            })
+        })
+    }
+
     send(message:any) {
         
         // Shortcut when we only want to send and are not expecting a response

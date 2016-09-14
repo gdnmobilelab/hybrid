@@ -199,6 +199,10 @@ public class ServiceWorkerInstance {
         self.jsContext.setObject(PushManager.self, forKeyedSubscript: "PushManager")
         self.jsContext.setObject(Console.self, forKeyedSubscript: "NativeConsole")
         self.jsContext.setObject(self.clientManager, forKeyedSubscript: "clients")
+        self.jsContext.setObject(MessageChannel.self, forKeyedSubscript: "MessageChannel")
+        self.jsContext.setObject(WebviewClient.self, forKeyedSubscript: "Client")
+        self.jsContext.setObject(MessageEvent.self, forKeyedSubscript: "MessageEvent")
+        self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
     }
     
 

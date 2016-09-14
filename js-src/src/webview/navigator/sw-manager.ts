@@ -55,6 +55,12 @@ class HybridServiceWorker extends EventEmitterToJSEvent implements ServiceWorker
         this.scriptURL = scriptURL;
         this.scope = scope;
         this.installState = state;
+
+        this.addListener("message", (e:MessageEvent) => {
+            if (this.onmessage) {
+                this.onmessage(e);
+            }
+        });
     }
 
     updateState(state: ServiceWorkerInstallState) {
@@ -78,7 +84,7 @@ class HybridServiceWorker extends EventEmitterToJSEvent implements ServiceWorker
         if (options.length > 1 || options[0] instanceof MessagePort === false) {
             throw new Error("Currently only supports sending one MessagePort");
         }
-        console.log('post message?', message)
+
         postMessage(message, [options[0] as MessagePort]);
 
     } 
@@ -170,12 +176,12 @@ class HybridRegistration extends EventEmitterToJSEvent implements ServiceWorkerR
 
 const RegistrationInstance = new HybridRegistration();
 
-class HybridServiceWorkerContainer extends EventEmitter implements ServiceWorkerContainer  {
+class HybridServiceWorkerContainer extends EventEmitterToJSEvent implements ServiceWorkerContainer {
     controller: HybridServiceWorker
     
     oncontrollerchange: () => void
     onerror: () => void
-    onmessage: () => void
+    onmessage: (e:MessageEvent) => void
 
     get ready(): Promise<ServiceWorkerRegistration> {
         if (this.controller) {
@@ -199,9 +205,18 @@ class HybridServiceWorkerContainer extends EventEmitter implements ServiceWorker
         
         this.addListener("controllerchange", () => {
             if (this.oncontrollerchange) {
-
                 // does it expect arguments? Unclear.
                 this.oncontrollerchange();
+            }
+        });
+
+        this.addListener("message", (e:MessageEvent) => {
+            console.log("FIRED MESSAGE", this.onmessage);
+            if (this.controller) {
+                this.controller.dispatchEvent(e);
+            }
+            if (this.onmessage) {
+                this.onmessage(e);
             }
         });
 
@@ -209,16 +224,8 @@ class HybridServiceWorkerContainer extends EventEmitter implements ServiceWorker
     }
 
     register(urlToRegister:string, options: ServiceWorkerRegisterOptions): Promise<ServiceWorkerRegistration> {
-        console.log('url register?')
         let fullSWURL = url.resolve(window.location.href, urlToRegister);
-        // let fullScopeURL:string = null;
-
-        // if (options && options.scope) {
-        //     fullScopeURL = url.resolve(window.location.href, options.scope);
-        // }
-
-
-
+       
         console.info("Attempting to register service worker at", fullSWURL);
     
         return serviceWorkerBridge.bridgePromise({

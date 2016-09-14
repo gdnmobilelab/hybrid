@@ -10,7 +10,7 @@ logLevels.forEach((level) => {
     global.console[level] = function (message:string) {
         let argsAsArray = Array.prototype.slice.call(arguments);
 
-        if (originalConsole) {
+        if (originalConsole && originalConsole !== global.console) {
             originalConsole[level].apply(originalConsole, argsAsArray);
         }
 

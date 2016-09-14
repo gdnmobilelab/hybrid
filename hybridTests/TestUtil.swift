@@ -34,6 +34,13 @@ class TestUtil {
     static func clearServiceWorkers() {
         do {
             log.info("Clearing service workers...")
+            
+//            ServiceWorkerManager.currentlyActiveServiceWorkers.forEach { idx, sw in
+//                sw.jsContext.JSGlobalContextRef
+//                JSSynchronousGarbageCollectForDebugging()
+//            }
+//            
+//            
             ServiceWorkerManager.clearActiveServiceWorkers()
             try Db.mainDatabase.inDatabase({ (db) in
                 try db.executeUpdate("DELETE FROM service_workers", values: [])

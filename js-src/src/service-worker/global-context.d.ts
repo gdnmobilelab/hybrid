@@ -76,6 +76,10 @@ declare class clients {
     static openWindowCallback(url:string, callback:Function):void
 }
 
+declare class Client {
+    postMessagePortsCallback(message:any, ports: MessagePort[], callback:Function):void;
+}
+
 // declare var self: ServiceWorkerGlobalScope;
 
 declare module "websql/custom" {

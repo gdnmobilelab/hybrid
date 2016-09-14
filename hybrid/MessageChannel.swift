@@ -12,23 +12,49 @@ import WebKit
 import JavaScriptCore
 
 
-@objc protocol MessageEventExports {
+@objc protocol MessageEventExports : JSExport {
     var data:String {get}
     var ports:[MessagePort] {get}
+    init()
+    init(data:String)
+    init(data:String, ports:[MessagePort])
 }
 
-@objc class MessageEvent : NSObject, MessageEventExports {
+@objc public class MessageEvent : NSObject, MessageEventExports {
     var data:String
     var ports:[MessagePort]
     var fromWebView:WKWebView?
     
-    init(data:String, ports:[MessagePort] = [], fromWebView:WKWebView? = nil) {
+    public required override init() {
+        self.data = ""
+        self.ports = [MessagePort]()
+        self.fromWebView = nil
+        super.init()
+    }
+    
+    public required init(data:String) {
+        self.data = data
+        self.ports = [MessagePort]()
+        self.fromWebView = nil
+        super.init()
+
+    }
+    
+    public required init(data: String, ports: [MessagePort]) {
+        self.data = data
+        self.ports = ports
+        self.fromWebView = nil
+        super.init()
+    }
+    
+    init(data:String, ports:[MessagePort], fromWebView:WKWebView?) {
         self.data = data
         self.ports = ports
         
         // We use this to make sure we aren't echoing messages back to the
         // webview that sent them.
         self.fromWebView = fromWebView
+        super.init()
     }
 }
 

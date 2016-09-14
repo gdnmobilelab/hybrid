@@ -20,8 +20,20 @@
                 console.error(err)
             })
           
+            navigator.serviceWorker.ready
+            .then(function() {
+                  navigator.serviceWorker.onmessage = function(e) {
+                    e.ports[0].postMessage("received")
+                  
+                  }
+            })
+            .catch(function(err) {
+                   console.error(err)
+                   })
 
-        
+navigator.serviceWorker.ready.then(function() {
+                                   hybridEvents.emit("ready-promise")
+                                   })
             </script>
     </body>
 </html>

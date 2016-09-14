@@ -31,6 +31,5 @@ class Promisified {
                         fulfill(AlamofireResponse(request: req!, response: res!, data: data))
             })
         }
-        
     }
 }

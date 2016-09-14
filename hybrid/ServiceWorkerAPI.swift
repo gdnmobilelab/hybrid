@@ -129,9 +129,6 @@ class ServiceWorkerAPI: ScriptMessageManager {
             return ServiceWorkerInstance.getById(newId)
             .then { sw in
                 
-                // TODO: PUT THIS BACK!
-                
-//                sw!.attachedHybridWebviews.insert(self.webview)
                 let match = ServiceWorkerMatch(instanceId: newId, url: sw!.url, installState: sw!.installState, scope: sw!.scope)
                 self.serviceWorkerChange(match)
                 return Promise<String>("null")

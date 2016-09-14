@@ -253,17 +253,37 @@ class WebServer {
 
     }
     
-    func getActiveWebviews(completionBlock: GCDWebServerCompletionBlock) {
+    func webviewBridge(request: GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
         
-        // We need to be able to communicate with the notification process and tell it
-        // which webviews we have active. To do this, we bundle up the WebviewRecord
-        // into an NSData blob and send it over HTTP. Which feels kind of messy, but it
-        // is easier than creating yet another communication channel.
-        
-        let records = HybridWebview.getActiveWebviewInfo()
-        let encodedAsData = NSKeyedArchiver.archivedDataWithRootObject(records)
-        let response = GCDWebServerDataResponse(data: encodedAsData, contentType: "application/octet-stream")
-        completionBlock(response)
+        if request.URL.path! == "/__activeWebviews" {
+            // We need to be able to communicate with the notification process and tell it
+            // which webviews we have active. To do this, we bundle up the WebviewRecord
+            // into an NSData blob and send it over HTTP. Which feels kind of messy, but it
+            // is easier than creating yet another communication channel.
+            
+            let records = HybridWebview.getActiveWebviewInfo()
+            let encodedAsData = NSKeyedArchiver.archivedDataWithRootObject(records)
+            let response = GCDWebServerDataResponse(data: encodedAsData, contentType: "application/octet-stream")
+            completionBlock(response)
+        } else if request.URL!.pathComponents?.count == 3 {
+            let activeWebviewID = Int(request.URL!.pathComponents![2])!
+            let webview = HybridWebview.getActiveWebviewAtIndex(activeWebviewID)
+            let dataRequest = request as! GCDWebServerDataRequest
+            let j = dataRequest.jsonObject
+            
+            let numberOfPorts = j["numberOfPorts"] as! Int
+            
+            webview.serviceWorkerAPI!.sendEventAwaitResponse("postMessage", arguments: [j["message"] as! String, String(numberOfPorts)])
+            .then { response -> Void in
+                let portResponses = try NSJSONSerialization.dataWithJSONObject(response, options: NSJSONWritingOptions())
+                let dataResponse = GCDWebServerDataResponse(data: portResponses, contentType: "application/json")
+                completionBlock(dataResponse)
+                
+            }
+            .error { err in
+                log.error(String(err))
+            }
+        }
     }
     
     func handleRequest(request: GCDWebServerRequest?, completionBlock:GCDWebServerCompletionBlock?) {
@@ -274,8 +294,8 @@ class WebServer {
             return
         }
         
-        if request!.URL.path! == "/__activeWebviews" {
-            self.getActiveWebviews(completionBlock!)
+        if request!.URL.pathComponents?[1] == "__activeWebviews" {
+            self.webviewBridge(request!, completionBlock: completionBlock!)
             return
         }
         

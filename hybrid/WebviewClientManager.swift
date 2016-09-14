@@ -10,6 +10,66 @@ import Foundation
 import JavaScriptCore
 import EmitterKit
 import PromiseKit
+import OMGHTTPURLRQ
+
+@objc protocol WebviewClientExports : JSExport {
+    var url:String {get}
+    var id:String {get}
+    func postMessage(message:String, ports: [MessagePort], callback:JSValue)
+}
+
+@objc class WebviewClient : NSObject, WebviewClientExports {
+    var url:String
+    var id:String
+    
+    init(url:String, uniqueId:String) {
+        self.url = url
+        self.id = uniqueId
+    }
+    
+    func postMessage(message: String, ports: [MessagePort], callback:JSValue) {
+        do {
+            let port = SharedSettings.storage.objectForKey(SharedSettings.WEBSERVER_PORT_KEY)
+            
+            if port == nil {
+                
+                // Shouldn't be any way for this to happen, but you never know
+                
+                log.error("Tried to postMessage to webview, but server isn't running?")
+                let error = JSValue(newErrorFromMessage: "Web server is not running?", inContext: callback.context)
+                callback.callWithArguments([error])
+                return
+            }
+            
+            let url = NSURLComponents(string: "http://localhost/__activeWebviews/" + String(self.id))!
+            url.port = port as! Int
+        
+            let postRequest = try OMGHTTPURLRQ.POST(url.URL!.absoluteString!, JSON: [
+                "message": message,
+                "numberOfPorts": ports.count
+            ])
+            
+            // This doesn't actually return anything. So when we know we can successfully post, callback
+            
+            callback.callWithArguments([])
+            
+            NSURLConnection.promise(postRequest)
+            .then { response -> Void in
+                let jsonResponse = try NSJSONSerialization.JSONObjectWithData(response, options: []) as! [String]
+                
+                for (idx, portResponse) in jsonResponse.enumerate() {
+                    
+                    ports[idx].postStringMessage(portResponse)
+                }
+            }
+            
+            
+        } catch {
+            let jsError = JSValue(newErrorFromMessage: String(error), inContext: callback.context)
+            callback.callWithArguments([jsError])
+        }
+    }
+}
 
 @objc protocol WebviewClientManagerExports : JSExport {
     func claimCallback(callback:JSValue)
@@ -112,9 +172,37 @@ import PromiseKit
     }
     
     func matchAll(options:JSValue, callback:JSValue) {
-        // TODO: implement
         
-        callback.callWithArguments([JSValue(nullInContext: callback.context), JSValue(newArrayInContext: callback.context)])
+        if options.isNull == false && options.isUndefined == false {
+            // TODO: implement this
+            
+            callback.callWithArguments([JSValue(newErrorFromMessage: "options not implemented yet", inContext: callback.context)])
+            return
+        }
+        
+        WebviewClientManager.getCurrentWebviewRecords()
+        .then { records -> Void in
+            
+            let matchingRecords = records.filter { record in
+                
+                if record.workerId == nil {
+                    return false
+                }
+                return record.workerId! == self.serviceWorker.instanceId
+            }
+            
+            let matchesToClients = matchingRecords.map {record in
+                return WebviewClient(url: record.url!.absoluteString!, uniqueId: String(record.index))
+            }
+            
+            callback.callWithArguments([JSValue(nullInContext: callback.context), matchesToClients])
+        }
+        .error { err in
+            callback.callWithArguments([JSValue(newErrorFromMessage: String(err), inContext: callback.context)])
+        }
+        
+        
+        
     }
     
     func openWindow(url:String, callback:JSValue) {
