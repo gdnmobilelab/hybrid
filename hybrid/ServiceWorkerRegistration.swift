@@ -21,6 +21,14 @@ import PromiseKit
     var pushManager:PushManager
     var worker:ServiceWorkerInstance
     
+    
+    // We use this in our notification extension - in the web APIs push and notifications
+    // are totally separate, but they aren't in iOS. So, if we happen to be running inside
+    // the extension and intercepting a notification, rather than run the normal local
+    // notification show functions, we call this content handler.
+    
+    static var notificationExtensionContentHandler: ((UNNotificationContent) -> Void)? = nil
+    
     static let WORKER_ID = "workerID"
     
     var scope:String {
@@ -128,13 +136,29 @@ import PromiseKit
             content.userInfo["serviceWorkerScope"] = self.worker.scope.absoluteString
             content.userInfo[ServiceWorkerRegistration.WORKER_ID] = self.worker.instanceId
             
-            let id = String(NSDate().timeIntervalSince1970)
+//            let id = String(NSDate().timeIntervalSince1970)
             
-            let request = UNNotificationRequest(identifier: "test", content: content, trigger: nil)
             
-            UNUserNotificationCenter.currentNotificationCenter().addNotificationRequest(request) { (err) in
-                NSLog(String(err))
+            if ServiceWorkerRegistration.notificationExtensionContentHandler != nil {
+                
+                // if we're inside a notification extension, replace the existing notification
+                // content.
+                
+                ServiceWorkerRegistration.notificationExtensionContentHandler!(content)
+                ServiceWorkerRegistration.notificationExtensionContentHandler = nil
+            } else {
+                
+                // Otherwise, we use the normal local notification functions.
+                
+                let request = UNNotificationRequest(identifier: "test", content: content, trigger: nil)
+                
+                UNUserNotificationCenter.currentNotificationCenter().addNotificationRequest(request) { (err) in
+                    NSLog(String(err))
+                }
             }
+            
+            
+            
 
         }
         .error { err in

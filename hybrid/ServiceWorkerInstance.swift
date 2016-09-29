@@ -109,18 +109,7 @@ public class ServiceWorkerInstance {
         ServiceWorkerManager.currentlyActiveServiceWorkers[instanceId] = self
     }
     
-//    private func swLog(level:String!, params:[AnyObject]!, formattedLogEntry:String!) {
-//        if level == "info" || level == "log" {
-//            log.info(formattedLogEntry)
-//        }
-//        else if level == "warn" {
-//            log.warning(formattedLogEntry)
-//        }
-//        else if level == "error" {
-//            log.error(formattedLogEntry)
-//        }
-//    }
-    
+   
     static func getById(id:Int) -> Promise<ServiceWorkerInstance?> {
         
         log.debug("Request for service worker with ID " + String(id))
@@ -287,6 +276,23 @@ public class ServiceWorkerInstance {
             .callWithArguments([fetch])
         
         return PromiseBridge<FetchResponse>(jsPromise: dispatch)
+    }
+    
+    func dispatchPushEvent(data: String) -> Promise<Void> {
+        let dispatch = self.jsContext.objectForKeyedSubscript("hybrid")
+            .objectForKeyedSubscript("dispatchPushEvent")
+            .callWithArguments([data])
+        
+        return PromiseBridge<NSObject>(jsPromise: dispatch)
+        .then { returnValue in
+            
+            // It isn't actually possible to return anything from this, but
+            // we still want to return a promise so that we can wait to know
+            // the promise has completed if we want to.
+            
+            return Promise<Void>()
+            
+        }
     }
     
     func loadServiceWorker(workerJS:String) -> Promise<JSValue> {

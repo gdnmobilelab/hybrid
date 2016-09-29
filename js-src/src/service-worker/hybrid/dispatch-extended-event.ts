@@ -1,3 +1,4 @@
+import {PushEvent} from '../globals/extended-event-types';
 
 hybrid.dispatchExtendableEvent = function(name:string, data:Object, cb:any) {
     
@@ -39,6 +40,14 @@ hybrid.dispatchMessageEvent = function(message:string, ports: [MessagePort]) {
         ports: ports,
         data: JSON.parse(message)
     }
-    console.log("Received message", message);
     self.dispatchEvent(ev as MessageEvent);
+}
+
+hybrid.dispatchPushEvent = function(data:string) {
+    return Promise.resolve()
+    .then(() => {
+        let pushEvent = new PushEvent(data);
+        self.dispatchEvent(pushEvent as any);
+        return pushEvent.resolve();
+    })
 }

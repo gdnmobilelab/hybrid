@@ -78,7 +78,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
                 // rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo")!)
                 
-                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://eac8a863.ngrok.io/app-demo")!)
+                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://5ad33630.ngrok.io/app-demo")!)
             }
             
             

@@ -20,6 +20,10 @@ target 'hybrid-notification-content' do
     
 end
 
+target 'notification-extension' do
+    
+end
+
 target 'hybridTests' do
     pod 'Quick'
     pod 'Nimble'

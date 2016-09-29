@@ -1,9 +1,10 @@
-
+import {PushMessageData} from './push';
 
 export class ExtendableEvent {
 
     public type:string;
     private waitUntilPromise:Promise<any> = null;
+    public bubbles:boolean = false;
 
     constructor(type:string, data?: Object) {
         this.type = type;
@@ -50,5 +51,15 @@ export class FetchEvent {
     }
 }
 
+export class PushEvent extends ExtendableEvent {
+    data: PushMessageData
+
+    constructor(content:string) {
+        super("push", {});
+        this.data = new PushMessageData(content);
+    }
+}
+
 global.ExtendableEvent = ExtendableEvent;
 global.FetchEvent = FetchEvent;
+global.PushEvent = PushEvent;
