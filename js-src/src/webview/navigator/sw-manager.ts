@@ -2,6 +2,7 @@ import {PromiseOverWKMessage} from '../util/promise-over-wkmessage';
 import EventEmitter from 'eventemitter3';
 import * as url from 'url';
 import {postMessage} from '../messages/message-channel';
+import {HybridPushManager} from './push-manager';
 
 export const serviceWorkerBridge = new PromiseOverWKMessage("serviceWorker");
 
@@ -111,9 +112,7 @@ class HybridRegistration extends EventEmitterToJSEvent implements ServiceWorkerR
             }
         })
 
-        this.pushManager = function() {
-            console.log('push?')
-        }
+        this.pushManager = new HybridPushManager();
     }
 
     getMostRecentWorker():HybridServiceWorker {

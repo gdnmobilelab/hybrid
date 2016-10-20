@@ -110,7 +110,7 @@ import PromiseKit
                 let identifier = action["action"] as! String
                 let title = action["title"] as! String
                 
-                let newAction = UNNotificationAction(identifier: identifier, title: title, options: UNNotificationActionOptions())
+                let newAction = UNNotificationAction(identifier: identifier, title: title, options: UNNotificationActionOptions.Foreground)
                 nativeActions.append(newAction)
 //                categoryIdentifier += identifier + "_" + title
             }
@@ -131,6 +131,8 @@ import PromiseKit
                 
             }
             
+            let data = options["data"]
+            
             content.userInfo["originalNotificationOptions"] = options
             content.userInfo["originalTitle"] = title
             content.userInfo["serviceWorkerScope"] = self.worker.scope.absoluteString
@@ -143,7 +145,7 @@ import PromiseKit
                 
                 // if we're inside a notification extension, replace the existing notification
                 // content.
-                
+                NSLog("send notification through content handler")
                 ServiceWorkerRegistration.notificationExtensionContentHandler!(content)
                 ServiceWorkerRegistration.notificationExtensionContentHandler = nil
             } else {

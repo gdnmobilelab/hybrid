@@ -15,9 +15,7 @@ import JavaScriptCore
 @objc protocol MessageEventExports : JSExport {
     var data:String {get}
     var ports:[MessagePort] {get}
-    init()
-    init(data:String)
-    init(data:String, ports:[MessagePort])
+    init(data:String?, ports:[MessagePort]?)
 }
 
 @objc public class MessageEvent : NSObject, MessageEventExports {
@@ -25,27 +23,26 @@ import JavaScriptCore
     var ports:[MessagePort]
     var fromWebView:WKWebView?
     
-    public required override init() {
-        self.data = ""
-        self.ports = [MessagePort]()
-        self.fromWebView = nil
-        super.init()
-    }
-    
-    public required init(data:String) {
-        self.data = data
-        self.ports = [MessagePort]()
+
+    public required init(data:String?, ports: [MessagePort]?) {
+      
+        if data != nil {
+            self.data = data!
+        } else {
+            self.data = ""
+        }
+       
+        if ports != nil {
+            self.ports = ports!
+        } else {
+            self.ports = [MessagePort]()
+        }
+        
         self.fromWebView = nil
         super.init()
 
     }
     
-    public required init(data: String, ports: [MessagePort]) {
-        self.data = data
-        self.ports = ports
-        self.fromWebView = nil
-        super.init()
-    }
     
     init(data:String, ports:[MessagePort], fromWebView:WKWebView?) {
         self.data = data

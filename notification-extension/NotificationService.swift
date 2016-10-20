@@ -8,32 +8,57 @@
 
 import UserNotifications
 import PromiseKit
+import JavaScriptCore
+
 
 class NotificationService: UNNotificationServiceExtension {
 
     var bestAttemptContent: UNMutableNotificationContent?
-    
+    var contentHandler: ((UNNotificationContent) -> Void)?
+   
     override func didReceiveNotificationRequest(request: UNNotificationRequest, withContentHandler contentHandler: (UNNotificationContent) -> Void) {
-       
-        // We pass the content handler over to the service worker, so when it shows
-        // a notification it will replace this notification rather than show a new one
         
-        ServiceWorkerRegistration.notificationExtensionContentHandler = contentHandler
+        self.contentHandler = contentHandler
         
-        let hybridData = request.content.userInfo["hybrid_data"]!
+        do {
+            
+            // Outside of app context, so we need to make our DB
+            
+            try Db.createMainDatabase()
+            
+            // We pass the content handler over to the service worker, so when it shows
+            // a notification it will replace this notification rather than show a new one
+            
+            ServiceWorkerRegistration.notificationExtensionContentHandler = contentHandler
+            
+            let hybridData = request.content.userInfo["hybrid_data"]!
+            
+            let workerURL = hybridData["service_worker_url"] as! String
+            let payload = hybridData["payload"] as! String
+
+
+          
+            ServiceWorkerInstance.getActiveWorkerByURL(NSURL(string: workerURL)!)
+            .then { sw in
+                NSLog("Send push event")
+                return sw!.dispatchPushEvent(payload)
+            }
+            .then { () -> Void in
+                NSLog("Doing content handler check")
+                if ServiceWorkerRegistration.notificationExtensionContentHandler != nil {
+                    // if not nil then we haven't shown a notification in response to the
+                    // push event. Which we definitely should. But if not, we'll display
+                    // the original content.
+                    NSLog("Content handler not yet used")
+                    contentHandler(request.content)
+                }
+                
+            }
         
-        let workerURL = hybridData["service_worker_url"] as! String
-        let payload = hybridData["payload"] as! String
-        
-        ServiceWorkerManager.getServiceWorkerForURL(NSURL(string: workerURL)!)
-        .then { sw -> Promise<Void> in
-            return sw!.dispatchPushEvent(payload)
+        } catch {
+            log.error("Notification extension failed:" + String(error))
         }
-        .then {
-            contentHandler(request.content)
-        }
-        
-        
+
     }
 
    
@@ -44,6 +69,8 @@ class NotificationService: UNNotificationServiceExtension {
 //        if let contentHandler = contentHandler, let bestAttemptContent =  bestAttemptContent {
 //            contentHandler(bestAttemptContent)
 //        }
+        
+        NSLog("will expire")
     }
 
 }

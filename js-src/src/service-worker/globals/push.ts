@@ -20,10 +20,10 @@ PushManager.prototype.getSubscription = function() {
     return new Promise((fulfill, reject) => {
         this.getSubscriptionCallbackFailure(fulfill, reject);
     })
-    .then((deviceToken:string) => {
-        return {
-            nativePlatform: "ios",
-            token: deviceToken
-        }
+}
+
+PushManager.prototype.subscribe = function() {
+    return new Promise((fulfill, reject) => {
+        this.getSubscriptionCallbackFailure(fulfill, reject);
     })
 }

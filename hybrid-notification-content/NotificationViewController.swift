@@ -17,6 +17,8 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
 
     var notificationViews = [UIView]()
     
+    var latestUserInfo:[NSObject: AnyObject]? = nil
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -82,15 +84,19 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             
             if notification.request.content.attachments.first!.URL.startAccessingSecurityScopedResource() {
                 targetWidth = targetWidth - 90
-                let img = UIImage(contentsOfFile: notification.request.content.attachments.first!.URL.path!)
-                notification.request.content.attachments.first!.URL.stopAccessingSecurityScopedResource()
+                
+                let imgData = NSData(contentsOfURL: notification.request.content.attachments.first!.URL)!
+                
+                let img = UIImage(data: imgData)
                 
                 let imgView = UIImageView(image: img)
-                imgView.backgroundColor = UIColor.blueColor()
                 imgView.contentMode = UIViewContentMode.ScaleAspectFit
                 imgView.frame = CGRect(x: textContainer.frame.width - 75, y: 15, width: 60, height: 60)
                 textContainer.addSubview(imgView)
 
+                
+                notification.request.content.attachments.first!.URL.stopAccessingSecurityScopedResource()
+                
             }
             
             
@@ -135,11 +141,24 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
 
     func didReceiveNotification(notification: UNNotification) {
-        let workerID = notification.request.content.userInfo[ServiceWorkerRegistration.WORKER_ID] as! Int
         
+        // iOS doesn't update userInfo when we push more than one notification
+        // sequentially. So we need to keep our own record of the latest.
+        latestUserInfo = notification.request.content.userInfo
+        
+        let workerID = notification.request.content.userInfo[ServiceWorkerRegistration.WORKER_ID] as! Int
         do {
             // We don't run inside the app, so we need to make our DB instance
             try Db.createMainDatabase()
+            
+            // Clean up any previous stuff
+            
+            self.notificationViews.forEach { view in
+                view.removeFromSuperview()
+            }
+            
+            self.notificationViews.removeAll()
+            
             
             ServiceWorkerInstance.getById(workerID)
             .then { sw in
@@ -172,7 +191,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
     
     func didReceiveNotificationResponse(response: UNNotificationResponse, completionHandler completion: (UNNotificationContentExtensionResponseOption) -> Void) {
-        NotificationDelegate.processAction(response)
+        NotificationHandler.processAction(response, userInfo: latestUserInfo!)
         .then { _ -> Void in
             
             if PendingNotificationActions.closeNotification == true && PendingNotificationActions.urlToOpen == nil {

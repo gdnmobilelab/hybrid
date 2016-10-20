@@ -8,6 +8,8 @@ let loadedIndicator:HTMLDivElement = null;
     refreshServiceWorkers();
     document.documentElement.innerHTML = insideHTMLTag;
 
+    
+
     // we use this on the native side to detect somewhat reliably when a page has loaded
     loadedIndicator = document.createElement("div");
     loadedIndicator.style.position = "absolute";
@@ -21,4 +23,16 @@ let loadedIndicator:HTMLDivElement = null;
 
 (window as any).__removeLoadedIndicator = function() {
     document.body.removeChild(loadedIndicator);
+
+    // Need to "reactivate" script tags or they won't work.
+    var s = document.documentElement.getElementsByTagName('script');
+    for (var i = 0; i < s.length ; i++) {
+        var node=s[i], parent=node.parentElement, d = document.createElement('script');
+        d.async=node.async;
+        d.src=node.src;
+        d.textContent = node.textContent
+        d.type = node.type;
+        parent.insertBefore(d,node);
+        parent.removeChild(node);
+    }
 }

@@ -23,8 +23,9 @@ class WebServer {
         self.server.addDefaultHandlerForMethod("GET", requestClass: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleRequest);
         
         try server.startWithOptions([
-            GCDWebServerOption_BindToLocalhost: true,
-            GCDWebServerOption_AutomaticallySuspendInBackground: false // we want to be able to communicate with notification process
+            GCDWebServerOption_Port: 55203,
+            GCDWebServerOption_BindToLocalhost: true/*,
+            GCDWebServerOption_AutomaticallySuspendInBackground: false*/
         ]);
         
         log.info("Web server started on port " + String(server.port))
@@ -114,7 +115,7 @@ class WebServer {
     func handleServiceWorkerRequest(request:GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
         
         let mappedURL = WebServer.mapServerURLToRequestURL(request.URL)
-        log.info("Request for " + request.URL.absoluteString!)
+        log.info("Request for " + mappedURL.absoluteString!)
         ServiceWorkerManager.getServiceWorkerForURL(mappedURL)
         .then { (sw) -> Promise<Void> in
             if (sw == nil) {

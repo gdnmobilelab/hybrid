@@ -20,6 +20,7 @@ import JavaScriptCore
 
 @objc protocol PushManagerExports : JSExport {
     func getSubscriptionCallback(success: JSValue, failure: JSValue)
+    init()
 }
 
 @objc class PushManager : NSObject, PushManagerExports {
@@ -44,6 +45,10 @@ import JavaScriptCore
         })
     }
     
+    override required init() {
+        super.init()
+    }
+    
     func getSubscriptionCallback(success: JSValue, failure: JSValue) {
         
         if PushManager.deviceToken == nil {
@@ -51,6 +56,14 @@ import JavaScriptCore
             return
         }
         
-        success.callWithArguments([PushManager.deviceToken!])
+        let appName = NSBundle.mainBundle().bundleIdentifier!
+        
+        let returnObj = [
+            "platform": "iOS",
+            "bundle_name": appName,
+            "device_id" : PushManager.deviceToken!
+        ]
+        
+        success.callWithArguments([returnObj])
     }
 }

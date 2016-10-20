@@ -451,8 +451,7 @@ class ServiceWorkerManager {
             return cycleThroughEligibleWorkers(Array(workerIds.dropFirst()))
         }
     }
-
-
+    
     static func getServiceWorkerForURL(url:NSURL) -> Promise<ServiceWorkerInstance?> {
         
         for (_, sw) in self.currentlyActiveServiceWorkers {

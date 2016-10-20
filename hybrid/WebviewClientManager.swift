@@ -71,6 +71,37 @@ import OMGHTTPURLRQ
     }
 }
 
+@objc protocol WebviewRecordExports : JSExport {
+    var url:NSURL? {get}
+}
+
+@objc class WebviewRecord : NSObject, NSCoding, WebviewRecordExports {
+    var url:NSURL?
+    var index:Int
+    var workerId: Int?
+    
+    init(url: NSURL?, index: Int, workerId:Int?) {
+        self.url = url
+        self.index = index
+        self.workerId = workerId
+    }
+    
+    // Use NSCoding to allow us to store this in UserDefaults
+    
+    convenience required init?(coder decoder: NSCoder) {
+        let url = decoder.decodeObjectForKey("url") as? NSURL
+        let index = decoder.decodeObjectForKey("index") as! Int
+        let workerId = decoder.decodeObjectForKey("workerId") as? Int
+        self.init(url: url, index: index, workerId: workerId)
+    }
+    
+    func encodeWithCoder(coder: NSCoder) {
+        coder.encodeObject(self.url, forKey: "url")
+        coder.encodeObject(self.index, forKey: "index")
+        coder.encodeObject(self.workerId, forKey: "workerId")
+    }
+}
+
 @objc protocol WebviewClientManagerExports : JSExport {
     func claimCallback(callback:JSValue)
     func matchAll(options:JSValue, callback:JSValue)
@@ -79,32 +110,7 @@ import OMGHTTPURLRQ
 
 @objc class WebviewClientManager : NSObject, WebviewClientManagerExports {
     
-    class WebviewRecord : NSObject, NSCoding {
-        var url:NSURL?
-        var index:Int
-        var workerId: Int?
-        
-        init(url: NSURL?, index: Int, workerId:Int?) {
-            self.url = url
-            self.index = index
-            self.workerId = workerId
-        }
-        
-        // Use NSCoding to allow us to store this in UserDefaults
-        
-        convenience required init?(coder decoder: NSCoder) {
-            let url = decoder.decodeObjectForKey("url") as? NSURL
-            let index = decoder.decodeObjectForKey("index") as! Int
-            let workerId = decoder.decodeObjectForKey("workerId") as? Int
-            self.init(url: url, index: index, workerId: workerId)
-        }
-        
-        func encodeWithCoder(coder: NSCoder) {
-            coder.encodeObject(self.url, forKey: "url")
-            coder.encodeObject(self.index, forKey: "index")
-            coder.encodeObject(self.workerId, forKey: "workerId")
-        }
-    }
+    
     
     let serviceWorker:ServiceWorkerInstance
     
@@ -173,40 +179,43 @@ import OMGHTTPURLRQ
     
     func matchAll(options:JSValue, callback:JSValue) {
         
-        if options.isNull == false && options.isUndefined == false {
-            // TODO: implement this
-            
-            callback.callWithArguments([JSValue(newErrorFromMessage: "options not implemented yet", inContext: callback.context)])
-            return
-        }
+//        if options.isNull == false && options.isUndefined == false {
+//            // TODO: implement this
+//            
+//            callback.callWithArguments([JSValue(newErrorFromMessage: "options not implemented yet", inContext: callback.context)])
+//            return
+//        }
         
-        WebviewClientManager.getCurrentWebviewRecords()
-        .then { records -> Void in
-            
-            let matchingRecords = records.filter { record in
-                
-                if record.workerId == nil {
-                    return false
-                }
-                return record.workerId! == self.serviceWorker.instanceId
-            }
-            
-            let matchesToClients = matchingRecords.map {record in
-                return WebviewClient(url: record.url!.absoluteString!, uniqueId: String(record.index))
-            }
-            
-            callback.callWithArguments([JSValue(nullInContext: callback.context), matchesToClients])
-        }
-        .error { err in
-            callback.callWithArguments([JSValue(newErrorFromMessage: String(err), inContext: callback.context)])
-        }
+//        WebviewClientManager.getCurrentWebviewRecords()
+//        .then { records -> Void in
+//            
+//            let matchingRecords = records.filter { record in
+//                
+//                if record.workerId == nil {
+//                    return false
+//                }
+//                return record.workerId! == self.serviceWorker.instanceId
+//            }
+//            
+//            let matchesToClients = matchingRecords.map {record in
+//                return WebviewClient(url: record.url!.absoluteString!, uniqueId: String(record.index))
+//            }
+//            
+//            callback.callWithArguments([JSValue(nullInContext: callback.context), matchesToClients])
+//        }
+//        .error { err in
+//            callback.callWithArguments([JSValue(newErrorFromMessage: String(err), inContext: callback.context)])
+//        }
         
         
-        
+        callback.callWithArguments([JSValue(nullInContext: callback.context), []])
     }
     
     func openWindow(url:String, callback:JSValue) {
-        PendingNotificationActions.urlToOpen = url
+        
+        let urlToOpen = NSURL(string: url,relativeToURL: self.serviceWorker.scope)!
+        
+        PendingNotificationActions.urlToOpen = urlToOpen.absoluteString
         callback.callWithArguments([JSValue(nullInContext: callback.context)])
     }
     

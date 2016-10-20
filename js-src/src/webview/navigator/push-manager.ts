@@ -4,11 +4,14 @@ import promiseBridge from '../notification/notification-bridge';
 export class HybridPushManager implements PushManager {
 
     subscribe(): Promise<PushSubscription> {
-        throw new Error("not yet")
+        // Currently don't return subscription details on web side
+        // - only on service worker side.
+        // TODO: fix
+        return Promise.resolve(null);
     }
 
     getSubscription(): Promise<PushSubscription> {
-        throw new Error("not yet")
+        return Promise.resolve(null);
     }
 
     hasPermission():Promise<any> {

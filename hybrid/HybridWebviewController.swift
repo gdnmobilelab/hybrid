@@ -73,12 +73,33 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
                 
                 let responseEscaped = responseAsString.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
                 
-                self.webview!.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + url.absoluteString! + "\");", completionHandler: nil)
+                return Promise<Void> { fulfill, reject in
+                    self.webview!.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + url.absoluteString! + "\");",completionHandler: { (obj:AnyObject?, err: NSError?) in
+                        if err != nil {
+                            // Injecting HTML failed. Why?
+                            
+                            reject(err!)
+                        } else {
+                            fulfill()
+                        }
+                    })
+                }
+                .then { () -> Promise<Void> in
+                    
+                    return when(
+                        self.waitForRendered(),
+                        self.setMetadata()
+                    )
+                }
+                .recover { err -> Void in
+                    log.error(String(err))
+                    self.webview!.loadRequest(NSURLRequest(URL: url))
+                }
                 
-                return when(
-                    self.waitForRendered(),
-                    self.setMetadata()
-                )
+                
+
+                
+                
             }
             .then {
                 self.events.emit("ready", "test")
@@ -90,6 +111,14 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         .error {err in
             self.webview!.loadRequest(NSURLRequest(URL: urlToLoad))
         }
+    }
+    
+    func fiddleContentInsets() {
+        
+        // No idea why, but when pushing a viewcontroller in from the staging area the insets sometimes
+        // get messed up. Resetting them on push seems to work, though.
+        
+        self.webview!.scrollView.contentInset = UIEdgeInsets(top: 1, left: 0, bottom: 0, right: 0)
     }
     
     func checkIfURLInsideServiceWorker(url:NSURL) -> Promise<(NSURL,ServiceWorkerInstance?)> {

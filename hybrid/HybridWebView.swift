@@ -50,9 +50,9 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     static func getActiveWebviewAtIndex(index:Int) -> HybridWebview {
         return self.activeWebviews[index]
     }
-    static func getActiveWebviewInfo() -> [WebviewClientManager.WebviewRecord] {
+    static func getActiveWebviewInfo() -> [WebviewRecord] {
         return HybridWebview.activeWebviews.enumerate().map { (idx, wv) in
-            return WebviewClientManager.WebviewRecord(
+            return WebviewRecord(
                 url: wv.mappedURL,
                 index: idx,
                 workerId: wv.serviceWorkerAPI!.currentActiveServiceWorker?.instanceId
@@ -66,7 +66,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         HybridWebview.activeWebviews.removeAtIndex(idx!)
     }
     
-    static func processClaimOnWebview(record: WebviewClientManager.WebviewRecord, serviceWorkerId:Int) {
+    static func processClaimOnWebview(record: WebviewRecord, serviceWorkerId:Int) {
         let webView = HybridWebview.activeWebviews[record.index]
         
         ServiceWorkerInstance.getById(serviceWorkerId)
@@ -109,7 +109,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         self.notificationPermissionHandler = NotificationPermissionHandler(userController: config.userContentController, webView: self)
         self.serviceWorkerAPI = ServiceWorkerAPI(userController: config.userContentController, webView: self)
         self.eventManager = EventManager(userController: config.userContentController, webView: self)
-//        self.scrollView.contentInset = UIEdgeInsets(top: 60, left: 0, bottom: 0, right: 0)
+        self.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         
         self.allowsLinkPreview = false
     }

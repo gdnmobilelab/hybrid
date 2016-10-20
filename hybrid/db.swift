@@ -59,14 +59,17 @@ class Db {
         }
     }
     
+    static func getFullPathForDB(dbFilename:String) -> NSURL {
+        return Db.databasesURL
+            .URLByAppendingPathComponent(dbFilename)!
+            .URLByAppendingPathExtension("sqlite")!
+    }
+    
     init(dbFilename:String) throws {
         
         try Db.createDirectoryFor(Db.databasesURL)
         
-        let dbURL = Db.databasesURL
-            .URLByAppendingPathComponent(dbFilename)!
-            .URLByAppendingPathExtension("sqlite")!
-        
+        let dbURL = Db.getFullPathForDB(dbFilename)
     
         log.debug("Creating database queue for: " + dbURL.path!)
         

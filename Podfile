@@ -12,7 +12,9 @@ pod 'PromiseKit', '~> 3.2.1'
 pod 'ObjectMapper', '~> 1.3'
 pod 'EmitterKit'
 
+
 target 'hybrid' do
+    
     pod 'GCDWebServer', '~> 3.0'
 end
 
@@ -25,11 +27,8 @@ target 'notification-extension' do
 end
 
 target 'hybridTests' do
+
     pod 'Quick'
     pod 'Nimble'
     pod 'GCDWebServer', '~> 3.0'
-end
-
-target 'hybridUITests' do
-    
 end

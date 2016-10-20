@@ -81,6 +81,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             NSLog("LOADED IN " + String(readyTime - startRequestTime))
             
             self.pushViewController(newInstance, animated: true)
+            newInstance.fiddleContentInsets()
             
             if self.launchViewController != nil {
                 UIView.animateWithDuration(0.2, animations: {

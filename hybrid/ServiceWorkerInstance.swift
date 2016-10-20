@@ -10,7 +10,7 @@ import Foundation
 import JavaScriptCore
 import PromiseKit
 import ObjectMapper
-
+import FMDB
 
 class JSContextError : ErrorType {
     let message:String
@@ -60,7 +60,8 @@ class ServiceWorkerOutOfScopeError : ErrorType {
 
 public class ServiceWorkerInstance {
     
-
+    static var pendingJSContext:JSContext?
+    
     var jsContext:JSContext!
     var cache:ServiceWorkerCacheHandler!
     var contextErrorValue:JSValue?
@@ -87,6 +88,7 @@ public class ServiceWorkerInstance {
         
         self.installState = installState
         self.instanceId = instanceId
+        
         self.jsContext = JSContext()
         
         let urlComponents = NSURLComponents(URL: url, resolvingAgainstBaseURL: false)!
@@ -94,6 +96,7 @@ public class ServiceWorkerInstance {
         
         self.webSQL = WebSQLDatabaseCreator(context: self.jsContext, origin: urlComponents.URLString)
         self.jsContext.exceptionHandler = self.exceptionHandler
+        self.jsContext.name = url.absoluteString
         self.cache = ServiceWorkerCacheHandler(jsContext: self.jsContext, serviceWorkerURL: url)
         GlobalFetch.addToJSContext(self.jsContext)
         
@@ -107,6 +110,49 @@ public class ServiceWorkerInstance {
         }
         
         ServiceWorkerManager.currentlyActiveServiceWorkers[instanceId] = self
+    }
+    
+    static func getActiveWorkerByURL(url:NSURL) -> Promise<ServiceWorkerInstance?> {
+        
+        var instance:ServiceWorkerInstance? = nil
+        var contents:String? = nil
+        
+        return Promise<Void>()
+        .then {
+            try Db.mainDatabase.inDatabase({ (db) in
+                
+                let serviceWorkerContents = try db.executeQuery("SELECT instance_id, scope, contents FROM service_workers WHERE url = ? AND install_state = ?", values: [url.absoluteString!, ServiceWorkerInstallState.Activated.rawValue])
+                
+                if serviceWorkerContents.next() == false {
+                    return serviceWorkerContents.close()
+                }
+                
+                let scope = NSURL(string: serviceWorkerContents.stringForColumn("scope"))!
+                let instanceId = Int(serviceWorkerContents.intForColumn("instance_id"))
+                
+                instance = ServiceWorkerInstance(
+                    url: url,
+                    scope: scope,
+                    instanceId: instanceId,
+                    installState: ServiceWorkerInstallState.Activated
+                )
+                
+                log.debug("Created new instance of service worker with ID " + String(instanceId) + " and install state: " + String(instance!.installState))
+                contents = serviceWorkerContents.stringForColumn("contents")
+                serviceWorkerContents.close()
+            })
+            
+            if instance == nil {
+                return Promise<ServiceWorkerInstance?>(nil)
+            }
+            
+            return instance!.loadServiceWorker(contents!)
+                .then { _ in
+                    return instance
+            }
+
+        }
+
     }
     
    
@@ -361,7 +407,8 @@ public class ServiceWorkerInstance {
     
     func exceptionHandler(context:JSContext!, exception:JSValue!) {
         self.contextErrorValue = exception
-        log.error("JSCONTEXT error: " + exception.toString())
+        
+        log.error("JSCONTEXT error: " + exception.toString() + exception.objectForKeyedSubscript("stack").toString())
         
     }
     

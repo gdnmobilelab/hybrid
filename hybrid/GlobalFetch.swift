@@ -180,6 +180,7 @@ class FetchSetupError : ErrorType {}
     var url:String
     var method:String
     var headers:FetchHeaders
+    var body: NSData?
     
    
     required public init(url:String, options: [String: AnyObject]?)  {
@@ -188,10 +189,18 @@ class FetchSetupError : ErrorType {}
         if let opts = options {
             self.method = opts["method"] as! String
             
+            // Headers can be an instance of FetchHeaders or a simple JS object.
+            
             if let headers = opts["headers"] as? [String: AnyObject] {
                 self.headers = FetchHeaders(dictionary: headers)
+            } else if let headers = opts["headers"] as? FetchHeaders {
+                self.headers = headers
             } else {
                 self.headers = FetchHeaders()
+            }
+            
+            if let body = opts["body"] as? String {
+                self.body = body.dataUsingEncoding(NSUTF8StringEncoding)
             }
             
             
@@ -214,11 +223,16 @@ class FetchSetupError : ErrorType {}
         let request = NSMutableURLRequest(URL: NSURL(string: self.url)!)
         request.HTTPMethod = self.method
         
-        
         for key in self.headers.keys() {
+            NSLog("Add header " + key)
             let allValsJoined = self.headers.getAll(key)?.joinWithSeparator(",")
             request.setValue(allValsJoined, forHTTPHeaderField: key)
         }
+        
+        if self.body != nil {
+            request.HTTPBody = self.body
+        }
+        
         
         return request
     }
