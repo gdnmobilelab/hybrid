@@ -99,7 +99,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject], fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
         NSLog("HIT DID RECEIVE THING")
-        SharedSettings.storage.setValue("YES", forKey: "RECEIVE_EVENT_REACHED")
         completionHandler(UIBackgroundFetchResult.NewData)
     }
     

@@ -37,7 +37,6 @@
 		8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */; };
 		8A6C4E971DA560B4008429C0 /* NotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */; };
 		8A6C4E981DA5616D008429C0 /* NotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */; };
-		8A6C4E991DA5622E008429C0 /* NotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */; };
 		8A6EA5151D81F6D0003FDA00 /* JSCallbackWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5141D81F6D0003FDA00 /* JSCallbackWrapper.swift */; };
 		8A6EA5161D81F9EE003FDA00 /* JSCallbackWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5141D81F6D0003FDA00 /* JSCallbackWrapper.swift */; };
 		8A6EA5181D8200E7003FDA00 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5171D8200E7003FDA00 /* Notification.swift */; };
@@ -66,26 +65,9 @@
 		8AA112931D79E3CD001EC463 /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA112921D79E3CD001EC463 /* UserNotificationsUI.framework */; };
 		8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA112951D79E3CD001EC463 /* NotificationViewController.swift */; };
 		8AA1129D1D79E3CD001EC463 /* hybrid-notification-content.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 8AA1128F1D79E3CD001EC463 /* hybrid-notification-content.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		8AA2CBD31DB943E4004F95C3 /* StoredPushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */; };
 		8AB7EF211D9F155800176FAE /* Pods_notification_extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA86B1E9F949C6813A60BAB8 /* Pods_notification_extension.framework */; };
-		8AB7EF221D9F156100176FAE /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
-		8AB7EF231D9F156100176FAE /* promisified.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5F1D2D88F10032D588 /* promisified.swift */; };
-		8AB7EF241D9F156100176FAE /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24494A1D6F760300052D92 /* Util.swift */; };
-		8AB7EF251D9F156100176FAE /* fs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54D3641D806B7100592112 /* fs.swift */; };
-		8AB7EF261D9F156100176FAE /* JSCallbackWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5141D81F6D0003FDA00 /* JSCallbackWrapper.swift */; };
 		8AB7EF271D9F156100176FAE /* SharedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A933F661D87049500F9DC72 /* SharedSettings.swift */; };
-		8AB7EF281D9F156A00176FAE /* WebviewClientManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */; };
-		8AB7EF291D9F156A00176FAE /* ServiceWorkerInstance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8846051D30074500CF9369 /* ServiceWorkerInstance.swift */; };
-		8AB7EF2A1D9F156A00176FAE /* ServiceWorkerWebSql.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */; };
-		8AB7EF2B1D9F156A00176FAE /* TimeoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */; };
-		8AB7EF2C1D9F156A00176FAE /* ServiceWorkerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109A1D38179E00F44F38 /* ServiceWorkerManager.swift */; };
-		8AB7EF2D1D9F156A00176FAE /* ServiceWorkerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A878AC51D4A8F7600D31F85 /* ServiceWorkerCache.swift */; };
-		8AB7EF2E1D9F156A00176FAE /* GlobalFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */; };
-		8AB7EF2F1D9F156A00176FAE /* PromiseBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156D11D66402D0091995E /* PromiseBridge.swift */; };
-		8AB7EF301D9F156A00176FAE /* ServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */; };
-		8AB7EF311D9F156A00176FAE /* PushManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493E1D6CF71500052D92 /* PushManager.swift */; };
-		8AB7EF321D9F156A00176FAE /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ACCDCCE1D7A0CD700A137E1 /* Console.swift */; };
-		8AB7EF331D9F156A00176FAE /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5171D8200E7003FDA00 /* Notification.swift */; };
-		8AB7EF341D9F158B00176FAE /* MessageChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4A265E1D5A32930021B0A2 /* MessageChannel.swift */; };
 		8ACCDCCF1D7A0CD700A137E1 /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ACCDCCE1D7A0CD700A137E1 /* Console.swift */; };
 		8ACCDCD01D7A131900A137E1 /* ServiceWorkerInstance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8846051D30074500CF9369 /* ServiceWorkerInstance.swift */; };
 		8ACCDCD11D7A131900A137E1 /* ServiceWorkerWebSql.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */; };
@@ -234,6 +216,7 @@
 		8AA112921D79E3CD001EC463 /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
 		8AA112951D79E3CD001EC463 /* NotificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewController.swift; sourceTree = "<group>"; };
 		8AA1129A1D79E3CD001EC463 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoredPushEvent.swift; sourceTree = "<group>"; };
 		8ACCDCCE1D7A0CD700A137E1 /* Console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		8AD2834F1D55070000D2DF07 /* test-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "test-workers"; sourceTree = "<group>"; };
 		8AD283511D55076D00D2DF07 /* TestUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtil.swift; sourceTree = "<group>"; };
@@ -436,6 +419,7 @@
 				8A54D3641D806B7100592112 /* fs.swift */,
 				8A6EA5141D81F6D0003FDA00 /* JSCallbackWrapper.swift */,
 				8A933F661D87049500F9DC72 /* SharedSettings.swift */,
+				8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */,
 			);
 			name = shared;
 			sourceTree = "<group>";
@@ -951,25 +935,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8A6C4E991DA5622E008429C0 /* NotificationHandler.swift in Sources */,
-				8AB7EF341D9F158B00176FAE /* MessageChannel.swift in Sources */,
-				8AB7EF281D9F156A00176FAE /* WebviewClientManager.swift in Sources */,
-				8AB7EF291D9F156A00176FAE /* ServiceWorkerInstance.swift in Sources */,
-				8AB7EF2A1D9F156A00176FAE /* ServiceWorkerWebSql.swift in Sources */,
-				8AB7EF2B1D9F156A00176FAE /* TimeoutManager.swift in Sources */,
-				8AB7EF2C1D9F156A00176FAE /* ServiceWorkerManager.swift in Sources */,
-				8AB7EF2D1D9F156A00176FAE /* ServiceWorkerCache.swift in Sources */,
-				8AB7EF2E1D9F156A00176FAE /* GlobalFetch.swift in Sources */,
-				8AB7EF2F1D9F156A00176FAE /* PromiseBridge.swift in Sources */,
-				8AB7EF301D9F156A00176FAE /* ServiceWorkerRegistration.swift in Sources */,
-				8AB7EF311D9F156A00176FAE /* PushManager.swift in Sources */,
-				8AB7EF321D9F156A00176FAE /* Console.swift in Sources */,
-				8AB7EF331D9F156A00176FAE /* Notification.swift in Sources */,
-				8AB7EF221D9F156100176FAE /* db.swift in Sources */,
-				8AB7EF231D9F156100176FAE /* promisified.swift in Sources */,
-				8AB7EF241D9F156100176FAE /* Util.swift in Sources */,
-				8AB7EF251D9F156100176FAE /* fs.swift in Sources */,
-				8AB7EF261D9F156100176FAE /* JSCallbackWrapper.swift in Sources */,
 				8AB7EF271D9F156100176FAE /* SharedSettings.swift in Sources */,
 				8A7A49F51D91A991004C8253 /* NotificationService.swift in Sources */,
 			);
@@ -1009,6 +974,7 @@
 			files = (
 				8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */,
 				8A0156D01D65FCAE0091995E /* GlobalFetch.swift in Sources */,
+				8AA2CBD31DB943E4004F95C3 /* StoredPushEvent.swift in Sources */,
 				8A54109F1D381EF000F44F38 /* HybridWebView.swift in Sources */,
 				8A24493D1D6CF6F400052D92 /* ServiceWorkerRegistration.swift in Sources */,
 				8A2449421D6D0B6E00052D92 /* NotificationPermissionHandler.swift in Sources */,
