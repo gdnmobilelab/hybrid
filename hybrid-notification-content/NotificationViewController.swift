@@ -58,6 +58,31 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
 
     }
     
+    func checkForCanvas(userInfo:AnyObject, worker: ServiceWorkerInstance) {
+        
+        let options = userInfo["originalNotificationOptions"]!!
+        
+        
+        var hasCanvas = false
+        
+        if let specifiedValue = options["canvas"] as? Bool {
+            hasCanvas = specifiedValue
+        }
+        
+        if hasCanvas == false {
+            return
+        }
+        
+        var ratio:Float = 1.0
+        if let specifiedRatio = options["canvasRatio"] as? Float {
+            ratio = specifiedRatio
+        }
+        
+        let canvasView = CanvasView(width: Int(self.view.frame.width), ratio: ratio, worker: worker)
+        setFrame(canvasView)
+        self.notificationViews.append(canvasView)
+    }
+    
     private func setFrame(view:UIView, height:CGFloat? = nil) {
         let left = self.view.frame.minX
         var top = self.view.frame.minY
@@ -163,7 +188,8 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             ServiceWorkerInstance.getById(workerID)
             .then { sw in
                 return self.checkForImage(notification.request.content.userInfo, worker: sw!)
-                .then { _ in
+                .then { _ -> Promise<Void> in
+                    self.checkForCanvas(notification.request.content.userInfo, worker: sw!)
                     return self.recreateOriginalText(notification)
                 }
                 

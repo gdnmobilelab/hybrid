@@ -75,9 +75,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                     db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
                 })
 
-                 rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo")!)
+//                 rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo")!)
                 
-//                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo")!)
+                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo")!)
             }
             
             

@@ -238,6 +238,9 @@ public class ServiceWorkerInstance {
         self.jsContext.setObject(WebviewClient.self, forKeyedSubscript: "Client")
         self.jsContext.setObject(MessageEvent.self, forKeyedSubscript: "MessageEvent")
         self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
+        self.jsContext.setObject(OffscreenCanvas.self, forKeyedSubscript: "OffscreenCanvas")
+        self.jsContext.setObject(TwoDContext.self, forKeyedSubscript: "CanvasRenderingContext2D")
+        self.jsContext.setObject(ImageBitmap.self, forKeyedSubscript: "ImageBitmap")
     }
     
 
@@ -310,8 +313,17 @@ public class ServiceWorkerInstance {
         return self.jsContext.evaluateScript(js)
     }
     
-    func dispatchExtendableEvent(name: String, data: Mappable?) -> Promise<JSValue> {
-        return self.executeJSPromise("hybrid.dispatchExtendableEvent('" + name + "')")
+    func dispatchExtendableEvent(name: String, data: AnyObject?) -> Promise<JSValue?> {
+        
+        
+        let funcToRun = self.jsContext.objectForKeyedSubscript("hybrid")
+            .objectForKeyedSubscript("dispatchExtendableEvent")
+        
+            
+        let dispatch = data == nil ? funcToRun.callWithArguments([name]) : funcToRun.callWithArguments([name, data!])
+
+        
+        return PromiseBridge<JSValue>(jsPromise: dispatch)
 
     }
     

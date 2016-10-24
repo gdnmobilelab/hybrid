@@ -9,6 +9,8 @@ import './globals/cache';
 import './globals/clients';
 import './globals/push';
 import './globals/sw-registration';
+import './globals/canvas-rendering-context-2d';
+import './globals/image-bitmap';
 
 import './hybrid/promise-bridge';
 import './hybrid/dispatch-extended-event';

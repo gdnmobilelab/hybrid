@@ -80,6 +80,12 @@ declare class Client {
     postMessagePortsCallback(message:any, ports: MessagePort[], callback:Function):void;
 }
 
+declare class ImageBitmap {
+    width:number;
+    height:number;
+    
+}
+
 // declare var self: ServiceWorkerGlobalScope;
 
 declare module "websql/custom" {

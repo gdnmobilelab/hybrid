@@ -51,6 +51,16 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         
         // Don't show text in back button - it's causing some odd display problems
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
+        
+        let test = OffscreenCanvas(width: 200, height: 200)
+        test.getContext("2d")!.fillStyle = "#ff0000"
+        test.getContext("2d")!.fillRect(10, y: 10, width: 50, height: 50)
+        let image = test.getContext("2d")!.toImage()
+        
+        let uiI = UIImage(CGImage: image)
+        let uiIV = UIImageView(image: uiI)
+        self.view.addSubview(uiIV)
+        
     }
     
     func loadURL(urlToLoad:NSURL) {

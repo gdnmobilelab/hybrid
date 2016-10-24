@@ -122,6 +122,7 @@ class FetchSetupError : ErrorType {}
    
     func json(callback:JSValue, errorCallback: JSValue) -> Void
     func text(callback:JSValue, errorCallback: JSValue) -> Void
+    func blob(callback:JSValue, errorCallback:JSValue) -> Void
     var bodyUsed:Bool {get}
 }
 
@@ -167,6 +168,13 @@ class FetchSetupError : ErrorType {}
         }
     
     }
+    
+    func blob(callback: JSValue, errorCallback:JSValue) {
+        self.wrapInCallbacks(callback, errorCallback: errorCallback) { _ in
+            self.bodyUsed = true
+            return self.data!
+        }
+    }
 }
 
 @objc protocol FetchRequestExports : FetchBodyExports, JSExport {
@@ -180,11 +188,11 @@ class FetchSetupError : ErrorType {}
     var url:String
     var method:String
     var headers:FetchHeaders
-    var body: NSData?
-    
    
     required public init(url:String, options: [String: AnyObject]?)  {
         self.url = url
+        
+        var data:NSData? = nil
         
         if let opts = options {
             self.method = opts["method"] as! String
@@ -200,7 +208,7 @@ class FetchSetupError : ErrorType {}
             }
             
             if let body = opts["body"] as? String {
-                self.body = body.dataUsingEncoding(NSUTF8StringEncoding)
+                data = body.dataUsingEncoding(NSUTF8StringEncoding)
             }
             
             
@@ -209,6 +217,10 @@ class FetchSetupError : ErrorType {}
             self.headers = FetchHeaders()
         }
         
+        super.init()
+        if data != nil {
+            self.data = data!
+        }
     }
     
     var referrer:String? {
@@ -229,8 +241,8 @@ class FetchSetupError : ErrorType {}
             request.setValue(allValsJoined, forHTTPHeaderField: key)
         }
         
-        if self.body != nil {
-            request.HTTPBody = self.body
+        if self.data != nil {
+            request.HTTPBody = self.data
         }
         
         
@@ -240,8 +252,6 @@ class FetchSetupError : ErrorType {}
 
 @objc protocol FetchResponseExports : FetchBodyExports, JSExport {
     init(body:AnyObject?, options: [String:AnyObject]?)
-    
-//    func json(callback: JSValue, errorCallback: JSValue)
 }
 
 class FetchResponseBodyTypeNotRecognisedError : ErrorType {}
@@ -262,6 +272,8 @@ class FetchResponseBodyTypeNotRecognisedError : ErrorType {}
         
         
     }
+    
+    
     
     
     required public init(body: AnyObject?, options: [String:AnyObject]?) {
