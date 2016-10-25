@@ -26,6 +26,11 @@
 		8A3A74F01D5E0B9400A7940C /* ServiceWorkerAPISpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3A74EF1D5E0B9400A7940C /* ServiceWorkerAPISpec.swift */; };
 		8A4A265F1D5A32930021B0A2 /* MessageChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4A265E1D5A32930021B0A2 /* MessageChannel.swift */; };
 		8A4A26611D5A3B890021B0A2 /* MessageChannelSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4A26601D5A3B890021B0A2 /* MessageChannelSpec.swift */; };
+		8A5283B71DBE5B6D00EB0886 /* PayloadToNotificationContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283B61DBE5B6D00EB0886 /* PayloadToNotificationContent.swift */; };
+		8A5283B81DBE754500EB0886 /* PayloadToNotificationContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283B61DBE5B6D00EB0886 /* PayloadToNotificationContent.swift */; };
+		8A5283B91DBE893E00EB0886 /* GlobalFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */; };
+		8A5283BA1DBE898F00EB0886 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24494A1D6F760300052D92 /* Util.swift */; };
+		8A5283BB1DBE98B200EB0886 /* PayloadToNotificationContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283B61DBE5B6D00EB0886 /* PayloadToNotificationContent.swift */; };
 		8A54109B1D38179E00F44F38 /* ServiceWorkerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109A1D38179E00F44F38 /* ServiceWorkerManager.swift */; };
 		8A54109D1D3819DE00F44F38 /* ServiceWorkerManagerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109C1D3819DE00F44F38 /* ServiceWorkerManagerSpec.swift */; };
 		8A54109F1D381EF000F44F38 /* HybridWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109E1D381EF000F44F38 /* HybridWebView.swift */; };
@@ -180,6 +185,7 @@
 		8A4A265E1D5A32930021B0A2 /* MessageChannel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageChannel.swift; sourceTree = "<group>"; };
 		8A4A26601D5A3B890021B0A2 /* MessageChannelSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageChannelSpec.swift; sourceTree = "<group>"; };
 		8A4BB68D1D9D59BE00A1DCBD /* notification-extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "notification-extension.entitlements"; sourceTree = "<group>"; };
+		8A5283B61DBE5B6D00EB0886 /* PayloadToNotificationContent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PayloadToNotificationContent.swift; sourceTree = "<group>"; };
 		8A54109A1D38179E00F44F38 /* ServiceWorkerManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerManager.swift; sourceTree = "<group>"; };
 		8A54109C1D3819DE00F44F38 /* ServiceWorkerManagerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerManagerSpec.swift; sourceTree = "<group>"; };
 		8A54109E1D381EF000F44F38 /* HybridWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridWebView.swift; sourceTree = "<group>"; };
@@ -420,6 +426,7 @@
 				8A6EA5141D81F6D0003FDA00 /* JSCallbackWrapper.swift */,
 				8A933F661D87049500F9DC72 /* SharedSettings.swift */,
 				8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */,
+				8A5283B61DBE5B6D00EB0886 /* PayloadToNotificationContent.swift */,
 			);
 			name = shared;
 			sourceTree = "<group>";
@@ -937,6 +944,9 @@
 			files = (
 				8AB7EF271D9F156100176FAE /* SharedSettings.swift in Sources */,
 				8A7A49F51D91A991004C8253 /* NotificationService.swift in Sources */,
+				8A5283BA1DBE898F00EB0886 /* Util.swift in Sources */,
+				8A5283B81DBE754500EB0886 /* PayloadToNotificationContent.swift in Sources */,
+				8A5283B91DBE893E00EB0886 /* GlobalFetch.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -962,6 +972,7 @@
 				8ACCDCD71D7A131900A137E1 /* PromiseBridge.swift in Sources */,
 				8A933F681D87049500F9DC72 /* SharedSettings.swift in Sources */,
 				8ACCDCD81D7A131900A137E1 /* ServiceWorkerRegistration.swift in Sources */,
+				8A5283BB1DBE98B200EB0886 /* PayloadToNotificationContent.swift in Sources */,
 				8ACCDCD91D7A131900A137E1 /* PushManager.swift in Sources */,
 				8ACCDCDA1D7A131900A137E1 /* Console.swift in Sources */,
 				8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */,
@@ -996,6 +1007,7 @@
 				8AEEDE5C1D26CF450032D588 /* db.swift in Sources */,
 				8A932BD71D5A668500FA15F8 /* MessageChannelManager.swift in Sources */,
 				8A8846061D30074500CF9369 /* ServiceWorkerInstance.swift in Sources */,
+				8A5283B71DBE5B6D00EB0886 /* PayloadToNotificationContent.swift in Sources */,
 				8A7786391D5B98130062E12B /* ScriptMessageHandler.swift in Sources */,
 				8A77863D1D5D1C520062E12B /* ServiceWorkerAPI.swift in Sources */,
 				8A6C4E971DA560B4008429C0 /* NotificationHandler.swift in Sources */,

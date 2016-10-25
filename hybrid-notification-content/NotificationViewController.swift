@@ -32,27 +32,30 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         }
     }
     
-    func checkForImage(userInfo: AnyObject, worker: ServiceWorkerInstance) -> Promise<Void> {
-        let imageURL = userInfo["image"] as? String
+    func checkForImage(attachments: [UNNotificationAttachment], worker: ServiceWorkerInstance) {
+        NSLog(String(attachments.count) + " attachments")
+        let image = attachments.filter { attachment in
+            return attachment.identifier == "image"
+            }.first
         
-        if imageURL == nil {
-            return Promise<Void>()
-        }
-        
-        return self.fetchURLFromWorker(worker, url: imageURL!)
-        .then { data -> Void in
-            let img = UIImage(data: data!, scale: UIScreen.mainScreen().scale)
+        if image != nil && image!.URL.startAccessingSecurityScopedResource() {
+            
+            let imgData = NSData(contentsOfURL: image!.URL)!
+            
+            let img = UIImage(data: imgData)
+            
             let imageView = UIImageView(image: img)
             imageView.contentMode = UIViewContentMode.ScaleAspectFit
             
-            let proportion = imageView.frame.width / self.view.frame.width
-            
-            imageView.widthAnchor.constraintEqualToAnchor(self.view.widthAnchor, multiplier: 1)
-            imageView.heightAnchor.constraintEqualToAnchor(imageView.widthAnchor, multiplier: proportion)
-            self.setFrame(imageView)
+            let proportion = img!.size.width / self.view.frame.width
+          
+//            imageView.widthAnchor.constraintEqualToAnchor(self.view.widthAnchor, multiplier: 1)
+//            imageView.heightAnchor.constraintEqualToAnchor(imageView.widthAnchor, multiplier: proportion)
+            self.setFrame(imageView, height: img!.size.height / proportion)
             self.notificationViews.append(imageView)
             
             
+            image!.URL.stopAccessingSecurityScopedResource()
             
         }
 
@@ -75,33 +78,28 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         
         var targetWidth = textContainer.frame.width - 30
         
-        let icon = notification.request.content.userInfo["originalNotificationOptions"]?["icon"] as? String
+        let icon = notification.request.content.attachments.filter { attachment in
+            return attachment.identifier == "icon"
+        }.first
         
-        UNUserNotificationCenter.currentNotificationCenter()
+//        UNUserNotificationCenter.currentNotificationCenter()
        
-        if icon != nil {
+        if icon != nil && icon!.URL.startAccessingSecurityScopedResource() {
             
+            targetWidth = targetWidth - 90
             
-            if notification.request.content.attachments.first!.URL.startAccessingSecurityScopedResource() {
-                targetWidth = targetWidth - 90
-                
-                let imgData = NSData(contentsOfURL: notification.request.content.attachments.first!.URL)!
-                
-                let img = UIImage(data: imgData)
-                
-                let imgView = UIImageView(image: img)
-                imgView.contentMode = UIViewContentMode.ScaleAspectFit
-                imgView.frame = CGRect(x: textContainer.frame.width - 75, y: 15, width: 60, height: 60)
-                textContainer.addSubview(imgView)
+            let imgData = NSData(contentsOfURL: icon!.URL)!
+            
+            let img = UIImage(data: imgData)
+            
+            let imgView = UIImageView(image: img)
+            imgView.contentMode = UIViewContentMode.ScaleAspectFit
+            imgView.frame = CGRect(x: textContainer.frame.width - 75, y: 15, width: 60, height: 60)
+            textContainer.addSubview(imgView)
 
-                
-                notification.request.content.attachments.first!.URL.stopAccessingSecurityScopedResource()
-                
-            }
             
-            
-          
-  
+            icon!.URL.stopAccessingSecurityScopedResource()
+
         }
         
         
@@ -111,7 +109,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         title.frame.origin.x = 15
         title.frame.origin.y = 15
         let desc = title.font.fontDescriptor().fontDescriptorWithSymbolicTraits(UIFontDescriptorSymbolicTraits.TraitBold)
-        title.font = UIFont(descriptor: desc!, size: 0)
+        title.font = UIFont(descriptor: desc!, size: UIFont.labelFontSize())
         title.sizeToFit()
 //        self.setFrame(title)
 //        self.notificationViews.append(title)
@@ -146,7 +144,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         // sequentially. So we need to keep our own record of the latest.
         latestUserInfo = notification.request.content.userInfo
         
-        let workerID = notification.request.content.userInfo[ServiceWorkerRegistration.WORKER_ID] as! Int
+        let scope = notification.request.content.userInfo["serviceWorkerScope"] as! String
         do {
             // We don't run inside the app, so we need to make our DB instance
             try Db.createMainDatabase()
@@ -160,12 +158,10 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             self.notificationViews.removeAll()
             
             
-            ServiceWorkerInstance.getById(workerID)
-            .then { sw in
-                return self.checkForImage(notification.request.content.userInfo, worker: sw!)
-                .then { _ in
-                    return self.recreateOriginalText(notification)
-                }
+            ServiceWorkerManager.getServiceWorkerForURL(NSURL(string: scope)!)
+            .then { sw -> Promise<Void> in
+                self.checkForImage(notification.request.content.attachments, worker: sw!)
+                return self.recreateOriginalText(notification)
                 
             }
             

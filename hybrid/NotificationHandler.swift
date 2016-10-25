@@ -66,7 +66,7 @@ class NotificationHandler {
         notification.image = notificationData["image"]
         notification.data = notificationData["data"]
         
-        let workerID = userInfo[ServiceWorkerRegistration.WORKER_ID] as! Int
+        let workerScope = userInfo["serviceWorkerScope"] as! String
         
         var action = ""
         
@@ -89,7 +89,7 @@ class NotificationHandler {
             
             let cb = JSCallbackWrapper(callbackFunc: returnFunc)
             
-            ServiceWorkerInstance.getById(workerID)
+            ServiceWorkerManager.getServiceWorkerForURL(NSURL(string:workerScope)!)
                 .then { sw -> Void in
                     
                     let jsFuncToRun = sw!.jsContext.objectForKeyedSubscript("hybrid")

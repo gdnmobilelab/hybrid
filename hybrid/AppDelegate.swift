@@ -68,17 +68,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             let rootController = HybridNavigationController.create()
             
-            if AppDelegate.runningInTests == false {
-                // todo: remove
-                ServiceWorkerManager.clearActiveServiceWorkers()
-                try Db.mainDatabase.inDatabase({ (db) in
-                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
-                })
-
-                 rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo")!)
-                
+//            if AppDelegate.runningInTests == false {
+//                // todo: remove
+//                ServiceWorkerManager.clearActiveServiceWorkers()
+//                try Db.mainDatabase.inDatabase({ (db) in
+//                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
+//                })
+//
+//
+//                
 //                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo")!)
-            }
+//            }
+            
+            rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo")!)
             
             
             AppDelegate.rootController = rootController
