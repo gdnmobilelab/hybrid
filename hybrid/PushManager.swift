@@ -45,6 +45,16 @@ import JavaScriptCore
         })
     }
     
+    static func isAPNSSandbox() -> Bool {
+        let testURL = NSBundle.mainBundle().appStoreReceiptURL
+        
+        if testURL == nil {
+            return false
+        }
+        
+        return testURL!.path!.containsString("sandboxReceipt")
+    }
+    
     override required init() {
         super.init()
     }
@@ -61,7 +71,8 @@ import JavaScriptCore
         let returnObj = [
             "platform": "iOS",
             "bundle_name": appName,
-            "device_id" : PushManager.deviceToken!
+            "device_id" : PushManager.deviceToken!,
+            "sandbox": PushManager.isAPNSSandbox()
         ]
         
         success.callWithArguments([returnObj])

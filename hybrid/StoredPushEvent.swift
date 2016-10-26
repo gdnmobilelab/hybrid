@@ -8,74 +8,94 @@
 
 import Foundation
 
-class StoredPushEvent : NSObject, NSCoding {
-    var serviceWorkerUrl: NSURL
-    var payload: AnyObject
+// We can't act on these push payloads immediately because the notification extension doesn't
+// have enough memory to launch a service worker. Instead, we store the payload to be accessed
+// the next time we fire up a worker, either in the notification content controller, or in the
+// app itself.
+
+@objc class StoredPushEvent : NSObject, NSCoding {
+    var serviceWorkerScope: String
+    var payload: String
     var dateAdded: NSDate
+    var uuid:String
     
     func encodeWithCoder(aCoder: NSCoder) {
         
-        aCoder.encodeObject(self.serviceWorkerUrl, forKey: "service_worker_url")
+        aCoder.encodeObject(self.serviceWorkerScope, forKey: "service_worker_scope")
         aCoder.encodeObject(self.dateAdded, forKey: "date_added")
-        
-        do {
-            let payloadData = try NSJSONSerialization.dataWithJSONObject(self.payload, options: [])
-            aCoder.encodeObject(payloadData, forKey: "payload_data")
-        } catch {
-            log.error("Failed to serialize payload data.")
-        }
-        
+        aCoder.encodeObject(self.payload, forKey: "payload")
+        aCoder.encodeObject(self.uuid, forKey: "uuid")
     }
     
-    init(serviceWorkerUrl:NSURL, payload:AnyObject, date:NSDate) {
+    init(serviceWorkerScope:String, payload:String, date:NSDate, uuid: String = NSUUID().UUIDString) {
         self.dateAdded = date
-        self.serviceWorkerUrl = serviceWorkerUrl
+        self.serviceWorkerScope = serviceWorkerScope
         self.payload = payload
+        self.uuid = uuid
     }
     
     required convenience init(coder decoder: NSCoder) {
         let dateAdded = decoder.decodeObjectForKey("date_added") as! NSDate
-        let serviceWorkerURL = decoder.decodeObjectForKey("service_worker_url") as! NSURL
-        let payloadData = decoder.decodeObjectForKey("payload_data") as! NSData
+        let serviceWorkerScope = decoder.decodeObjectForKey("service_worker_scope") as! String
+        let payload = decoder.decodeObjectForKey("payload") as! String
+        let uuid = decoder.decodeObjectForKey("uuid") as! String
         
-        var payload:NSData? = nil
-        
-        do {
-            payload = try NSJSONSerialization.JSONObjectWithData(payloadData, options: []) as? NSData
-        } catch {
-            log.error("Failed to deserialize payload")
-        }
-        
-        self.init(serviceWorkerUrl: serviceWorkerURL, payload: payload!, date: dateAdded)
+        self.init(serviceWorkerScope: serviceWorkerScope, payload: payload, date: dateAdded, uuid: uuid)
     }
 }
 
 class PushEventStore {
     static func getAll() -> [StoredPushEvent] {
-        var stored = SharedSettings.storage.objectForKey("stored_push_events") as? [StoredPushEvent]
+       
+        NSKeyedUnarchiver.setClass(StoredPushEvent.self, forClassName: "StoredPushEvent")
         
-
-        if stored == nil {
-            return []
-        } else {
-            stored = stored!.sort({ (el1, el2) -> Bool in
+         if let storedData = SharedSettings.storage.dataForKey("stored_push_events") {
+            var stored = NSKeyedUnarchiver.unarchiveObjectWithData(storedData) as! [StoredPushEvent]
+            
+            stored = stored.sort({ (el1, el2) -> Bool in
                 return el1.dateAdded.compare(el2.dateAdded) == NSComparisonResult.OrderedAscending
             })
-            return stored!
+            
+            return stored
         }
+        
+        return []
+        
+       
     }
     
-    static func getByWorkerURL(workerURL:NSURL) -> [StoredPushEvent] {
+    static func getByWorkerScope(workerScope:String) -> [StoredPushEvent] {
         let all = PushEventStore.getAll()
         
         return all.filter({ (pushEvent) -> Bool in
-            return pushEvent.serviceWorkerUrl == workerURL
+            return pushEvent.serviceWorkerScope == workerScope
         })
     }
     
+    static private func set(events: [StoredPushEvent]) {
+        SharedSettings.storage.setObject(NSKeyedArchiver.archivedDataWithRootObject(events), forKey: "stored_push_events")
+    }
+    
     static func add(pushEvent:StoredPushEvent) {
+        NSKeyedArchiver.setClassName("StoredPushEvent", forClass: StoredPushEvent.self)
+        
         var all = PushEventStore.getAll()
         all.append(pushEvent)
-        SharedSettings.storage.setObject(all, forKey: "stored_push_events")
+        
+        self.set(all)
+    }
+    
+    static func remove(pushEvent:StoredPushEvent) {
+        var all = PushEventStore.getAll()
+        let indexOfThisOne = all.indexOf { thisEvent in
+            return pushEvent.uuid == thisEvent.uuid
+        }
+        
+        all.removeAtIndex(indexOfThisOne!)
+        self.set(all)
+    }
+    
+    static func removeAll() {
+        SharedSettings.storage.removeObjectForKey("stored_push_events")
     }
  }

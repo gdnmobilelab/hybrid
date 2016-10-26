@@ -66,6 +66,8 @@
 		8A933F681D87049500F9DC72 /* SharedSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A933F661D87049500F9DC72 /* SharedSettings.swift */; };
 		8A933F8B1D87262900F9DC72 /* js-dist in Resources */ = {isa = PBXBuildFile; fileRef = D38116391CD5AE96004A3CCD /* js-dist */; };
 		8A933F8F1D874B5700F9DC72 /* WebviewClientManagerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A933F8E1D874B5700F9DC72 /* WebviewClientManagerSpec.swift */; };
+		8A9D71151DC0F7F800375365 /* StoredPushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */; };
+		8A9D71161DC12B9100375365 /* StoredPushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */; };
 		8AA112911D79E3CD001EC463 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA112901D79E3CD001EC463 /* UserNotifications.framework */; };
 		8AA112931D79E3CD001EC463 /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA112921D79E3CD001EC463 /* UserNotificationsUI.framework */; };
 		8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA112951D79E3CD001EC463 /* NotificationViewController.swift */; };
@@ -677,7 +679,7 @@
 								enabled = 1;
 							};
 							com.apple.BackgroundModes = {
-								enabled = 1;
+								enabled = 0;
 							};
 							com.apple.Push = {
 								enabled = 1;
@@ -947,6 +949,7 @@
 				8A5283BA1DBE898F00EB0886 /* Util.swift in Sources */,
 				8A5283B81DBE754500EB0886 /* PayloadToNotificationContent.swift in Sources */,
 				8A5283B91DBE893E00EB0886 /* GlobalFetch.swift in Sources */,
+				8A9D71151DC0F7F800375365 /* StoredPushEvent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -956,6 +959,7 @@
 			files = (
 				8A6C4E981DA5616D008429C0 /* NotificationHandler.swift in Sources */,
 				8A933F651D8214F200F9DC72 /* Notification.swift in Sources */,
+				8A9D71161DC12B9100375365 /* StoredPushEvent.swift in Sources */,
 				8A6EA5161D81F9EE003FDA00 /* JSCallbackWrapper.swift in Sources */,
 				8A54D3661D806BE800592112 /* fs.swift in Sources */,
 				8ACCDCE31D7A323800A137E1 /* WebviewClientManager.swift in Sources */,
