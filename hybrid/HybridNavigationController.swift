@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import PromiseKit
 
 class HybridNavigationController : UINavigationController, UINavigationControllerDelegate {
     
@@ -45,6 +46,10 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             self.applyMetadata(top!.currentMetadata!)
         }
         
+        if top != nil {
+            top!.fiddleContentInsets()
+        }
+        
         return poppedController
     }
     
@@ -54,47 +59,95 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         if inWaitingArea != nil {
             return inWaitingArea as! HybridWebviewController
         }
-        return HybridWebviewController(navController: self)
+        let newController = HybridWebviewController()
+        return newController
     }
     
     func addControllerToWaitingArea(controller: HybridWebviewController) {
-        self.waitingArea.pushViewController(controller, animated: false)
         
+        self.waitingArea.viewControllers.append(controller)
+
         // Reset our webview with a new request to the placeholder
         
         let components = NSURLComponents(string: "http://localhost/__placeholder")!
         components.port = WebServer.current!.port
         controller.webview!.loadRequest(NSURLRequest(URL: components.URL!))
+        
+
     }
     
-    func pushNewHybridWebViewControllerFor(url:NSURL) {
+    private func prepareWebviewFor(url:NSURL) -> Promise<HybridWebviewController> {
         let startRequestTime = NSDate().timeIntervalSince1970
         let newInstance = self.getNewController()
         
-        newInstance.events.once("ready", { _ in
-            if let meta = newInstance.currentMetadata {
-                self.applyMetadata(meta)
+        var hasFiredReady = false
+        
+        return Promise<HybridWebviewController> { fulfill, reject in
+            newInstance.events.once("ready", { _ in
+                hasFiredReady = true
+                if let meta = newInstance.currentMetadata {
+                    self.applyMetadata(meta)
+                }
+                
+                let readyTime = NSDate().timeIntervalSince1970
+                
+                NSLog("LOADED IN " + String(readyTime - startRequestTime))
+                
+                newInstance.prepareHeaderControls(self.viewControllers.count > 0)
+                
+                fulfill(newInstance)
+            })
+            
+            newInstance.loadURL(url)
+            
+            // Every now and then a view just doesn't load, for reasons that aren't clear.
+            // So if it hasn't loaded within a second, push it anyway.
+            
+            let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(1 * Double(NSEC_PER_SEC)))
+            dispatch_after(delayTime, dispatch_get_main_queue()) {
+                if hasFiredReady == false {
+//                    newInstance.events.emit("ready", newInstance)
+                }
             }
             
-            let readyTime = NSDate().timeIntervalSince1970
             
-            NSLog("LOADED IN " + String(readyTime - startRequestTime))
+
+        }
+        
+    }
+    
+    func pushNewHybridWebViewControllerFor(url:NSURL) {
+        
+        self.prepareWebviewFor(url)
+        .then { newInstance -> Void in
             
             self.pushViewController(newInstance, animated: true)
+            newInstance.events.once("popped", self.addControllerToWaitingArea)
             newInstance.fiddleContentInsets()
             
             if self.launchViewController != nil {
                 UIView.animateWithDuration(0.2, animations: {
                     self.launchViewController!.view.transform = CGAffineTransformMakeScale(4, 4)
                     self.launchViewController!.view.alpha = 0
-                }, completion: { finished in
-                    self.launchViewController!.view.removeFromSuperview()
-                    self.launchViewController = nil
+                    }, completion: { finished in
+                        self.launchViewController!.view.removeFromSuperview()
+                        self.launchViewController = nil
                 })
             }
-        })
+                
+        }
         
-        newInstance.loadURL(url)
+    }
+    
+    
+    func popToNewHybridWebViewControllerFor(url:NSURL) {
+        self.prepareWebviewFor(url)
+        .then { newInstance -> Void in
+            newInstance.prepareHeaderControls(self.viewControllers.count > 1)
+            self.viewControllers.insert(newInstance, atIndex: self.viewControllers.count - 1)
+            newInstance.fiddleContentInsets()
+            self.popViewControllerAnimated(true)
+        }
     }
     
     func applyMetadata(metadata:HybridWebviewMetadata) {
@@ -134,8 +187,32 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         // Ensure we have a cached view ready to go
         
         if self.waitingArea.viewControllers.count == 0 {
-            self.addControllerToWaitingArea(HybridWebviewController(navController: self))
+            
+            // We put this behind a timer because for some reason the title text
+            // of the recently pushed view sometimes disappears if we don't. Hooray
+            // weird, inconsistent bugs!
+            
+            
+            let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(1 * Double(NSEC_PER_SEC)))
+            dispatch_after(delayTime, dispatch_get_main_queue()) {
+                self.addControllerToWaitingArea(HybridWebviewController())
+
+            }
         }
+        
+        if self.viewControllers.indexOf(viewController) > 0 {
+            return
+        }
+        
+        let hybrid = viewController as! HybridWebviewController
+        
+        if hybrid.currentMetadata?.defaultBackURL == nil {
+            return
+        }
+        
+        let underneathView = self.getNewController()
+        self.viewControllers.insert(underneathView, atIndex: 0)
+        underneathView.loadURL(NSURL(string:hybrid.currentMetadata!.defaultBackURL!, relativeToURL: hybrid.webview!.URL!)!)
     }
     
     private var statusBarStyle = UIStatusBarStyle.Default

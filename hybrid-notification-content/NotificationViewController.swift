@@ -137,21 +137,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         
     }
     
-    func processPendingPushEvents(sw:ServiceWorkerInstance) -> Promise<Void> {
-       
-        let pendingPushes = PushEventStore.getByWorkerScope(sw.scope.absoluteString!)
-        
-        let processPromises = pendingPushes.map { push in
-            return sw.dispatchPushEvent(push.payload)
-                .then {
-                    PushEventStore.remove(push)
-            }
-            
-        }
-            
-        return when(processPromises)
-        
-    }
+    
     
 
     func didReceiveNotification(notification: UNNotification) {
@@ -176,13 +162,8 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             
             ServiceWorkerManager.getServiceWorkerForURL(NSURL(string: scope)!)
             .then { sw -> Promise<Void> in
-                return self.processPendingPushEvents(sw!)
-                .then {
-                    self.checkForImage(notification.request.content.attachments, worker: sw!)
-                    return self.recreateOriginalText(notification)
-                }
-                
-                
+                self.checkForImage(notification.request.content.attachments, worker: sw!)
+                return self.recreateOriginalText(notification)
             }
             
             .then { _ -> Void in

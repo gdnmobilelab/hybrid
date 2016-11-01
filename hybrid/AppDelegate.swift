@@ -41,6 +41,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             PushManager.listenForDeviceToken()
             
+            // This should be reset anyway (it's done on terminate) but if a user force-closes then it won't be.
+            // So let's make doubly-sure.
+            
+            WebviewClientManager.resetActiveWebviewRecords()
+            
             application.registerForRemoteNotifications()
                        
             // Copy over js-dist. Future improvements might be to allow this to be updated over the wire
@@ -68,19 +73,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             let rootController = HybridNavigationController.create()
             
-//            if AppDelegate.runningInTests == false {
-//                // todo: remove
+            if AppDelegate.runningInTests == false {
+                // todo: remove
 //                ServiceWorkerManager.clearActiveServiceWorkers()
 //                try Db.mainDatabase.inDatabase({ (db) in
 //                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
 //                })
-//
-//
-//                
-//                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo")!)
+
+
+                
+                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo")!)
+            }
+//            
+//            if PendingNotificationActions.urlToOpen == nil {
+//                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo")!)
 //            }
-            
-            rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo")!)
             
             
             AppDelegate.rootController = rootController
@@ -99,11 +106,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
     }
     
-    func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject], fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
-        NSLog("HIT DID RECEIVE THING")
-        completionHandler(UIBackgroundFetchResult.NewData)
-    }
-    
+//    func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject], fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
+//        NSLog("HIT DID RECEIVE THING")
+//        completionHandler(UIBackgroundFetchResult.NewData)
+//    }
+//    
 
 
     func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {
@@ -133,13 +140,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func applicationDidBecomeActive(application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        
+        NSLog("Became active")
+        
+        // There's a chance that some push events have arrived while the app has been inactive. So let's make sure
+        // all of our active workers are up to date.
+        
+        ServiceWorkerManager.currentlyActiveServiceWorkers.forEach { (workerID, worker) in
+            worker.processPendingPushEvents()
+        }
+        
     }
     
     func applicationWillTerminate(application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 //        WebServer.current!.stop()
         NSLog("Did Terminate")
+        
+        // We need to clear out the records of active webviews, because they're dead now. And if a notification tries to claim
+        // it,
+        WebviewClientManager.resetActiveWebviewRecords()
     }
     
     

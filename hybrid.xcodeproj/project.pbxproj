@@ -68,6 +68,7 @@
 		8A933F8F1D874B5700F9DC72 /* WebviewClientManagerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A933F8E1D874B5700F9DC72 /* WebviewClientManagerSpec.swift */; };
 		8A9D71151DC0F7F800375365 /* StoredPushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */; };
 		8A9D71161DC12B9100375365 /* StoredPushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */; };
+		8A9D71181DC27DAD00375365 /* BackButtonSymbol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A9D71171DC27DAD00375365 /* BackButtonSymbol.swift */; };
 		8AA112911D79E3CD001EC463 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA112901D79E3CD001EC463 /* UserNotifications.framework */; };
 		8AA112931D79E3CD001EC463 /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA112921D79E3CD001EC463 /* UserNotificationsUI.framework */; };
 		8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA112951D79E3CD001EC463 /* NotificationViewController.swift */; };
@@ -219,6 +220,7 @@
 		8A932BD61D5A668500FA15F8 /* MessageChannelManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageChannelManager.swift; sourceTree = "<group>"; };
 		8A933F661D87049500F9DC72 /* SharedSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharedSettings.swift; sourceTree = "<group>"; };
 		8A933F8E1D874B5700F9DC72 /* WebviewClientManagerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebviewClientManagerSpec.swift; sourceTree = "<group>"; };
+		8A9D71171DC27DAD00375365 /* BackButtonSymbol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackButtonSymbol.swift; sourceTree = "<group>"; };
 		8AA1128F1D79E3CD001EC463 /* hybrid-notification-content.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "hybrid-notification-content.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AA112901D79E3CD001EC463 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		8AA112921D79E3CD001EC463 /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
@@ -322,6 +324,7 @@
 				8A54109E1D381EF000F44F38 /* HybridWebView.swift */,
 				8A2449461D6F374C00052D92 /* HybridWebviewController.swift */,
 				8A2449481D6F676700052D92 /* HybridNavigationController.swift */,
+				8A9D71171DC27DAD00375365 /* BackButtonSymbol.swift */,
 			);
 			name = native;
 			sourceTree = "<group>";
@@ -645,7 +648,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0800;
-				LastUpgradeCheck = 0800;
+				LastUpgradeCheck = 0810;
 				ORGANIZATIONNAME = "Alastair Coote";
 				TargetAttributes = {
 					8A7A49F11D91A991004C8253 = {
@@ -1016,6 +1019,7 @@
 				8A77863D1D5D1C520062E12B /* ServiceWorkerAPI.swift in Sources */,
 				8A6C4E971DA560B4008429C0 /* NotificationHandler.swift in Sources */,
 				8A7786341D5B74E30062E12B /* ConsoleManager.swift in Sources */,
+				8A9D71181DC27DAD00375365 /* BackButtonSymbol.swift in Sources */,
 				8A2449441D6E118300052D92 /* NotificationDelegate.swift in Sources */,
 				8A6EA5181D8200E7003FDA00 /* Notification.swift in Sources */,
 				8A2449491D6F676700052D92 /* HybridNavigationController.swift in Sources */,

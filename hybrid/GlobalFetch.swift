@@ -224,7 +224,6 @@ class FetchSetupError : ErrorType {}
         request.HTTPMethod = self.method
         
         for key in self.headers.keys() {
-            NSLog("Add header " + key)
             let allValsJoined = self.headers.getAll(key)?.joinWithSeparator(",")
             request.setValue(allValsJoined, forHTTPHeaderField: key)
         }

@@ -14,20 +14,10 @@ import WebKit
 
 class HybridWebviewController : UIViewController, WKNavigationDelegate {
     
-    private var observeContext = 0
-    private var progressContext = 0
-    private var isObserving = false
-    
     var currentMetadata:HybridWebviewMetadata?
     
-    private enum LoadState {
-        case InitialRequest
-        case BeneathInitialSize
-        case PossiblyReady
-    }
     
-    let events = Event<AnyObject>()
-    private var loadState:LoadState
+    let events = Event<HybridWebviewController>()
     
     var webview:HybridWebview? {
         get {
@@ -36,11 +26,16 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     }
     
    
-    let hybridNavigationController:HybridNavigationController
+//    let hybridNavigationController:HybridNavigationController
     
-    init(navController: HybridNavigationController) {
-        self.loadState = LoadState.InitialRequest
-        self.hybridNavigationController = navController
+    var hybridNavigationController:HybridNavigationController? {
+        get {
+            return self.navigationController as? HybridNavigationController
+        }
+    }
+
+    
+    init() {
         super.init(nibName: nil, bundle: nil)
         
         self.view = HybridWebview(frame: self.view.frame)
@@ -53,12 +48,13 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
     }
     
+    
     func loadURL(urlToLoad:NSURL) {
         self.checkIfURLInsideServiceWorker(urlToLoad)
         .then { (url, sw) -> Promise<Void> in
             
             
-            if self.webview!.URL == nil || self.webview!.URL!.host != "localhost" {
+            if self.webview!.URL == nil || self.webview!.URL!.host != "localhost" || self.webview!.URL!.path!.containsString("__placeholder") {
                 self.webview!.loadRequest(NSURLRequest(URL: url))
                 self.view = self.webview
                 return Promise<Void>()
@@ -101,8 +97,8 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
                 
                 
             }
-            .then {
-                self.events.emit("ready", "test")
+            .then { () -> Void in
+                self.events.emit("ready", self)
             }
             
             
@@ -111,6 +107,27 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         .error {err in
             self.webview!.loadRequest(NSURLRequest(URL: urlToLoad))
         }
+    }
+    
+    func prepareHeaderControls(alreadyHasBackControl:Bool) {
+        
+        // We've included the ability for webviews to specify a default "back" URL, but if
+        // we already have a back control then we don't need to use it.
+        
+//        if alreadyHasBackControl == true || self.currentMetadata?.defaultBackURL == nil {
+//            self.navigationItem.leftBarButtonItem = nil
+//            return
+//        }
+//        
+//        let backTo = BackButtonSymbol(onTap: self.popToCustomBackWebView)
+//        backTo.sizeToFit()
+//        let back = UIBarButtonItem(customView: backTo)
+//        self.navigationItem.leftBarButtonItem = back
+    }
+    
+    func popToCustomBackWebView() {
+        let relativeURL = NSURL(string: self.currentMetadata!.defaultBackURL!, relativeToURL: self.webview!.URL!)!
+        self.hybridNavigationController!.popToNewHybridWebViewControllerFor(relativeURL)
     }
     
     func fiddleContentInsets() {
@@ -152,14 +169,14 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         }
         
         
-        self.hybridNavigationController.pushNewHybridWebViewControllerFor(intendedURL)
+        self.hybridNavigationController!.pushNewHybridWebViewControllerFor(intendedURL)
         decisionHandler(WKNavigationActionPolicy.Cancel)
     }
     
     func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
         self.setMetadata()
         .then {
-            self.events.emit("ready", "test")
+            self.events.emit("ready", self)
         }
     }
     
@@ -167,15 +184,17 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         return self.webview!.getMetadata()
         .then { metadata -> Void in
             self.currentMetadata = metadata
-            self.title = metadata.title
+            
         }
     }
     
-//    override func viewDidAppear(animated: Bool) {
-//        super.viewDidAppear(animated)
-//        // Need this otherwise the title sometimes disappears
-//        self.navigationItem.title = self.currentMetadata?.title
-//    }
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        // Need this otherwise the title sometimes disappears
+        if self.hybridNavigationController != nil && self.currentMetadata != nil {
+            self.navigationItem.title = self.currentMetadata!.title
+        }
+    }
     
     override func preferredStatusBarStyle() -> UIStatusBarStyle {
         return UIStatusBarStyle.LightContent
@@ -184,10 +203,12 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     override func viewDidDisappear(animated: Bool) {
         
         super.viewDidDisappear(animated)
-        let nav = self.navigationController
-        if nav == nil {
-            self.hybridNavigationController.addControllerToWaitingArea(self)
+        
+        if self.navigationController == nil {
+            self.events.emit("popped", self)
+//            self.hybridNavigationController!.addControllerToWaitingArea(self)
         }
+        
     }
     
     var renderCheckContext:CGContext?

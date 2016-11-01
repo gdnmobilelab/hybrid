@@ -60,8 +60,6 @@ class ServiceWorkerOutOfScopeError : ErrorType {
 
 public class ServiceWorkerInstance {
     
-    static var pendingJSContext:JSContext?
-    
     var jsContext:JSContext!
     var cache:ServiceWorkerCacheHandler!
     var contextErrorValue:JSValue?
@@ -341,11 +339,34 @@ public class ServiceWorkerInstance {
         }
     }
     
-    func loadServiceWorker(workerJS:String) -> Promise<JSValue> {
+    func loadServiceWorker(workerJS:String) -> Promise<Void> {
         return self.loadContextScript()
-        .then {_ in 
-            self.runScript(workerJS)
+        .then {_ in
+            return self.runScript(workerJS)
         }
+        .then { _ in
+            return self.processPendingPushEvents()
+        }
+    }
+    
+    func processPendingPushEvents() -> Promise<Void> {
+        
+        // Unfortunately, we can't necessarily process push events as they arrive because
+        // the app may not be active. So, whenever we create a service worker, we immediately
+        // process any pending push events that happen to be waiting.
+        
+        let pendingPushes = PushEventStore.getByWorkerScope(self.scope.absoluteString!)
+        
+        let processPromises = pendingPushes.map { push in
+            return self.dispatchPushEvent(push.payload)
+                .then {
+                    PushEventStore.remove(push)
+            }
+            
+        }
+        
+        return when(processPromises)
+
     }
     
     private func loadContextScript() -> Promise<JSValue> {

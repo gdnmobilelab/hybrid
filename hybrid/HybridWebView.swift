@@ -14,6 +14,7 @@ import EmitterKit
 struct HybridWebviewMetadata {
     var color:UIColor?
     var title:String
+    var defaultBackURL:String?
     
     init() {
         title = ""
@@ -45,19 +46,27 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         if HybridWebview.webviewClientListener == nil {
             HybridWebview.webviewClientListener = WebviewClientManager.claimEvents.on(HybridWebview.processClaimOnWebview)
         }
+        
+        HybridWebview.saveWebViewRecords()
     }
     
-    static func getActiveWebviewAtIndex(index:Int) -> HybridWebview {
-        return self.activeWebviews[index]
-    }
-    static func getActiveWebviewInfo() -> [WebviewRecord] {
-        return HybridWebview.activeWebviews.enumerate().map { (idx, wv) in
+    private static func saveWebViewRecords() {
+        
+        // We need to save this somewhere that out-of-app code can still access it
+        
+ 
+        WebviewClientManager.currentWebviewRecords = HybridWebview.activeWebviews.enumerate().map { (idx, wv) in
             return WebviewRecord(
                 url: wv.mappedURL,
                 index: idx,
                 workerId: wv.serviceWorkerAPI!.currentActiveServiceWorker?.instanceId
             )
         }
+
+    }
+    
+    static func getActiveWebviewAtIndex(index:Int) -> HybridWebview {
+        return self.activeWebviews[index]
     }
     
     
@@ -72,19 +81,12 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         ServiceWorkerInstance.getById(serviceWorkerId)
         .then { sw -> Void in
             webView.serviceWorkerAPI!.setNewActiveServiceWorker(sw!)
+            saveWebViewRecords()
         }
         
         
     }
     
-    func checkClaim(sw: ServiceWorkerInstance) {
-        if self.mappedURL == nil {
-            return
-        }
-        if self.mappedURL!.absoluteString!.hasPrefix(sw.scope.absoluteString!) {
-            self.serviceWorkerAPI?.setNewActiveServiceWorker(sw)
-        }
-    }
     
     static func clearRegisteredWebviews() {
         activeWebviews.removeAll()
@@ -114,6 +116,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         self.allowsLinkPreview = false
     }
     
+    
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -129,21 +132,27 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     
     func getMetadata() -> Promise<HybridWebviewMetadata> {
         return Promise<HybridWebviewMetadata> { fulfill, reject in
-            self.evaluateJavaScript("var t = document.querySelector(\"meta[name='theme-color']\"); [t ? t.getAttribute('content') : '', document.title]", completionHandler: { (result, err) in
+            self.evaluateJavaScript("var getMeta = function(name) { var t = document.querySelector(\"meta[name='\" + name + \"']\"); return t ? t.getAttribute('content') : null;}; [getMeta('theme-color'), document.title, getMeta('default-back-url')]", completionHandler: { (result, err) in
                 if err != nil {
                     reject(err!)
                     return
                 }
                 
-                let responses = result as! [String]
+                let responses = result as! [AnyObject]
                 
                 var metadata = HybridWebviewMetadata()
                 
-                if responses[0] != "" {
-                    metadata.color = Util.hexStringToUIColor(responses[0])
+                if let color = responses[0] as? String {
+                    metadata.color = Util.hexStringToUIColor(color)
                 }
                 
-                metadata.title = responses[1]
+                if let title = responses[1] as? String {
+                    metadata.title = title
+                }
+                
+                if let defaultBackURL = responses[2] as? String {
+                    metadata.defaultBackURL = defaultBackURL
+                }
                 
                 fulfill(metadata)
             })
