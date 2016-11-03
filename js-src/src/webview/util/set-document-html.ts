@@ -3,6 +3,7 @@ import {refreshServiceWorkers} from '../navigator/sw-manager';
 let loadedIndicator:HTMLDivElement = null;
 
 (window as any).__setHTML = function(htmlString:string, baseURL:string) {
+    console.log("new base URL is", baseURL)
     let insideHTMLTag = /<html(?:.*?)>((?:.|\n)*)<\/html>/gim.exec(htmlString)[1];
     history.replaceState(null,null,baseURL);
     refreshServiceWorkers();

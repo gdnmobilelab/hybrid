@@ -37,19 +37,9 @@ class PendingNotificationActions {
         }
     }
     
-    static var urlToOpen:String? {
-        get {
-            return getValue("pendingNotifications.urlToOpen") as? String
-        }
-        
-        set(val) {
-            setValue("pendingNotifications.urlToOpen", val: val)
-        }
-    }
     
     static func reset() {
         self.closeNotification = nil
-        self.urlToOpen = nil
     }
 }
 

@@ -16,6 +16,7 @@ import OMGHTTPURLRQ
     var url:String {get}
     var id:String {get}
     func postMessage(message:String, ports: [MessagePort], callback:JSValue)
+    func focus()
 }
 
 @objc class WebviewClient : NSObject, WebviewClientExports {
@@ -69,6 +70,16 @@ import OMGHTTPURLRQ
             callback.callWithArguments([jsError])
         }
     }
+    
+    func focus() {
+        
+        
+        let record = WebviewRecord(url: NSURL(string: self.url), index: Int(self.id)!, workerId: nil)
+        
+        // workerId maybe shouldn't be nil but we don't know it here, and the focus event doesn't need it
+        let newEvent = WebviewClientEvent(type: WebviewClientEventType.Focus, record: record)
+        WebviewClientManager.clientEvents.emit(newEvent)
+    }
 }
 
 @objc protocol WebviewRecordExports : JSExport {
@@ -100,6 +111,60 @@ import OMGHTTPURLRQ
         coder.encodeObject(self.index, forKey: "index")
         coder.encodeObject(self.workerId, forKey: "workerId")
     }
+    
+}
+
+enum WebviewClientEventType: Int32 {
+    case Claim = 0
+    case Focus
+    case OpenWindow
+}
+
+@objc class WebviewClientEvent: NSObject, NSCoding {
+    var type:WebviewClientEventType
+    var record:WebviewRecord?
+    var newServiceWorkerId:Int? // used for claim events only
+    var urlToOpen:String? // used for window open events
+    
+    init(type:WebviewClientEventType, record: WebviewRecord?) {
+        self.type = type
+        self.record = record
+    }
+    
+    init(type:WebviewClientEventType, record: WebviewRecord?, newWorkerId:Int?, urlToOpen:String?) {
+        self.type = type
+        self.record = record
+        self.newServiceWorkerId = newWorkerId
+        self.urlToOpen = urlToOpen
+    }
+    
+    convenience required init?(coder decoder: NSCoder) {
+        let type = WebviewClientEventType(rawValue: decoder.decodeIntForKey("type"))!
+        let record = decoder.decodeObjectForKey("record") as? WebviewRecord
+        let urlToOpen = decoder.decodeObjectForKey("urlToOpen") as? String
+        let newWorkerId = decoder.decodeObjectForKey("newServiceWorkerId") as? Int
+        
+        self.init(type: type, record: record, newWorkerId: newWorkerId, urlToOpen: urlToOpen)
+
+    }
+    
+    func encodeWithCoder(coder: NSCoder) {
+        coder.encodeInt(self.type.rawValue, forKey: "type")
+        
+        if let record = self.record {
+            coder.encodeObject(record, forKey: "record")
+        }
+        
+        if let newWorkerId = self.newServiceWorkerId {
+            coder.encodeInt(Int32(newWorkerId), forKey: "newServiceWorkerId")
+        }
+        
+        if let urlToOpen = self.urlToOpen {
+            coder.encodeObject(urlToOpen, forKey: "urlToOpen")
+        }
+        
+    }
+    
 }
 
 @objc protocol WebviewClientManagerExports : JSExport {
@@ -118,9 +183,9 @@ import OMGHTTPURLRQ
     // active (if any). So we store this data inside the shared UserDefaults store, which allows
     // it to be readable across processes.
     
-    private static let groupDefaults = NSUserDefaults(suiteName: "group.gdnmobilelab.hybrid")!
+    //static let claimEvents = Event<(WebviewRecord, Int)>()
     
-    static let claimEvents = Event<(WebviewRecord, Int)>()
+    static let clientEvents = Event<WebviewClientEvent>()
     
     static func resetActiveWebviewRecords() {
         SharedSettings.storage.removeObjectForKey(SharedSettings.ACTIVE_WEBVIEWS_KEY)
@@ -175,11 +240,14 @@ import OMGHTTPURLRQ
             }
             if record.url!.absoluteString!.hasPrefix(self.serviceWorker.scope.absoluteString!) {
                 
-                // We don't pass the service worker itself because (at some point) we're going to need
-                // to allow this to execute inside the notification environment and (somehow) map
-                // over to an existing app.
+                // We put this in an event bridge because out notificiation content extension
+                // needs to be able to emit these events, which unfortunately means we need
+                // to store such events for execution later
                 
-                WebviewClientManager.claimEvents.emit((record, self.serviceWorker.instanceId))
+                let ev = WebviewClientEvent(type: WebviewClientEventType.Claim, record: record)
+                ev.newServiceWorkerId = self.serviceWorker.instanceId
+                
+                WebviewClientManager.clientEvents.emit(ev)
             }
         }
         
@@ -218,7 +286,11 @@ import OMGHTTPURLRQ
         
         let urlToOpen = NSURL(string: url,relativeToURL: self.serviceWorker.scope)!
         
-        PendingNotificationActions.urlToOpen = urlToOpen.absoluteString
+        let newEvent = WebviewClientEvent(type: WebviewClientEventType.OpenWindow, record: nil)
+        newEvent.urlToOpen = urlToOpen.absoluteString!
+        
+        WebviewClientManager.clientEvents.emit(newEvent)
+ 
         callback.callWithArguments([JSValue(nullInContext: callback.context)])
     }
     

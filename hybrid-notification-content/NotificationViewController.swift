@@ -10,6 +10,7 @@ import UIKit
 import UserNotifications
 import UserNotificationsUI
 import PromiseKit
+import EmitterKit
 
 @objc(NotificationViewController)
 
@@ -19,9 +20,22 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
     var latestUserInfo:[NSObject: AnyObject]? = nil
     
+    static var webviewEventListener:Listener?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        if NotificationViewController.webviewEventListener == nil {
+            
+            // Add our listener that will save pending webview events to be processed by the
+            // app once we've handed off
+            
+            NotificationViewController.webviewEventListener = WebviewClientManager.clientEvents.on { event in
+                PendingWebviewActions.add(event)
+            }
+            PendingWebviewActions.clear()
+        }
+        
     }
     
     func fetchURLFromWorker(worker:ServiceWorkerInstance, url:String) -> Promise<NSData?> {
@@ -191,11 +205,21 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         NotificationHandler.processAction(response, userInfo: latestUserInfo!)
         .then { _ -> Void in
             
-            if PendingNotificationActions.closeNotification == true && PendingNotificationActions.urlToOpen == nil {
-                PendingNotificationActions.reset()
-                completion(UNNotificationContentExtensionResponseOption.Dismiss)
-            } else if PendingNotificationActions.closeNotification == true {
-                completion(UNNotificationContentExtensionResponseOption.DismissAndForwardAction)
+            if PendingNotificationActions.closeNotification == true {
+                //PendingNotificationActions.reset()
+                
+                let allPending = PendingWebviewActions.getAll()
+                let actionsThatBringAppToFront = allPending.filter { event in
+                    return event.type == WebviewClientEventType.OpenWindow || event.type == WebviewClientEventType.Focus
+                }
+                
+                if actionsThatBringAppToFront.count > 0 {
+                    completion(UNNotificationContentExtensionResponseOption.DismissAndForwardAction)
+                } else {
+                    completion(UNNotificationContentExtensionResponseOption.Dismiss)
+                }
+                
+                
             } else {
                 completion(UNNotificationContentExtensionResponseOption.DoNotDismiss)
             }

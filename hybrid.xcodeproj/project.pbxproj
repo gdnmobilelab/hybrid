@@ -13,6 +13,9 @@
 		8A0156CE1D654C240091995E /* fetch-test in Resources */ = {isa = PBXBuildFile; fileRef = 8A0156CD1D654C240091995E /* fetch-test */; };
 		8A0156D01D65FCAE0091995E /* GlobalFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */; };
 		8A0156D21D66402D0091995E /* PromiseBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156D11D66402D0091995E /* PromiseBridge.swift */; };
+		8A0970B81DC977A300F16CF4 /* WebServerDomainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B71DC977A300F16CF4 /* WebServerDomainManager.swift */; };
+		8A0970BA1DCA692E00F16CF4 /* PendingWebviewActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */; };
+		8A0970BB1DCA693100F16CF4 /* PendingWebviewActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */; };
 		8A24493D1D6CF6F400052D92 /* ServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */; };
 		8A24493F1D6CF71500052D92 /* PushManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493E1D6CF71500052D92 /* PushManager.swift */; };
 		8A2449421D6D0B6E00052D92 /* NotificationPermissionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449411D6D0B6E00052D92 /* NotificationPermissionHandler.swift */; };
@@ -173,6 +176,8 @@
 		8A0156CD1D654C240091995E /* fetch-test */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "fetch-test"; sourceTree = "<group>"; };
 		8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GlobalFetch.swift; sourceTree = "<group>"; };
 		8A0156D11D66402D0091995E /* PromiseBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PromiseBridge.swift; sourceTree = "<group>"; };
+		8A0970B71DC977A300F16CF4 /* WebServerDomainManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServerDomainManager.swift; sourceTree = "<group>"; };
+		8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PendingWebviewActions.swift; sourceTree = "<group>"; };
 		8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistration.swift; sourceTree = "<group>"; };
 		8A24493E1D6CF71500052D92 /* PushManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushManager.swift; sourceTree = "<group>"; };
 		8A2449401D6D0ABD00052D92 /* hybrid.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = hybrid.entitlements; sourceTree = "<group>"; };
@@ -322,9 +327,11 @@
 			children = (
 				8A932BD31D5A619100FA15F8 /* webview */,
 				8A54109E1D381EF000F44F38 /* HybridWebView.swift */,
+				8A5410A01D38235000F44F38 /* WebServer.swift */,
 				8A2449461D6F374C00052D92 /* HybridWebviewController.swift */,
 				8A2449481D6F676700052D92 /* HybridNavigationController.swift */,
 				8A9D71171DC27DAD00375365 /* BackButtonSymbol.swift */,
+				8A0970B71DC977A300F16CF4 /* WebServerDomainManager.swift */,
 			);
 			name = native;
 			sourceTree = "<group>";
@@ -352,7 +359,6 @@
 		8A8846041D30072100CF9369 /* service-worker */ = {
 			isa = PBXGroup;
 			children = (
-				8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */,
 				8A8846051D30074500CF9369 /* ServiceWorkerInstance.swift */,
 				8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */,
 				8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */,
@@ -432,6 +438,8 @@
 				8A933F661D87049500F9DC72 /* SharedSettings.swift */,
 				8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */,
 				8A5283B61DBE5B6D00EB0886 /* PayloadToNotificationContent.swift */,
+				8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */,
+				8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */,
 			);
 			name = shared;
 			sourceTree = "<group>";
@@ -502,7 +510,6 @@
 				D31BC1151CD534CF00CF6BEB /* LaunchScreen.storyboard */,
 				D31BC1181CD534CF00CF6BEB /* Info.plist */,
 				D38116311CD584B6004A3CCD /* hybrid-Bridging-Header.h */,
-				8A5410A01D38235000F44F38 /* WebServer.swift */,
 				8A2449431D6E118300052D92 /* NotificationDelegate.swift */,
 			);
 			path = hybrid;
@@ -973,6 +980,7 @@
 				8ACCDCD01D7A131900A137E1 /* ServiceWorkerInstance.swift in Sources */,
 				8ACCDCD11D7A131900A137E1 /* ServiceWorkerWebSql.swift in Sources */,
 				8ACCDCD21D7A131900A137E1 /* TimeoutManager.swift in Sources */,
+				8A0970BB1DCA693100F16CF4 /* PendingWebviewActions.swift in Sources */,
 				8ACCDCD31D7A131900A137E1 /* ServiceWorkerManager.swift in Sources */,
 				8ACCDCD41D7A131900A137E1 /* ServiceWorkerCache.swift in Sources */,
 				8ACCDCD61D7A131900A137E1 /* GlobalFetch.swift in Sources */,
@@ -1001,6 +1009,7 @@
 				D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */,
 				8A933F671D87049500F9DC72 /* SharedSettings.swift in Sources */,
 				8A6EA5151D81F6D0003FDA00 /* JSCallbackWrapper.swift in Sources */,
+				8A0970BA1DCA692E00F16CF4 /* PendingWebviewActions.swift in Sources */,
 				8A54D3651D806B7100592112 /* fs.swift in Sources */,
 				8A88460D1D3504EA00CF9369 /* ServiceWorkerWebSql.swift in Sources */,
 				8AEEDE601D2D88F10032D588 /* promisified.swift in Sources */,
@@ -1021,6 +1030,7 @@
 				8A7786341D5B74E30062E12B /* ConsoleManager.swift in Sources */,
 				8A9D71181DC27DAD00375365 /* BackButtonSymbol.swift in Sources */,
 				8A2449441D6E118300052D92 /* NotificationDelegate.swift in Sources */,
+				8A0970B81DC977A300F16CF4 /* WebServerDomainManager.swift in Sources */,
 				8A6EA5181D8200E7003FDA00 /* Notification.swift in Sources */,
 				8A2449491D6F676700052D92 /* HybridNavigationController.swift in Sources */,
 				8A2475881D623BDA008906FB /* EventManager.swift in Sources */,

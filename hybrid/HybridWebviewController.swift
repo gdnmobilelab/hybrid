@@ -1,4 +1,4 @@
-//
+    //
 //  HybridWebviewController.swift
 //  hybrid
 //
@@ -33,6 +33,8 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
             return self.navigationController as? HybridNavigationController
         }
     }
+    
+    var isReady = false
 
     
     init() {
@@ -50,27 +52,54 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     
     
     func loadURL(urlToLoad:NSURL) {
-        self.checkIfURLInsideServiceWorker(urlToLoad)
-        .then { (url, sw) -> Promise<Void> in
+        
+        if urlToLoad.host! == "localhost" {
+            log.error("Should never directly load a localhost URL - should be a server URL")
+        }
+        
+        self.isReady = false
+        
+        self.events.once("ready", { _ in
+            self.isReady = true
+        })
+        
+        Promise<Void>()
+        .then { () -> Promise<Void> in
             
+            let maybeRewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(urlToLoad)
             
-            if self.webview!.URL == nil || self.webview!.URL!.host != "localhost" || self.webview!.URL!.path!.containsString("__placeholder") {
-                self.webview!.loadRequest(NSURLRequest(URL: url))
-                self.view = self.webview
+            let loadNormally = { () -> Promise<Void> in
+                self.webview!.loadRequest(NSURLRequest(URL: urlToLoad))
                 return Promise<Void>()
             }
             
-            
-            let fr = FetchRequest(url: urlToLoad.absoluteString!, options: nil)
-            
-            return sw!.dispatchFetchEvent(fr)
-            .then { response -> Promise<Void> in
-                let responseAsString = String(data: response!.data!, encoding: NSUTF8StringEncoding)!
+            if maybeRewrittenURL == urlToLoad {
+                // Is not within a service worker domain, so we can just load it
+                return loadNormally()
+            }
+
+            if self.webview!.URL == nil || self.webview!.URL!.host != "localhost" || self.webview!.URL!.port != maybeRewrittenURL.port || self.webview!.URL!.path!.containsString("__placeholder") == false ||
+                maybeRewrittenURL.path!.containsString("__placeholder") == true {
                 
+                // Placeholder stuff requires us to be on the same domain, and on a placeholder page. If any
+                // of this isn't true - or if we're *loading* a placeholder page, skip
+                
+                return loadNormally()
+            }
+            
+            // If none of the above is true then we're on a service worker-enabled domain. This
+            // doesn't *necessarily* mean we're in a service worker scope, but either way we can
+            // make a request same as the browser would, then inject the content.
+            
+            let request = FetchRequest(url: maybeRewrittenURL.absoluteString!, options: nil)
+            return GlobalFetch.fetchRequest(request)
+            .then { response in
+                
+                let responseAsString = String(data: response.data!, encoding: NSUTF8StringEncoding)!
                 let responseEscaped = responseAsString.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
                 
                 return Promise<Void> { fulfill, reject in
-                    self.webview!.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + url.absoluteString! + "\");",completionHandler: { (obj:AnyObject?, err: NSError?) in
+                    self.webview!.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + maybeRewrittenURL.absoluteString! + "\");",completionHandler: { (obj:AnyObject?, err: NSError?) in
                         if err != nil {
                             // Injecting HTML failed. Why?
                             
@@ -80,33 +109,86 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
                         }
                     })
                 }
-                .then { () -> Promise<Void> in
-                    
-                    return when(
-                        self.waitForRendered(),
-                        self.setMetadata()
-                    )
-                }
-                .recover { err -> Void in
-                    log.error(String(err))
-                    self.webview!.loadRequest(NSURLRequest(URL: url))
-                }
+            }
+            .then { () -> Promise<Void> in
                 
-                
-
-                
+                return when(
+                    self.waitForRendered(),
+                    self.setMetadata()
+                )
                 
             }
             .then { () -> Void in
                 self.events.emit("ready", self)
             }
-            
-            
-            
+            .recover { err -> Void in
+                log.error(String(err))
+                loadNormally()
+            }
+
         }
-        .error {err in
-            self.webview!.loadRequest(NSURLRequest(URL: urlToLoad))
-        }
+        
+        
+        
+//        self.checkIfURLInsideServiceWorker(urlToLoad)
+//        .then { (url, sw) -> Promise<Void> in
+//            
+//            
+//            let currentURL = self.webview!.URL
+//            
+//            if self.webview!.URL == nil || self.webview!.URL!.host != "localhost" || self.webview!.URL!.port != url.port || self.webview!.URL!.path!.containsString("__placeholder") == false {
+//                self.webview!.loadRequest(NSURLRequest(URL: url))
+//                self.view = self.webview
+//                return Promise<Void>()
+//            }
+//            
+//            
+//            let fr = FetchRequest(url: urlToLoad.absoluteString!, options: nil)
+//            
+//            return sw!.dispatchFetchEvent(fr)
+//            .then { response -> Promise<Void> in
+//                let responseAsString = String(data: response!.data!, encoding: NSUTF8StringEncoding)!
+//                
+//                let responseEscaped = responseAsString.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
+//                
+//                return Promise<Void> { fulfill, reject in
+//                    self.webview!.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + url.absoluteString! + "\");",completionHandler: { (obj:AnyObject?, err: NSError?) in
+//                        if err != nil {
+//                            // Injecting HTML failed. Why?
+//                            
+//                            reject(err!)
+//                        } else {
+//                            fulfill()
+//                        }
+//                    })
+//                }
+//                .then { () -> Promise<Void> in
+//                    
+//                    return when(
+//                        self.waitForRendered(),
+//                        self.setMetadata()
+//                    )
+//                }
+//                .recover { err -> Void in
+//                    log.error(String(err))
+//                    self.webview!.loadRequest(NSURLRequest(URL: url))
+//                }
+//                
+//                
+//
+//                
+//                
+//            }
+//            .then { () -> Void in
+//                self.events.emit("ready", self)
+//            }
+//            
+//            
+//            
+//        }
+//        .error {err in
+//            self.webview!.loadRequest(NSURLRequest(URL: urlToLoad))
+//        }
     }
     
     func prepareHeaderControls(alreadyHasBackControl:Bool) {
@@ -138,21 +220,22 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         self.webview!.scrollView.contentInset = UIEdgeInsets(top: 1, left: 0, bottom: 0, right: 0)
     }
     
-    func checkIfURLInsideServiceWorker(url:NSURL) -> Promise<(NSURL,ServiceWorkerInstance?)> {
-        return ServiceWorkerManager.getServiceWorkerForURL(url)
-        .then { (serviceWorker) -> (NSURL,ServiceWorkerInstance?) in
-            
-            if (serviceWorker == nil) {
-                
-                // This is not inside any service worker scope, so allow
-                
-                return (url,nil)
-            }
-            
-            return (WebServer.current!.mapRequestURLToServerURL(url), serviceWorker)
-        }
-
-    }
+//    func checkIfURLInsideServiceWorker(url:NSURL) -> Promise<(NSURL,ServiceWorkerInstance?)> {
+//        return ServiceWorkerManager.getServiceWorkerForURL(url)
+//        .then { (serviceWorker) -> (NSURL,ServiceWorkerInstance?) in
+//            
+//            if (serviceWorker == nil) {
+//                
+//                // This is not inside any service worker scope, so allow
+//                
+//                return (url, nil)
+//            }
+//            
+//            return (try WebServerDomainManager.mapRequestURLToServerURL(url), serviceWorker)
+//
+//        }
+//
+//    }
     
     func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
         
@@ -163,9 +246,9 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         
         var intendedURL = navigationAction.request.URL!
         
-        if WebServer.current!.isLocalServerURL(intendedURL) {
-            intendedURL = WebServer.checkServerURLForReferrer(navigationAction.request.URL!, referrer: navigationAction.request.allHTTPHeaderFields!["Referer"])
-            intendedURL = WebServer.mapServerURLToRequestURL(intendedURL)
+        
+        if WebServerDomainManager.isLocalServerURL(intendedURL) {
+            intendedURL = WebServerDomainManager.mapServerURLToRequestURL(intendedURL)
         }
         
         
@@ -235,6 +318,8 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         
 
         self.webview!.scrollView.layer.renderInContext(self.renderCheckContext!)
+        
+        let url = self.webview!.URL
         
         let startAt = 4 * width * height - 4
         

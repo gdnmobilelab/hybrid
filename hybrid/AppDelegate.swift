@@ -10,6 +10,7 @@ import UIKit
 import PromiseKit
 import EmitterKit
 import UserNotifications
+import GCDWebServer
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -34,10 +35,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         log.setup(.Debug, showLogIdentifier: false, showFunctionName: false, showThreadName: true, showLogLevel: true, showFileNames: false, showLineNumbers: false, showDate: false, writeToFile: nil, fileLogLevel: nil)
         
         do {
+            
+            GCDWebServer.setLogLevel(2)
+            
             try Db.createMainDatabase()
             try DbMigrate.migrate()
-            
-            try WebServer.initialize()
             
             PushManager.listenForDeviceToken()
             
@@ -75,10 +77,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             if AppDelegate.runningInTests == false {
                 // todo: remove
-//                ServiceWorkerManager.clearActiveServiceWorkers()
-//                try Db.mainDatabase.inDatabase({ (db) in
-//                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
-//                })
+                ServiceWorkerManager.clearActiveServiceWorkers()
+                try Db.mainDatabase.inDatabase({ (db) in
+                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
+                })
 
 
                 

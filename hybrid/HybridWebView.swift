@@ -28,7 +28,6 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     var notificationPermissionHandler:NotificationPermissionHandler?
     var serviceWorkerAPI:ServiceWorkerAPI?
     var eventManager: EventManager?
-//    private var weasdbviewClientManagerListener: String?
     
     private static var activeWebviews = [HybridWebview]()
     
@@ -44,7 +43,11 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         HybridWebview.activeWebviews.append(self)
         
         if HybridWebview.webviewClientListener == nil {
-            HybridWebview.webviewClientListener = WebviewClientManager.claimEvents.on(HybridWebview.processClaimOnWebview)
+            
+            // No idea why, but setting this as a static variable at the start doesn't work. We have to create it
+            // later.
+            
+            HybridWebview.webviewClientListener = WebviewClientManager.clientEvents.on(HybridWebview.processClientEvent)
         }
         
         HybridWebview.saveWebViewRecords()
@@ -75,18 +78,26 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         HybridWebview.activeWebviews.removeAtIndex(idx!)
     }
     
-    static func processClaimOnWebview(record: WebviewRecord, serviceWorkerId:Int) {
-        let webView = HybridWebview.activeWebviews[record.index]
-        
-        ServiceWorkerInstance.getById(serviceWorkerId)
-        .then { sw -> Void in
-            webView.serviceWorkerAPI!.setNewActiveServiceWorker(sw!)
-            saveWebViewRecords()
+    static func processClientEvent(event:WebviewClientEvent) {
+        if event.type == WebviewClientEventType.Claim {
+            let webView = HybridWebview.activeWebviews[event.record!.index]
+            
+            ServiceWorkerInstance.getById(event.newServiceWorkerId!)
+            .then { sw -> Void in
+                webView.serviceWorkerAPI!.setNewActiveServiceWorker(sw!)
+                saveWebViewRecords()
+            }
         }
-        
-        
+        else if event.type == WebviewClientEventType.Focus {
+            let webView = HybridWebview.activeWebviews[event.record!.index]
+            HybridNavigationController.current!.viewControllers.forEach { viewController in
+                let asHybrid = viewController as! HybridWebviewController
+                if asHybrid.webview == webView {
+                    HybridNavigationController.current!.popToViewController(viewController, animated: true)
+                }
+            }
+        }
     }
-    
     
     static func clearRegisteredWebviews() {
         activeWebviews.removeAll()
@@ -165,37 +176,17 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         // If the URL falls within the scope of any service worker, we want to redirect the
         // browser to our local web server with the cached responses rather than the internet.
        
-        let urlForRequest = navigationAction.request.URL!
+       
+        let rewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(navigationAction.request.URL!)
         
-            
-        if urlForRequest.host == "localhost" && urlForRequest.port == WebServer.current!.port {
-            // Is already a request to our local web server, so allow
+        if rewrittenURL == navigationAction.request.URL! {
             decisionHandler(WKNavigationActionPolicy.Allow)
             return
         }
         
-        ServiceWorkerManager.getServiceWorkerForURL(navigationAction.request.URL!)
-        .then { (serviceWorker) -> Void in
-            
-            if (serviceWorker == nil) {
-                
-                // This is not inside any service worker scope, so allow
-                
-                decisionHandler(WKNavigationActionPolicy.Allow)
-                return
-            }
-            
-            let mappedURL = WebServer.current!.mapRequestURLToServerURL(navigationAction.request.URL!)
-//            try serviceWorker!.getURLInsideServiceWorkerScope(navigationAction.request.URL!)
-            decisionHandler(WKNavigationActionPolicy.Cancel)
-            webView.loadRequest(NSURLRequest(URL: mappedURL))
-            
-        }
-        .error { err in
-            log.error(String(err))
-            decisionHandler(WKNavigationActionPolicy.Allow)
-            
-        }
+        decisionHandler(WKNavigationActionPolicy.Cancel)
+        webView.loadRequest(NSURLRequest(URL: rewrittenURL))
+
     }
     
     var mappedURL:NSURL? {
@@ -210,11 +201,11 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
             }
             // If it's a local URL for a service worker, map it
             
-            if currentURL!.host! == "localhost" && currentURL!.port! == WebServer.current?.port {
+            if WebServerDomainManager.isLocalServerURL(currentURL!) {
                 if currentURL?.path! == "/__placeholder" {
                     return nil
                 }
-                return WebServer.mapServerURLToRequestURL(currentURL!)
+                return WebServerDomainManager.mapServerURLToRequestURL(currentURL!)
             }
             
             // Otherwise just return it.

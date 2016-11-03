@@ -42,11 +42,5 @@ class Util {
         color.getHue(nil, saturation: nil, brightness: nil, alpha: nil)
     }
     
-    static func createRelativeURL(newURL: String, relativeTo: NSURL) {
-        let newURLObj = NSURL(string: newURL, relativeToURL: relativeTo)
-        
-        // for some reason NSURL strips out any tailing / in a URL. Why? I have no idea, it's
-        // infuritating. But here we are.
-    }
 
 }

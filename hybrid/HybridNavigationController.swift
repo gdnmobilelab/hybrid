@@ -54,25 +54,37 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     }
     
     func getNewController() -> HybridWebviewController {
-        
-        let inWaitingArea = self.waitingArea.topViewController
-        if inWaitingArea != nil {
-            return inWaitingArea as! HybridWebviewController
+        let inWaitingArea = self.waitingArea.topViewController as? HybridWebviewController
+        if inWaitingArea != nil && inWaitingArea!.isReady == true {
+            return inWaitingArea!
         }
         let newController = HybridWebviewController()
         return newController
     }
     
-    func addControllerToWaitingArea(controller: HybridWebviewController) {
+    func addControllerToWaitingArea(controller: HybridWebviewController, forDomain: NSURL) {
         
         self.waitingArea.viewControllers.append(controller)
 
         // Reset our webview with a new request to the placeholder
         
-        let components = NSURLComponents(string: "http://localhost/__placeholder")!
-        components.port = WebServer.current!.port
-        controller.webview!.loadRequest(NSURLRequest(URL: components.URL!))
+        let rewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(forDomain)
         
+        if rewrittenURL == forDomain {
+            // If the page isn't under any service worker scope we can't really do our
+            // placeholder
+            
+            log.warning("Tried to create placeholder view for non-local URL " + forDomain.absoluteString!)
+            controller.webview!.loadRequest(NSURLRequest(URL: NSURL(string: "about:blank")!))
+            return
+        }
+        
+        
+        let components = NSURLComponents(URL: rewrittenURL, resolvingAgainstBaseURL: true)!
+        
+        components.path = "/__placeholder"
+        
+        controller.webview!.loadRequest(NSURLRequest(URL: components.URL!))
 
     }
     
@@ -122,7 +134,23 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         .then { newInstance -> Void in
             
             self.pushViewController(newInstance, animated: true)
-            newInstance.events.once("popped", self.addControllerToWaitingArea)
+            
+            newInstance.events.once("popped", { hybrid in
+                
+                // Once this has been pushed off the stack, reset it with
+                // the placeholder URL for the new top domain
+
+                let newTop = self.topViewController as? HybridWebviewController
+                
+                if newTop != nil {
+                    self.addControllerToWaitingArea(hybrid, forDomain: newTop!.webview!.URL!)
+                } else {
+                    // if we don't have a top view (should never happen!) just
+                    // use the view's own domain
+                    self.addControllerToWaitingArea(hybrid, forDomain: hybrid.webview!.URL!)
+                }
+                
+            })
             newInstance.fiddleContentInsets()
             
             if self.launchViewController != nil {
@@ -184,6 +212,9 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     
     func navigationController(navigationController: UINavigationController, didShowViewController viewController: UIViewController, animated: Bool) {
         
+        let hybrid = viewController as! HybridWebviewController
+        
+        
         // Ensure we have a cached view ready to go
         
         if self.waitingArea.viewControllers.count == 0 {
@@ -195,7 +226,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             
             let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(1 * Double(NSEC_PER_SEC)))
             dispatch_after(delayTime, dispatch_get_main_queue()) {
-                self.addControllerToWaitingArea(HybridWebviewController())
+                self.addControllerToWaitingArea(HybridWebviewController(), forDomain: hybrid.webview!.mappedURL!)
 
             }
         }
@@ -204,15 +235,18 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             return
         }
         
-        let hybrid = viewController as! HybridWebviewController
         
-        if hybrid.currentMetadata?.defaultBackURL == nil {
-            return
+        if hybrid.currentMetadata?.defaultBackURL != nil {
+            let underneathView = self.getNewController()
+//            var currentControllers = [UIViewController](self.viewControllers)
+//            currentControllers.insert(underneathView, atIndex: 0)
+//            
+//            self.setViewControllers(currentControllers, animated: false)
+            self.viewControllers.insert(underneathView, atIndex: 0)
+            underneathView.loadURL(NSURL(string:hybrid.currentMetadata!.defaultBackURL!, relativeToURL: hybrid.webview!.URL!)!)
         }
         
-        let underneathView = self.getNewController()
-        self.viewControllers.insert(underneathView, atIndex: 0)
-        underneathView.loadURL(NSURL(string:hybrid.currentMetadata!.defaultBackURL!, relativeToURL: hybrid.webview!.URL!)!)
+        
     }
     
     private var statusBarStyle = UIStatusBarStyle.Default
