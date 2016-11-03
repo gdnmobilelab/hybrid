@@ -11,6 +11,8 @@ import UserNotifications
 import UserNotificationsUI
 import PromiseKit
 import EmitterKit
+import AVKit
+import AVFoundation
 
 @objc(NotificationViewController)
 
@@ -47,7 +49,6 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     }
     
     func checkForImage(attachments: [UNNotificationAttachment], worker: ServiceWorkerInstance) {
-        NSLog(String(attachments.count) + " attachments")
         let image = attachments.filter { attachment in
             return attachment.identifier == "image"
             }.first
@@ -73,6 +74,44 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             
         }
 
+    }
+    
+    func checkForVideo(attachments: [UNNotificationAttachment], options: AnyObject, worker: ServiceWorkerInstance) {
+        
+        let video = attachments.filter { attachment in
+            return attachment.identifier == "video"
+            }.first
+        
+        if video == nil {
+            return
+        }
+        
+        let videoURL = video!.URL
+        
+        videoURL.startAccessingSecurityScopedResource()
+        
+        var videoProportion = options["video"]!!["proportion"] as? CGFloat
+        
+        if videoProportion == nil {
+            videoProportion = 16 / 10
+        }
+        
+        let playerController = AVPlayerViewController()
+        playerController.player = AVPlayer(URL: videoURL)
+        playerController.showsPlaybackControls = false
+        playerController.player!.play()
+        
+        // Loop it
+        
+        NSNotificationCenter.defaultCenter().addObserverForName(AVPlayerItemDidPlayToEndTimeNotification, object: nil, queue: nil) { notification in
+            playerController.player!.seekToTime(kCMTimeZero)
+            playerController.player!.play()
+        }
+        
+        playerController.view.autoresizingMask = UIViewAutoresizing.None
+        self.setFrame(playerController.view, height: self.view.frame.width / videoProportion!)
+        self.notificationViews.append(playerController.view)
+        
     }
     
     private func setFrame(view:UIView, height:CGFloat? = nil) {
@@ -161,6 +200,8 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         latestUserInfo = notification.request.content.userInfo
         
         let scope = notification.request.content.userInfo["serviceWorkerScope"] as! String
+        let options = notification.request.content.userInfo["originalNotificationOptions"]!
+        
         do {
             // We don't run inside the app, so we need to make our DB instance
             try Db.createMainDatabase()
@@ -177,6 +218,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             ServiceWorkerManager.getServiceWorkerForURL(NSURL(string: scope)!)
             .then { sw -> Promise<Void> in
                 self.checkForImage(notification.request.content.attachments, worker: sw!)
+                self.checkForVideo(notification.request.content.attachments, options: options, worker: sw!)
                 return self.recreateOriginalText(notification)
             }
             

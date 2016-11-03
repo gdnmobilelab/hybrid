@@ -61,6 +61,8 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         
         self.events.once("ready", { _ in
             self.isReady = true
+            // Because the URL is likely to have changed, we need to re-save our records to keep them accurate.
+            HybridWebview.saveWebViewRecords()
         })
         
         Promise<Void>()
@@ -128,67 +130,6 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
 
         }
         
-        
-        
-//        self.checkIfURLInsideServiceWorker(urlToLoad)
-//        .then { (url, sw) -> Promise<Void> in
-//            
-//            
-//            let currentURL = self.webview!.URL
-//            
-//            if self.webview!.URL == nil || self.webview!.URL!.host != "localhost" || self.webview!.URL!.port != url.port || self.webview!.URL!.path!.containsString("__placeholder") == false {
-//                self.webview!.loadRequest(NSURLRequest(URL: url))
-//                self.view = self.webview
-//                return Promise<Void>()
-//            }
-//            
-//            
-//            let fr = FetchRequest(url: urlToLoad.absoluteString!, options: nil)
-//            
-//            return sw!.dispatchFetchEvent(fr)
-//            .then { response -> Promise<Void> in
-//                let responseAsString = String(data: response!.data!, encoding: NSUTF8StringEncoding)!
-//                
-//                let responseEscaped = responseAsString.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
-//                
-//                return Promise<Void> { fulfill, reject in
-//                    self.webview!.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + url.absoluteString! + "\");",completionHandler: { (obj:AnyObject?, err: NSError?) in
-//                        if err != nil {
-//                            // Injecting HTML failed. Why?
-//                            
-//                            reject(err!)
-//                        } else {
-//                            fulfill()
-//                        }
-//                    })
-//                }
-//                .then { () -> Promise<Void> in
-//                    
-//                    return when(
-//                        self.waitForRendered(),
-//                        self.setMetadata()
-//                    )
-//                }
-//                .recover { err -> Void in
-//                    log.error(String(err))
-//                    self.webview!.loadRequest(NSURLRequest(URL: url))
-//                }
-//                
-//                
-//
-//                
-//                
-//            }
-//            .then { () -> Void in
-//                self.events.emit("ready", self)
-//            }
-//            
-//            
-//            
-//        }
-//        .error {err in
-//            self.webview!.loadRequest(NSURLRequest(URL: urlToLoad))
-//        }
     }
     
     func prepareHeaderControls(alreadyHasBackControl:Bool) {
@@ -220,22 +161,6 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         self.webview!.scrollView.contentInset = UIEdgeInsets(top: 1, left: 0, bottom: 0, right: 0)
     }
     
-//    func checkIfURLInsideServiceWorker(url:NSURL) -> Promise<(NSURL,ServiceWorkerInstance?)> {
-//        return ServiceWorkerManager.getServiceWorkerForURL(url)
-//        .then { (serviceWorker) -> (NSURL,ServiceWorkerInstance?) in
-//            
-//            if (serviceWorker == nil) {
-//                
-//                // This is not inside any service worker scope, so allow
-//                
-//                return (url, nil)
-//            }
-//            
-//            return (try WebServerDomainManager.mapRequestURLToServerURL(url), serviceWorker)
-//
-//        }
-//
-//    }
     
     func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
         

@@ -15,72 +15,59 @@ class PayloadToNotificationContent {
     
     private static func addAssets(options:AnyObject, content:UNMutableNotificationContent, scope: String) -> Promise<Void> {
         var assetsToFetch: [String] = []
-        var hasIcon = false
-        var hasImage = false
+        
+        
+        var assetTypesAttached: [String] = []
         
         let scopeURL = NSURL(string:scope)!
         
         if let icon = options["icon"] as? String {
             assetsToFetch.append(icon)
-            hasIcon = true
+            assetTypesAttached.append("icon")
         }
         
         if let image = options["image"] as? String {
             log.info("Found image to attach to notification")
             assetsToFetch.append(image)
-            hasImage = true
+            assetTypesAttached.append("image")
+        }
+        
+        if let video = options["video"]! {
+            log.info("Found video to attach to notification")
+            assetsToFetch.append(video["url"] as! String)
+            assetTypesAttached.append("video")
         }
         
         return when(assetsToFetch.map { requestURL -> Promise<NSURL> in
             
             let sourceURL = NSURL(string: requestURL, relativeToURL: scopeURL)!
 
-            return GlobalFetch.fetchRequest(FetchRequest(url: sourceURL.absoluteString!, options: nil))
-            .then { response -> NSURL in
-                
-                let filename = NSUUID().UUIDString
-                let fileURL = NSURL(fileURLWithPath: NSTemporaryDirectory())
-                    .URLByAppendingPathComponent(filename)!
-                    .URLByAppendingPathExtension(sourceURL.pathExtension!)!
-                
-                try response.data!.writeToFile(fileURL.path!, options: NSDataWritingOptions.DataWritingAtomic)
-                
-                return fileURL
-                
-            }
+            return DownloadToTemporaryStorage.start(sourceURL)
             
         })
         .then { fileURLs -> Void in
             
-
-            if hasIcon {
-                let iconAttachment = try UNNotificationAttachment(
-                    identifier: "icon",
-                    URL: fileURLs[0],
-                    options: [
+            for (idx, type) in assetTypesAttached.enumerate() {
+                
+                var attachmentOptions: [NSObject : AnyObject] = [
+                    UNNotificationAttachmentOptionsThumbnailHiddenKey: true
+                ]
+                
+                if type == "icon" {
+                    attachmentOptions = [
                         UNNotificationAttachmentOptionsThumbnailClippingRectKey: CGRectCreateDictionaryRepresentation(CGRect(x:0, y: 0, width: 1, height: 1)
                         )
                     ]
+                }
+                
+                let attachment = try UNNotificationAttachment(
+                    identifier: type,
+                    URL: fileURLs[idx],
+                    options: attachmentOptions
                 )
                 
-                content.attachments.append(iconAttachment)
+                content.attachments.append(attachment)
             }
-            
-            if hasImage {
-                let imageURL = hasIcon ? fileURLs[1] : fileURLs[0]
-                
-                let imageAttachment = try UNNotificationAttachment(
-                    identifier: "image",
-                    URL: imageURL,
-                    options: [
-                        UNNotificationAttachmentOptionsThumbnailHiddenKey: true
-                    ]
-                )
-                
-                content.attachments.append(imageAttachment)
-                
-            }
-                
                 
         }
         .recover { err -> Void in

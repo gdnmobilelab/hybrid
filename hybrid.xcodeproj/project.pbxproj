@@ -16,6 +16,10 @@
 		8A0970B81DC977A300F16CF4 /* WebServerDomainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B71DC977A300F16CF4 /* WebServerDomainManager.swift */; };
 		8A0970BA1DCA692E00F16CF4 /* PendingWebviewActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */; };
 		8A0970BB1DCA693100F16CF4 /* PendingWebviewActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */; };
+		8A0970C11DCB8D6700F16CF4 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A0970C01DCB8D6700F16CF4 /* AVKit.framework */; };
+		8A0970C31DCB988900F16CF4 /* DownloadToDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */; };
+		8A0970C41DCB9C1F00F16CF4 /* DownloadToDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */; };
+		8A0970C51DCB9C1F00F16CF4 /* DownloadToDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */; };
 		8A24493D1D6CF6F400052D92 /* ServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */; };
 		8A24493F1D6CF71500052D92 /* PushManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493E1D6CF71500052D92 /* PushManager.swift */; };
 		8A2449421D6D0B6E00052D92 /* NotificationPermissionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449411D6D0B6E00052D92 /* NotificationPermissionHandler.swift */; };
@@ -178,6 +182,8 @@
 		8A0156D11D66402D0091995E /* PromiseBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PromiseBridge.swift; sourceTree = "<group>"; };
 		8A0970B71DC977A300F16CF4 /* WebServerDomainManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServerDomainManager.swift; sourceTree = "<group>"; };
 		8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PendingWebviewActions.swift; sourceTree = "<group>"; };
+		8A0970C01DCB8D6700F16CF4 /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
+		8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadToDisk.swift; sourceTree = "<group>"; };
 		8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistration.swift; sourceTree = "<group>"; };
 		8A24493E1D6CF71500052D92 /* PushManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushManager.swift; sourceTree = "<group>"; };
 		8A2449401D6D0ABD00052D92 /* hybrid.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = hybrid.entitlements; sourceTree = "<group>"; };
@@ -274,6 +280,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A0970C11DCB8D6700F16CF4 /* AVKit.framework in Frameworks */,
 				8A701C9C1DA2B796007A11F3 /* Pods_hybrid_notification_content.framework in Frameworks */,
 				8AA112931D79E3CD001EC463 /* UserNotificationsUI.framework in Frameworks */,
 				8AA112911D79E3CD001EC463 /* UserNotifications.framework in Frameworks */,
@@ -310,6 +317,7 @@
 		5249B1FBAB674F16EA74342E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				8A0970C01DCB8D6700F16CF4 /* AVKit.framework */,
 				8A7461D11D9D70140020F74A /* JavaScriptCore.framework */,
 				311DE092863FE59F27435153 /* Pods_hybrid.framework */,
 				63CFC906FE82B28A71289383 /* Pods_hybridTests.framework */,
@@ -440,6 +448,7 @@
 				8A5283B61DBE5B6D00EB0886 /* PayloadToNotificationContent.swift */,
 				8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */,
 				8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */,
+				8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */,
 			);
 			name = shared;
 			sourceTree = "<group>";
@@ -957,6 +966,7 @@
 				8AB7EF271D9F156100176FAE /* SharedSettings.swift in Sources */,
 				8A7A49F51D91A991004C8253 /* NotificationService.swift in Sources */,
 				8A5283BA1DBE898F00EB0886 /* Util.swift in Sources */,
+				8A0970C51DCB9C1F00F16CF4 /* DownloadToDisk.swift in Sources */,
 				8A5283B81DBE754500EB0886 /* PayloadToNotificationContent.swift in Sources */,
 				8A5283B91DBE893E00EB0886 /* GlobalFetch.swift in Sources */,
 				8A9D71151DC0F7F800375365 /* StoredPushEvent.swift in Sources */,
@@ -991,6 +1001,7 @@
 				8ACCDCD91D7A131900A137E1 /* PushManager.swift in Sources */,
 				8ACCDCDA1D7A131900A137E1 /* Console.swift in Sources */,
 				8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */,
+				8A0970C41DCB9C1F00F16CF4 /* DownloadToDisk.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1033,6 +1044,7 @@
 				8A0970B81DC977A300F16CF4 /* WebServerDomainManager.swift in Sources */,
 				8A6EA5181D8200E7003FDA00 /* Notification.swift in Sources */,
 				8A2449491D6F676700052D92 /* HybridNavigationController.swift in Sources */,
+				8A0970C31DCB988900F16CF4 /* DownloadToDisk.swift in Sources */,
 				8A2475881D623BDA008906FB /* EventManager.swift in Sources */,
 				8A0156D21D66402D0091995E /* PromiseBridge.swift in Sources */,
 			);

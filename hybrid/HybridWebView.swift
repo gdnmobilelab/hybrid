@@ -53,7 +53,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         HybridWebview.saveWebViewRecords()
     }
     
-    private static func saveWebViewRecords() {
+    static func saveWebViewRecords() {
         
         // We need to save this somewhere that out-of-app code can still access it
         
