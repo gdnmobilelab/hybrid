@@ -70,7 +70,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         
         let rewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(forDomain)
         
-        if rewrittenURL == forDomain {
+        if rewrittenURL == forDomain && WebServerDomainManager.isLocalServerURL(rewrittenURL) == false {
             // If the page isn't under any service worker scope we can't really do our
             // placeholder
             

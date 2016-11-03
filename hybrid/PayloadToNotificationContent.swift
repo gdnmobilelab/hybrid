@@ -144,6 +144,7 @@ class PayloadToNotificationContent {
                 }
                 
                 let newAction = UNNotificationAction(identifier: identifier, title: title, options: options)
+                
                 nativeActions.append(newAction)
             }
             

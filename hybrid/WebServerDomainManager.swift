@@ -87,6 +87,18 @@ class WebServerDomainManager {
         
     }
     
+    static func stopAll() {
+        self.domainServerMap.forEach {key, server in
+            server.stop()
+        }
+    }
+    
+    static func startAll() throws {
+        try self.domainServerMap.forEach {key, server in
+            try server.start()
+        }
+    }
+    
     private static func getForDomain(domain:NSURL) throws -> WebServer {
         
         let key = URLHostAndPort(scheme: domain.scheme!, host: domain.host!, port: domain.port)
@@ -134,10 +146,7 @@ class WebServerDomainManager {
             .filter { (key, server) in
                 return server.port == serverURL.port!
             }
-            .map { (key, server) in
-                return key
-            }
-            .first!
+            .first!.0
         
         components.host = serverBeingUsed.host
         components.port = serverBeingUsed.port
@@ -148,6 +157,6 @@ class WebServerDomainManager {
     }
     
     static func isLocalServerURL(maybeServerURL:NSURL) -> Bool {
-        return maybeServerURL.host! == "localhost"
+        return maybeServerURL.host == "localhost"
     }
 }

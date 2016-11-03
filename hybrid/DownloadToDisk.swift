@@ -14,8 +14,8 @@ class DownloadToTemporaryStorage {
     static func start(fromURL:NSURL) -> Promise<NSURL> {
         
         return Promise<NSURL> { fulfill, reject in
-            let session = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration())
-            let task = session.downloadTaskWithURL(fromURL) { (completeURL: NSURL?, response:NSURLResponse?, error:NSError?) in
+            
+            let task = NSURLSession.sharedSession().downloadTaskWithURL(fromURL) { (completeURL: NSURL?, response:NSURLResponse?, error:NSError?) in
                 
                 
                 if error != nil {
@@ -56,7 +56,7 @@ class DownloadToTemporaryStorage {
                     }
                 }
             }
-            
+            task.priority = NSURLSessionTaskPriorityHigh
             task.resume()
         }
         

@@ -14,6 +14,7 @@ import PromiseKit
 class WebServer {
     
     var server = GCDWebServer()
+    var chosenPortNumber: Int?
     
     init() throws {
         
@@ -21,35 +22,37 @@ class WebServer {
         
         self.server.addDefaultHandlerForMethod("GET", requestClass: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleRequest);
         
-        try server.startWithOptions([
-            GCDWebServerOption_BindToLocalhost: true
-        ]);
-        
-        
+        try self.start()
         
     }
     
-    func isLocalServerURL(url:NSURL) -> Bool {
-        if url.scheme! != "http" && url.scheme! != "https" {
-            return false
+    func start() throws {
+        
+        // GCDWebServer has the ability to automatically suspend in the background, but
+        // the port will change if we do that. Given that we might have webviews currently
+        // sitting on those URLs, we want to keep port numbers consistent.
+        //
+        // So, we store the number, then handle activation/deactivation ourselves in the
+        // AppDelegate
+        
+        var options: [String: AnyObject] = [
+            GCDWebServerOption_BindToLocalhost: true,
+            GCDWebServerOption_AutomaticallySuspendInBackground: false
+        ]
+        
+        if self.chosenPortNumber != nil {
+            options[GCDWebServerOption_Port] = self.chosenPortNumber!
         }
-        return url.host! == "localhost" && url.port! == self.port
+        
+        try server.startWithOptions(options);
+        
+        self.chosenPortNumber = Int(server.port)
+
     }
     
-    func isLocalServiceWorkerURL(url:NSURL) -> Bool {
-        if isLocalServerURL(url) == false {
-            return false
-        }
-        
-        if url.pathComponents?.count < 2 {
-            return false
-        }
-        
-        if url.pathComponents?[1] == "__service_worker" {
-            return true
-        }
-        
-        return false
+    
+    func stop() {
+        self.server.stop()
     }
     
     
@@ -124,29 +127,41 @@ class WebServer {
     
     func passRequestThroughToNetwork(request: GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
         
-        if request.URL.pathComponents?.count < 1 || request.URL.pathComponents![1] != "__service_worker" {
-            // if we're not looking for a service worker URL then we can't go to network.
-            log.info("Request for an unknown local URL: " + request.URL.absoluteString!)
-            let resp = GCDWebServerResponse(statusCode: 404)
-            completionBlock(resp)
-            return
-        }
-        
         let urlToActuallyFetch = WebServerDomainManager.mapServerURLToRequestURL(request.URL)
         
         log.info("Going to network to fetch: " + urlToActuallyFetch.absoluteString!)
         
+        let fetchRequest = FetchRequest(url: urlToActuallyFetch.absoluteString!, options: [
+            "method": request.method
+        ])
         
-        Promisified.AlamofireRequest(request.method, url: urlToActuallyFetch)
-        .then { (r) -> Void in
-            let response = GCDWebServerDataResponse(data: r.data, contentType: r.request.valueForHTTPHeaderField("Content-Type"))
+        for (key,val) in request.headers {
             
-            for (key, value) in r.response.allHeaderFields {
-                response.setValue(value as! String, forAdditionalHeader: key as! String)
+            if (key as! String).lowercaseString == "host" {
+                // We need to rewrite the host header, as it's currently localhost
+                fetchRequest.headers.append(key as! String, value: urlToActuallyFetch.host!)
+            } else {
+                fetchRequest.headers.append(key as! String, value: val as! String)
             }
             
-            completionBlock(response)
         }
+        
+        GlobalFetch.fetchRequest(fetchRequest)
+        .then { response -> Void in
+            
+            let gcdResponse = GCDWebServerDataResponse(data: response.data, contentType: response.headers.get("content-type"))
+            gcdResponse.statusCode = response.status
+            
+            for key in response.headers.keys() {
+                let value = response.headers.get(key)
+                log.info(key + " : " + value!)
+                gcdResponse.setValue(value!, forAdditionalHeader: key)
+            }
+            
+            completionBlock(gcdResponse)
+            
+        }
+        
     }
     
 //    static func checkServerURLForReferrer(url: NSURL, referrer:String?) -> NSURL {

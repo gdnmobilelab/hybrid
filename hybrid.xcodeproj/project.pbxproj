@@ -372,7 +372,6 @@
 				8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */,
 				8A54109A1D38179E00F44F38 /* ServiceWorkerManager.swift */,
 				8A878AC51D4A8F7600D31F85 /* ServiceWorkerCache.swift */,
-				8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */,
 				8A0156D11D66402D0091995E /* PromiseBridge.swift */,
 				8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */,
 				8A24493E1D6CF71500052D92 /* PushManager.swift */,
@@ -449,6 +448,7 @@
 				8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */,
 				8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */,
 				8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */,
+				8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */,
 			);
 			name = shared;
 			sourceTree = "<group>";

@@ -71,7 +71,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
             let maybeRewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(urlToLoad)
             
             let loadNormally = { () -> Promise<Void> in
-                self.webview!.loadRequest(NSURLRequest(URL: urlToLoad))
+                self.webview!.loadRequest(NSURLRequest(URL: maybeRewrittenURL))
                 return Promise<Void>()
             }
             
