@@ -23,7 +23,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         super.init(nibName: nil, bundle: nil)
         
         // We render this in the same size as the original controller, but off-screen
-        self.waitingArea.frame = CGRect(origin: CGPoint(x: self.view.frame.width - 100, y:0), size: self.view.frame.size)
+        self.waitingArea.frame = CGRect(origin: CGPoint(x: self.view.frame.width + 1, y:0), size: self.view.frame.size)
         self.view.addSubview(self.waitingArea)
         self.navigationBar.translucent = false
         self.delegate = self

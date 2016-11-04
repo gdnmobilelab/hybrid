@@ -76,6 +76,8 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
 
     }
     
+    var activeVideo:NotificationVideo?
+    
     func checkForVideo(attachments: [UNNotificationAttachment], options: AnyObject, worker: ServiceWorkerInstance) {
         
         let video = attachments.filter { attachment in
@@ -90,27 +92,21 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         
         videoURL.startAccessingSecurityScopedResource()
         
-        var videoProportion = options["video"]!!["proportion"] as? CGFloat
+        let videoOptions = options["video"]!!
+        
+        var videoProportion = videoOptions["proportion"] as? CGFloat
         
         if videoProportion == nil {
             videoProportion = 16 / 10
         }
         
-        let playerController = AVPlayerViewController()
-        playerController.player = AVPlayer(URL: videoURL)
-        playerController.showsPlaybackControls = false
-        playerController.player!.play()
+        let videoNotification = NotificationVideo(videoURL: videoURL, options: videoOptions)
         
-        // Loop it
+        videoNotification.playerController.view.autoresizingMask = UIViewAutoresizing.None
+        self.setFrame(videoNotification.playerController.view, height: self.view.frame.width * videoProportion!)
+        self.notificationViews.append(videoNotification.playerController.view)
         
-        NSNotificationCenter.defaultCenter().addObserverForName(AVPlayerItemDidPlayToEndTimeNotification, object: nil, queue: nil) { notification in
-            playerController.player!.seekToTime(kCMTimeZero)
-            playerController.player!.play()
-        }
-        
-        playerController.view.autoresizingMask = UIViewAutoresizing.None
-        self.setFrame(playerController.view, height: self.view.frame.width / videoProportion!)
-        self.notificationViews.append(playerController.view)
+        self.activeVideo = videoNotification
         
     }
     
@@ -244,7 +240,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
     
     func didReceiveNotificationResponse(response: UNNotificationResponse, completionHandler completion: (UNNotificationContentExtensionResponseOption) -> Void) {
-        NotificationHandler.processAction(response, userInfo: latestUserInfo!)
+        NotificationHandler.processAction(response, userInfo: latestUserInfo!, activeViews: ActiveNotificationViews(video: self.activeVideo))
         .then { _ -> Void in
             
             if PendingNotificationActions.closeNotification == true {

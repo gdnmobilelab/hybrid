@@ -43,8 +43,12 @@ class PendingNotificationActions {
     }
 }
 
+struct ActiveNotificationViews {
+    var video:NotificationVideo?
+}
+
 class NotificationHandler {
-    static func processAction(response:UNNotificationResponse, userInfo:[NSObject: AnyObject]) -> Promise<JSValue> {
+    static func processAction(response:UNNotificationResponse, userInfo:[NSObject: AnyObject], activeViews: ActiveNotificationViews) -> Promise<JSValue> {
        
         let notificationData = userInfo["originalNotificationOptions"]!
         
@@ -55,6 +59,7 @@ class NotificationHandler {
         notification.icon = notificationData["icon"] as? String
         notification.image = notificationData["image"]
         notification.data = notificationData["data"]
+        notification.video = activeViews.video
         
         let workerScope = userInfo["serviceWorkerScope"] as! String
         
