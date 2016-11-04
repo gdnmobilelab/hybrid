@@ -83,10 +83,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //                })
 
 
-                
-                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo")!)
             }
-//            
+            
+            let windowOpenActions = PendingWebviewActions.getAll().filter { event in
+                return event.type == WebviewClientEventType.OpenWindow
+            }
+            
+            if windowOpenActions.count == 0 {
+                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo/")!)
+
+            }
+//
 //            if PendingNotificationActions.urlToOpen == nil {
 //                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo")!)
 //            }

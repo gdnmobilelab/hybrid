@@ -51,7 +51,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     }
     
     
-    func loadURL(urlToLoad:NSURL) {
+    func loadURL(urlToLoad:NSURL, attemptAcceleratedLoading:Bool) {
         
         if urlToLoad.host! == "localhost" {
             log.error("Should never directly load a localhost URL - should be a server URL")
@@ -75,12 +75,24 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
                 return Promise<Void>()
             }
             
+            if attemptAcceleratedLoading == false {
+                
+                // This direct injecting of HTML seems to have issues that are difficult
+                // to track down. So we're using it sparingly - only when a user taps and
+                // we're pushing a new view into the stack. For loading in the background
+                // we'll just use normal load.
+                
+                return loadNormally()
+            }
+            
             if maybeRewrittenURL == urlToLoad {
                 // Is not within a service worker domain, so we can just load it
                 return loadNormally()
             }
+            
+            let currentWebviewURL = self.webview!.URL
 
-            if self.webview!.URL == nil || self.webview!.URL!.host != "localhost" || self.webview!.URL!.port != maybeRewrittenURL.port || self.webview!.URL!.path!.containsString("__placeholder") == false ||
+            if currentWebviewURL == nil || currentWebviewURL!.host != "localhost" || self.webview!.URL!.port != maybeRewrittenURL.port || currentWebviewURL!.path!.containsString("__placeholder") == false ||
                 maybeRewrittenURL.path!.containsString("__placeholder") == true {
                 
                 // Placeholder stuff requires us to be on the same domain, and on a placeholder page. If any
@@ -148,10 +160,10 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
 //        self.navigationItem.leftBarButtonItem = back
     }
     
-    func popToCustomBackWebView() {
-        let relativeURL = NSURL(string: self.currentMetadata!.defaultBackURL!, relativeToURL: self.webview!.URL!)!
-        self.hybridNavigationController!.popToNewHybridWebViewControllerFor(relativeURL)
-    }
+//    func popToCustomBackWebView() {
+//        let relativeURL = NSURL(string: self.currentMetadata!.defaultBackURL!, relativeToURL: self.webview!.URL!)!
+//        self.hybridNavigationController!.popToNewHybridWebViewControllerFor(relativeURL)
+//    }
     
     func fiddleContentInsets() {
         
@@ -230,7 +242,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         // the page in a custom color. If it isn't detected, waitForRender() fires again at the next
         // interval.
         
-        let height = 1
+        let height = 100
         let width = Int(self.view.frame.width)
         
         if self.renderCheckContext == nil {
@@ -254,13 +266,24 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
 //        let alpha = CGFloat(pixel![startAt + 3])
         
        
-        return red == 0 && blue == 255 && green == 255
         
-//        let imgref = CGBitmapContextCreateImage(self.renderCheckContext!)
-//        let uiImage = UIImage(CGImage: imgref!)
-//        
-//        AppDelegate.window!.addSubview(UIImageView(image: uiImage))
+        
+        let imgref = CGBitmapContextCreateImage(self.renderCheckContext!)
+        let uiImage = UIImage(CGImage: imgref!)
+
+        if self.tempCheckView == nil {
+            self.tempCheckView = UIImageView(image: uiImage)
+            self.tempCheckView?.alpha = 0.7
+            AppDelegate.window!.addSubview(UIImageView(image: uiImage))
+        } else {
+            self.tempCheckView?.image = uiImage
+        }
+        
+        return red == 0 && blue == 255 && green == 255
     }
+    
+    private var tempCheckView:UIImageView?
+    
     
     private func waitRenderWithFulfill(fulfill: () -> ()) {
         if self.checkIfRendered() == true {
@@ -268,6 +291,10 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
             self.renderCheckContext = nil
             self.pixel!.destroy()
             self.pixel = nil
+            
+            if self.tempCheckView != nil {
+                self.tempCheckView!.removeFromSuperview()
+            }
             
             self.webview!.evaluateJavaScript("__removeLoadedIndicator()", completionHandler: nil)
 //            self.events.emit("ready", "test")
