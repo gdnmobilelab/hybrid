@@ -12,19 +12,19 @@ import PromiseKit
 
 class HybridNavigationController : UINavigationController, UINavigationControllerDelegate {
     
-    let waitingArea:UINavigationController
+    let waitingArea:UIView
     var launchViewController:UIViewController?
     
     init() {
-        self.waitingArea = UINavigationController()
+        self.waitingArea = UIView()
         let storyBoard = UIStoryboard(name: "LaunchScreen", bundle: nil)
         self.launchViewController = storyBoard.instantiateInitialViewController()!
 
         super.init(nibName: nil, bundle: nil)
         
         // We render this in the same size as the original controller, but off-screen
-        self.waitingArea.view.frame = CGRect(origin: CGPoint(x: self.view.frame.width, y:0), size: self.view.frame.size)
-        self.view.addSubview(self.waitingArea.view)
+        self.waitingArea.frame = CGRect(origin: CGPoint(x: self.view.frame.width - 100, y:0), size: self.view.frame.size)
+        self.view.addSubview(self.waitingArea)
         self.navigationBar.translucent = false
         self.delegate = self
         
@@ -53,48 +53,64 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         return poppedController
     }
     
+    var waitingAreaViewControllers = [HybridWebviewController]()
+    
     func getNewController() -> HybridWebviewController {
         log.info("WAITING AREA VIEWS:")
-        self.waitingArea.viewControllers.forEach { uiv in
+        self.waitingAreaViewControllers.forEach { uiv in
             let hwv = (uiv as! HybridWebviewController)
             log.info("AVAILABLE: " + hwv.webview!.URL!.absoluteString! + ", is ready: " + String(hwv.isReady))
 //            return (hwv.webview!.URL, hwv.isReady)
         }
         
-        let inWaitingArea = self.waitingArea.topViewController as? HybridWebviewController
-        var inWaitingURL = inWaitingArea?.webview!.URL
+        let inWaitingArea = waitingAreaViewControllers.last
+       
         if inWaitingArea != nil && inWaitingArea!.isReady == true {
-            
+            self.removeFromWaiting(inWaitingArea!)
             return inWaitingArea!
         }
         let newController = HybridWebviewController()
+        self.addToWaiting(newController)
+        self.removeFromWaiting(newController)
         return newController
+    }
+    
+    func removeFromWaiting(controller:HybridWebviewController) {
+        let idx = self.waitingAreaViewControllers.indexOf(controller)
+        self.waitingAreaViewControllers.removeAtIndex(idx!)
+    }
+    
+    func addToWaiting(controller:HybridWebviewController) {
+        self.waitingArea.addSubview(controller.webview!)
+        self.waitingAreaViewControllers.insert(controller, atIndex: 0)
     }
     
     func addControllerToWaitingArea(controller: HybridWebviewController, forDomain: NSURL) {
         
-        self.waitingArea.viewControllers.insert(controller, atIndex: 0)
+        self.addToWaiting(controller)
+        
+        controller.webview?.loadHTMLString("<html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1,user-scalable=no\" /></head><body></body></html>", baseURL: forDomain)
         
        
-        // Reset our webview with a new request to the placeholder
-        
-        let rewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(forDomain)
-        
-        if rewrittenURL == forDomain && WebServerDomainManager.isLocalServerURL(rewrittenURL) == false {
-            // If the page isn't under any service worker scope we can't really do our
-            // placeholder
-            
-            log.warning("Tried to create placeholder view for non-local URL " + forDomain.absoluteString!)
-            controller.loadURL(NSURL(string: "about:blank")!, attemptAcceleratedLoading: false)
-            return
-        }
-        
-        
-        let components = NSURLComponents(URL: forDomain, resolvingAgainstBaseURL: true)!
-        
-        components.path = "/__placeholder"
-        
-        controller.loadURL(components.URL!, attemptAcceleratedLoading: false)
+//        // Reset our webview with a new request to the placeholder
+//        
+//        let rewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(forDomain)
+//        
+//        if rewrittenURL == forDomain && WebServerDomainManager.isLocalServerURL(rewrittenURL) == false {
+//            // If the page isn't under any service worker scope we can't really do our
+//            // placeholder
+//            
+//            log.warning("Tried to create placeholder view for non-local URL " + forDomain.absoluteString!)
+//            controller.loadURL(NSURL(string: "about:blank")!, attemptAcceleratedLoading: false)
+//            return
+//        }
+//        
+//        
+//        let components = NSURLComponents(URL: forDomain, resolvingAgainstBaseURL: true)!
+//        
+//        components.path = "/__placeholder"
+//        
+//        controller.loadURL(components.URL!, attemptAcceleratedLoading: false)
 
     }
     
@@ -228,7 +244,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         
         // Ensure we have a cached view ready to go
         
-        if self.waitingArea.viewControllers.count == 0 {
+        if self.waitingAreaViewControllers.count == 0 {
             
             // We put this behind a timer because for some reason the title text
             // of the recently pushed view sometimes disappears if we don't. Hooray
@@ -247,15 +263,30 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             // If this isn't the furthest back view then we already have a navigation path,
             // we don't need to restore the default one.
             
-            let underneathView = self.getNewController()
+            var backURL = NSURL(string:hybrid.currentMetadata!.defaultBackURL!, relativeToURL: hybrid.webview!.URL!)!
             
-            self.viewControllers.insert(underneathView, atIndex: 0)
-            let backURL = NSURL(string:hybrid.currentMetadata!.defaultBackURL!, relativeToURL: hybrid.webview!.URL!)!
-            underneathView.events.once("popped", self.addPoppedViewBackToWaitingStack)
+            if WebServerDomainManager.isLocalServerURL(backURL) {
+                backURL = WebServerDomainManager.mapServerURLToRequestURL(backURL)
+            }
             
-            let mappedBackURL = WebServerDomainManager.mapServerURLToRequestURL(backURL)
+            self.prepareWebviewFor(backURL, attemptAcceleratedLoading: false)
+            .then { controller in
+                self.viewControllers.insert(controller, atIndex: 0)
+            }
             
-            underneathView.loadURL(mappedBackURL, attemptAcceleratedLoading: false)
+//            let underneathView = self.getNewController()
+//            
+//            self.viewControllers.insert(underneathView, atIndex: 0)
+//            let backURL = NSURL(string:hybrid.currentMetadata!.defaultBackURL!, relativeToURL: hybrid.webview!.URL!)!
+//            underneathView.events.once("popped", self.addPoppedViewBackToWaitingStack)
+//            
+//            var urlToLoad = backURL
+//            
+//            if WebServerDomainManager.isLocalServerURL(urlToLoad) {
+//                urlToLoad = WebServerDomainManager.mapServerURLToRequestURL(backURL)
+//            }
+//            
+//            underneathView.loadURL(urlToLoad, attemptAcceleratedLoading: false)
 
         }
     

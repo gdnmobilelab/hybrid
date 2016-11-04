@@ -53,7 +53,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     
     func loadURL(urlToLoad:NSURL, attemptAcceleratedLoading:Bool) {
         
-        if urlToLoad.host! == "localhost" {
+        if urlToLoad.host == "localhost" {
             log.error("Should never directly load a localhost URL - should be a server URL")
         }
         
@@ -78,74 +78,86 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
             let maybeRewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(urlToLoad)
             
             let loadNormally = { () -> Promise<Void> in
+                log.info("Loading " + maybeRewrittenURL.absoluteString! + " normally")
                 self.webview!.loadRequest(NSURLRequest(URL: maybeRewrittenURL))
                 return Promise<Void>()
             }
             
-            if attemptAcceleratedLoading == false {
-                
-                // This direct injecting of HTML seems to have issues that are difficult
-                // to track down. So we're using it sparingly - only when a user taps and
-                // we're pushing a new view into the stack. For loading in the background
-                // we'll just use normal load.
-                
-                return loadNormally()
-            }
+            // Cutting out the idea of accelerated loading for now - it doesn't actually
+            // seem to deliver any loading benefit any more! Leaving the code in so that
+            // we can re-enable it if ever necessary - perhaps as pages get more complex?
             
-            if maybeRewrittenURL == urlToLoad {
-                // Is not within a service worker domain, so we can just load it
-                return loadNormally()
-            }
+            return loadNormally()
             
-            let currentWebviewURL = self.webview!.URL
-
-            if currentWebviewURL == nil || currentWebviewURL!.host != "localhost" || self.webview!.URL!.port != maybeRewrittenURL.port || currentWebviewURL!.path!.containsString("__placeholder") == false ||
-                maybeRewrittenURL.path!.containsString("__placeholder") == true {
-                
-                // Placeholder stuff requires us to be on the same domain, and on a placeholder page. If any
-                // of this isn't true - or if we're *loading* a placeholder page, skip
-                
-                return loadNormally()
-            }
+            // COMMENTED: ACCELERATED LOAD
             
-            // If none of the above is true then we're on a service worker-enabled domain. This
-            // doesn't *necessarily* mean we're in a service worker scope, but either way we can
-            // make a request same as the browser would, then inject the content.
-            
-            let request = FetchRequest(url: maybeRewrittenURL.absoluteString!, options: nil)
-            return GlobalFetch.fetchRequest(request)
-            .then { response in
-                
-                let responseAsString = String(data: response.data!, encoding: NSUTF8StringEncoding)!
-                let responseEscaped = responseAsString.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
-                
-                return Promise<Void> { fulfill, reject in
-                    self.webview!.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + maybeRewrittenURL.absoluteString! + "\");",completionHandler: { (obj:AnyObject?, err: NSError?) in
-                        if err != nil {
-                            // Injecting HTML failed. Why?
-                            
-                            reject(err!)
-                        } else {
-                            fulfill()
-                        }
-                    })
-                }
-            }
-            .then { () -> Promise<Void> in
-                
-                return when(
-                    self.waitForRendered(),
-                    self.setMetadata()
-                )
-                
-            }
-            .then { () -> Void in
-                self.events.emit("ready", self)
-            }
-            .recover { err -> Void in
-                log.error(String(err))
-                loadNormally()
-            }
+//            if attemptAcceleratedLoading == false {
+//                
+//                // This direct injecting of HTML seems to have issues that are difficult
+//                // to track down. So we're using it sparingly - only when a user taps and
+//                // we're pushing a new view into the stack. For loading in the background
+//                // we'll just use normal load.
+//                
+//                return loadNormally()
+//            }
+//            
+//            if maybeRewrittenURL == urlToLoad {
+//                // Is not within a service worker domain, so we can just load it
+//                return loadNormally()
+//            }
+//            
+//            let currentWebviewURL = self.webview!.URL
+//
+//            if currentWebviewURL == nil || currentWebviewURL!.host != "localhost" || self.webview!.URL!.port != maybeRewrittenURL.port || currentWebviewURL!.path!.containsString("__placeholder") == false ||
+//                maybeRewrittenURL.path!.containsString("__placeholder") == true {
+//                
+//                // Placeholder stuff requires us to be on the same domain, and on a placeholder page. If any
+//                // of this isn't true - or if we're *loading* a placeholder page, skip
+//                
+//                return loadNormally()
+//            }
+//            
+//            // If none of the above is true then we're on a service worker-enabled domain. This
+//            // doesn't *necessarily* mean we're in a service worker scope, but either way we can
+//            // make a request same as the browser would, then inject the content.
+//            
+//            log.info("Attempting to load " + maybeRewrittenURL.absoluteString! + " accelerated")
+//
+//            
+//            let request = FetchRequest(url: maybeRewrittenURL.absoluteString!, options: nil)
+//            return GlobalFetch.fetchRequest(request)
+//            .then { response in
+//                
+//                let responseAsString = String(data: response.data!, encoding: NSUTF8StringEncoding)!
+//                let responseEscaped = responseAsString.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
+//                
+//                return Promise<Void> { fulfill, reject in
+//                    self.webview!.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + maybeRewrittenURL.absoluteString! + "\");__addLoadedIndicator();",completionHandler: { (obj:AnyObject?, err: NSError?) in
+//                        if err != nil {
+//                            // Injecting HTML failed. Why?
+//                            
+//                            reject(err!)
+//                        } else {
+//                            fulfill()
+//                        }
+//                    })
+//                }
+//            }
+//            .then { () -> Promise<Void> in
+//                
+//                return when(
+//                    self.waitForRendered(),
+//                    self.setMetadata()
+//                )
+//                
+//            }
+//            .then { () -> Void in
+//                self.events.emit("ready", self)
+//            }
+//            .recover { err -> Void in
+//                log.error(String(err))
+//                loadNormally()
+//            }
 
         }
         
@@ -201,8 +213,29 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     }
     
     func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
-        self.setMetadata()
+        
+        Promise<Void> { fulfill, reject in
+            self.webview!.evaluateJavaScript(LoadingIndicatorJS.setIndicator, completionHandler: { (obj:AnyObject?, err: NSError?) in
+                if err != nil {
+                    // Injecting HTML failed. Why?
+                    
+                    reject(err!)
+                } else {
+                    fulfill()
+                }
+            })
+
+        }
         .then {
+            return when(
+                self.waitForRendered(),
+                self.setMetadata()
+            )
+        }
+        .then {
+            self.events.emit("ready", self)
+        }
+        .recover { err in
             self.events.emit("ready", self)
         }
     }
@@ -275,9 +308,9 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
        
         
         
-//        let imgref = CGBitmapContextCreateImage(self.renderCheckContext!)
-//        let uiImage = UIImage(CGImage: imgref!)
-//
+        let imgref = CGBitmapContextCreateImage(self.renderCheckContext!)
+        let uiImage = UIImage(CGImage: imgref!)
+
 //        if self.tempCheckView == nil {
 //            self.tempCheckView = UIImageView(image: uiImage)
 //            self.tempCheckView?.alpha = 0.7
@@ -299,12 +332,11 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
             self.pixel!.destroy()
             self.pixel = nil
             
-//            if self.tempCheckView != nil {
-//                self.tempCheckView!.removeFromSuperview()
-//            }
+            if self.tempCheckView != nil {
+                self.tempCheckView!.removeFromSuperview()
+            }
             
-            self.webview!.evaluateJavaScript("__removeLoadedIndicator()", completionHandler: nil)
-//            self.events.emit("ready", "test")
+            self.webview!.evaluateJavaScript(LoadingIndicatorJS.removeIndicator, completionHandler: nil)
             fulfill()
         } else {
             log.debug("Checked if webview was ready, it was not")
