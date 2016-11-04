@@ -59,8 +59,15 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         
         self.isReady = false
         
+        let startRequestTime = NSDate().timeIntervalSince1970
+        
         self.events.once("ready", { _ in
             self.isReady = true
+            
+            let readyTime = NSDate().timeIntervalSince1970
+            
+            log.info("LOADED IN " + String(readyTime - startRequestTime))
+            
             // Because the URL is likely to have changed, we need to re-save our records to keep them accurate.
             HybridWebview.saveWebViewRecords()
         })
@@ -242,7 +249,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         // the page in a custom color. If it isn't detected, waitForRender() fires again at the next
         // interval.
         
-        let height = 100
+        let height = 1
         let width = Int(self.view.frame.width)
         
         if self.renderCheckContext == nil {
@@ -268,16 +275,16 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
        
         
         
-        let imgref = CGBitmapContextCreateImage(self.renderCheckContext!)
-        let uiImage = UIImage(CGImage: imgref!)
-
-        if self.tempCheckView == nil {
-            self.tempCheckView = UIImageView(image: uiImage)
-            self.tempCheckView?.alpha = 0.7
-            AppDelegate.window!.addSubview(UIImageView(image: uiImage))
-        } else {
-            self.tempCheckView?.image = uiImage
-        }
+//        let imgref = CGBitmapContextCreateImage(self.renderCheckContext!)
+//        let uiImage = UIImage(CGImage: imgref!)
+//
+//        if self.tempCheckView == nil {
+//            self.tempCheckView = UIImageView(image: uiImage)
+//            self.tempCheckView?.alpha = 0.7
+//            AppDelegate.window!.addSubview(UIImageView(image: uiImage))
+//        } else {
+//            self.tempCheckView?.image = uiImage
+//        }
         
         return red == 0 && blue == 255 && green == 255
     }
@@ -292,9 +299,9 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
             self.pixel!.destroy()
             self.pixel = nil
             
-            if self.tempCheckView != nil {
-                self.tempCheckView!.removeFromSuperview()
-            }
+//            if self.tempCheckView != nil {
+//                self.tempCheckView!.removeFromSuperview()
+//            }
             
             self.webview!.evaluateJavaScript("__removeLoadedIndicator()", completionHandler: nil)
 //            self.events.emit("ready", "test")

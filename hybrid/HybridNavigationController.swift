@@ -99,7 +99,6 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     }
     
     private func prepareWebviewFor(url:NSURL, attemptAcceleratedLoading:Bool) -> Promise<HybridWebviewController> {
-        let startRequestTime = NSDate().timeIntervalSince1970
         let newInstance = self.getNewController()
         
         var hasFiredReady = false
@@ -110,10 +109,6 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
                 if let meta = newInstance.currentMetadata {
                     self.applyMetadata(meta)
                 }
-                
-                let readyTime = NSDate().timeIntervalSince1970
-                
-                NSLog("LOADED IN " + String(readyTime - startRequestTime))
                 
                 newInstance.prepareHeaderControls(self.viewControllers.count > 0)
                 
@@ -247,14 +242,13 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             }
         }
         
-        if self.viewControllers.indexOf(viewController) > 0 {
-            return
-        }
-        
-        
-        if hybrid.currentMetadata?.defaultBackURL != nil {
+        if self.viewControllers.indexOf(viewController) == 0 && hybrid.currentMetadata?.defaultBackURL != nil {
+            
+            // If this isn't the furthest back view then we already have a navigation path,
+            // we don't need to restore the default one.
+            
             let underneathView = self.getNewController()
-
+            
             self.viewControllers.insert(underneathView, atIndex: 0)
             let backURL = NSURL(string:hybrid.currentMetadata!.defaultBackURL!, relativeToURL: hybrid.webview!.URL!)!
             underneathView.events.once("popped", self.addPoppedViewBackToWaitingStack)
@@ -262,7 +256,9 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             let mappedBackURL = WebServerDomainManager.mapServerURLToRequestURL(backURL)
             
             underneathView.loadURL(mappedBackURL, attemptAcceleratedLoading: false)
+
         }
+    
         
         
     }
