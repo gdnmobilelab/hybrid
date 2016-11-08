@@ -240,6 +240,15 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
     
     func didReceiveNotificationResponse(response: UNNotificationResponse, completionHandler completion: (UNNotificationContentExtensionResponseOption) -> Void) {
+        
+        if response.actionIdentifier == UNNotificationDismissActionIdentifier {
+            if self.activeVideo != nil {
+                // Video somehow keeps playing if we don't do this
+                self.activeVideo!.pause()
+            }
+        }
+        
+        
         NotificationHandler.processAction(response, userInfo: latestUserInfo!, activeViews: ActiveNotificationViews(video: self.activeVideo))
         .then { _ -> Void in
             

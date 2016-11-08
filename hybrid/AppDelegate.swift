@@ -75,24 +75,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             let rootController = HybridNavigationController.create()
             
-//            if AppDelegate.runningInTests == false {
-//                // todo: remove
-//                ServiceWorkerManager.clearActiveServiceWorkers()
-//                try Db.mainDatabase.inDatabase({ (db) in
-//                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
-//                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
-//                })
-//
-//
-//            }
+            if AppDelegate.runningInTests == false {
+                // todo: remove
+                ServiceWorkerManager.clearActiveServiceWorkers()
+                try Db.mainDatabase.inDatabase({ (db) in
+                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
+                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
+                })
+
+
+            }
             
             let windowOpenActions = PendingWebviewActions.getAll().filter { event in
                 return event.type == WebviewClientEventType.OpenWindow
             }
             
             if windowOpenActions.count == 0 {
-//                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/hybrid-election-night/")!)
-                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/hybrid-election-night/")!)
+                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo/")!)
+//                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/hybrid-election-night/")!)
 
             }
             

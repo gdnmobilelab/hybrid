@@ -90,11 +90,19 @@ class NotificationHandler {
                     let jsFuncToRun = sw!.jsContext.objectForKeyedSubscript("hybrid")
                         .objectForKeyedSubscript("dispatchExtendableEvent")!
                     
-                    let args = [
-                        "notification" : notification,
-                        "action": action
+                    var args:[String:AnyObject] = [
+                        "notification" : notification
                     ]
-                    jsFuncToRun.callWithArguments(["notificationclick", args, cb])
+                    
+                    if response.actionIdentifier == "com.apple.UNNotificationDismissActionIdentifier" {
+                        jsFuncToRun.callWithArguments(["notificationclose", args, cb])
+                    } else {
+                        args["action"] = action
+                        jsFuncToRun.callWithArguments(["notificationclick", args, cb])
+                    }
+                    
+                    
+                    
             }
             
         }
