@@ -91,7 +91,10 @@ class PayloadToNotificationContent {
         }
     }
     
-    static func Convert(title:String, options:AnyObject, serviceWorkerScope: String) -> Promise<UNNotificationContent> {
+    static func Convert(notificationCommandPayload:AnyObject, serviceWorkerScope: String) -> Promise<UNNotificationContent> {
+        
+        let title = notificationCommandPayload["title"] as! String
+        var options = notificationCommandPayload["options"]!!
         
         let content = UNMutableNotificationContent()
         
@@ -110,8 +113,11 @@ class PayloadToNotificationContent {
             clearWithTag(tag)
         }
         
+
+        
         var nativeActions = [UNNotificationAction]()
         
+                
         if let actions = options["actions"] as? [AnyObject] {
             
             for action in actions {

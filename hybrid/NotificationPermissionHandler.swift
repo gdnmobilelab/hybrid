@@ -68,8 +68,10 @@ class NotificationPermissionHandler: ScriptMessageManager {
                         if err != nil {
                             reject(err!)
                         }
+                        ApplicationEvents.once("didRegisterForRemoteNotificationsWithDeviceToken", {_ in 
+                            fulfill(result)
+                        })
                         
-                        fulfill(result)
                         
                     })
                 }

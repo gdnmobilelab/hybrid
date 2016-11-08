@@ -14,6 +14,7 @@ import PromiseKit
 @objc protocol ServiceWorkerRegistrationExports : JSExport {
     var pushManager:PushManager {get}
     var scope:String {get}
+    var active:ServiceWorkerInstance? {get}
     func showNotification(title:String, options: [String:AnyObject])
 }
 
@@ -34,6 +35,14 @@ import PromiseKit
     var scope:String {
         get {
             return self.worker.scope.absoluteString!
+        }
+    }
+    
+    var active:ServiceWorkerInstance? {
+        get {
+            // Could expand logic here - current worker could (maybe?) be installing, but another worker
+            // still be active
+            return self.worker.installState == ServiceWorkerInstallState.Activated ? self.worker : nil
         }
     }
     
@@ -85,8 +94,12 @@ import PromiseKit
     
     func showNotification(title:String, options: [String:AnyObject]) {
         
+        var payload = [
+            "title": title,
+            "options": options
+        ]
         
-        PayloadToNotificationContent.Convert(title, options: options, serviceWorkerScope: self.scope)
+        PayloadToNotificationContent.Convert(payload, serviceWorkerScope: self.scope)
         .then { content -> Void in
             
             // We use a UUID because remote notifications can't change their identifier. This means

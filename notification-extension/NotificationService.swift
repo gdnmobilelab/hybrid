@@ -90,12 +90,59 @@ class NotificationService: UNNotificationServiceExtension {
 
     func parseOutNotificationShow(showNotificationCommand:AnyObject, workerURL:String) -> Promise<UNNotificationContent?> {
         
-        let notificationCommandPayload = showNotificationCommand["options"]!!
-        let notificationOptions = notificationCommandPayload["options"]!!
+        let notificationCommandPayload = NSMutableDictionary(dictionary: showNotificationCommand["options"] as! NSDictionary)
         
-        let title = notificationCommandPayload["title"] as! String
+        var options = NSMutableDictionary(dictionary: notificationCommandPayload["options"] as! NSDictionary)
+//        var actions = options["actions"] as? [AnyObject]
         
-        return PayloadToNotificationContent.Convert(title, options: notificationOptions, serviceWorkerScope: workerURL)
+        
+        if let actionCommands = notificationCommandPayload["actionCommands"] as? [AnyObject] {
+            // Have to remap awful JS here. Need a better fix.
+            
+            var data = NSMutableDictionary()
+            var actions:[AnyObject] = []
+            
+            if let existingData = options["data"] as? NSDictionary {
+                data = NSMutableDictionary(dictionary: existingData)
+            }
+            
+            var commandSequences:[AnyObject] = []
+            var commandToActionLabelMap:[AnyObject] = []
+            
+            actionCommands.forEach { action in
+                commandSequences.append(action["commands"]!!)
+                let commandString = "__command::" + String(commandSequences.count - 1)
+                
+                var template = NSMutableDictionary(dictionary: action["template"] as! NSDictionary)
+                template["action"] = commandString
+                
+                actions.append(template)
+                
+                let actionID = action["actionID"] as? String
+                
+                commandToActionLabelMap.append((template["title"] as! String) + (actionID != nil ? actionID! : ""))
+                
+            }
+
+            data["commandSequences"] = commandSequences
+            data["commandToActionLabelMap"] = commandToActionLabelMap
+            
+            options["data"] = data
+            options["actions"] = actions
+            
+            NSLog("argh")
+        }
+
+        notificationCommandPayload["options"] = options
+        
+        do {
+            let backToJSON = try NSJSONSerialization.dataWithJSONObject(notificationCommandPayload, options: [])
+            NSLog(String(data:backToJSON, encoding: NSUTF8StringEncoding)!)
+        } catch {
+            NSLog(String(error))
+        }
+        
+        return PayloadToNotificationContent.Convert(notificationCommandPayload, serviceWorkerScope: workerURL)
             .then { content in
                 return Promise<UNNotificationContent?>(content)
         }

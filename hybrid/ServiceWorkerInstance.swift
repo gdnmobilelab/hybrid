@@ -58,7 +58,11 @@ class ServiceWorkerOutOfScopeError : ErrorType {
     
 }
 
-public class ServiceWorkerInstance {
+@objc protocol ServiceWorkerInstanceExports : JSExport {
+    var scriptURL:String {get}
+}
+
+@objc public class ServiceWorkerInstance : NSObject, ServiceWorkerInstanceExports {
     
     var jsContext:JSContext!
     var cache:ServiceWorkerCacheHandler!
@@ -73,10 +77,38 @@ public class ServiceWorkerInstance {
     var installState:ServiceWorkerInstallState!
     let instanceId:Int
     
+    var scriptURL:String {
+        get {
+            return self.url.absoluteString!
+        }
+    }
+    
+    var state:String {
+        get {
+            if self.installState == ServiceWorkerInstallState.Activated {
+                return "activated"
+            }
+            if self.installState == ServiceWorkerInstallState.Activating {
+                return "activating"
+            }
+            if self.installState == ServiceWorkerInstallState.Installed {
+                return "installed"
+            }
+            if self.installState == ServiceWorkerInstallState.Installing {
+                return "installing"
+            }
+            if self.installState == ServiceWorkerInstallState.Redundant {
+                return "redundant"
+            }
+            return ""
+         }
+    }
+    
     
     var pendingPromises = Dictionary<Int, PromiseReturn>()
     
     init(url:NSURL, scope: NSURL?, instanceId:Int, installState: ServiceWorkerInstallState) {
+        
         self.url = url
         if (scope != nil) {
             self.scope = scope
@@ -87,12 +119,18 @@ public class ServiceWorkerInstance {
         self.installState = installState
         self.instanceId = instanceId
         
-        self.jsContext = JSContext()
-        
         let urlComponents = NSURLComponents(URL: url, resolvingAgainstBaseURL: false)!
         urlComponents.path = nil
-        
+        self.jsContext = JSContext()
         self.webSQL = WebSQLDatabaseCreator(context: self.jsContext, origin: urlComponents.URLString)
+        
+        
+        
+        super.init()
+        
+        
+        
+        
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.jsContext.name = url.absoluteString
         self.cache = ServiceWorkerCacheHandler(jsContext: self.jsContext, serviceWorkerURL: url)

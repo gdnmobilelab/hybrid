@@ -16,6 +16,8 @@ import JavaScriptCore
     var autoplay:Bool {get set}
     var isPlaying:Bool {get}
     var isMuted:Bool {get}
+    var duration:Double {get}
+    var currentTime:Double {get set}
     var url:String {get}
     func play()
     func pause()
@@ -45,6 +47,21 @@ import JavaScriptCore
     var url:String {
         get {
             return self.videoURL.absoluteString!
+        }
+    }
+    
+    var duration:Double {
+        get {
+            return CMTimeGetSeconds(self.playerController.player!.currentItem!.asset.duration)
+        }
+    }
+    
+    var currentTime:Double {
+        get {
+            return CMTimeGetSeconds(self.playerController.player!.currentItem!.currentTime())
+        }
+        set (value) {
+            return self.playerController.player!.seekToTime(CMTime(seconds: value, preferredTimescale: 1))
         }
     }
     

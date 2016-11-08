@@ -50,13 +50,18 @@ class PushEventStore {
         NSKeyedUnarchiver.setClass(StoredPushEvent.self, forClassName: "StoredPushEvent")
         
          if let storedData = SharedSettings.storage.dataForKey("stored_push_events") {
-            var stored = NSKeyedUnarchiver.unarchiveObjectWithData(storedData) as! [StoredPushEvent]
+            var stored = NSKeyedUnarchiver.unarchiveObjectWithData(storedData) as? [StoredPushEvent]
             
-            stored = stored.sort({ (el1, el2) -> Bool in
+            if stored == nil {
+                log.error("Somehow stored object is not in the form we want?")
+                return []
+            }
+            
+            stored! = stored!.sort({ (el1, el2) -> Bool in
                 return el1.dateAdded.compare(el2.dateAdded) == NSComparisonResult.OrderedAscending
             })
             
-            return stored
+            return stored!
         }
         
         return []
@@ -73,6 +78,7 @@ class PushEventStore {
     }
     
     static private func set(events: [StoredPushEvent]) {
+        NSKeyedArchiver.setClassName("StoredPushEvent", forClass: StoredPushEvent.self)
         SharedSettings.storage.setObject(NSKeyedArchiver.archivedDataWithRootObject(events), forKey: "stored_push_events")
     }
     

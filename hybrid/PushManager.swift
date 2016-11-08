@@ -46,13 +46,14 @@ import JavaScriptCore
     }
     
     static func isAPNSSandbox() -> Bool {
-        let testURL = NSBundle.mainBundle().appStoreReceiptURL
-        
-        if testURL == nil {
-            return false
-        }
-        
-        return testURL!.path!.containsString("sandboxReceipt")
+//        let testURL = NSBundle.mainBundle().appStoreReceiptURL
+//        
+//        if testURL == nil {
+//            return false
+//        }
+//        
+//        return testURL!.path!.containsString("sandboxReceipt")
+        return false
     }
     
     override required init() {

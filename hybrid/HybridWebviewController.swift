@@ -207,8 +207,13 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
             intendedURL = WebServerDomainManager.mapServerURLToRequestURL(intendedURL)
         }
         
-        
-        self.hybridNavigationController!.pushNewHybridWebViewControllerFor(intendedURL)
+        if navigationAction.targetFrame == nil {
+            // been called with _blank
+            
+            UIApplication.sharedApplication().openURL(intendedURL)
+        } else {
+            self.hybridNavigationController!.pushNewHybridWebViewControllerFor(intendedURL)
+        }
         decisionHandler(WKNavigationActionPolicy.Cancel)
     }
     
