@@ -26,7 +26,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         if NotificationViewController.webviewEventListener == nil {
             
             // Add our listener that will save pending webview events to be processed by the
@@ -100,7 +100,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             videoProportion = 16 / 10
         }
         
-        let videoNotification = NotificationVideo(videoURL: videoURL, options: videoOptions)
+        let videoNotification = NotificationVideo(videoURL: videoURL, options: videoOptions, context: self.extensionContext)
         
         videoNotification.playerController.view.autoresizingMask = UIViewAutoresizing.None
         self.setFrame(videoNotification.playerController.view, height: self.view.frame.width * videoProportion!)

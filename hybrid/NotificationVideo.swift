@@ -29,6 +29,7 @@ import JavaScriptCore
 @objc class NotificationVideo : NSObject, NotificationVideoExports {
     
     let playerController:AVPlayerViewController
+    let extensionContext:NSExtensionContext?
     
     var loop:Bool = true
     var autoplay:Bool = true
@@ -65,11 +66,12 @@ import JavaScriptCore
         }
     }
     
-    init(videoURL:NSURL, options:AnyObject = []) {
+    init(videoURL:NSURL, options:AnyObject = [], context:NSExtensionContext?) {
         self.videoURL = videoURL
         self.playerController = AVPlayerViewController()
         self.playerController.player = AVPlayer(URL: videoURL)
         self.playerController.showsPlaybackControls = false
+        self.extensionContext = context
 
         
         if let autoplay = options["autoplay"] as? Bool {
@@ -84,16 +86,16 @@ import JavaScriptCore
             self.muted = muted
         }
         
-        if self.autoplay == true {
-            self.playerController.player!.play()
-            self.isPlaying = true
-        }
         
         if self.muted == true {
             self.playerController.player!.volume = 0
         }
         
         super.init()
+        
+        if self.autoplay == true {
+            self.play()
+        }
         
         NSNotificationCenter.defaultCenter().addObserverForName(AVPlayerItemDidPlayToEndTimeNotification, object: nil, queue: nil, usingBlock: self.loopIfNeeded)
     }
@@ -108,11 +110,13 @@ import JavaScriptCore
     }
     
     func play() {
+        self.extensionContext?.mediaPlayingStarted()
         self.playerController.player!.play()
         self.isPlaying = true
     }
     
     func pause() {
+        self.extensionContext?.mediaPlayingPaused()
         self.playerController.player!.pause()
         self.isPlaying = false
     }
