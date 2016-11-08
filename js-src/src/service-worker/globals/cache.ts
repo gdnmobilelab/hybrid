@@ -9,6 +9,12 @@ caches.open = function(name:String): Promise<Cache> {
     return new Promise((fulfill, reject) => {
         caches.openCallbackSuccessFailure(name, fulfill, stringToErr);
     })
+};
+
+caches.keys = function(): Promise<String[]> {
+    return new Promise((fulfill, reject) => {
+        caches.keysCallbackFailure(fulfill, reject);
+    })
 }
 
 Cache.prototype.add = function(url:string) {

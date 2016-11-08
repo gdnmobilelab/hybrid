@@ -75,16 +75,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             let rootController = HybridNavigationController.create()
             
-            if AppDelegate.runningInTests == false {
-                // todo: remove
+//            if AppDelegate.runningInTests == false {
+//                // todo: remove
 //                ServiceWorkerManager.clearActiveServiceWorkers()
 //                try Db.mainDatabase.inDatabase({ (db) in
 //                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
 //                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
 //                })
-
-
-            }
+//
+//
+//            }
             
             let windowOpenActions = PendingWebviewActions.getAll().filter { event in
                 return event.type == WebviewClientEventType.OpenWindow
@@ -102,10 +102,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             AppDelegate.window!.rootViewController = rootController
             
             AppDelegate.window!.makeKeyAndVisible();
+            
+            
+
 
             return true
             
             
+
         } catch {
             print(error);
             return false;

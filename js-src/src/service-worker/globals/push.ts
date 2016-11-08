@@ -24,6 +24,6 @@ PushManager.prototype.getSubscription = function() {
 
 PushManager.prototype.subscribe = function() {
     return new Promise((fulfill, reject) => {
-        this.getSubscriptionCallbackFailure(fulfill, reject);
+        this.subscribeCallbackFailure(fulfill, reject);
     })
 }

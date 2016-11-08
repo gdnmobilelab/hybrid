@@ -20,6 +20,7 @@ import JavaScriptCore
 
 @objc protocol PushManagerExports : JSExport {
     func getSubscriptionCallback(success: JSValue, failure: JSValue)
+    func subscribeCallback(success: JSValue, failure: JSValue)
     init()
 }
 
@@ -46,24 +47,46 @@ import JavaScriptCore
     }
     
     static func isAPNSSandbox() -> Bool {
-//        let testURL = NSBundle.mainBundle().appStoreReceiptURL
-//        
-//        if testURL == nil {
-//            return false
-//        }
-//        
-//        return testURL!.path!.containsString("sandboxReceipt")
-        return false
+        #if IS_DEBUG
+            return true
+        #else
+            return false
+        #endif
     }
     
     override required init() {
         super.init()
     }
     
+    func subscribeCallback(success: JSValue, failure: JSValue) {
+        if PushManager.deviceToken == nil {
+            
+            // There is a slight delay in receiving the remote device token. So if we've
+            // called subscribe as opposed to get, we wait for it.
+            
+            // We should be calling UIApplication.sharedApplication().registerForRemoteNotifications()
+            // here, but it's not available in the notification-content context, so we can't.
+            // Instead, we call it when we request notification permission in
+            // NotificationPermissionHandler.swift
+            
+            ApplicationEvents.once("didRegisterForRemoteNotificationsWithDeviceToken", { _ in
+                self.getSubscriptionCallback(success, failure: failure)
+            })
+        } else {
+            self.getSubscriptionCallback(success, failure: failure)
+        }
+    }
+    
     func getSubscriptionCallback(success: JSValue, failure: JSValue) {
         
         if PushManager.deviceToken == nil {
-            failure.callWithArguments([JSValue(newErrorFromMessage: "Not registered for remote notifications", inContext: failure.context)])
+            
+            // If we don't have the device token yet then we don't technically have a
+            // subscription.
+            
+            success.callWithArguments([JSValue(nullInContext: success.context)])
+            
+//            failure.callWithArguments([JSValue(newErrorFromMessage: "Not registered for remote notifications", inContext: failure.context)])
             return
         }
         
