@@ -12,5 +12,6 @@ import Foundation
 class SharedSettings {
     static let WEBSERVER_PORT_KEY = "webServerPort"
     static let APP_CURRENTLY_ACTIVE_KEY = "appCurrentlyActive"
+    static let ACTIVE_WEBVIEWS_KEY = "currentActiveWebviews"
     static let storage = NSUserDefaults(suiteName: "group.gdnmobilelab.hybrid")!
 }

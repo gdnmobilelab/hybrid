@@ -41,5 +41,6 @@ class Util {
     static func colorBrightNess(color:UIColor) {
         color.getHue(nil, saturation: nil, brightness: nil, alpha: nil)
     }
+    
 
 }

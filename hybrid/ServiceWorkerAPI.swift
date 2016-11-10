@@ -89,18 +89,14 @@ class ServiceWorkerAPI: ScriptMessageManager {
     
     func register(swPath:NSURL, scope:String?, webviewURL:NSURL) -> Promise<String> {
         
-        let actualSWPath = swPath
+        var actualSWPath = swPath
         
-        
-        
-        if WebServer.current!.isLocalServerURL(actualSWPath) {
+        if WebServerDomainManager.isLocalServerURL(actualSWPath) {
             
             // Register calls can come from both outside and inside local server scenarios.
             // So we need to account for both.
             
-            var actualSWPath = WebServer.checkServerURLForReferrer(actualSWPath, referrer: self.webview.URL!.absoluteString)
-            
-            actualSWPath = WebServer.mapServerURLToRequestURL(actualSWPath)
+            actualSWPath = WebServerDomainManager.mapServerURLToRequestURL(actualSWPath)
         }
         
         var serviceWorkerScope:NSURL = actualSWPath.URLByDeletingLastPathComponent!
@@ -165,8 +161,8 @@ class ServiceWorkerAPI: ScriptMessageManager {
         
         var webviewURL = self.webview.URL!
         
-        if WebServer.current!.isLocalServiceWorkerURL(webviewURL) {
-            webviewURL = WebServer.mapServerURLToRequestURL(webviewURL)
+        if WebServerDomainManager.isLocalServerURL(webviewURL) {
+            webviewURL = WebServerDomainManager.mapServerURLToRequestURL(webviewURL)
         }
         // check nil on webviewURL.host as it could be about:blank, which is fine for, say, console operations
 //        if webviewURL.host != nil && webviewURL.host! == "localhost" && webviewURL.port! == WebServer.current!.port {

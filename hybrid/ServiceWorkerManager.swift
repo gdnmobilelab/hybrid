@@ -220,10 +220,10 @@ class ServiceWorkerManager {
         return Promise<Void>()
         .then {
             
-            if serviceWorkerURL.host != "localhost" && (serviceWorkerURL.scheme == "http" || scope.scheme == "http") {
-                log.error("Both scope and service worker URL must be under HTTPS")
-                throw ServiceWorkerNotHTTPSError()
-            }
+//            if serviceWorkerURL.host != "localhost" && (serviceWorkerURL.scheme == "http" || scope.scheme == "http") {
+//                log.error("Both scope and service worker URL must be under HTTPS")
+//                throw ServiceWorkerNotHTTPSError()
+//            }
             
             var newId:Int64 = -1
             

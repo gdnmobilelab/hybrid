@@ -19,6 +19,7 @@ class CacheNoMatchError : ErrorType {}
 
 @objc protocol ServiceWorkerCacheHandlerExports: JSExport {
     func openCallback(name:String, success: JSValue, failure: JSValue) -> Void
+    func keysCallback(success: JSValue, failure: JSValue) -> Void
 }
 
 @objc class ServiceWorkerCacheHandler : NSObject, ServiceWorkerCacheHandlerExports {
@@ -44,6 +45,28 @@ class CacheNoMatchError : ErrorType {}
     
     func open(name:String) -> ServiceWorkerCache {
         return ServiceWorkerCache(swURL: self.swURL, name: name)
+    }
+    
+    func keysCallback(success: JSValue, failure: JSValue) {
+        do {
+            try Db.mainDatabase.inTransaction({ (db) in
+                
+                let resultSet = try db.executeQuery("SELECT DISTINCT cache_id FROM cache WHERE service_worker_url = ?", values: [self.swURL.absoluteString!])
+                
+                var ids: [String] = []
+                
+                while resultSet.next() {
+                    ids.append(resultSet.stringForColumn("cache_id"))
+                }
+                
+                resultSet.close()
+                
+                success.callWithArguments([JSValue(object: ids, inContext: success.context)])
+                
+            })
+        } catch {
+            failure.callWithArguments([JSValue(newErrorFromMessage: String(error), inContext: failure.context)])
+        }
     }
 }
 

@@ -62,6 +62,12 @@ class NotificationPermissionHandler: ScriptMessageManager {
                 }
                 
                 return Promise<Bool> {fulfill, reject in
+                    
+                    // This is actually in the wrong place - it should be in PushManager.subscribe()
+                    // but that is accessible inside notification-content, and content doesn't
+                    // have access to sharedApplication(). So we grab the remote token earlier
+                    // than we necessarily need to.
+                    
                     UIApplication.sharedApplication().registerForRemoteNotifications()
                     UNUserNotificationCenter.currentNotificationCenter().requestAuthorizationWithOptions([.Alert, .Sound, .Badge], completionHandler: { (result:Bool, err:NSError?) in
                         

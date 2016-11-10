@@ -10,6 +10,7 @@ import UIKit
 import PromiseKit
 import EmitterKit
 import UserNotifications
+import GCDWebServer
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -34,12 +35,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         log.setup(.Debug, showLogIdentifier: false, showFunctionName: false, showThreadName: true, showLogLevel: true, showFileNames: false, showLineNumbers: false, showDate: false, writeToFile: nil, fileLogLevel: nil)
         
         do {
+            
+            GCDWebServer.setLogLevel(2)
+            
             try Db.createMainDatabase()
             try DbMigrate.migrate()
             
-            try WebServer.initialize()
-            
             PushManager.listenForDeviceToken()
+            
+            // This should be reset anyway (it's done on terminate) but if a user force-closes then it won't be.
+            // So let's make doubly-sure.
+            
+            WebviewClientManager.resetActiveWebviewRecords()
             
             application.registerForRemoteNotifications()
                        
@@ -73,11 +80,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 ServiceWorkerManager.clearActiveServiceWorkers()
                 try Db.mainDatabase.inDatabase({ (db) in
                     db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
+                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
                 })
 
-//                 rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo")!)
-                
-                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo")!)
+            }
+            
+            let windowOpenActions = PendingWebviewActions.getAll().filter { event in
+                return event.type == WebviewClientEventType.OpenWindow
+            }
+            
+            if windowOpenActions.count == 0 {
+                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"http://www.gdnmobilelab.local:4567/app-demo/")!)
+//                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/hybrid-election-night/")!)
+
             }
             
             
@@ -86,10 +101,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             AppDelegate.window!.rootViewController = rootController
             
             AppDelegate.window!.makeKeyAndVisible();
+            
+            
+
 
             return true
             
             
+
         } catch {
             print(error);
             return false;
@@ -97,11 +116,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
     }
     
-    func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject], fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
-        NSLog("HIT DID RECEIVE THING")
-        completionHandler(UIBackgroundFetchResult.NewData)
-    }
-    
+//    func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject], fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
+//        NSLog("HIT DID RECEIVE THING")
+//        completionHandler(UIBackgroundFetchResult.NewData)
+//    }
+//    
 
 
     func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {
@@ -123,21 +142,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
         NSLog("Enter Background")
+        WebServerDomainManager.stopAll()
     }
     
     func applicationWillEnterForeground(application: UIApplication) {
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
         NSLog("Enter foreground")
+        
+        do {
+            try WebServerDomainManager.startAll()
+        }
+        catch {
+            log.error("Could not restart servers:" + String(error))
+        }
     }
     
     func applicationDidBecomeActive(application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        
+        NSLog("Became active")
+        
+        // There's a chance that some push events have arrived while the app has been inactive. So let's make sure
+        // all of our active workers are up to date.
+        
+        ServiceWorkerManager.currentlyActiveServiceWorkers.forEach { (workerID, worker) in
+            worker.processPendingPushEvents()
+        }
+        
     }
     
     func applicationWillTerminate(application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 //        WebServer.current!.stop()
         NSLog("Did Terminate")
+        
+        // We need to clear out the records of active webviews, because they're dead now. And if a notification tries to claim
+        // it,
+        WebviewClientManager.resetActiveWebviewRecords()
     }
     
     

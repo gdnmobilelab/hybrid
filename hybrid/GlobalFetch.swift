@@ -236,7 +236,6 @@ class FetchSetupError : ErrorType {}
         request.HTTPMethod = self.method
         
         for key in self.headers.keys() {
-            NSLog("Add header " + key)
             let allValsJoined = self.headers.getAll(key)?.joinWithSeparator(",")
             request.setValue(allValsJoined, forHTTPHeaderField: key)
         }
@@ -327,7 +326,17 @@ class FetchResponseBodyTypeNotRecognisedError : ErrorType {}
 
 class NoErrorButNoResponseError : ErrorType {}
 
+class SessionDelegate : NSObject, NSURLSessionDelegate {
+    
+    func URLSession(session: NSURLSession, task: NSURLSessionTask, willPerformHTTPRedirection response: NSHTTPURLResponse, newRequest request: NSURLRequest, completionHandler: (NSURLRequest?) -> Void) {
+        // Do not follow redirects
+        completionHandler(nil)
+    }
+    
+}
+
 @objc class GlobalFetch: NSObject, GlobalFetchExports {
+    
     
     private static func getRequest(request: JSValue, options:JSValue) -> FetchRequest {
         // This parameter can be either a URL string or an instance of a
@@ -341,41 +350,94 @@ class NoErrorButNoResponseError : ErrorType {}
     }
     
     static func fetchRequest(request: FetchRequest) -> Promise<FetchResponse> {
-        log.debug("Fetching " + request.toNSURLRequest().URL!.absoluteString!)
-        return Promise<FetchResponse>() {fulfill, reject in
-            Alamofire
-                .request(request.toNSURLRequest())
-                .response(completionHandler: { (req: NSURLRequest?, res: NSHTTPURLResponse?, data: NSData?, err: NSError?) in
-                    
-                    if err != nil {
-                        reject(err!)
-                        return
-                    }
-                    
-                    if let response = res {
-                        
-                        let fh = FetchHeaders(dictionary: response.allHeaderFields as! [String: AnyObject])
-                        
-                        if fh.get("Content-Encoding") != nil {
-                            // it already ungzips stuff automatically, so this just
-                            // confuses things. Need to flesh this out more.
-                            fh.deleteValue("Content-Encoding")
-                        }
-                        
-                        
-                        // TODO: Status text
-                        
-                        let resp = FetchResponse(body: data, status: response.statusCode, statusText: "", headers: fh)
-                        
-                        fulfill(resp)
-                        
-                    } else {
-                        reject(NoErrorButNoResponseError())
-                    }
+        
+        let urlRequest = request.toNSURLRequest()
+        
+        log.debug("Fetching " + urlRequest.URL!.absoluteString!)
+        
+        return Promise<FetchResponse> { fulfill, reject in
+            
+            let delegate = SessionDelegate()
+            
+//            delegate.completion
 
+            let session = NSURLSession(configuration: NSURLSessionConfiguration.ephemeralSessionConfiguration(), delegate: delegate, delegateQueue: NSOperationQueue.mainQueue())
+            
+            let task = session.dataTaskWithRequest(urlRequest, completionHandler: { (data:NSData?, res:NSURLResponse?, err:NSError?) in
+                
+                if err != nil {
+                    reject(err!)
+                    return
+                }
+                
+                let resURL = res!.URL
+                
+                let httpResponse = res as? NSHTTPURLResponse
+                
+                
+                if let response = httpResponse {
                     
+                    let fh = FetchHeaders(dictionary: response.allHeaderFields as! [String: AnyObject])
+                    
+                    //                    if fh.get("Content-Encoding") != nil {
+                    //                        // it already ungzips stuff automatically, so this just
+                    //                        // confuses things. Need to flesh this out more.
+                    //                        fh.deleteValue("Content-Encoding")
+                    //                    }
+                    
+                    
+                    // TODO: Status text
+                    
+                    let resp = FetchResponse(body: data, status: response.statusCode, statusText: "", headers: fh)
+                    
+                    fulfill(resp)
+                    
+                } else {
+                    reject(NoErrorButNoResponseError())
+                }
+
+                
             })
+            
+            task.resume()
         }
+        
+        
+        
+//        return Promise<FetchResponse>() {fulfill, reject in
+//            Alamofire
+//                .request(request.toNSURLRequest())
+//                .response(completionHandler: { (req: NSURLRequest?, res: NSHTTPURLResponse?, data: NSData?, err: NSError?) in
+//                    
+//                    if err != nil {
+//                        reject(err!)
+//                        return
+//                    }
+//                    
+//                    if let response = res {
+//                        
+//                        let fh = FetchHeaders(dictionary: response.allHeaderFields as! [String: AnyObject])
+//                        
+//                        if fh.get("Content-Encoding") != nil {
+//                            // it already ungzips stuff automatically, so this just
+//                            // confuses things. Need to flesh this out more.
+//                            fh.deleteValue("Content-Encoding")
+//                        }
+//                        
+//                        
+//                        // TODO: Status text
+//                        
+//                        let resp = FetchResponse(body: data, status: response.statusCode, statusText: "", headers: fh)
+//                        
+//                        fulfill(resp)
+//                        
+//                    } else {
+//                        reject(NoErrorButNoResponseError())
+//                    }
+//
+//                    
+//            })
+//        }
     }
     
     static func fetch(requestVal: JSValue, options:JSValue, scope:String, callback:JSValue, errorCallback:JSValue) {

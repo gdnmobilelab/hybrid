@@ -14,6 +14,7 @@ import EmitterKit
 struct HybridWebviewMetadata {
     var color:UIColor?
     var title:String
+    var defaultBackURL:String?
     
     init() {
         title = ""
@@ -27,7 +28,6 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     var notificationPermissionHandler:NotificationPermissionHandler?
     var serviceWorkerAPI:ServiceWorkerAPI?
     var eventManager: EventManager?
-//    private var weasdbviewClientManagerListener: String?
     
     private static var activeWebviews = [HybridWebview]()
     
@@ -43,21 +43,33 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         HybridWebview.activeWebviews.append(self)
         
         if HybridWebview.webviewClientListener == nil {
-            HybridWebview.webviewClientListener = WebviewClientManager.claimEvents.on(HybridWebview.processClaimOnWebview)
+            
+            // No idea why, but setting this as a static variable at the start doesn't work. We have to create it
+            // later.
+            
+            HybridWebview.webviewClientListener = WebviewClientManager.clientEvents.on(HybridWebview.processClientEvent)
         }
+        
+        HybridWebview.saveWebViewRecords()
     }
     
-    static func getActiveWebviewAtIndex(index:Int) -> HybridWebview {
-        return self.activeWebviews[index]
-    }
-    static func getActiveWebviewInfo() -> [WebviewRecord] {
-        return HybridWebview.activeWebviews.enumerate().map { (idx, wv) in
+    static func saveWebViewRecords() {
+        
+        // We need to save this somewhere that out-of-app code can still access it
+        
+ 
+        WebviewClientManager.currentWebviewRecords = HybridWebview.activeWebviews.enumerate().map { (idx, wv) in
             return WebviewRecord(
                 url: wv.mappedURL,
                 index: idx,
                 workerId: wv.serviceWorkerAPI!.currentActiveServiceWorker?.instanceId
             )
         }
+
+    }
+    
+    static func getActiveWebviewAtIndex(index:Int) -> HybridWebview {
+        return self.activeWebviews[index]
     }
     
     
@@ -66,23 +78,24 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         HybridWebview.activeWebviews.removeAtIndex(idx!)
     }
     
-    static func processClaimOnWebview(record: WebviewRecord, serviceWorkerId:Int) {
-        let webView = HybridWebview.activeWebviews[record.index]
-        
-        ServiceWorkerInstance.getById(serviceWorkerId)
-        .then { sw -> Void in
-            webView.serviceWorkerAPI!.setNewActiveServiceWorker(sw!)
+    static func processClientEvent(event:WebviewClientEvent) {
+        if event.type == WebviewClientEventType.Claim {
+            let webView = HybridWebview.activeWebviews[event.record!.index]
+            
+            ServiceWorkerInstance.getById(event.options!["newServiceWorkerId"] as! Int)
+            .then { sw -> Void in
+                webView.serviceWorkerAPI!.setNewActiveServiceWorker(sw!)
+                saveWebViewRecords()
+            }
         }
-        
-        
-    }
-    
-    func checkClaim(sw: ServiceWorkerInstance) {
-        if self.mappedURL == nil {
-            return
-        }
-        if self.mappedURL!.absoluteString!.hasPrefix(sw.scope.absoluteString!) {
-            self.serviceWorkerAPI?.setNewActiveServiceWorker(sw)
+        else if event.type == WebviewClientEventType.Focus {
+            let webView = HybridWebview.activeWebviews[event.record!.index]
+            HybridNavigationController.current!.viewControllers.forEach { viewController in
+                let asHybrid = viewController as! HybridWebviewController
+                if asHybrid.webview == webView {
+                    HybridNavigationController.current!.popToViewController(viewController, animated: true)
+                }
+            }
         }
     }
     
@@ -114,6 +127,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         self.allowsLinkPreview = false
     }
     
+    
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -129,21 +143,27 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     
     func getMetadata() -> Promise<HybridWebviewMetadata> {
         return Promise<HybridWebviewMetadata> { fulfill, reject in
-            self.evaluateJavaScript("var t = document.querySelector(\"meta[name='theme-color']\"); [t ? t.getAttribute('content') : '', document.title]", completionHandler: { (result, err) in
+            self.evaluateJavaScript("var getMeta = function(name) { var t = document.querySelector(\"meta[name='\" + name + \"']\"); return t ? t.getAttribute('content') : null;}; [getMeta('theme-color'), document.title, getMeta('default-back-url')]", completionHandler: { (result, err) in
                 if err != nil {
                     reject(err!)
                     return
                 }
                 
-                let responses = result as! [String]
+                let responses = result as! [AnyObject]
                 
                 var metadata = HybridWebviewMetadata()
                 
-                if responses[0] != "" {
-                    metadata.color = Util.hexStringToUIColor(responses[0])
+                if let color = responses[0] as? String {
+                    metadata.color = Util.hexStringToUIColor(color)
                 }
                 
-                metadata.title = responses[1]
+                if let title = responses[1] as? String {
+                    metadata.title = title
+                }
+                
+                if let defaultBackURL = responses[2] as? String {
+                    metadata.defaultBackURL = defaultBackURL
+                }
                 
                 fulfill(metadata)
             })
@@ -156,37 +176,17 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         // If the URL falls within the scope of any service worker, we want to redirect the
         // browser to our local web server with the cached responses rather than the internet.
        
-        let urlForRequest = navigationAction.request.URL!
+       
+        let rewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(navigationAction.request.URL!)
         
-            
-        if urlForRequest.host == "localhost" && urlForRequest.port == WebServer.current!.port {
-            // Is already a request to our local web server, so allow
+        if rewrittenURL == navigationAction.request.URL! {
             decisionHandler(WKNavigationActionPolicy.Allow)
             return
         }
         
-        ServiceWorkerManager.getServiceWorkerForURL(navigationAction.request.URL!)
-        .then { (serviceWorker) -> Void in
-            
-            if (serviceWorker == nil) {
-                
-                // This is not inside any service worker scope, so allow
-                
-                decisionHandler(WKNavigationActionPolicy.Allow)
-                return
-            }
-            
-            let mappedURL = WebServer.current!.mapRequestURLToServerURL(navigationAction.request.URL!)
-//            try serviceWorker!.getURLInsideServiceWorkerScope(navigationAction.request.URL!)
-            decisionHandler(WKNavigationActionPolicy.Cancel)
-            webView.loadRequest(NSURLRequest(URL: mappedURL))
-            
-        }
-        .error { err in
-            log.error(String(err))
-            decisionHandler(WKNavigationActionPolicy.Allow)
-            
-        }
+        decisionHandler(WKNavigationActionPolicy.Cancel)
+        webView.loadRequest(NSURLRequest(URL: rewrittenURL))
+
     }
     
     var mappedURL:NSURL? {
@@ -201,11 +201,11 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
             }
             // If it's a local URL for a service worker, map it
             
-            if currentURL!.host! == "localhost" && currentURL!.port! == WebServer.current?.port {
+            if WebServerDomainManager.isLocalServerURL(currentURL!) {
                 if currentURL?.path! == "/__placeholder" {
                     return nil
                 }
-                return WebServer.mapServerURLToRequestURL(currentURL!)
+                return WebServerDomainManager.mapServerURLToRequestURL(currentURL!)
             }
             
             // Otherwise just return it.

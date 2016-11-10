@@ -21,13 +21,22 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
     
     func userNotificationCenter(center: UNUserNotificationCenter, didReceiveNotificationResponse response: UNNotificationResponse, withCompletionHandler completionHandler: () -> Void) {
         
-        if PendingNotificationActions.urlToOpen != nil {
-            NSLog("URL IS: " + PendingNotificationActions.urlToOpen!)
-            
-            AppDelegate.rootController?.pushNewHybridWebViewControllerFor(NSURL(string: PendingNotificationActions.urlToOpen!)!)
+        
+        let pendingActions = PendingWebviewActions.getAll()
+        
+        pendingActions.forEach { event in
+            if event.type == WebviewClientEventType.OpenWindow {
+                
+                let urlToOpen = event.options!["urlToOpen"] as! String
+                
+                AppDelegate.rootController!.pushNewHybridWebViewControllerFor(NSURL(string: urlToOpen)!)
+            } else {
+                HybridWebview.processClientEvent(event)
+            }
         }
         
         PendingNotificationActions.reset()
+        PendingWebviewActions.clear()
         completionHandler()
 
        // NotificationDelegate.processAction(response)

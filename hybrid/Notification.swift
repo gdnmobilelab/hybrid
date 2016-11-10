@@ -17,6 +17,7 @@ import JavaScriptCore
     var tag: String? {get set}
     var icon: String? {get set}
     var image: AnyObject? {get set}
+    var video: NotificationVideo? {get set}
     
     func close()
     
@@ -30,6 +31,7 @@ import JavaScriptCore
     var icon:String? = nil
     var image: AnyObject? = nil
     var title:String
+    var video: NotificationVideo?
     
     init(title:String) {
         self.title = title

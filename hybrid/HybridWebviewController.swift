@@ -1,4 +1,4 @@
-//
+    //
 //  HybridWebviewController.swift
 //  hybrid
 //
@@ -14,20 +14,10 @@ import WebKit
 
 class HybridWebviewController : UIViewController, WKNavigationDelegate {
     
-    private var observeContext = 0
-    private var progressContext = 0
-    private var isObserving = false
-    
     var currentMetadata:HybridWebviewMetadata?
     
-    private enum LoadState {
-        case InitialRequest
-        case BeneathInitialSize
-        case PossiblyReady
-    }
     
-    let events = Event<AnyObject>()
-    private var loadState:LoadState
+    let events = Event<HybridWebviewController>()
     
     var webview:HybridWebview? {
         get {
@@ -36,11 +26,18 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     }
     
    
-    let hybridNavigationController:HybridNavigationController
+//    let hybridNavigationController:HybridNavigationController
     
-    init(navController: HybridNavigationController) {
-        self.loadState = LoadState.InitialRequest
-        self.hybridNavigationController = navController
+    var hybridNavigationController:HybridNavigationController? {
+        get {
+            return self.navigationController as? HybridNavigationController
+        }
+    }
+    
+    var isReady = false
+
+    
+    init() {
         super.init(nibName: nil, bundle: nil)
         
         self.view = HybridWebview(frame: self.view.frame)
@@ -63,65 +60,139 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         
     }
     
-    func loadURL(urlToLoad:NSURL) {
-        self.checkIfURLInsideServiceWorker(urlToLoad)
-        .then { (url, sw) -> Promise<Void> in
+    
+    func loadURL(urlToLoad:NSURL, attemptAcceleratedLoading:Bool) {
+        
+        if urlToLoad.host == "localhost" {
+            log.error("Should never directly load a localhost URL - should be a server URL")
+        }
+        
+        self.isReady = false
+        
+        let startRequestTime = NSDate().timeIntervalSince1970
+        
+        self.events.once("ready", { _ in
+            self.isReady = true
             
+            let readyTime = NSDate().timeIntervalSince1970
             
-            if self.webview!.URL == nil || self.webview!.URL!.host != "localhost" {
-                self.webview!.loadRequest(NSURLRequest(URL: url))
-                self.view = self.webview
+            log.info("LOADED IN " + String(readyTime - startRequestTime))
+            
+            // Because the URL is likely to have changed, we need to re-save our records to keep them accurate.
+            HybridWebview.saveWebViewRecords()
+        })
+        
+        Promise<Void>()
+        .then { () -> Promise<Void> in
+            
+            let maybeRewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(urlToLoad)
+            
+            let loadNormally = { () -> Promise<Void> in
+                log.info("Loading " + maybeRewrittenURL.absoluteString! + " normally")
+                self.webview!.loadRequest(NSURLRequest(URL: maybeRewrittenURL))
                 return Promise<Void>()
             }
             
+            // Cutting out the idea of accelerated loading for now - it doesn't actually
+            // seem to deliver any loading benefit any more! Leaving the code in so that
+            // we can re-enable it if ever necessary - perhaps as pages get more complex?
             
-            let fr = FetchRequest(url: urlToLoad.absoluteString!, options: nil)
+            return loadNormally()
             
-            return sw!.dispatchFetchEvent(fr)
-            .then { response -> Promise<Void> in
-                let responseAsString = String(data: response!.data!, encoding: NSUTF8StringEncoding)!
-                
-                let responseEscaped = responseAsString.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
-                
-                return Promise<Void> { fulfill, reject in
-                    self.webview!.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + url.absoluteString! + "\");",completionHandler: { (obj:AnyObject?, err: NSError?) in
-                        if err != nil {
-                            // Injecting HTML failed. Why?
-                            
-                            reject(err!)
-                        } else {
-                            fulfill()
-                        }
-                    })
-                }
-                .then { () -> Promise<Void> in
-                    
-                    return when(
-                        self.waitForRendered(),
-                        self.setMetadata()
-                    )
-                }
-                .recover { err -> Void in
-                    log.error(String(err))
-                    self.webview!.loadRequest(NSURLRequest(URL: url))
-                }
-                
-                
+            // COMMENTED: ACCELERATED LOAD
+            
+//            if attemptAcceleratedLoading == false {
+//                
+//                // This direct injecting of HTML seems to have issues that are difficult
+//                // to track down. So we're using it sparingly - only when a user taps and
+//                // we're pushing a new view into the stack. For loading in the background
+//                // we'll just use normal load.
+//                
+//                return loadNormally()
+//            }
+//            
+//            if maybeRewrittenURL == urlToLoad {
+//                // Is not within a service worker domain, so we can just load it
+//                return loadNormally()
+//            }
+//            
+//            let currentWebviewURL = self.webview!.URL
+//
+//            if currentWebviewURL == nil || currentWebviewURL!.host != "localhost" || self.webview!.URL!.port != maybeRewrittenURL.port || currentWebviewURL!.path!.containsString("__placeholder") == false ||
+//                maybeRewrittenURL.path!.containsString("__placeholder") == true {
+//                
+//                // Placeholder stuff requires us to be on the same domain, and on a placeholder page. If any
+//                // of this isn't true - or if we're *loading* a placeholder page, skip
+//                
+//                return loadNormally()
+//            }
+//            
+//            // If none of the above is true then we're on a service worker-enabled domain. This
+//            // doesn't *necessarily* mean we're in a service worker scope, but either way we can
+//            // make a request same as the browser would, then inject the content.
+//            
+//            log.info("Attempting to load " + maybeRewrittenURL.absoluteString! + " accelerated")
+//
+//            
+//            let request = FetchRequest(url: maybeRewrittenURL.absoluteString!, options: nil)
+//            return GlobalFetch.fetchRequest(request)
+//            .then { response in
+//                
+//                let responseAsString = String(data: response.data!, encoding: NSUTF8StringEncoding)!
+//                let responseEscaped = responseAsString.stringByReplacingOccurrencesOfString("\"", withString: "\\\"")
+//                
+//                return Promise<Void> { fulfill, reject in
+//                    self.webview!.evaluateJavaScript("__setHTML(\"" + responseEscaped + "\",\"" + maybeRewrittenURL.absoluteString! + "\");__addLoadedIndicator();",completionHandler: { (obj:AnyObject?, err: NSError?) in
+//                        if err != nil {
+//                            // Injecting HTML failed. Why?
+//                            
+//                            reject(err!)
+//                        } else {
+//                            fulfill()
+//                        }
+//                    })
+//                }
+//            }
+//            .then { () -> Promise<Void> in
+//                
+//                return when(
+//                    self.waitForRendered(),
+//                    self.setMetadata()
+//                )
+//                
+//            }
+//            .then { () -> Void in
+//                self.events.emit("ready", self)
+//            }
+//            .recover { err -> Void in
+//                log.error(String(err))
+//                loadNormally()
+//            }
 
-                
-                
-            }
-            .then {
-                self.events.emit("ready", "test")
-            }
-            
-            
-            
         }
-        .error {err in
-            self.webview!.loadRequest(NSURLRequest(URL: urlToLoad))
-        }
+        
     }
+    
+    func prepareHeaderControls(alreadyHasBackControl:Bool) {
+        
+        // We've included the ability for webviews to specify a default "back" URL, but if
+        // we already have a back control then we don't need to use it.
+        
+//        if alreadyHasBackControl == true || self.currentMetadata?.defaultBackURL == nil {
+//            self.navigationItem.leftBarButtonItem = nil
+//            return
+//        }
+//        
+//        let backTo = BackButtonSymbol(onTap: self.popToCustomBackWebView)
+//        backTo.sizeToFit()
+//        let back = UIBarButtonItem(customView: backTo)
+//        self.navigationItem.leftBarButtonItem = back
+    }
+    
+//    func popToCustomBackWebView() {
+//        let relativeURL = NSURL(string: self.currentMetadata!.defaultBackURL!, relativeToURL: self.webview!.URL!)!
+//        self.hybridNavigationController!.popToNewHybridWebViewControllerFor(relativeURL)
+//    }
     
     func fiddleContentInsets() {
         
@@ -131,21 +202,6 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         self.webview!.scrollView.contentInset = UIEdgeInsets(top: 1, left: 0, bottom: 0, right: 0)
     }
     
-    func checkIfURLInsideServiceWorker(url:NSURL) -> Promise<(NSURL,ServiceWorkerInstance?)> {
-        return ServiceWorkerManager.getServiceWorkerForURL(url)
-        .then { (serviceWorker) -> (NSURL,ServiceWorkerInstance?) in
-            
-            if (serviceWorker == nil) {
-                
-                // This is not inside any service worker scope, so allow
-                
-                return (url,nil)
-            }
-            
-            return (WebServer.current!.mapRequestURLToServerURL(url), serviceWorker)
-        }
-
-    }
     
     func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
         
@@ -156,20 +212,46 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         
         var intendedURL = navigationAction.request.URL!
         
-        if WebServer.current!.isLocalServerURL(intendedURL) {
-            intendedURL = WebServer.checkServerURLForReferrer(navigationAction.request.URL!, referrer: navigationAction.request.allHTTPHeaderFields!["Referer"])
-            intendedURL = WebServer.mapServerURLToRequestURL(intendedURL)
+        
+        if WebServerDomainManager.isLocalServerURL(intendedURL) {
+            intendedURL = WebServerDomainManager.mapServerURLToRequestURL(intendedURL)
         }
         
-        
-        self.hybridNavigationController.pushNewHybridWebViewControllerFor(intendedURL)
+        if navigationAction.targetFrame == nil {
+            // been called with _blank
+            
+            UIApplication.sharedApplication().openURL(intendedURL)
+        } else {
+            self.hybridNavigationController!.pushNewHybridWebViewControllerFor(intendedURL)
+        }
         decisionHandler(WKNavigationActionPolicy.Cancel)
     }
     
     func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
-        self.setMetadata()
+        
+        Promise<Void> { fulfill, reject in
+            self.webview!.evaluateJavaScript(LoadingIndicatorJS.setIndicator, completionHandler: { (obj:AnyObject?, err: NSError?) in
+                if err != nil {
+                    // Injecting HTML failed. Why?
+                    
+                    reject(err!)
+                } else {
+                    fulfill()
+                }
+            })
+
+        }
         .then {
-            self.events.emit("ready", "test")
+            return when(
+                self.waitForRendered(),
+                self.setMetadata()
+            )
+        }
+        .then {
+            self.events.emit("ready", self)
+        }
+        .recover { err in
+            self.events.emit("ready", self)
         }
     }
     
@@ -177,15 +259,17 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         return self.webview!.getMetadata()
         .then { metadata -> Void in
             self.currentMetadata = metadata
-            self.title = metadata.title
+            
         }
     }
     
-//    override func viewDidAppear(animated: Bool) {
-//        super.viewDidAppear(animated)
-//        // Need this otherwise the title sometimes disappears
-//        self.navigationItem.title = self.currentMetadata?.title
-//    }
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        // Need this otherwise the title sometimes disappears
+        if self.hybridNavigationController != nil && self.currentMetadata != nil {
+            self.navigationItem.title = self.currentMetadata!.title
+        }
+    }
     
     override func preferredStatusBarStyle() -> UIStatusBarStyle {
         return UIStatusBarStyle.LightContent
@@ -194,10 +278,12 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     override func viewDidDisappear(animated: Bool) {
         
         super.viewDidDisappear(animated)
-        let nav = self.navigationController
-        if nav == nil {
-            self.hybridNavigationController.addControllerToWaitingArea(self)
+        
+        if self.navigationController == nil {
+            self.events.emit("popped", self)
+//            self.hybridNavigationController!.addControllerToWaitingArea(self)
         }
+        
     }
     
     var renderCheckContext:CGContext?
@@ -225,6 +311,8 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
 
         self.webview!.scrollView.layer.renderInContext(self.renderCheckContext!)
         
+        let url = self.webview!.URL
+        
         let startAt = 4 * width * height - 4
         
         let red = CGFloat(pixel![startAt])
@@ -233,13 +321,24 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
 //        let alpha = CGFloat(pixel![startAt + 3])
         
        
-        return red == 0 && blue == 255 && green == 255
         
-//        let imgref = CGBitmapContextCreateImage(self.renderCheckContext!)
-//        let uiImage = UIImage(CGImage: imgref!)
-//        
-//        AppDelegate.window!.addSubview(UIImageView(image: uiImage))
+        
+        let imgref = CGBitmapContextCreateImage(self.renderCheckContext!)
+        let uiImage = UIImage(CGImage: imgref!)
+
+//        if self.tempCheckView == nil {
+//            self.tempCheckView = UIImageView(image: uiImage)
+//            self.tempCheckView?.alpha = 0.7
+//            AppDelegate.window!.addSubview(UIImageView(image: uiImage))
+//        } else {
+//            self.tempCheckView?.image = uiImage
+//        }
+        
+        return red == 0 && blue == 255 && green == 255
     }
+    
+    private var tempCheckView:UIImageView?
+    
     
     private func waitRenderWithFulfill(fulfill: () -> ()) {
         if self.checkIfRendered() == true {
@@ -248,8 +347,11 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
             self.pixel!.destroy()
             self.pixel = nil
             
-            self.webview!.evaluateJavaScript("__removeLoadedIndicator()", completionHandler: nil)
-//            self.events.emit("ready", "test")
+            if self.tempCheckView != nil {
+                self.tempCheckView!.removeFromSuperview()
+            }
+            
+            self.webview!.evaluateJavaScript(LoadingIndicatorJS.removeIndicator, completionHandler: nil)
             fulfill()
         } else {
             log.debug("Checked if webview was ready, it was not")

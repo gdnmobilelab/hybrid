@@ -16,6 +16,7 @@ import OMGHTTPURLRQ
     var url:String {get}
     var id:String {get}
     func postMessage(message:String, ports: [MessagePort], callback:JSValue)
+    func focus()
 }
 
 @objc class WebviewClient : NSObject, WebviewClientExports {
@@ -69,6 +70,16 @@ import OMGHTTPURLRQ
             callback.callWithArguments([jsError])
         }
     }
+    
+    func focus() {
+        
+        
+        let record = WebviewRecord(url: NSURL(string: self.url), index: Int(self.id)!, workerId: nil)
+        
+        // workerId maybe shouldn't be nil but we don't know it here, and the focus event doesn't need it
+        let newEvent = WebviewClientEvent(type: WebviewClientEventType.Focus, record: record)
+        WebviewClientManager.clientEvents.emit(newEvent)
+    }
 }
 
 @objc protocol WebviewRecordExports : JSExport {
@@ -100,12 +111,79 @@ import OMGHTTPURLRQ
         coder.encodeObject(self.index, forKey: "index")
         coder.encodeObject(self.workerId, forKey: "workerId")
     }
+    
+}
+
+enum WebviewClientEventType: Int32 {
+    case Claim = 0
+    case Focus
+    case OpenWindow
+}
+
+@objc class WebviewClientEvent: NSObject, NSCoding {
+    var type:WebviewClientEventType
+    var record:WebviewRecord?
+//    var newServiceWorkerId:Int? // used for claim events only
+//    var urlToOpen:String? // used for window open events
+    
+    var options:[String: AnyObject]?
+    
+    init(type:WebviewClientEventType, record: WebviewRecord?) {
+        self.type = type
+        self.record = record
+    }
+    
+    init(type:WebviewClientEventType, record: WebviewRecord?, options: [String:AnyObject]?) {
+        self.type = type
+        self.record = record
+        self.options = options
+//        self.newServiceWorkerId = newWorkerId
+//        self.urlToOpen = urlToOpen
+    }
+    
+    convenience required init?(coder decoder: NSCoder) {
+        let type = WebviewClientEventType(rawValue: decoder.decodeIntForKey("type"))!
+        let record = decoder.decodeObjectForKey("record") as? WebviewRecord
+        let options = decoder.decodeObjectForKey("options") as? NSDictionary
+        
+        var dict: [String: AnyObject]? = nil
+        if options != nil {
+            dict = [String:AnyObject]()
+            
+            
+            for key in options!.keyEnumerator() {
+                dict![key as! String] = options!.objectForKey(key as! String)
+            }
+            
+        }
+        
+        self.init(type: type, record: record, options: dict)
+
+    }
+    
+    func encodeWithCoder(coder: NSCoder) {
+        coder.encodeInt(self.type.rawValue, forKey: "type")
+        
+        if let record = self.record {
+            coder.encodeObject(record, forKey: "record")
+        }
+        
+        if let options = self.options {
+         
+            let dict = NSDictionary(dictionary: options)
+            
+            coder.encodeObject(dict, forKey: "options")
+        }
+
+        
+    }
+    
 }
 
 @objc protocol WebviewClientManagerExports : JSExport {
     func claimCallback(callback:JSValue)
     func matchAll(options:JSValue, callback:JSValue)
-    func openWindow(url:String, callback:JSValue)
+    func openWindow(url:String, options:AnyObject, callback:JSValue)
 }
 
 @objc class WebviewClientManager : NSObject, WebviewClientManagerExports {
@@ -118,62 +196,77 @@ import OMGHTTPURLRQ
     // active (if any). So we store this data inside the shared UserDefaults store, which allows
     // it to be readable across processes.
     
-    private static let groupDefaults = NSUserDefaults(suiteName: "group.gdnmobilelab.hybrid")!
+    //static let claimEvents = Event<(WebviewRecord, Int)>()
     
-    static let claimEvents = Event<(WebviewRecord, Int)>()
+    static let clientEvents = Event<WebviewClientEvent>()
     
-    
-    static func getCurrentWebviewRecords() -> Promise<[WebviewRecord]> {
-        
-        // In order to communicate cross-process, we reuse our web server
-        
-        
-        let port = SharedSettings.storage.objectForKey(SharedSettings.WEBSERVER_PORT_KEY)
-        
-        if port == nil {
-            // If the web server is deactivated then we have no active webviews
-            return Promise<[WebviewRecord]>([WebviewRecord]())
-        }
-        
-        let url = NSURLComponents(string: "http://localhost/__activeWebviews")!
-        url.port = port as! Int
-        
-        return Promisified.AlamofireRequest("GET", url: url.URL!)
-        .then { r in
-            return NSKeyedUnarchiver.unarchiveObjectWithData(r.data!) as! [WebviewRecord]
-        }
-        .recover { error -> [WebviewRecord] in
-            // Thus should have been caught by the above port check.
-            log.error(String(error))
-            return [WebviewRecord]()
-        }
+    static func resetActiveWebviewRecords() {
+        SharedSettings.storage.removeObjectForKey(SharedSettings.ACTIVE_WEBVIEWS_KEY)
     }
+    
+    static var currentWebviewRecords: [WebviewRecord] {
+        
+        get {
+            let recordsAsData = SharedSettings.storage.dataForKey(SharedSettings.ACTIVE_WEBVIEWS_KEY)
+            
+            if recordsAsData == nil {
+                // No store, so no active web view records
+                return []
+            }
+            
+            // There are weird issues with using this across different targets - it prefixes the class
+            // identifier with the target name. So we need to overwrite that.
+            
+            NSKeyedUnarchiver.setClass(WebviewRecord.self, forClassName: "WebviewRecord")
+            
+            let records = NSKeyedUnarchiver.unarchiveObjectWithData(recordsAsData!) as! [WebviewRecord]
+            
+            return records
+
+        }
+        
+        set(value) {
+            
+            if value.count == 0 {
+                SharedSettings.storage.removeObjectForKey(SharedSettings.ACTIVE_WEBVIEWS_KEY)
+                return
+            }
+            
+            NSKeyedArchiver.setClassName("WebviewRecord", forClass: WebviewRecord.self)
+            
+            let data = NSKeyedArchiver.archivedDataWithRootObject(value)
+            SharedSettings.storage.setObject(data, forKey: SharedSettings.ACTIVE_WEBVIEWS_KEY)
+            
+        }
+        
+        
+    }
+    
     
     func claimCallback(callback:JSValue) {
         
         // Allows a worker to take control of clients within its scope.
         
-        WebviewClientManager.getCurrentWebviewRecords()
-        .then { records -> Void in
-            records.forEach { record in
-                if record.url == nil {
-                    return
-                }
-                if record.url!.absoluteString!.hasPrefix(self.serviceWorker.scope.absoluteString!) {
-                    
-                    // We don't pass the service worker itself because (at some point) we're going to need
-                    // to allow this to execute inside the notification environment and (somehow) map
-                    // over to an existing app.
-                    
-                    WebviewClientManager.claimEvents.emit((record, self.serviceWorker.instanceId))
-                }
+        WebviewClientManager.currentWebviewRecords.forEach { record in
+            if record.url == nil {
+                return
             }
-            
-            callback.callWithArguments([])
+            if record.url!.absoluteString!.hasPrefix(self.serviceWorker.scope.absoluteString!) {
+                
+                // We put this in an event bridge because out notificiation content extension
+                // needs to be able to emit these events, which unfortunately means we need
+                // to store such events for execution later
+                
+                let ev = WebviewClientEvent(type: WebviewClientEventType.Claim, record: record, options: [
+                    "newServiceWorkerId": self.serviceWorker.instanceId
+                ])
+                
+                WebviewClientManager.clientEvents.emit(ev)
+            }
         }
-        .error { err in
-            callback.callWithArguments([JSValue(newErrorFromMessage: String(err), inContext: callback.context)])
-        }
+        
+        callback.callWithArguments([])
+
         
     }
     
@@ -186,36 +279,34 @@ import OMGHTTPURLRQ
 //            return
 //        }
         
-//        WebviewClientManager.getCurrentWebviewRecords()
-//        .then { records -> Void in
-//            
-//            let matchingRecords = records.filter { record in
-//                
-//                if record.workerId == nil {
-//                    return false
-//                }
-//                return record.workerId! == self.serviceWorker.instanceId
-//            }
-//            
-//            let matchesToClients = matchingRecords.map {record in
-//                return WebviewClient(url: record.url!.absoluteString!, uniqueId: String(record.index))
-//            }
-//            
-//            callback.callWithArguments([JSValue(nullInContext: callback.context), matchesToClients])
-//        }
-//        .error { err in
-//            callback.callWithArguments([JSValue(newErrorFromMessage: String(err), inContext: callback.context)])
-//        }
+
+        let matchingRecords = WebviewClientManager.currentWebviewRecords.filter { record in
+            
+            if record.workerId == nil {
+                return false
+            }
+            return record.workerId! == self.serviceWorker.instanceId
+        }
         
+        let matchesToClients = matchingRecords.map {record in
+            return WebviewClient(url: record.url!.absoluteString!, uniqueId: String(record.index))
+        }
         
-        callback.callWithArguments([JSValue(nullInContext: callback.context), []])
+        callback.callWithArguments([JSValue(nullInContext: callback.context), matchesToClients])
+        
     }
     
-    func openWindow(url:String, callback:JSValue) {
+    func openWindow(url:String, options:AnyObject, callback:JSValue) {
         
         let urlToOpen = NSURL(string: url,relativeToURL: self.serviceWorker.scope)!
         
-        PendingNotificationActions.urlToOpen = urlToOpen.absoluteString
+        let newEvent = WebviewClientEvent(type: WebviewClientEventType.OpenWindow, record: nil, options: [
+            "urlToOpen": urlToOpen.absoluteString!,
+            "openOptions": options
+        ])
+        
+        WebviewClientManager.clientEvents.emit(newEvent)
+ 
         callback.callWithArguments([JSValue(nullInContext: callback.context)])
     }
     

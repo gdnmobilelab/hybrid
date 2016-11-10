@@ -37,24 +37,18 @@ class PendingNotificationActions {
         }
     }
     
-    static var urlToOpen:String? {
-        get {
-            return getValue("pendingNotifications.urlToOpen") as? String
-        }
-        
-        set(val) {
-            setValue("pendingNotifications.urlToOpen", val: val)
-        }
-    }
     
     static func reset() {
         self.closeNotification = nil
-        self.urlToOpen = nil
     }
 }
 
+struct ActiveNotificationViews {
+    var video:NotificationVideo?
+}
+
 class NotificationHandler {
-    static func processAction(response:UNNotificationResponse, userInfo:[NSObject: AnyObject]) -> Promise<JSValue> {
+    static func processAction(response:UNNotificationResponse, userInfo:[NSObject: AnyObject], activeViews: ActiveNotificationViews) -> Promise<JSValue> {
        
         let notificationData = userInfo["originalNotificationOptions"]!
         
@@ -65,8 +59,9 @@ class NotificationHandler {
         notification.icon = notificationData["icon"] as? String
         notification.image = notificationData["image"]
         notification.data = notificationData["data"]
+        notification.video = activeViews.video
         
-        let workerID = userInfo[ServiceWorkerRegistration.WORKER_ID] as! Int
+        let workerScope = userInfo["serviceWorkerScope"] as! String
         
         var action = ""
         
@@ -89,17 +84,25 @@ class NotificationHandler {
             
             let cb = JSCallbackWrapper(callbackFunc: returnFunc)
             
-            ServiceWorkerInstance.getById(workerID)
+            ServiceWorkerManager.getServiceWorkerForURL(NSURL(string:workerScope)!)
                 .then { sw -> Void in
                     
                     let jsFuncToRun = sw!.jsContext.objectForKeyedSubscript("hybrid")
                         .objectForKeyedSubscript("dispatchExtendableEvent")!
                     
-                    let args = [
-                        "notification" : notification,
-                        "action": action
+                    var args:[String:AnyObject] = [
+                        "notification" : notification
                     ]
-                    jsFuncToRun.callWithArguments(["notificationclick", args, cb])
+                    
+                    if response.actionIdentifier == "com.apple.UNNotificationDismissActionIdentifier" {
+                        jsFuncToRun.callWithArguments(["notificationclose", args, cb])
+                    } else {
+                        args["action"] = action
+                        jsFuncToRun.callWithArguments(["notificationclick", args, cb])
+                    }
+                    
+                    
+                    
             }
             
         }

@@ -14,7 +14,7 @@ import PromiseKit
 class WebServer {
     
     var server = GCDWebServer()
-    static var current:WebServer? = nil
+    var chosenPortNumber: Int?
     
     init() throws {
         
@@ -22,111 +22,53 @@ class WebServer {
         
         self.server.addDefaultHandlerForMethod("GET", requestClass: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleRequest);
         
-        try server.startWithOptions([
-            GCDWebServerOption_Port: 55203,
-            GCDWebServerOption_BindToLocalhost: true/*,
-            GCDWebServerOption_AutomaticallySuspendInBackground: false*/
-        ]);
+        try self.start()
         
-        log.info("Web server started on port " + String(server.port))
     }
     
-    func isLocalServerURL(url:NSURL) -> Bool {
-        if url.scheme! != "http" && url.scheme! != "https" {
-            return false
+    func start() throws {
+        
+        // GCDWebServer has the ability to automatically suspend in the background, but
+        // the port will change if we do that. Given that we might have webviews currently
+        // sitting on those URLs, we want to keep port numbers consistent.
+        //
+        // So, we store the number, then handle activation/deactivation ourselves in the
+        // AppDelegate
+        
+        var options: [String: AnyObject] = [
+            GCDWebServerOption_BindToLocalhost: true,
+            GCDWebServerOption_AutomaticallySuspendInBackground: false
+        ]
+        
+        if self.chosenPortNumber != nil {
+            options[GCDWebServerOption_Port] = self.chosenPortNumber!
         }
-        return url.host! == "localhost" && url.port! == self.port
+        
+        try server.startWithOptions(options);
+        
+        self.chosenPortNumber = Int(server.port)
+
     }
     
-    func isLocalServiceWorkerURL(url:NSURL) -> Bool {
-        if isLocalServerURL(url) == false {
-            return false
-        }
-        
-        if url.pathComponents?.count < 2 {
-            return false
-        }
-        
-        if url.pathComponents?[1] == "__service_worker" {
-            return true
-        }
-        
-        return false
+    
+    func stop() {
+        self.server.stop()
     }
     
-    func mapRequestURLToServerURL(url:NSURL) -> NSURL {
-        let fetchURL = NSURLComponents()
-        fetchURL.scheme = "http"
-        fetchURL.host = "localhost"
-        fetchURL.port = self.port
-        fetchURL.path = "/__service_worker/" + url.host!
-        if url.port != nil {
-            fetchURL.path! += ":" + String(url.port!)
-        }
-        
-        
-        var path = url.path!
-        
-        // for some reason NSURL strips trailing slashes. Grr.
-        // http://www.cocoabuilder.com/archive/cocoa/316298-nsurl-path-if-the-path-has-trailing-slash-it-is-stripped.html
-        
-        if url.absoluteString!.hasSuffix("/")  && path.hasSuffix("/") == false {
-            path += "/"
-        }
-        
-        fetchURL.path! += path
-        
-        fetchURL.query = url.query
-        
-        return fetchURL.URL!
-    }
-    
-    static func mapServerURLToRequestURL(url:NSURL) -> NSURL {
-        
-        // Map our localhost URL to the "real" URL we want to request.
-        
-        // e.g. http://localhost:1234/__service_worker/test-cache/testdomain.com/test.html
-        // to   http://testdomain.com/test.html
-        
-        let hostPortSplit = url.pathComponents![2].componentsSeparatedByString(":")
-        
-        let fetchURL = NSURLComponents()
-        if hostPortSplit[0] == "localhost" {
-            // just for testing, really
-            fetchURL.scheme = "http"
-        } else {
-            fetchURL.scheme = "https"
-        }
-        
-        fetchURL.host = hostPortSplit[0]
-        if hostPortSplit.count == 2 {
-            fetchURL.port = Int(hostPortSplit[1])
-        }
-        fetchURL.path = "/" + url.pathComponents!.dropFirst(3).joinWithSeparator("/")
-        
-        if url.absoluteString!.hasSuffix("/") && fetchURL.path!.hasSuffix("/") == false {
-            fetchURL.path! += "/"
-        }
-        
-        fetchURL.query = url.query
-        return fetchURL.URL!
-    }
     
     func handleServiceWorkerRequest(request:GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
         
-        let mappedURL = WebServer.mapServerURLToRequestURL(request.URL)
+        let mappedURL = WebServerDomainManager.mapServerURLToRequestURL(request.URL)
         log.info("Request for " + mappedURL.absoluteString!)
         ServiceWorkerManager.getServiceWorkerForURL(mappedURL)
         .then { (sw) -> Promise<Void> in
             if (sw == nil) {
-                log.error("Service worker request that has no valid worker: " + mappedURL.absoluteString!)
                 
-                let response = GCDWebServerErrorResponse(data: "404 NOT FOUND".dataUsingEncoding(NSUTF8StringEncoding), contentType: "text/plain")
+                // We are likely on a domain that has a worker, but not within the scope of that worker.
                 
-                response.statusCode = 404
-                
-                completionBlock(response)
+                self.passRequestThroughToNetwork(request, completionBlock: completionBlock)
                 return Promise<Void>()
+                
             }
             
             
@@ -163,6 +105,10 @@ class WebServer {
                 gcdresponse.statusCode = response.status
                 
                 for key in response.headers.keys() {
+                    if key.lowercaseString == "content-encoding" {
+                        // the body is already ungzipped, so don't do it again
+                        continue
+                    }
                     gcdresponse.setValue(response.headers.get(key), forAdditionalHeader: key)
                 }
                 
@@ -185,107 +131,119 @@ class WebServer {
     
     func passRequestThroughToNetwork(request: GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
         
-        if request.URL.pathComponents?.count < 1 || request.URL.pathComponents![1] != "__service_worker" {
-            // if we're not looking for a service worker URL then we can't go to network.
-            log.info("Request for an unknown local URL: " + request.URL.absoluteString!)
-            let resp = GCDWebServerResponse(statusCode: 404)
-            completionBlock(resp)
-            return
-        }
-        
-        let urlToActuallyFetch = WebServer.mapServerURLToRequestURL(request.URL)
+        let urlToActuallyFetch = WebServerDomainManager.mapServerURLToRequestURL(request.URL)
         
         log.info("Going to network to fetch: " + urlToActuallyFetch.absoluteString!)
         
+        let fetchRequest = FetchRequest(url: urlToActuallyFetch.absoluteString!, options: [
+            "method": request.method
+        ])
         
-        Promisified.AlamofireRequest(request.method, url: urlToActuallyFetch)
-        .then { (r) -> Void in
-            let response = GCDWebServerDataResponse(data: r.data, contentType: r.request.valueForHTTPHeaderField("Content-Type"))
+        for (key,val) in request.headers {
             
-            for (key, value) in r.response.allHeaderFields {
-                response.setValue(value as! String, forAdditionalHeader: key as! String)
+            if (key as! String).lowercaseString == "host" {
+                // We need to rewrite the host header, as it's currently localhost
+                fetchRequest.headers.append(key as! String, value: urlToActuallyFetch.host!)
+            } else {
+                fetchRequest.headers.append(key as! String, value: val as! String)
             }
             
-            completionBlock(response)
         }
+        
+        GlobalFetch.fetchRequest(fetchRequest)
+        .then { response -> Void in
+            
+            let gcdResponse = GCDWebServerDataResponse(data: response.data, contentType: response.headers.get("content-type"))
+            gcdResponse.statusCode = response.status
+            
+            for key in response.headers.keys() {
+                let value = response.headers.get(key)
+                log.info(key + " : " + value!)
+                gcdResponse.setValue(value!, forAdditionalHeader: key)
+            }
+            
+            completionBlock(gcdResponse)
+            
+        }
+        
     }
     
-    static func checkServerURLForReferrer(url: NSURL, referrer:String?) -> NSURL {
-        
-        if url.pathComponents?.count > 1 && url.pathComponents![1] == "__service_worker" {
-            // we're already OK
-            return url
-        }
-        
-        if referrer == nil {
-            // No referrer, nothing we can do anyway
-            return url
-        }
-        
-        var originalPath = url.path!
-        
-        if url.absoluteString!.hasSuffix("/") && originalPath.hasSuffix("/") == false {
-            // NSURL strips this out and I don't know why. Very annoying.
-            
-            originalPath += "/"
-        }
-        
-        let referrerURL = NSURL(string: referrer!)
-        
-        if referrerURL?.pathComponents?.count < 2 || referrerURL?.pathComponents?[1] != "__service_worker" {
-            // isn't a service worker URL, so we can't map it
-            return url
-        }
-        
-        let redirectComponents = NSURLComponents(URL: referrerURL!, resolvingAgainstBaseURL: false)!
-        
-        let pathComponents:[String] = [
-            referrerURL!.pathComponents![0], // /
-            referrerURL!.pathComponents![1], // __service_worker
-            "/",
-            referrerURL!.pathComponents![2], // [hostname]
-            originalPath
-        ]
-        
-        
-        redirectComponents.path = pathComponents.joinWithSeparator("")
-        
-        return redirectComponents.URL!
-
-    }
+//    static func checkServerURLForReferrer(url: NSURL, referrer:String?) -> NSURL {
+//        
+//        if url.pathComponents?.count > 1 && url.pathComponents![1] == "__service_worker" {
+//            // we're already OK
+//            return url
+//        }
+//        
+//        if referrer == nil {
+//            // No referrer, nothing we can do anyway
+//            return url
+//        }
+//        
+//        var originalPath = url.path!
+//        
+//        if url.absoluteString!.hasSuffix("/") && originalPath.hasSuffix("/") == false {
+//            // NSURL strips this out and I don't know why. Very annoying.
+//            
+//            originalPath += "/"
+//        }
+//        
+//        let referrerURL = NSURL(string: referrer!)
+//        
+//        if referrerURL?.pathComponents?.count < 2 || referrerURL?.pathComponents?[1] != "__service_worker" {
+//            // isn't a service worker URL, so we can't map it
+//            return url
+//        }
+//        
+//        let redirectComponents = NSURLComponents(URL: referrerURL!, resolvingAgainstBaseURL: false)!
+//        
+//        let pathComponents:[String] = [
+//            referrerURL!.pathComponents![0], // /
+//            referrerURL!.pathComponents![1], // __service_worker
+//            "/",
+//            referrerURL!.pathComponents![2], // [hostname]
+//            originalPath
+//        ]
+//        
+//        
+//        redirectComponents.path = pathComponents.joinWithSeparator("")
+//        
+//        return redirectComponents.URL!
+//
+//    }
     
-    func webviewBridge(request: GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
-        
-        if request.URL.path! == "/__activeWebviews" {
-            // We need to be able to communicate with the notification process and tell it
-            // which webviews we have active. To do this, we bundle up the WebviewRecord
-            // into an NSData blob and send it over HTTP. Which feels kind of messy, but it
-            // is easier than creating yet another communication channel.
-            
-            let records = HybridWebview.getActiveWebviewInfo()
-            let encodedAsData = NSKeyedArchiver.archivedDataWithRootObject(records)
-            let response = GCDWebServerDataResponse(data: encodedAsData, contentType: "application/octet-stream")
-            completionBlock(response)
-        } else if request.URL!.pathComponents?.count == 3 {
-            let activeWebviewID = Int(request.URL!.pathComponents![2])!
-            let webview = HybridWebview.getActiveWebviewAtIndex(activeWebviewID)
-            let dataRequest = request as! GCDWebServerDataRequest
-            let j = dataRequest.jsonObject
-            
-            let numberOfPorts = j["numberOfPorts"] as! Int
-            
-            webview.serviceWorkerAPI!.sendEventAwaitResponse("postMessage", arguments: [j["message"] as! String, String(numberOfPorts)])
-            .then { response -> Void in
-                let portResponses = try NSJSONSerialization.dataWithJSONObject(response, options: NSJSONWritingOptions())
-                let dataResponse = GCDWebServerDataResponse(data: portResponses, contentType: "application/json")
-                completionBlock(dataResponse)
-                
-            }
-            .error { err in
-                log.error(String(err))
-            }
-        }
-    }
+//    func webviewBridge(request: GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
+//        
+//        if request.URL.path! == "/__activeWebviews" {
+//            // We need to be able to communicate with the notification process and tell it
+//            // which webviews we have active. To do this, we bundle up the WebviewRecord
+//            // into an NSData blob and send it over HTTP. Which feels kind of messy, but it
+//            // is easier than creating yet another communication channel.
+//            
+//            let records = HybridWebview.getActiveWebviewInfo()
+//            let encodedAsData = NSKeyedArchiver.archivedDataWithRootObject(records)
+//            let response = GCDWebServerDataResponse(data: encodedAsData, contentType: "application/octet-stream")
+//            completionBlock(response)
+//        } else if request.URL!.pathComponents?.count == 3 {
+//            let activeWebviewID = Int(request.URL!.pathComponents![2])!
+//            let webview = HybridWebview.getActiveWebviewAtIndex(activeWebviewID)
+//            let dataRequest = request as! GCDWebServerDataRequest
+//            let j = dataRequest.jsonObject
+//            
+//            let numberOfPorts = j["numberOfPorts"] as! Int
+//            
+//            webview.serviceWorkerAPI!.sendEventAwaitResponse("postMessage", arguments: [j["message"] as! String, String(numberOfPorts)])
+//            .then { response -> Void in
+//                let portResponses = try NSJSONSerialization.dataWithJSONObject(response, options: NSJSONWritingOptions())
+//                let dataResponse = GCDWebServerDataResponse(data: portResponses, contentType: "application/json")
+//                completionBlock(dataResponse)
+//                
+//            }
+//            .error { err in
+//                log.error(String(err))
+//            }
+//        }
+//    }
     
     func handleRequest(request: GCDWebServerRequest?, completionBlock:GCDWebServerCompletionBlock?) {
         log.info("Request for " + request!.URL.absoluteString!)
@@ -295,31 +253,8 @@ class WebServer {
             return
         }
         
-        if request!.URL.pathComponents?[1] == "__activeWebviews" {
-            self.webviewBridge(request!, completionBlock: completionBlock!)
-            return
-        }
         
-        let checkedURL = WebServer.checkServerURLForReferrer(request!.URL, referrer: request!.headers["Referer"] as? String)
-        
-        if checkedURL != request!.URL {
-            
-            // A service worker has requested a URL from /, which wipes out our domain info. So we forward it.
-
-            log.info("Redirecting from " + request!.URL.absoluteString! + " to " + checkedURL.absoluteString!)
-            
-            completionBlock!(GCDWebServerResponse(redirect: checkedURL, permanent: false))
-            return
-        }
-        
-        if (request!.URL.pathComponents![1] == "__service_worker") {
-            // URL is within scope of service worker
-            self.handleServiceWorkerRequest(request!, completionBlock: completionBlock!)
-            return
-        }
-        
-        self.passRequestThroughToNetwork(request!, completionBlock: completionBlock!)
-        
+        self.handleServiceWorkerRequest(request!, completionBlock: completionBlock!)
     }
     
     func respondWithPlaceholder(completionBlock:GCDWebServerCompletionBlock) {
@@ -337,20 +272,5 @@ class WebServer {
         }
     }
     
-    func stop() {
-        self.server.stop()
-        SharedSettings.storage.removeObjectForKey(SharedSettings.WEBSERVER_PORT_KEY)
-    }
-    
-    static let PORT_KEY = "webServerPort"
-    
-    static func initialize() throws {
-        GCDWebServer.setLogLevel(2)
-        WebServer.current = try WebServer()
-        
-        // For communication with notification process - it needs to know where to request!
-        
-        SharedSettings.storage.setInteger(WebServer.current!.port, forKey: SharedSettings.WEBSERVER_PORT_KEY)
-    }
 
 }
