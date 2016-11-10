@@ -110,13 +110,13 @@ import JavaScriptCore
     }
     
     func play() {
-        self.extensionContext?.mediaPlayingStarted()
+//        self.extensionContext?.mediaPlayingStarted()
         self.playerController.player!.play()
         self.isPlaying = true
     }
     
     func pause() {
-        self.extensionContext?.mediaPlayingPaused()
+//        self.extensionContext?.mediaPlayingPaused()
         self.playerController.player!.pause()
         self.isPlaying = false
     }

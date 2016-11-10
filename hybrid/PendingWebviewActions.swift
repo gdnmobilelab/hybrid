@@ -27,6 +27,15 @@ class PendingWebviewActions {
 
     }
     
+    static func removeAtIndex(idx:Int) {
+        var all = getAll()
+        
+        all.removeAtIndex(idx)
+        
+        set(all)
+
+    }
+    
     static func set(clients: [WebviewClientEvent]) {
         NSKeyedArchiver.setClassName("WebviewClientEvent", forClass: WebviewClientEvent.self)
         NSKeyedArchiver.setClassName("WebviewRecord", forClass: WebviewRecord.self)

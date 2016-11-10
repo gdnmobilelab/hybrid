@@ -75,7 +75,7 @@ declare class NativeConsole {
 declare class clients {
     static claimCallback(callback:Function):void;
     static matchAllCallback(options:any, callback:Function):void;
-    static openWindowCallback(url:string, callback:Function):void
+    static openWindowOptionsCallback(url:string, options:any, callback:Function):void
 }
 
 declare class Client {

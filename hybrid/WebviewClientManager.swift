@@ -123,28 +123,41 @@ enum WebviewClientEventType: Int32 {
 @objc class WebviewClientEvent: NSObject, NSCoding {
     var type:WebviewClientEventType
     var record:WebviewRecord?
-    var newServiceWorkerId:Int? // used for claim events only
-    var urlToOpen:String? // used for window open events
+//    var newServiceWorkerId:Int? // used for claim events only
+//    var urlToOpen:String? // used for window open events
+    
+    var options:[String: AnyObject]?
     
     init(type:WebviewClientEventType, record: WebviewRecord?) {
         self.type = type
         self.record = record
     }
     
-    init(type:WebviewClientEventType, record: WebviewRecord?, newWorkerId:Int?, urlToOpen:String?) {
+    init(type:WebviewClientEventType, record: WebviewRecord?, options: [String:AnyObject]?) {
         self.type = type
         self.record = record
-        self.newServiceWorkerId = newWorkerId
-        self.urlToOpen = urlToOpen
+        self.options = options
+//        self.newServiceWorkerId = newWorkerId
+//        self.urlToOpen = urlToOpen
     }
     
     convenience required init?(coder decoder: NSCoder) {
         let type = WebviewClientEventType(rawValue: decoder.decodeIntForKey("type"))!
         let record = decoder.decodeObjectForKey("record") as? WebviewRecord
-        let urlToOpen = decoder.decodeObjectForKey("urlToOpen") as? String
-        let newWorkerId = decoder.decodeObjectForKey("newServiceWorkerId") as? Int
+        let options = decoder.decodeObjectForKey("options") as? NSDictionary
         
-        self.init(type: type, record: record, newWorkerId: newWorkerId, urlToOpen: urlToOpen)
+        var dict: [String: AnyObject]? = nil
+        if options != nil {
+            dict = [String:AnyObject]()
+            
+            
+            for key in options!.keyEnumerator() {
+                dict![key as! String] = options!.objectForKey(key as! String)
+            }
+            
+        }
+        
+        self.init(type: type, record: record, options: dict)
 
     }
     
@@ -155,13 +168,13 @@ enum WebviewClientEventType: Int32 {
             coder.encodeObject(record, forKey: "record")
         }
         
-        if let newWorkerId = self.newServiceWorkerId {
-            coder.encodeInt(Int32(newWorkerId), forKey: "newServiceWorkerId")
+        if let options = self.options {
+         
+            let dict = NSDictionary(dictionary: options)
+            
+            coder.encodeObject(dict, forKey: "options")
         }
-        
-        if let urlToOpen = self.urlToOpen {
-            coder.encodeObject(urlToOpen, forKey: "urlToOpen")
-        }
+
         
     }
     
@@ -170,7 +183,7 @@ enum WebviewClientEventType: Int32 {
 @objc protocol WebviewClientManagerExports : JSExport {
     func claimCallback(callback:JSValue)
     func matchAll(options:JSValue, callback:JSValue)
-    func openWindow(url:String, callback:JSValue)
+    func openWindow(url:String, options:AnyObject, callback:JSValue)
 }
 
 @objc class WebviewClientManager : NSObject, WebviewClientManagerExports {
@@ -244,8 +257,9 @@ enum WebviewClientEventType: Int32 {
                 // needs to be able to emit these events, which unfortunately means we need
                 // to store such events for execution later
                 
-                let ev = WebviewClientEvent(type: WebviewClientEventType.Claim, record: record)
-                ev.newServiceWorkerId = self.serviceWorker.instanceId
+                let ev = WebviewClientEvent(type: WebviewClientEventType.Claim, record: record, options: [
+                    "newServiceWorkerId": self.serviceWorker.instanceId
+                ])
                 
                 WebviewClientManager.clientEvents.emit(ev)
             }
@@ -282,12 +296,14 @@ enum WebviewClientEventType: Int32 {
         
     }
     
-    func openWindow(url:String, callback:JSValue) {
+    func openWindow(url:String, options:AnyObject, callback:JSValue) {
         
         let urlToOpen = NSURL(string: url,relativeToURL: self.serviceWorker.scope)!
         
-        let newEvent = WebviewClientEvent(type: WebviewClientEventType.OpenWindow, record: nil)
-        newEvent.urlToOpen = urlToOpen.absoluteString!
+        let newEvent = WebviewClientEvent(type: WebviewClientEventType.OpenWindow, record: nil, options: [
+            "urlToOpen": urlToOpen.absoluteString!,
+            "openOptions": options
+        ])
         
         WebviewClientManager.clientEvents.emit(newEvent)
  

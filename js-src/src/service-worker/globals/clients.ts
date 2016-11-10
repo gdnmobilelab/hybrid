@@ -20,9 +20,9 @@
     });
 };
 
-(clients as any).openWindow = function(url:string) {
+(clients as any).openWindow = function(url:string, options:any) {
     return new Promise((fulfill, reject) => {
-        clients.openWindowCallback(url, () => {
+        clients.openWindowOptionsCallback(url, options, () => {
             fulfill();
         })
     })

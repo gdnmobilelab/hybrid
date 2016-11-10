@@ -91,7 +91,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
             
             if windowOpenActions.count == 0 {
-                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo/")!)
+                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"http://www.gdnmobilelab.local:4567/app-demo/")!)
 //                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/hybrid-election-night/")!)
 
             }

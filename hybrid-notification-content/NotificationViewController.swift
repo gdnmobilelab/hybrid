@@ -154,9 +154,13 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         
         let title = UILabel()
         title.text = notification.request.content.title
+        
         title.frame.size.width = targetWidth
         title.frame.origin.x = 15
         title.frame.origin.y = 15
+        title.lineBreakMode = NSLineBreakMode.ByWordWrapping
+        title.numberOfLines = 0
+        
         let desc = title.font.fontDescriptor().fontDescriptorWithSymbolicTraits(UIFontDescriptorSymbolicTraits.TraitBold)
         title.font = UIFont(descriptor: desc!, size: UIFont.labelFontSize())
         title.sizeToFit()
@@ -190,6 +194,9 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
 
     func didReceiveNotification(notification: UNNotification) {
+        
+//        self.extensionContext!.cancelRequestWithError(NSError(domain: "test", code: 1, userInfo: nil))
+        
         
         // iOS doesn't update userInfo when we push more than one notification
         // sequentially. So we need to keep our own record of the latest.
@@ -260,8 +267,25 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                     return event.type == WebviewClientEventType.OpenWindow || event.type == WebviewClientEventType.Focus
                 }
                 
+                
+                
                 if actionsThatBringAppToFront.count > 0 {
-                    completion(UNNotificationContentExtensionResponseOption.DismissAndForwardAction)
+                    
+                    let openOptions = actionsThatBringAppToFront.first!.options?["openOptions"]!
+                    
+                    if openOptions != nil && openOptions!["external"] as? Bool == true {
+                        
+                        let url = NSURL(string: actionsThatBringAppToFront.first!.options!["urlToOpen"] as! String)!
+                        
+                        self.extensionContext!.openURL(url, completionHandler: { (success) in
+                            PendingWebviewActions.removeAtIndex(allPending.indexOf(actionsThatBringAppToFront.first!)!)
+                        })
+                        completion(UNNotificationContentExtensionResponseOption.Dismiss)
+                    } else {
+                        completion(UNNotificationContentExtensionResponseOption.DismissAndForwardAction)
+                    }
+                    
+                    
                 } else {
                     completion(UNNotificationContentExtensionResponseOption.Dismiss)
                 }

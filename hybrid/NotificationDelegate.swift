@@ -26,7 +26,10 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
         
         pendingActions.forEach { event in
             if event.type == WebviewClientEventType.OpenWindow {
-                AppDelegate.rootController?.pushNewHybridWebViewControllerFor(NSURL(string: event.urlToOpen!)!)
+                
+                let urlToOpen = event.options!["urlToOpen"] as! String
+                
+                AppDelegate.rootController!.pushNewHybridWebViewControllerFor(NSURL(string: urlToOpen)!)
             } else {
                 HybridWebview.processClientEvent(event)
             }

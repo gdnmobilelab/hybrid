@@ -82,7 +82,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         if event.type == WebviewClientEventType.Claim {
             let webView = HybridWebview.activeWebviews[event.record!.index]
             
-            ServiceWorkerInstance.getById(event.newServiceWorkerId!)
+            ServiceWorkerInstance.getById(event.options!["newServiceWorkerId"] as! Int)
             .then { sw -> Void in
                 webView.serviceWorkerAPI!.setNewActiveServiceWorker(sw!)
                 saveWebViewRecords()
