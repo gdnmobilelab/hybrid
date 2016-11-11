@@ -56,13 +56,6 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     var waitingAreaViewControllers = [HybridWebviewController]()
     
     func getNewController() -> HybridWebviewController {
-        log.info("WAITING AREA VIEWS:")
-        self.waitingAreaViewControllers.forEach { uiv in
-            let hwv = (uiv as! HybridWebviewController)
-            log.info("AVAILABLE: " + hwv.webview!.URL!.absoluteString! + ", is ready: " + String(hwv.isReady))
-//            return (hwv.webview!.URL, hwv.isReady)
-        }
-        
         let inWaitingArea = waitingAreaViewControllers.last
        
         if inWaitingArea != nil && inWaitingArea!.isReady == true {

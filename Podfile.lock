@@ -1,5 +1,4 @@
 PODS:
-  - Alamofire (3.4.1)
   - EmitterKit (4.0.2)
   - FMDB (2.6.2):
     - FMDB/standard (= 2.6.2)
@@ -12,7 +11,6 @@ PODS:
     - GCDWebServer/Core (= 3.3.2)
   - GCDWebServer/Core (3.3.2)
   - Nimble (4.0.1)
-  - ObjectMapper (1.3.0)
   - OMGHTTPURLRQ (3.1.3):
     - OMGHTTPURLRQ/RQ (= 3.1.3)
   - OMGHTTPURLRQ/FormURLEncode (3.1.3)
@@ -36,30 +34,26 @@ PODS:
   - XCGLogger (3.3)
 
 DEPENDENCIES:
-  - Alamofire
   - EmitterKit
   - FMDB
   - FMDBMigrationManager
   - GCDWebServer (~> 3.0)
   - Nimble
-  - ObjectMapper (~> 1.3)
   - PromiseKit (~> 3.2.1)
   - Quick
   - XCGLogger
 
 SPEC CHECKSUMS:
-  Alamofire: 01a82e2f6c0f860ade35534c8dd88be61bdef40c
   EmitterKit: ac0dced2291745a6dd299a150665e1b3f0844a32
   FMDB: 854a0341b4726e53276f2a8996f06f1b80f9259a
   FMDBMigrationManager: d52007f328ea0665e8985ca8a33500707aef084f
   GCDWebServer: 2a375ec42839a41d7187d04e5b688d32fa5c4cd5
   Nimble: 0f3c8b8b084cda391209c3c5efbb48bedeeb920a
-  ObjectMapper: 4eb08a726e9791a93b2632049951b56a7c17e471
   OMGHTTPURLRQ: a547be1b9721ddfbf9d08aab56ab72dc4c1cc417
   PromiseKit: ef54f61501541bf18a87b25115c372184d180cea
   Quick: 18d057bc66451eedd5d1c8dc99ba2a5db6e60226
   XCGLogger: d6e196e78940ff6daab17d6917107876f973fa31
 
-PODFILE CHECKSUM: 4f9118fdde4a435cb8bc59d2f2fc85efc2581962
+PODFILE CHECKSUM: a271834cce8d9feebc60acf434139cb6eb3c1f79
 
 COCOAPODS: 1.1.0.rc.2

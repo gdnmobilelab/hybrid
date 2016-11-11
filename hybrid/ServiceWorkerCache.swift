@@ -7,9 +7,7 @@
 //
 
 import Foundation
-import Alamofire
 import PromiseKit
-import ObjectMapper
 import FMDB
 import JavaScriptCore
 
@@ -77,6 +75,11 @@ class CacheNoMatchError : ErrorType {}
     func matchCallback(url: JSValue, success: JSValue, failure: JSValue) -> Void
 }
 
+struct RequestAndResponse {
+    var request: FetchRequest
+    var response: FetchResponse
+}
+
 
 @objc class ServiceWorkerCache: NSObject, ServiceWorkerCacheExports {
     
@@ -116,37 +119,39 @@ class CacheNoMatchError : ErrorType {}
         return Promise<Void>()
         .then({
             
-            let downloadAndStoreTasks = urlsAsNSURLs.map { (url: NSURL) -> Promise<AlamofireResponse> in
-                return Promisified.AlamofireRequest("GET", url: url)
-                    .then { r in
-                        
-                        if r.response.statusCode < 200 || r.response.statusCode > 299 {
-                            log.error("Failed to cache: " + url.absoluteString!)
-                            throw CacheAddRequestFailedError()
-                        }
-                        
-                        return Promise<AlamofireResponse>(r)
-                        
+            let downloadAndStoreTasks = urlsAsNSURLs.map { (url: NSURL) -> Promise<RequestAndResponse> in
+                
+                let fetchRequest = FetchRequest(url: url.absoluteString!, options: nil)
+                
+                return GlobalFetch.fetchRequest(fetchRequest)
+                .then { response in
+                    
+                    if response.status < 200 || response.status > 299 {
+                        log.error("Failed to cache: " + url.absoluteString!)
+                        throw CacheAddRequestFailedError()
                     }
+                    
+                    return Promise<RequestAndResponse>(RequestAndResponse(request: fetchRequest, response: response))
+                    
+                }
             }
             
             return when(downloadAndStoreTasks)
-                .then { responses in
+                .then { reqResponsePairs in
                     
 
                     try Db.mainDatabase.inTransaction({ (db) in
                         
-                        for r in responses {
+                        for r in reqResponsePairs {
                             
-                            let fh = FetchHeaders(dictionary: r.response.allHeaderFields as! [String: AnyObject])
                             
-                            let headersAsJSON = try fh.toJSON()
+                            let headersAsJSON = try r.response.headers.toJSON()
                             
                             // It's valid to overwrite an existing cache entry. So, let's make sure we've deleted any existing ones
                             
-                            try db.executeUpdate("DELETE FROM cache WHERE service_worker_url = ? AND cache_id = ? AND resource_url = ?", values: [self.serviceWorkerURL.absoluteString!, self.name, r.request.URL!.absoluteString!])
+                            try db.executeUpdate("DELETE FROM cache WHERE service_worker_url = ? AND cache_id = ? AND resource_url = ?", values: [self.serviceWorkerURL.absoluteString!, self.name, r.request.url])
                             
-                            try db.executeUpdate("INSERT INTO cache (service_worker_url, cache_id, resource_url, contents, headers, status) VALUES (?,?,?,?,?,?)", values: [self.serviceWorkerURL.absoluteString!, self.name, r.request.URL!.absoluteString!, r.data!, headersAsJSON, r.response.statusCode] as [AnyObject])
+                            try db.executeUpdate("INSERT INTO cache (service_worker_url, cache_id, resource_url, contents, headers, status) VALUES (?,?,?,?,?,?)", values: [self.serviceWorkerURL.absoluteString!, self.name, r.request.url, r.response.data!, headersAsJSON, r.response.status] as [AnyObject])
                         }
     
                     })

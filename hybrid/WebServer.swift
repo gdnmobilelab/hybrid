@@ -8,7 +8,6 @@
 
 import Foundation
 import GCDWebServer
-import ObjectMapper
 import PromiseKit
 
 class WebServer {

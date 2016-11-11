@@ -9,7 +9,6 @@
 import Foundation
 import JavaScriptCore
 import PromiseKit
-import ObjectMapper
 import FMDB
 
 class JSContextError : ErrorType {
@@ -122,15 +121,11 @@ class ServiceWorkerOutOfScopeError : ErrorType {
         let urlComponents = NSURLComponents(URL: url, resolvingAgainstBaseURL: false)!
         urlComponents.path = nil
         self.jsContext = JSContext()
-        self.webSQL = WebSQLDatabaseCreator(context: self.jsContext, origin: urlComponents.URLString)
-        
-        
+        self.webSQL = WebSQLDatabaseCreator(context: self.jsContext, origin: urlComponents.URL!.absoluteString!)
         
         super.init()
         
-        
-        
-        
+    
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.jsContext.name = url.absoluteString
         self.cache = ServiceWorkerCacheHandler(jsContext: self.jsContext, serviceWorker: self)
@@ -416,7 +411,7 @@ class ServiceWorkerOutOfScopeError : ErrorType {
 
     }
     
-    private func loadContextScript() -> Promise<JSValue> {
+    private func loadContextScript() -> Promise<Void> {
         
         return Promise<String> {fulfill, reject in
             
@@ -431,23 +426,27 @@ class ServiceWorkerOutOfScopeError : ErrorType {
         }.then { js in
             return self.runScript("var self = {}; var global = self; hybrid = {}; var window = global; var navigator = {}; navigator.userAgent = 'Hybrid service worker';" + js)
         }.then { js in
-            
-            return self.applyGlobalVariables()
+            self.applyGlobalVariables()
+            return Promise<Void>()
         }
     }
     
-    func applyGlobalVariables() -> Promise<JSValue> {
+    func applyGlobalVariables() {
         // JSContext doesn't have a 'global' variable so instead we make our own,
         // then go through and manually declare global variables.
         
-        let keys = self.jsContext.evaluateScript("Object.keys(global);").toArray() as! [String]
-        var globalsScript = ""
-        for key in keys {
-            globalsScript += "var " + key + " = global['" + key + "']; false;";
-        }
-        log.info("Global variables: " + keys.joinWithSeparator(", "))
+        let global = self.jsContext.objectForKeyedSubscript("global")
         
-        return self.runScript(globalsScript)
+        let globalKeys = self.jsContext
+            .objectForKeyedSubscript("Object")
+            .objectForKeyedSubscript("keys")
+            .callWithArguments([global])
+            .toArray() as! [String]
+        
+        for key in globalKeys {
+            NSLog("set: " + key)
+            self.jsContext.setObject(global.objectForKeyedSubscript(key), forKeyedSubscript: key)
+        }
 
     }
 
@@ -476,7 +475,7 @@ class ServiceWorkerOutOfScopeError : ErrorType {
     func exceptionHandler(context:JSContext!, exception:JSValue!) {
         self.contextErrorValue = exception
         
-        log.error("JSCONTEXT error: " + exception.toString() + exception.objectForKeyedSubscript("stack").toString())
+        log.error("JSCONTEXT error: " + exception.toString())
         
     }
     

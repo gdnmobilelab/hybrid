@@ -7,9 +7,7 @@ use_frameworks!
 pod 'XCGLogger'
 pod 'FMDB'
 pod 'FMDBMigrationManager'
-pod 'Alamofire'
 pod 'PromiseKit', '~> 3.2.1'
-pod 'ObjectMapper', '~> 1.3'
 pod 'EmitterKit'
 
 

@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Alamofire
 import PromiseKit
 import JavaScriptCore
 
@@ -276,7 +275,6 @@ class FetchResponseBodyTypeNotRecognisedError : ErrorType {}
     
     
     required public init(body: AnyObject?, options: [String:AnyObject]?) {
-        
         var status = 200
         var statusText = "OK"
         var headers = FetchHeaders()
@@ -369,9 +367,7 @@ class SessionDelegate : NSObject, NSURLSessionDelegate {
                     reject(err!)
                     return
                 }
-                
-                let resURL = res!.URL
-                
+               
                 let httpResponse = res as? NSHTTPURLResponse
                 
                 
@@ -402,42 +398,10 @@ class SessionDelegate : NSObject, NSURLSessionDelegate {
             task.resume()
         }
         
-        
-        
-//        return Promise<FetchResponse>() {fulfill, reject in
-//            Alamofire
-//                .request(request.toNSURLRequest())
-//                .response(completionHandler: { (req: NSURLRequest?, res: NSHTTPURLResponse?, data: NSData?, err: NSError?) in
-//                    
-//                    if err != nil {
-//                        reject(err!)
-//                        return
-//                    }
-//                    
-//                    if let response = res {
-//                        
-//                        let fh = FetchHeaders(dictionary: response.allHeaderFields as! [String: AnyObject])
-//                        
-//                        if fh.get("Content-Encoding") != nil {
-//                            // it already ungzips stuff automatically, so this just
-//                            // confuses things. Need to flesh this out more.
-//                            fh.deleteValue("Content-Encoding")
-//                        }
-//                        
-//                        
-//                        // TODO: Status text
-//                        
-//                        let resp = FetchResponse(body: data, status: response.statusCode, statusText: "", headers: fh)
-//                        
-//                        fulfill(resp)
-//                        
-//                    } else {
-//                        reject(NoErrorButNoResponseError())
-//                    }
-//
-//                    
-//            })
-//        }
+    }
+    
+    static func fetch(url:String) -> Promise<FetchResponse> {
+        return fetchRequest(FetchRequest(url: url, options: nil))
     }
     
     static func fetch(requestVal: JSValue, options:JSValue, scope:String, callback:JSValue, errorCallback:JSValue) {

@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import ObjectMapper
 import PromiseKit
 import FMDB
 import JavaScriptCore

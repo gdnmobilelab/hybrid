@@ -9,34 +9,19 @@
 import Foundation
 import WebKit
 import PromiseKit
-import ObjectMapper
 import EmitterKit
 
-class ServiceWorkerRegisterOptions : Mappable {
+class ServiceWorkerRegisterOptions {
+    
+   
+    
     var scope:String?
-    
-    required init?(_ map: Map) {
-        
-    }
-    
-    func mapping(map: Map) {
-        scope    <- map["scope"]
-    }
 }
 
-class ServiceWorkerRegisterRequest : Mappable {
-    var path:NSURL!;
+class ServiceWorkerRegisterRequest : JSONSerializable {
+    var path:NSURL!
     var pathAsString:String!
-    var options:ServiceWorkerRegisterOptions?;
-    
-    required init?(_ map: Map) {
-        
-    }
-    
-    func mapping(map: Map) {
-        path    <- (map["path"], URLTransform())
-        options <- map["options"]
-    }
+    var options:ServiceWorkerRegisterOptions?
 }
 
 class ServiceWorkerRegisterFailedError: ErrorType {}
@@ -73,7 +58,9 @@ class ServiceWorkerAPI: ScriptMessageManager {
             return
         }
         
-        self.sendEvent("sw-change", arguments: [match.toJSONString()!])
+        let matchJSON = JSONSerializable.serialize(match.toSerializableObject())
+        
+        self.sendEvent("sw-change", arguments: [matchJSON!])
     }
     
     func setNewActiveServiceWorker(newWorker:ServiceWorkerInstance) {
@@ -84,7 +71,9 @@ class ServiceWorkerAPI: ScriptMessageManager {
         self.webview.messageChannelManager!.activePorts.removeAll()
         self.webview.messageChannelManager!.portListeners.removeAll()
         
-        self.sendEvent("claimed", arguments: [match.toJSONString()!])
+        let matchJSON = JSONSerializable.serialize(match.toSerializableObject())
+        
+        self.sendEvent("claimed", arguments: [matchJSON!])
     }
     
     func register(swPath:NSURL, scope:String?, webviewURL:NSURL) -> Promise<String> {
@@ -113,7 +102,10 @@ class ServiceWorkerAPI: ScriptMessageManager {
             .then { sw in
                 
                 let match = ServiceWorkerMatch(instanceId: response, url: sw!.url, installState: sw!.installState, scope: sw!.scope)
-                return Promise<String>(match.toJSONString()!)
+                
+                let matchJSON = JSONSerializable.serialize(match.toSerializableObject())
+                
+                return Promise<String>(matchJSON!)
             }
         }
     }
@@ -151,8 +143,12 @@ class ServiceWorkerAPI: ScriptMessageManager {
                 
             }
             
+            let jsonObjs = matches.map { match in
+                return match.toSerializableObject()
+            }
             
-            return matches.toJSONString()!
+            
+            return JSONSerializable.serialize(jsonObjs)!
         }
     }
     

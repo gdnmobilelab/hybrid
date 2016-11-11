@@ -8,8 +8,6 @@
 
 import Foundation
 import PromiseKit
-import ObjectMapper
-import Alamofire
 import FMDB
 import JavaScriptCore
 import EmitterKit
@@ -29,15 +27,21 @@ enum ServiceWorkerUpdateResult {
     case UpdatedExisting
 }
 
-class ServiceWorkerMatch : Mappable {
+class ServiceWorkerMatch {
+    
+    func toSerializableObject() -> [String:AnyObject] {
+        return [
+            "instanceId": self.instanceId,
+            "installState": self.installState.rawValue,
+            "url": self.url.absoluteString!,
+            "scope": self.scope.absoluteString!
+        ]
+    }
+    
     var instanceId: Int!
     var installState: ServiceWorkerInstallState!
     var url:NSURL!
     var scope:NSURL!
-    
-    required init?(_ map: Map) {
-        
-    }
     
     init(instanceId:Int, url:NSURL, installState: ServiceWorkerInstallState, scope: NSURL) {
         self.instanceId = instanceId
@@ -45,13 +49,7 @@ class ServiceWorkerMatch : Mappable {
         self.url = url
         self.scope = scope
     }
-    
-    func mapping(map: Map) {
-        instanceId      <- map["instanceId"]
-        installState   <- map["installState"]
-        url             <- (map["url"], URLTransform())
-        scope             <- (map["scope"], URLTransform())
-    }
+
 }
 
 class ServiceWorkerDoesNotExistError : ErrorType {}
@@ -96,17 +94,24 @@ class ServiceWorkerManager {
     
     static private func getLastUpdated(url:NSURL) -> Promise<NSDate?> {
         
-        return Promisified.AlamofireRequest("HEAD", url: url)
-            .then({ container in
-                let lastModHeader = getHeaderCaseInsensitive(container.response, name: "last-modified")
-                
-                if (lastModHeader == nil) {
-                    return Promise<NSDate?>(nil)
-                }
-                
-                let asDate = HTTPDateToNSDate(lastModHeader!)
-                return Promise<NSDate?>(asDate)
-            })
+        let request = FetchRequest(url: url.absoluteString!, options: [
+            "method": "HEAD"
+        ])
+        
+        return GlobalFetch.fetchRequest(request)
+        .then { response -> Promise<NSDate?> in
+            let lastMod = response.headers.get("last-modified")
+            
+            var date:NSDate? = nil
+            
+            if lastMod != nil {
+                date = HTTPDateToNSDate(lastMod!)
+            }
+            
+            return Promise<NSDate?>(date)
+            
+        }
+        
     }
     
     
@@ -148,10 +153,10 @@ class ServiceWorkerManager {
                 result.close()
             })
      
-            
-            return Promisified.AlamofireRequest("GET", url: urlOfServiceWorker)
-            .then { container in
-                let newJS = String(data: container.data!, encoding: NSUTF8StringEncoding)
+            return GlobalFetch.fetch(urlOfServiceWorker.absoluteString!)
+            .then { response -> Promise<Int> in
+                
+                let newJS = String(data: response.data!, encoding: NSUTF8StringEncoding)
                 
                 if existingJS != nil && existingJS == newJS {
                     // No new code, so just return the ID of the existing worker.
@@ -170,7 +175,7 @@ class ServiceWorkerManager {
                     urlOfServiceWorker,
                     scope: scopeToUse!,
                     lastModified: -1, // TODO: remove column
-                    js: container.data!
+                    js: response.data!
                 ).then { id in
                     
                     // This happens async, so don't wrap up in the promise

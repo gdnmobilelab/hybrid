@@ -210,8 +210,9 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         
         if navigationAction.targetFrame == nil {
             // been called with _blank
-            
-            UIApplication.sharedApplication().openURL(intendedURL)
+            UIApplication.sharedApplication().openURL(intendedURL, options: [:], completionHandler: { (success) in
+                log.info("Attempt to open URL: " + intendedURL.absoluteString! + " resulted in:" + String(success))
+            })
         } else {
             self.hybridNavigationController!.pushNewHybridWebViewControllerFor(intendedURL)
         }
@@ -302,8 +303,6 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
 
         self.webview!.scrollView.layer.renderInContext(self.renderCheckContext!)
         
-        let url = self.webview!.URL
-        
         let startAt = 4 * width * height - 4
         
         let red = CGFloat(pixel![startAt])
@@ -312,10 +311,10 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
 //        let alpha = CGFloat(pixel![startAt + 3])
         
        
-        
-        
-        let imgref = CGBitmapContextCreateImage(self.renderCheckContext!)
-        let uiImage = UIImage(CGImage: imgref!)
+//        
+//        
+//        let imgref = CGBitmapContextCreateImage(self.renderCheckContext!)
+//        let uiImage = UIImage(CGImage: imgref!)
 
 //        if self.tempCheckView == nil {
 //            self.tempCheckView = UIImageView(image: uiImage)

@@ -9,7 +9,6 @@
 import Foundation
 import WebKit
 import PromiseKit
-import ObjectMapper
 import JavaScriptCore
 
 class HandleMessageNotImplementedError : ErrorType {}

@@ -94,7 +94,7 @@ class PayloadToNotificationContent {
     static func Convert(notificationCommandPayload:AnyObject, serviceWorkerScope: String) -> Promise<UNNotificationContent> {
         
         let title = notificationCommandPayload["title"] as! String
-        var options = notificationCommandPayload["options"]!!
+        let options = notificationCommandPayload["options"]!!
         
         let content = UNMutableNotificationContent()
         

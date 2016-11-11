@@ -94,7 +94,7 @@ import PromiseKit
     
     func showNotification(title:String, options: [String:AnyObject]) {
         
-        var payload = [
+        let payload = [
             "title": title,
             "options": options
         ]

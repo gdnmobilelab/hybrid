@@ -9,26 +9,25 @@
 import Foundation
 import WebKit
 import PromiseKit
-import ObjectMapper
 import EmitterKit
 
-class MessagePortMessage : Mappable {
-    var data:String!
-    var passedPortIds:[Int]!
+class MessagePortMessage : JSONSerializable {
     
-    required init?(_ map: Map) {
-        
+    func toSerializableObject() -> [String: AnyObject] {
+        return [
+            "data": self.data,
+            "passedPortIds": self.passedPortIds
+        ]
     }
     
+    var data:String!
+    var passedPortIds:[Int]!
+
     init(data:String, passedPortIds:[Int]) {
         self.data = data
         self.passedPortIds = passedPortIds
     }
     
-    func mapping(map: Map) {
-        data      <- map["data"]
-        passedPortIds   <- map["passedPortIds"]
-    }
 }
 
 // We don't have access to the JSContext of WKWebViews, and can only communicate
@@ -133,7 +132,10 @@ class MessageChannelManager: ScriptMessageManager {
             })
             
             let objToPass = MessagePortMessage(data: msg.data, passedPortIds: portsAsIndexes)
-            self.webview.evaluateJavaScript("window.__messageChannelBridge.emit('emit'," + String(index) + "," + objToPass.toJSONString()! + ")", completionHandler: nil)
+            
+            let asString = JSONSerializable.serialize(objToPass.toSerializableObject())
+            
+            self.webview.evaluateJavaScript("window.__messageChannelBridge.emit('emit'," + String(index) + "," + asString! + ")", completionHandler: nil)
         })
         
         return index

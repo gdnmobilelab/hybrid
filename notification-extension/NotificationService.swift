@@ -92,7 +92,7 @@ class NotificationService: UNNotificationServiceExtension {
         
         let notificationCommandPayload = NSMutableDictionary(dictionary: showNotificationCommand["options"] as! NSDictionary)
         
-        var options = NSMutableDictionary(dictionary: notificationCommandPayload["options"] as! NSDictionary)
+        let options = NSMutableDictionary(dictionary: notificationCommandPayload["options"] as! NSDictionary)
 //        var actions = options["actions"] as? [AnyObject]
         
         
@@ -113,7 +113,7 @@ class NotificationService: UNNotificationServiceExtension {
                 commandSequences.append(action["commands"]!!)
                 let commandString = "__command::" + String(commandSequences.count - 1)
                 
-                var template = NSMutableDictionary(dictionary: action["template"] as! NSDictionary)
+                let template = NSMutableDictionary(dictionary: action["template"] as! NSDictionary)
                 template["action"] = commandString
                 
                 actions.append(template)
