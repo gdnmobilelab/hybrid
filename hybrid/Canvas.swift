@@ -93,11 +93,17 @@ class HexColor {
     }
     
     func clearRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
-        CGContextClearRect(self.context, CGRect(x: x, y: y, width: width, height: height))
+        //CGContextClearRect(self.context, CGRect(x: x, y: y, width: width, height: height))
+        
+        // don't actually use clear, as it results in black box
+        
+        let fill = self.fillStyle
+        self.fillStyle = "#ffffff"
+        self.fillRect(x, y: y, width: width, height: height)
+        self.fillStyle = fill
     }
     
     func fillRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
-        NSLog("FULL RECT at " + String(y))
         CGContextFillRect(self.context, CGRect(x: x, y: y, width: width, height: height))
     }
     
@@ -150,7 +156,7 @@ class HexColor {
     }
     
     func drawImage(bitmap:ImageBitmap, dx: CGFloat, dy: CGFloat) {
-        self.drawImage(bitmap, dx: dx, dy: dx, dWidth: CGFloat(bitmap.width), dHeight: CGFloat(bitmap.height))
+        self.drawImage(bitmap, dx: dx, dy: dy, dWidth: CGFloat(bitmap.width), dHeight: CGFloat(bitmap.height))
     }
     
     func drawImage(bitmap:ImageBitmap, dx: CGFloat, dy: CGFloat, dWidth:CGFloat, dHeight: CGFloat) {
@@ -161,13 +167,18 @@ class HexColor {
         
         // Have to do this to avoid image drawing upside down
         
+
+        CGContextSaveGState(self.context)
+        
         CGContextTranslateCTM(self.context, 0, CGFloat(bitmap.height))
         CGContextScaleCTM(self.context, 1.0, -1.0)
         
         CGContextDrawImage(self.context, destRect, bitmap.image)
         
-        CGContextScaleCTM(self.context, -1.0, 1.0)
-        CGContextTranslateCTM(self.context, 0, CGFloat(-bitmap.height))
+        CGContextRestoreGState(self.context)
+//        
+//        CGContextScaleCTM(self.context, -1.0, 1.0)
+//        CGContextTranslateCTM(self.context, 0, CGFloat(-bitmap.height))
     }
     
     func drawImage(bitmap:ImageBitmap, sx: CGFloat, sy: CGFloat, sWidth: CGFloat, sHeight: CGFloat, dx:CGFloat, dy: CGFloat, dWidth:CGFloat, dHeight:CGFloat) {
