@@ -41,3 +41,23 @@ import JavaScriptCore
         PendingNotificationActions.closeNotification = true
     }
 }
+
+@objc protocol NotificationEventExports : JSExport {
+    var notification: Notification {get}
+    var action: String? {get}
+}
+
+@objc class NotificationEvent: ExtendableEvent, NotificationEventExports {
+    let notification: Notification
+    let action: String?
+    
+    init(type: String, notification:Notification, action:String? = nil) {
+        self.notification = notification
+        self.action = action
+        super.init(type: type)
+    }
+    
+    required init(type: String) {
+        fatalError("init(type:) has not been implemented")
+    }
+}

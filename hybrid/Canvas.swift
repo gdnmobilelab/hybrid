@@ -241,6 +241,8 @@ class HexColor {
 
 @objc protocol OffscreenCanvasExports : JSExport {
     func getContext(contextType:String) -> TwoDContext?
+    var width:Int {get}
+    var height:Int {get}
 }
 
 

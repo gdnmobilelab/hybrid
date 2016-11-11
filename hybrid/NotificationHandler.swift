@@ -48,7 +48,7 @@ struct ActiveNotificationViews {
 }
 
 class NotificationHandler {
-    static func processAction(response:UNNotificationResponse, userInfo:[NSObject: AnyObject], activeViews: ActiveNotificationViews) -> Promise<JSValue> {
+    static func processAction(response:UNNotificationResponse, userInfo:[NSObject: AnyObject], activeViews: ActiveNotificationViews) -> Promise<Void> {
        
         let notificationData = userInfo["originalNotificationOptions"]!
         
@@ -69,46 +69,25 @@ class NotificationHandler {
             action = response.actionIdentifier
         }
         
-        // We need this to keep track of the actions we want to take place in both
-        // the app and the notification
-        
-        return Promise<JSValue> { fulfill, reject in
-            let returnFunc = { (err: JSValue, success:JSValue) in
-                if err.isNull {
-                    fulfill(success)
-                    return
-                }
-                
-                reject(JSContextError(jsValue: err))
+        return ServiceWorkerManager.getServiceWorkerForURL(NSURL(string:workerScope)!)
+        .then { sw in
+            
+            var eventType = "notificationclick"
+            
+            if response.actionIdentifier == "com.apple.UNNotificationDismissActionIdentifier" {
+                eventType = "notificationclose"
             }
+            let notificationEvent = NotificationEvent(type: eventType, notification: notification, action: action)
             
-            let cb = JSCallbackWrapper(callbackFunc: returnFunc)
-            
-            ServiceWorkerManager.getServiceWorkerForURL(NSURL(string:workerScope)!)
-                .then { sw -> Void in
-                    
-                    let jsFuncToRun = sw!.jsContext.objectForKeyedSubscript("hybrid")
-                        .objectForKeyedSubscript("dispatchExtendableEvent")!
-                    
-                    var args:[String:AnyObject] = [
-                        "notification" : notification
-                    ]
-                    
-                    if response.actionIdentifier == "com.apple.UNNotificationDismissActionIdentifier" {
-                        jsFuncToRun.callWithArguments(["notificationclose", args, cb])
-                    } else {
-                        args["action"] = action
-                        jsFuncToRun.callWithArguments(["notificationclick", args, cb])
-                    }
-                    
-                    
-                    
+            return sw!.dispatchExtendableEvent(notificationEvent)
+            .then { _ in
+                // disregard result - we don't need it
+                return Promise<Void>()
             }
             
         }
         
-        
-        
-        
+
+    
     }
 }

@@ -1,47 +1,14 @@
 import {PushMessageData} from './push';
 
-export class ExtendableEvent {
+(ExtendableEvent as any).prototype.waitUntil = function(promise:Promise<any>) {
+    this.waitUntilPromise = promise;
+};
 
-    public type:string;
-    private waitUntilPromise:Promise<any> = null;
-    public bubbles:boolean = false;
-
-    constructor(type:string, data?: Object) {
-        this.type = type;
-        
-
-        if (data && (data as any).__keys) {
-
-            // When we're passing a complex object (e.g. class) in, we
-            // can't rely on Object.assign. So we specify keys
-
-            (data as any).__keys.forEach((key:string) => {
-                let source = (data as any)[key];
-
-                if (source.bind) {
-                    console.log("WITH BIND: " + key);
-                    (this as any)[key] = source.bind(data);
-                } else {
-                    (this as any)[key] = source;
-                }
-            })
-        } else if (data) {
-            
-            Object.assign(this, data);
-        }
-        
+(ExtendableEvent as any).prototype.resolve = function() {
+    if (this.waitUntilPromise !== null) {
+        return this.waitUntilPromise
     }
-
-    waitUntil(promise:Promise<any>) {
-        this.waitUntilPromise = promise;
-    }
-
-    resolve() {
-        if (this.waitUntilPromise !== null) {
-            return this.waitUntilPromise
-        }
-        return Promise.resolve();
-    }
+    return Promise.resolve();
 }
 
 export class FetchEvent {
@@ -77,6 +44,6 @@ export class PushEvent extends ExtendableEvent {
     }
 }
 
-global.ExtendableEvent = ExtendableEvent;
+// global.ExtendableEvent = ExtendableEvent;
 global.FetchEvent = FetchEvent;
 global.PushEvent = PushEvent;

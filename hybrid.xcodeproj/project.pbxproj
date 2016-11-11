@@ -33,6 +33,8 @@
 		8A3A74F01D5E0B9400A7940C /* ServiceWorkerAPISpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3A74EF1D5E0B9400A7940C /* ServiceWorkerAPISpec.swift */; };
 		8A4A265F1D5A32930021B0A2 /* MessageChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4A265E1D5A32930021B0A2 /* MessageChannel.swift */; };
 		8A4A26611D5A3B890021B0A2 /* MessageChannelSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4A26601D5A3B890021B0A2 /* MessageChannelSpec.swift */; };
+		8A4C47E91DD59B490023B00A /* ExtendableEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4C47E81DD59B490023B00A /* ExtendableEvent.swift */; };
+		8A4C47EA1DD59E7A0023B00A /* ExtendableEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4C47E81DD59B490023B00A /* ExtendableEvent.swift */; };
 		8A5283AF1DBA752200EB0886 /* Canvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283AE1DBA752200EB0886 /* Canvas.swift */; };
 		8A5283B01DBAA61D00EB0886 /* Canvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283AE1DBA752200EB0886 /* Canvas.swift */; };
 		8A5283B21DBAAB2C00EB0886 /* ImageBitmap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283B11DBAAB2C00EB0886 /* ImageBitmap.swift */; };
@@ -207,6 +209,7 @@
 		8A4A265E1D5A32930021B0A2 /* MessageChannel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageChannel.swift; sourceTree = "<group>"; };
 		8A4A26601D5A3B890021B0A2 /* MessageChannelSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageChannelSpec.swift; sourceTree = "<group>"; };
 		8A4BB68D1D9D59BE00A1DCBD /* notification-extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "notification-extension.entitlements"; sourceTree = "<group>"; };
+		8A4C47E81DD59B490023B00A /* ExtendableEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExtendableEvent.swift; sourceTree = "<group>"; };
 		8A5283AE1DBA752200EB0886 /* Canvas.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Canvas.swift; sourceTree = "<group>"; };
 		8A5283B11DBAAB2C00EB0886 /* ImageBitmap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageBitmap.swift; sourceTree = "<group>"; };
 		8A5283B41DBAC29700EB0886 /* CanvasView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
@@ -395,6 +398,7 @@
 				8A6EA5171D8200E7003FDA00 /* Notification.swift */,
 				8A5283B11DBAAB2C00EB0886 /* ImageBitmap.swift */,
 				8AA06FD41DCD233E00DE4F45 /* NotificationVideo.swift */,
+				8A4C47E81DD59B490023B00A /* ExtendableEvent.swift */,
 			);
 			name = "service-worker";
 			sourceTree = "<group>";
@@ -1019,6 +1023,7 @@
 				8ACCDCD71D7A131900A137E1 /* PromiseBridge.swift in Sources */,
 				8A933F681D87049500F9DC72 /* SharedSettings.swift in Sources */,
 				8ACCDCD81D7A131900A137E1 /* ServiceWorkerRegistration.swift in Sources */,
+				8A4C47EA1DD59E7A0023B00A /* ExtendableEvent.swift in Sources */,
 				8A5283BB1DBE98B200EB0886 /* PayloadToNotificationContent.swift in Sources */,
 				8ACCDCD91D7A131900A137E1 /* PushManager.swift in Sources */,
 				8ACCDCDA1D7A131900A137E1 /* Console.swift in Sources */,
@@ -1032,6 +1037,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */,
+				8A4C47E91DD59B490023B00A /* ExtendableEvent.swift in Sources */,
 				8A5283AF1DBA752200EB0886 /* Canvas.swift in Sources */,
 				8A0156D01D65FCAE0091995E /* GlobalFetch.swift in Sources */,
 				8AA2CBD31DB943E4004F95C3 /* StoredPushEvent.swift in Sources */,

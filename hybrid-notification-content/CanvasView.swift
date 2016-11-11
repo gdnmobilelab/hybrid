@@ -13,40 +13,38 @@ import PromiseKit
 
 @objc protocol CanvasEventDataExports: JSExport {
     var canvas: OffscreenCanvas {get}
+    var new:Bool {get}
     func requestAnimationFrame()
-    var __keys:[String] {get}
 }
 
-@objc class CanvasEventData : NSObject, CanvasEventDataExports {
+@objc class CanvasEventData : ExtendableEvent, CanvasEventDataExports {
     
     let canvas:OffscreenCanvas
     let targetView:CanvasView
+    var new:Bool = true
     
     init(canvas:OffscreenCanvas, targetView: CanvasView) {
         self.canvas = canvas
         self.targetView = targetView
+        super.init(type: "notification-canvas")
+    }
+    
+    required init(type: String) {
+        fatalError("init(type:) has not been implemented")
     }
     
     func requestAnimationFrame() {
+        self.new = false
         self.targetView.requestAnimationFrame()
     }
-    
-    var __keys: [String] {
-        get {
-            return [
-                "canvas",
-                "requestAnimationFrame"
-            ]
-        }
-    }
-    
+
 }
 
 class CanvasView: UIView {
     
     private var canvasData: CanvasEventData?
     private let worker: ServiceWorkerInstance
-    
+    private var displayLink:CADisplayLink?
     
     private func multiplyByRatio(num:Int) -> Int {
         return Int(CGFloat(num) * UIScreen.mainScreen().scale)
@@ -56,6 +54,8 @@ class CanvasView: UIView {
         
         let height = Int(Float(width) * ratio)
         self.worker = worker
+        
+     
         
         super.init(frame: CGRect(x: 0, y: 0, width: width, height: height))
         
@@ -67,9 +67,14 @@ class CanvasView: UIView {
         
         self.requestAnimationFrame()
         
-        let test = CADisplayLink(target: self, selector: #selector(self.runUpdate))
-        test.addToRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+        self.displayLink = CADisplayLink(target: self, selector: #selector(self.runUpdate))
+        self.displayLink!.addToRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
         
+    }
+    
+    override func removeFromSuperview() {
+        super.removeFromSuperview()
+        self.displayLink!.removeFromRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
     }
     
     var wantsAnimationFrame:Bool = false
@@ -79,7 +84,7 @@ class CanvasView: UIView {
 
         if self.wantsAnimationFrame == true && self.pendingRender == false {
             self.wantsAnimationFrame = false
-            worker.dispatchExtendableEvent("notification-canvas", data: self.canvasData!)
+            worker.dispatchExtendableEvent(self.canvasData!)
                 .then { _ -> Void in
                     self.pendingRender = true
                     self.setNeedsDisplay()

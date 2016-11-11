@@ -77,11 +77,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             if AppDelegate.runningInTests == false {
                 // todo: remove
-                ServiceWorkerManager.clearActiveServiceWorkers()
-                try Db.mainDatabase.inDatabase({ (db) in
-                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
-                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
-                })
+//                ServiceWorkerManager.clearActiveServiceWorkers()
+//                try Db.mainDatabase.inDatabase({ (db) in
+//                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
+//                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
+//                })
 
             }
             
@@ -90,9 +90,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             }
             
             if windowOpenActions.count == 0 {
-                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo/")!)
-//                rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/hybrid-election-night/")!)
-
+                
+                #if IS_DEBUG
+                    rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo/")!)
+                #else
+                    rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo/")!)
+                #endif
+                
             }
             
             

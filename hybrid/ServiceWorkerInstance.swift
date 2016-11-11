@@ -277,6 +277,7 @@ class ServiceWorkerOutOfScopeError : ErrorType {
         self.jsContext.setObject(OffscreenCanvas.self, forKeyedSubscript: "OffscreenCanvas")
         self.jsContext.setObject(TwoDContext.self, forKeyedSubscript: "CanvasRenderingContext2D")
         self.jsContext.setObject(ImageBitmap.self, forKeyedSubscript: "ImageBitmap")
+        self.jsContext.setObject(ExtendableEvent.self, forKeyedSubscript: "ExtendableEvent")
     }
     
 
@@ -349,17 +350,13 @@ class ServiceWorkerOutOfScopeError : ErrorType {
         return self.jsContext.evaluateScript(js)
     }
     
-    func dispatchExtendableEvent(name: String, data: AnyObject?) -> Promise<JSValue?> {
+    func dispatchExtendableEvent(ev:ExtendableEvent) -> Promise<JSValue?> {
         
         
         let funcToRun = self.jsContext.objectForKeyedSubscript("hybrid")
             .objectForKeyedSubscript("dispatchExtendableEvent")
         
-            
-        let dispatch = data == nil ? funcToRun.callWithArguments([name]) : funcToRun.callWithArguments([name, data!])
-
-        
-        return PromiseBridge<JSValue>(jsPromise: dispatch)
+        return PromiseBridge<JSValue>(jsPromise: funcToRun.callWithArguments([ev]))
 
     }
     

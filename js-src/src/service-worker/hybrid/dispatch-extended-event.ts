@@ -1,10 +1,9 @@
 import {PushEvent} from '../globals/extended-event-types';
 
-hybrid.dispatchExtendableEvent = function(name:string, data:Object, cb:any) {
+hybrid.dispatchExtendableEvent = function(extendedEvent:any, cb:any) {
     
     let promise = Promise.resolve()
     .then(() => {
-        let extendedEvent = new ExtendableEvent(name, data);
         self.dispatchEvent(extendedEvent);
         return extendedEvent.resolve();
     })

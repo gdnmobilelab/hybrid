@@ -295,7 +295,7 @@ class ServiceWorkerManager {
             
             try self.updateServiceWorkerInstallState(id, state: ServiceWorkerInstallState.Activating)
             
-            return swInstance!.dispatchExtendableEvent("activate", data: nil)
+            return swInstance!.dispatchExtendableEvent(ExtendableEvent(type: "activate"))
             .then { _ -> Void in
                 
                 // Activate was successful.
@@ -359,7 +359,7 @@ class ServiceWorkerManager {
         
         return ServiceWorkerInstance.getById(id)
         .then { (swInstance) -> Promise<ServiceWorkerInstallState> in
-            return swInstance!.dispatchExtendableEvent("install", data: nil)
+            return swInstance!.dispatchExtendableEvent(ExtendableEvent(type: "install"))
             .then { (_) -> Promise<ServiceWorkerInstallState> in
                 
                 try self.updateServiceWorkerInstallState(id, state: ServiceWorkerInstallState.Installed)
@@ -397,7 +397,7 @@ class ServiceWorkerManager {
     
     static private func attemptWorkerActivate(sw:ServiceWorkerInstance, instanceId:Int) -> Promise<Void> {
         
-        return sw.dispatchExtendableEvent("activate", data: nil)
+        return sw.dispatchExtendableEvent(ExtendableEvent(type: "activate"))
         .then { _ -> ServiceWorkerInstallState in
             log.info("Successfully activated service worker: " + sw.url.absoluteString!)
             return ServiceWorkerInstallState.Activated
