@@ -24,12 +24,12 @@ class CacheNoMatchError : ErrorType {}
 
 @objc class ServiceWorkerCacheHandler : NSObject, ServiceWorkerCacheHandlerExports {
     
-    let swURL: NSURL
+    let worker: ServiceWorkerInstance
     let jsContext: JSContext
     
-    init(jsContext: JSContext, serviceWorkerURL: NSURL) {
+    init(jsContext: JSContext, serviceWorker: ServiceWorkerInstance) {
         self.jsContext = jsContext
-        self.swURL = serviceWorkerURL
+        self.worker = serviceWorker
         
         super.init()
         
@@ -40,18 +40,18 @@ class CacheNoMatchError : ErrorType {}
     }
     
     func openCallback(name: String, success: JSValue, failure: JSValue) {
-        success.callWithArguments([ServiceWorkerCache(swURL: self.swURL, name: name)])
+        success.callWithArguments([ServiceWorkerCache(swURL: self.worker.url, swScope: self.worker.scope, name: name)])
     }
     
     func open(name:String) -> ServiceWorkerCache {
-        return ServiceWorkerCache(swURL: self.swURL, name: name)
+        return ServiceWorkerCache(swURL: self.worker.url, swScope: self.worker.scope, name: name)
     }
     
     func keysCallback(success: JSValue, failure: JSValue) {
         do {
             try Db.mainDatabase.inTransaction({ (db) in
                 
-                let resultSet = try db.executeQuery("SELECT DISTINCT cache_id FROM cache WHERE service_worker_url = ?", values: [self.swURL.absoluteString!])
+                let resultSet = try db.executeQuery("SELECT DISTINCT cache_id FROM cache WHERE service_worker_url = ?", values: [self.worker.url.absoluteString!])
                 
                 var ids: [String] = []
                 
@@ -81,11 +81,13 @@ class CacheNoMatchError : ErrorType {}
 @objc class ServiceWorkerCache: NSObject, ServiceWorkerCacheExports {
     
     let serviceWorkerURL:NSURL
+    let serviceWorkerScope:NSURL
     let name:String
     
     
-    init(swURL:NSURL, name:String) {
+    init(swURL:NSURL, swScope:NSURL, name:String) {
         self.serviceWorkerURL = swURL
+        self.serviceWorkerScope = swScope
         self.name = name
     }
     
@@ -108,7 +110,7 @@ class CacheNoMatchError : ErrorType {}
         // TODO: what about URLs that redirect?
         
         let urlsAsNSURLs = urls.map { (url:String) -> NSURL in
-            return NSURL(string: url, relativeToURL: self.serviceWorkerURL)!
+            return NSURL(string: url, relativeToURL: self.serviceWorkerScope)!
         }
         
         return Promise<Void>()
@@ -168,7 +170,7 @@ class CacheNoMatchError : ErrorType {}
             url = request.toString()
         }
         
-        self.match(NSURL(string: url)!)
+        self.match(NSURL(string: url, relativeToURL: self.serviceWorkerScope)!)
         .then { response in
             success.callWithArguments([response])
         }.error { error in

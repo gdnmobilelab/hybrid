@@ -26,6 +26,10 @@ import JavaScriptCore
         image = CGImageCreateWithPNGDataProvider(dataProvider, nil, true, CGColorRenderingIntent.RenderingIntentDefault)!
     }
     
+    init(image:CGImage) {
+        self.image = image
+    }
+    
     var width:Int {
         get {
             return CGImageGetWidth(self.image)

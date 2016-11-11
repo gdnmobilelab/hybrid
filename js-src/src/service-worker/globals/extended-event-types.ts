@@ -8,8 +8,25 @@ export class ExtendableEvent {
 
     constructor(type:string, data?: Object) {
         this.type = type;
+        
 
-        if (data) {
+        if (data && (data as any).__keys) {
+
+            // When we're passing a complex object (e.g. class) in, we
+            // can't rely on Object.assign. So we specify keys
+
+            (data as any).__keys.forEach((key:string) => {
+                let source = (data as any)[key];
+
+                if (source.bind) {
+                    console.log("WITH BIND: " + key);
+                    (this as any)[key] = source.bind(data);
+                } else {
+                    (this as any)[key] = source;
+                }
+            })
+        } else if (data) {
+            
             Object.assign(this, data);
         }
         

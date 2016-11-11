@@ -13,10 +13,25 @@ let toMap:any = {
     quadraticCurveToCpyXY: "quadraticCurveTo",
     rectYWidthHeight: "rect",
     strokeRectYWidthHeight: "stroke"
+    
 }
 
 let asAny = CanvasRenderingContext2D as any;
 
 for (let key in toMap) {
     asAny.prototype[toMap[key]] = asAny.prototype[key];
+}
+
+asAny.prototype.drawImage = function() {
+    if (arguments.length === 3) {
+        this.drawImageDxDy.apply(this, arguments);
+    } else if (arguments.length === 5) {
+        this.drawImageDxDyDWidthDHeight.apply(this, arguments);
+    } else if (arguments.length === 9) {
+        this.drawImageSxSySWidthSHeightDxDyDWidthDHeight.apply(this, arguments);
+    } else {
+        throw new Error("Did not understand drawImage arguments. Length: " + String(arguments.length))
+    }
+
+    
 }

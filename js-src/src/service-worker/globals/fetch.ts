@@ -22,8 +22,10 @@ function promisifyFunction(obj:any, nameOfFunction:string) {
 
 promisifyFunction(Response, "json");
 promisifyFunction(Response, "text");
+promisifyFunction(Response, "blob");
 promisifyFunction(Request, "json");
 promisifyFunction(Request, "text");
+promisifyFunction(Request, "blob");
 
 GlobalFetch.fetch = function(toFetch:any, options:any) {
     return new Promise((fulfill, reject) => {

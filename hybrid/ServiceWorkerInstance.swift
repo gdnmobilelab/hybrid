@@ -133,7 +133,7 @@ class ServiceWorkerOutOfScopeError : ErrorType {
         
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.jsContext.name = url.absoluteString
-        self.cache = ServiceWorkerCacheHandler(jsContext: self.jsContext, serviceWorkerURL: url)
+        self.cache = ServiceWorkerCacheHandler(jsContext: self.jsContext, serviceWorker: self)
         GlobalFetch.addToJSContext(self.jsContext)
         
         self.registration = ServiceWorkerRegistration(worker: self)

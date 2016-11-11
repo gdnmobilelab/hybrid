@@ -465,7 +465,6 @@
 				8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */,
 				8A5283B61DBE5B6D00EB0886 /* PayloadToNotificationContent.swift */,
 				8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */,
-				8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */,
 				8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */,
 				8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */,
 			);

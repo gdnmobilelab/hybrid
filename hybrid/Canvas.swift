@@ -63,6 +63,10 @@ class HexColor {
     func fill()
     func stroke()
     
+    func drawImage(bitmap:ImageBitmap, sx: CGFloat, sy: CGFloat, sWidth: CGFloat, sHeight: CGFloat, dx:CGFloat, dy: CGFloat, dWidth:CGFloat, dHeight:CGFloat)
+    func drawImage(bitmap:ImageBitmap, dx:CGFloat, dy: CGFloat, dWidth:CGFloat, dHeight:CGFloat)
+    func drawImage(bitmap:ImageBitmap, dx:CGFloat, dy: CGFloat)
+    
     var fillStyle:String {get set }
     var strokeStyle:String {get set}
     var lineWidth:Float {get set}
@@ -71,11 +75,16 @@ class HexColor {
 
 @objc class TwoDContext: NSObject, TwoDContextExports {
     
-    let context: CGContextRef
+    let context: CGContext
     
     required init(width: Int, height: Int) {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         self.context = CGBitmapContextCreate(nil, width, height, 8, 0, colorSpace, CGBitmapInfo(rawValue: CGImageAlphaInfo.PremultipliedLast.rawValue).rawValue)!
+    }
+    
+    
+    init(context:CGContext) {
+        self.context = context;
     }
     
     func toImage() -> CGImage {
@@ -88,6 +97,7 @@ class HexColor {
     }
     
     func fillRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
+        NSLog("FULL RECT at " + String(y))
         CGContextFillRect(self.context, CGRect(x: x, y: y, width: width, height: height))
     }
     
@@ -137,6 +147,38 @@ class HexColor {
     
     func stroke() {
         CGContextStrokePath(self.context)
+    }
+    
+    func drawImage(bitmap:ImageBitmap, dx: CGFloat, dy: CGFloat) {
+        self.drawImage(bitmap, dx: dx, dy: dx, dWidth: CGFloat(bitmap.width), dHeight: CGFloat(bitmap.height))
+    }
+    
+    func drawImage(bitmap:ImageBitmap, dx: CGFloat, dy: CGFloat, dWidth:CGFloat, dHeight: CGFloat) {
+        
+        // -dy because of this transform stuff
+        
+        let destRect = CGRect(x: dx, y: -dy, width: dWidth, height: dHeight)
+        
+        // Have to do this to avoid image drawing upside down
+        
+        CGContextTranslateCTM(self.context, 0, CGFloat(bitmap.height))
+        CGContextScaleCTM(self.context, 1.0, -1.0)
+        
+        CGContextDrawImage(self.context, destRect, bitmap.image)
+        
+        CGContextScaleCTM(self.context, -1.0, 1.0)
+        CGContextTranslateCTM(self.context, 0, CGFloat(-bitmap.height))
+    }
+    
+    func drawImage(bitmap:ImageBitmap, sx: CGFloat, sy: CGFloat, sWidth: CGFloat, sHeight: CGFloat, dx:CGFloat, dy: CGFloat, dWidth:CGFloat, dHeight:CGFloat) {
+        
+        let sourceRect = CGRect(x: sx, y: sy, width: sWidth, height: sHeight)
+        
+        let imgCrop = CGImageCreateWithImageInRect(bitmap.image, sourceRect)!
+        
+        let bitmapCrop = ImageBitmap(image: imgCrop)
+        
+        self.drawImage(bitmapCrop, dx: dx, dy: dy, dWidth: dWidth, dHeight: dHeight)
     }
     
 
@@ -194,9 +236,19 @@ class HexColor {
 @objc class OffscreenCanvas : NSObject, OffscreenCanvasExports {
     
     private let twoDContext: TwoDContext
+    let width:Int
+    let height:Int
     
     init(width: Int, height: Int) {
+        self.width = width
+        self.height = height
         self.twoDContext = TwoDContext(width: width, height: height)
+    }
+    
+    init(existingContext: CGContext) {
+        self.width = CGBitmapContextGetWidth(existingContext)
+        self.height = CGBitmapContextGetHeight(existingContext)
+        self.twoDContext = TwoDContext(context: existingContext)
     }
     
     func getContext(contextType:String) -> TwoDContext? {
