@@ -94,7 +94,9 @@ export class PromiseOverWKMessage extends EventEmitter {
             let thisCallback = this.callbackArray[callbackIndex];
             
             if (!thisCallback) {
-                throw new Error("Tried to use a callback that didn't exist");
+                throw new Error("Tried to use a callback that didn't exist, #" + callbackIndex);
+            } else {
+                console.log("Successfully used callback at index #" + callbackIndex)
             }
 
             // free up this slot for next operation
