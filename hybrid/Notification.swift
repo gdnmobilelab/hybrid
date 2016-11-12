@@ -33,25 +33,37 @@ import JavaScriptCore
     var title:String
     var video: NotificationVideo?
     
-    init(title:String) {
+    init(title:String, notificationData: AnyObject? = nil) {
         self.title = title
+        
+        if let data = notificationData {
+            self.body = data["body"] as? String
+            self.tag = data["tag"] as? String
+            self.actions = data["actions"] as? [AnyObject]
+            self.icon = data["icon"] as? String
+            self.image = data["image"]
+            self.data = data["data"]
+        }
+        
+        
     }
     
     func close() {
         PendingNotificationActions.closeNotification = true
     }
+
 }
 
 @objc protocol NotificationEventExports : JSExport {
     var notification: Notification {get}
-    var action: String? {get}
+    var action: String {get}
 }
 
 @objc class NotificationEvent: ExtendableEvent, NotificationEventExports {
     let notification: Notification
-    let action: String?
+    let action: String
     
-    init(type: String, notification:Notification, action:String? = nil) {
+    init(type: String, notification:Notification, action:String = "") {
         self.notification = notification
         self.action = action
         super.init(type: type)

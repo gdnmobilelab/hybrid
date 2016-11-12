@@ -52,13 +52,8 @@ class NotificationHandler {
        
         let notificationData = userInfo["originalNotificationOptions"]!
         
-        let notification = Notification(title: userInfo["originalTitle"] as! String)
-        notification.body = notificationData["body"] as? String
-        notification.tag = notificationData["tag"] as? String
-        notification.actions = notificationData["actions"] as? [AnyObject]
-        notification.icon = notificationData["icon"] as? String
-        notification.image = notificationData["image"]
-        notification.data = notificationData["data"]
+        let notification = Notification(title: userInfo["originalTitle"] as! String, notificationData: notificationData )
+
         notification.video = activeViews.video
         
         let workerScope = userInfo["serviceWorkerScope"] as! String

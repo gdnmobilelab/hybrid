@@ -107,7 +107,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             AppDelegate.window!.makeKeyAndVisible();
             
             
-
+            NSLog("Running")
 
             return true
             
@@ -124,7 +124,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //        NSLog("HIT DID RECEIVE THING")
 //        completionHandler(UIBackgroundFetchResult.NewData)
 //    }
-//    
+    
 
 
     func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {

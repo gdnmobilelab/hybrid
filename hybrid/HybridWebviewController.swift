@@ -272,8 +272,8 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         super.viewDidDisappear(animated)
         
         if self.navigationController == nil {
+            HybridWebview.deregisterWebviewFromServiceWorkerEvents(self.webview!)
             self.events.emit("popped", self)
-//            self.hybridNavigationController!.addControllerToWaitingArea(self)
         }
         
     }

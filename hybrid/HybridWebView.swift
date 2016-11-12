@@ -73,9 +73,10 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     }
     
     
-    func deregisterWebviewFromServiceWorkerEvents(hw: HybridWebview) {
+    static func deregisterWebviewFromServiceWorkerEvents(hw: HybridWebview) {
         let idx = HybridWebview.activeWebviews.indexOf(hw)
         HybridWebview.activeWebviews.removeAtIndex(idx!)
+        saveWebViewRecords()
     }
     
     static func processClientEvent(event:WebviewClientEvent) {
@@ -96,6 +97,16 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
                     HybridNavigationController.current!.popToViewController(viewController, animated: true)
                 }
             }
+        }
+        else if event.type == WebviewClientEventType.OpenWindow {
+            
+            let url = NSURL(string: event.options!["urlToOpen"] as! String)
+            
+            HybridNavigationController.current!.pushNewHybridWebViewControllerFor(url!)
+            
+            
+        } else {
+            log.error("Unrecognised event: " + String(event.type))
         }
     }
     

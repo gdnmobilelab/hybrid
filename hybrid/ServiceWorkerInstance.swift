@@ -444,7 +444,6 @@ class ServiceWorkerOutOfScopeError : ErrorType {
             .toArray() as! [String]
         
         for key in globalKeys {
-            NSLog("set: " + key)
             self.jsContext.setObject(global.objectForKeyedSubscript(key), forKeyedSubscript: key)
         }
 
