@@ -33,9 +33,14 @@ class PayloadToNotificationContent {
         }
         
         if let video = options["video"]! {
-            log.info("Found video to attach to notification")
-            assetsToFetch.append(video["url"] as! String)
-            assetTypesAttached.append("video")
+            if video["preload"] as? Bool == false {
+                log.info("Found video, but with preload set to false, so not downloading")
+            } else {
+                log.info("Found video to attach to notification")
+                assetsToFetch.append(video["url"] as! String)
+                assetTypesAttached.append("video")
+            }
+            
         }
         
         return when(assetsToFetch.map { requestURL -> Promise<NSURL> in

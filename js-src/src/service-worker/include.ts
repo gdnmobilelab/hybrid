@@ -11,6 +11,7 @@ import './globals/push';
 import './globals/sw-registration';
 import './globals/canvas-rendering-context-2d';
 import './globals/image-bitmap';
+import './globals/notification';
 
 import './hybrid/promise-bridge';
 import './hybrid/dispatch-extended-event';

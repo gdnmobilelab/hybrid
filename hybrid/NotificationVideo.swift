@@ -97,7 +97,29 @@ import JavaScriptCore
             self.play()
         }
         
+        log.info("Trying to play video at: " + videoURL.absoluteString!)
+        
         NSNotificationCenter.defaultCenter().addObserverForName(AVPlayerItemDidPlayToEndTimeNotification, object: nil, queue: nil, usingBlock: self.loopIfNeeded)
+        
+        self.playerController.player!.currentItem!.addObserver(self, forKeyPath: "status", options: [], context: nil)
+    }
+    
+    override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+        
+        let asItem = object as? AVPlayerItem
+        
+        if asItem == nil {
+            return
+        }
+        
+        let err = asItem!.error
+        if let errExists = err {
+            log.error("AV Fail:" + String(errExists))
+        }
+        
+        
+        
+        
     }
     
     func loopIfNeeded(notification: NSNotification) {

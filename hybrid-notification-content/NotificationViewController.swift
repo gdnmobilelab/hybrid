@@ -99,25 +99,41 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         let canvasView = CanvasView(width: Int(self.view.frame.width), ratio: ratio, worker: worker)
         setFrame(canvasView)
         self.notificationViews.append(canvasView)
+        self.activeCanvas = canvasView
     }
 
     var activeVideo:NotificationVideo?
+    var activeCanvas:CanvasView?
     
     func checkForVideo(attachments: [UNNotificationAttachment], options: AnyObject, worker: ServiceWorkerInstance) {
         
-        let video = attachments.filter { attachment in
-            return attachment.identifier == "video"
-            }.first
+        let maybeVideoOptions = options["video"]!
         
-        if video == nil {
+        if maybeVideoOptions == nil {
             return
         }
         
-        let videoURL = video!.URL
+        let videoOptions = maybeVideoOptions!
         
-        videoURL.startAccessingSecurityScopedResource()
+        var videoURLToLoad = NSURL(string: videoOptions["url"] as! String, relativeToURL: worker.scope)!
         
-        let videoOptions = options["video"]!!
+        let preload = videoOptions["preload"]!
+
+        
+        if preload == nil || preload as? Bool == true {
+            
+            // If we've preloaded our video, we want to use the local URL for the
+            // attachment rather than the remote one.
+            
+            let video = attachments.filter { attachment in
+                return attachment.identifier == "video"
+                }.first
+            
+            videoURLToLoad = video!.URL
+            
+            video!.URL.startAccessingSecurityScopedResource()
+        }
+        
         
         var videoProportion = videoOptions["proportion"] as? CGFloat
         
@@ -125,7 +141,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             videoProportion = 16 / 10
         }
         
-        let videoNotification = NotificationVideo(videoURL: videoURL, options: videoOptions, context: self.extensionContext)
+       let videoNotification = NotificationVideo(videoURL: videoURLToLoad, options: videoOptions, context: self.extensionContext)
         
         videoNotification.playerController.view.autoresizingMask = UIViewAutoresizing.None
         self.setFrame(videoNotification.playerController.view, height: self.view.frame.width * videoProportion!)
@@ -282,7 +298,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         }
         
         
-        NotificationHandler.processAction(response, userInfo: latestUserInfo!, activeViews: ActiveNotificationViews(video: self.activeVideo))
+        NotificationHandler.processAction(response, userInfo: latestUserInfo!, activeViews: ActiveNotificationViews(video: self.activeVideo, canvas: self.activeCanvas))
         .then { _ -> Void in
             
             if PendingNotificationActions.closeNotification == true {

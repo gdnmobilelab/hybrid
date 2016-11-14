@@ -273,6 +273,7 @@ class ServiceWorkerOutOfScopeError : ErrorType {
         self.jsContext.setObject(TwoDContext.self, forKeyedSubscript: "CanvasRenderingContext2D")
         self.jsContext.setObject(ImageBitmap.self, forKeyedSubscript: "ImageBitmap")
         self.jsContext.setObject(ExtendableEvent.self, forKeyedSubscript: "ExtendableEvent")
+        self.jsContext.setObject(Notification.self, forKeyedSubscript: "Notification")
     }
     
 

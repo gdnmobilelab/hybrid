@@ -45,6 +45,7 @@ class PendingNotificationActions {
 
 struct ActiveNotificationViews {
     var video:NotificationVideo?
+    var canvas:CanvasView?
 }
 
 class NotificationHandler {

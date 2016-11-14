@@ -15,6 +15,13 @@ export const notification = {
            }
            return newStatus
        })
+    },
+
+    // This is just used for feature sniffing
+    prototype: {
+        image: "",
+        video: "",
+        canvas: ""
     }
 };
 

@@ -77,11 +77,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             if AppDelegate.runningInTests == false {
                 // todo: remove
-//                ServiceWorkerManager.clearActiveServiceWorkers()
-//                try Db.mainDatabase.inDatabase({ (db) in
-//                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
-//                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
-//                })
+                ServiceWorkerManager.clearActiveServiceWorkers()
+                try Db.mainDatabase.inDatabase({ (db) in
+                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
+                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
+                })
 
             }
             
