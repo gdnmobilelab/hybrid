@@ -115,7 +115,7 @@ class ServiceWorkerManager {
     }
     
     
-    static func update(urlOfServiceWorker:NSURL, scope:NSURL? = nil) -> Promise<Int> {
+    static func update(urlOfServiceWorker:NSURL, scope:NSURL? = nil, forceCheck:Bool = false) -> Promise<Int> {
         
         // Update spec is here: http://www.w3.org/TR/service-workers/#service-worker-registration-update-method
         
@@ -129,7 +129,9 @@ class ServiceWorkerManager {
             
             var existingJS:String?
             var scopeToUse = scope
+            var lastChecked:Int = -1
             var serviceWorkerId:Int?
+            var currentInstallState:ServiceWorkerInstallState?
             
             try Db.mainDatabase.inDatabase({ (db) in
                 let result = try db.executeQuery("SELECT * FROM service_workers WHERE url = ? AND NOT install_state = ? ORDER BY install_state DESC LIMIT 1", values: [urlOfServiceWorker, ServiceWorkerInstallState.Redundant.rawValue])
@@ -144,6 +146,8 @@ class ServiceWorkerManager {
                 
                 existingJS = String(data: result.dataForColumn("contents"), encoding: NSUTF8StringEncoding)
                 serviceWorkerId = Int(result.intForColumn("instance_id"))
+                lastChecked = Int(result.intForColumn("last_checked"))
+                currentInstallState = ServiceWorkerInstallState(rawValue: Int(result.intForColumn("install_state")))
                 
                 // Confusion caused by combining update and register. Should separate at some point.
                 
@@ -152,6 +156,30 @@ class ServiceWorkerManager {
                 }
                 result.close()
             })
+            
+            // If our worker is installing or activating, then we return the existing one rather than start a new check loop
+            
+            if let swState = currentInstallState {
+                if swState != ServiceWorkerInstallState.Activated && swState != ServiceWorkerInstallState.Redundant {
+                    log.info("Worker currently in install or activate state - returning existing instance")
+                    return Promise<Int>(serviceWorkerId!)
+                }
+            }
+            
+            // Service Worker API (in Chrome at least?) doesn't try to download new JS if it's already
+            // checked within the last 24 hours. So we want to mirror that same behaviour.
+            
+            let timeDiff = 60 * 60 * 24 // 24 hours in seconds
+            
+            let rightNow = Int(NSDate().timeIntervalSince1970)
+            
+            if lastChecked + timeDiff > rightNow && forceCheck == false {
+                // We've checked within the last 24 hours. So just return the existing worker
+                log.info("Existing worker has been checked within 24 hours. Returning")
+                
+                return Promise<Int>(serviceWorkerId!)
+                
+            }
      
             return GlobalFetch.fetch(urlOfServiceWorker.absoluteString!)
             .then { response -> Promise<Int> in
@@ -160,12 +188,13 @@ class ServiceWorkerManager {
                 
                 if existingJS != nil && existingJS == newJS {
                     // No new code, so just return the ID of the existing worker.
-                    if existingJS == nil {
-                        log.info("New worker to be installed at " + urlOfServiceWorker.absoluteString!)
-                    } else {
-                        log.info("Checked for update to " + urlOfServiceWorker.absoluteString! + ", but no change.")
-                        
+                    log.info("Checked for update to " + urlOfServiceWorker.absoluteString! + ", but no change.")
+                    
+                    try Db.mainDatabase.inTransaction { db in
+                        // Update the DB with our new last checked time
+                        try db.executeUpdate("UPDATE service_workers SET last_checked = ? WHERE instance_id = ?", values: [rightNow, serviceWorkerId!])
                     }
+
                     return Promise<Int>(serviceWorkerId!)
                 }
                 
@@ -174,7 +203,7 @@ class ServiceWorkerManager {
                 return self.insertServiceWorkerIntoDB(
                     urlOfServiceWorker,
                     scope: scopeToUse!,
-                    lastModified: -1, // TODO: remove column
+                    lastChecked: rightNow,
                     js: response.data!
                 ).then { id in
                     
@@ -218,22 +247,22 @@ class ServiceWorkerManager {
         }
     }
     
-    static func insertServiceWorkerIntoDB(serviceWorkerURL:NSURL, scope: NSURL, lastModified:NSTimeInterval, js:NSData, installState:ServiceWorkerInstallState = ServiceWorkerInstallState.Installing) -> Promise<Int> {
+    static func insertServiceWorkerIntoDB(serviceWorkerURL:NSURL, scope: NSURL, lastChecked:Int, js:NSData, installState:ServiceWorkerInstallState = ServiceWorkerInstallState.Installing) -> Promise<Int> {
         
         
         
         return Promise<Void>()
         .then {
             
-//            if serviceWorkerURL.host != "localhost" && (serviceWorkerURL.scheme == "http" || scope.scheme == "http") {
-//                log.error("Both scope and service worker URL must be under HTTPS")
-//                throw ServiceWorkerNotHTTPSError()
-//            }
+            if serviceWorkerURL.host != "localhost" && (serviceWorkerURL.scheme == "http" || scope.scheme == "http") {
+                log.error("Both scope and service worker URL must be under HTTPS")
+                throw ServiceWorkerNotHTTPSError()
+            }
             
             var newId:Int64 = -1
             
             try Db.mainDatabase.inTransaction({ (db) in
-                try db.executeUpdate("INSERT INTO service_workers (url, scope, last_modified, contents, install_state) VALUES (?,?,?,?,?)", values: [serviceWorkerURL.absoluteString!, scope.absoluteString!, lastModified, js, installState.rawValue ] as [AnyObject])
+                try db.executeUpdate("INSERT INTO service_workers (url, scope, last_checked, contents, install_state) VALUES (?,?,?,?,?)", values: [serviceWorkerURL.absoluteString!, scope.absoluteString!, lastChecked, js, installState.rawValue ] as [AnyObject])
                 
                 newId = db.lastInsertRowId()
             })

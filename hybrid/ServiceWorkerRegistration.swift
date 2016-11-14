@@ -16,6 +16,7 @@ import PromiseKit
     var scope:String {get}
     var active:ServiceWorkerInstance? {get}
     func showNotification(title:String, options: [String:AnyObject])
+    func updateCallback(success:JSValue, failure:JSValue)
 }
 
 @objc class ServiceWorkerRegistration: NSObject, ServiceWorkerRegistrationExports {
@@ -115,6 +116,15 @@ import PromiseKit
             log.error("Failed to post notification: " + String(err))
         }
        
+    }
     
+    func updateCallback(success:JSValue, failure: JSValue) {
+        ServiceWorkerManager.update(self.worker.url, scope: nil, forceCheck: true)
+        .then { serviceWorkerId -> Void in
+            success.callWithArguments([])
+        }
+        .error { err in
+            failure.callWithArguments([JSValue(newErrorFromMessage: String(err), inContext: failure.context)])
+        }
     }
 }

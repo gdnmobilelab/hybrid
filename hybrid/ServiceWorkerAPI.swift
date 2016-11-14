@@ -111,7 +111,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
     }
     
     func update(swURL:NSURL) -> Promise<String> {
-        return ServiceWorkerManager.update(swURL)
+        return ServiceWorkerManager.update(swURL, scope: nil, forceCheck: true)
         .then { newId in
             // Promise doesn't return any info, but catches update errors
             return ServiceWorkerInstance.getById(newId)
