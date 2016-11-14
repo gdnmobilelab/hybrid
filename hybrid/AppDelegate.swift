@@ -93,6 +93,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 
                 #if IS_DEBUG
                     rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo/")!)
+//                    rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo/")!)
                 #else
                     rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo/")!)
                 #endif

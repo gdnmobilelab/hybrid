@@ -297,8 +297,8 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                 
                 if actionsThatBringAppToFront.count > 0 {
                     
-                    let openOptions = actionsThatBringAppToFront.first!.options?["openOptions"]!
-                    
+                    let openOptions = actionsThatBringAppToFront.first!.options?["openOptions"]
+                
                     if openOptions != nil && openOptions!["external"] as? Bool == true {
                         
                         let url = NSURL(string: actionsThatBringAppToFront.first!.options!["urlToOpen"] as! String)!
