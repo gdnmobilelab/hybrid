@@ -292,8 +292,6 @@ function processNewWorkerMatch(newMatch:ServiceWorkerMatch) {
     }
 
     RegistrationInstance.assignAccordingToInstallState(worker);
-
-    console.log("SW CHANGE", newMatch);
     return worker;
 }
 
