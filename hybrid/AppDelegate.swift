@@ -48,39 +48,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             WebviewClientManager.resetActiveWebviewRecords()
             
             application.registerForRemoteNotifications()
-                       
-            // Copy over js-dist. Future improvements might be to allow this to be updated over the wire
-            // Needs to be copied so notification extension can access it.
             
-            let jsDistTargetURL = SharedResources.fileSystemURL.URLByAppendingPathComponent("js-dist")!
 
-            
-            
-            if NSFileManager.defaultManager().fileExistsAtPath(jsDistTargetURL.path!) == true {
-                // need to tidy all this up. Shouldn't overwrite on every open
-                try NSFileManager.defaultManager().removeItemAtURL(jsDistTargetURL)
-            }
-            
-            
-            let jsDistURL = NSURL(fileURLWithPath: NSBundle.mainBundle().bundlePath)
-                .URLByAppendingPathComponent("js-dist")!
-            
-            try NSFileManager.defaultManager().copyItemAtURL(jsDistURL, toURL: jsDistTargetURL)
-
-            
-            AppDelegate.window = UIWindow(frame: UIScreen.mainScreen().bounds);
-            
-            
+            AppDelegate.window = UIWindow(frame: UIScreen.mainScreen().bounds)
             
             let rootController = HybridNavigationController.create()
             
             if AppDelegate.runningInTests == false {
                 // todo: remove
-                ServiceWorkerManager.clearActiveServiceWorkers()
-                try Db.mainDatabase.inDatabase({ (db) in
-                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
-                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
-                })
+//                ServiceWorkerManager.clearActiveServiceWorkers()
+//                try Db.mainDatabase.inDatabase({ (db) in
+//                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
+//                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
+//                })
 
             }
             
@@ -144,13 +124,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidEnterBackground(application: UIApplication) {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
-        NSLog("Enter Background")
+        log.info("App is entering background mode")
         WebServerDomainManager.stopAll()
     }
     
     func applicationWillEnterForeground(application: UIApplication) {
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
-        NSLog("Enter foreground")
+        log.info("App is being reactivated into foreground mode.")
         
         do {
             try WebServerDomainManager.startAll()
@@ -163,9 +143,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidBecomeActive(application: UIApplication) {
         
         
-        let numPendingActions = ServiceWorkerManager.currentlyActiveServiceWorkers.count
+        let numPendingActions = PendingWebviewActions.getAll().count
         
-        log.info("App became active again with " + String(numPendingActions) + " pending actions")
+        log.info("App became active with " + String(numPendingActions) + " pending actions")
         
         // There's a chance that some push events have arrived while the app has been inactive. So let's make sure
         // all of our active workers are up to date.

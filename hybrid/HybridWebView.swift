@@ -103,6 +103,16 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
             let url = NSURL(string: event.options!["urlToOpen"] as! String)
             
             HybridNavigationController.current!.pushNewHybridWebViewControllerFor(url!)
+        
+        } else if event.type == WebviewClientEventType.PostMessage {
+            
+            let webView = HybridWebview.activeWebviews[event.record!.index]
+            
+            // TODO: Do something about ports. We could handle then when we're in-process, but we
+            // can't when we're in notification-content, and I don't want to implement inconsistent
+            // behaviour.
+            
+            webView.serviceWorkerAPI!.handleIncomingPostMessage(event.options!["message"] as! String, ports: [])
             
             
         } else {

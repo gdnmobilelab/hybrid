@@ -90,7 +90,7 @@
 		8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA112951D79E3CD001EC463 /* NotificationViewController.swift */; };
 		8AA1129D1D79E3CD001EC463 /* hybrid-notification-content.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 8AA1128F1D79E3CD001EC463 /* hybrid-notification-content.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8AA2CBD31DB943E4004F95C3 /* StoredPushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */; };
-		8AACFB521DDA19D500595F58 /* 20161114.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AACFB511DDA19D500595F58 /* 20161114.sql */; };
+		8AACFB521DDA19D500595F58 /* 201611140.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AACFB511DDA19D500595F58 /* 201611140.sql */; };
 		8AACFB531DDA7F7600595F58 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283B41DBAC29700EB0886 /* CanvasView.swift */; };
 		8AB7EF211D9F155800176FAE /* Pods_notification_extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA86B1E9F949C6813A60BAB8 /* Pods_notification_extension.framework */; };
 		8AB7EF271D9F156100176FAE /* SharedResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A933F661D87049500F9DC72 /* SharedResources.swift */; };
@@ -252,7 +252,7 @@
 		8AA112951D79E3CD001EC463 /* NotificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewController.swift; sourceTree = "<group>"; };
 		8AA1129A1D79E3CD001EC463 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoredPushEvent.swift; sourceTree = "<group>"; };
-		8AACFB511DDA19D500595F58 /* 20161114.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 20161114.sql; sourceTree = "<group>"; };
+		8AACFB511DDA19D500595F58 /* 201611140.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 201611140.sql; sourceTree = "<group>"; };
 		8ACCDCCE1D7A0CD700A137E1 /* Console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		8AD2834F1D55070000D2DF07 /* test-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "test-workers"; sourceTree = "<group>"; };
 		8AD283511D55076D00D2DF07 /* TestUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtil.swift; sourceTree = "<group>"; };
@@ -477,7 +477,7 @@
 			children = (
 				8AEEDE621D2D90DF0032D588 /* 201606290.sql */,
 				8AEEDE661D2D93570032D588 /* 201607060.sql */,
-				8AACFB511DDA19D500595F58 /* 20161114.sql */,
+				8AACFB511DDA19D500595F58 /* 201611140.sql */,
 			);
 			name = migrations;
 			sourceTree = "<group>";
@@ -780,7 +780,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D381163A1CD5AE96004A3CCD /* js-dist in Resources */,
-				8AACFB521DDA19D500595F58 /* 20161114.sql in Resources */,
+				8AACFB521DDA19D500595F58 /* 201611140.sql in Resources */,
 				8AEEDE631D2D90DF0032D588 /* 201606290.sql in Resources */,
 				8AEEDE671D2D93570032D588 /* 201607060.sql in Resources */,
 				D31BC1171CD534CF00CF6BEB /* LaunchScreen.storyboard in Resources */,

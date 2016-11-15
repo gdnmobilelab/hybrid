@@ -416,11 +416,7 @@ class ServiceWorkerOutOfScopeError : ErrorType {
         
         return Promise<String> {fulfill, reject in
             
-            let workerContextPath = SharedResources.fileSystemURL
-                .URLByAppendingPathComponent("js-dist", isDirectory: true)!
-                .URLByAppendingPathComponent("worker-context")!
-                .URLByAppendingPathExtension("js")!
-                .path!
+            let workerContextPath = NSBundle.mainBundle().pathForResource("worker-context", ofType: "js", inDirectory: "js-dist")!;
            
             let contextJS = try NSString(contentsOfFile: workerContextPath, encoding: NSUTF8StringEncoding) as String
             fulfill(contextJS)
