@@ -72,6 +72,7 @@ class ServiceWorkerOutOfScopeError : ErrorType {
     var registration: ServiceWorkerRegistration?
     let webSQL: WebSQLDatabaseCreator!
     var clientManager:WebviewClientManager?
+    var jsHash:NSData?
     
     var installState:ServiceWorkerInstallState!
     let instanceId:Int
@@ -383,6 +384,7 @@ class ServiceWorkerOutOfScopeError : ErrorType {
     }
     
     func loadServiceWorker(workerJS:String) -> Promise<Void> {
+        self.jsHash = Util.sha256String(workerJS)
         return self.loadContextScript()
         .then {_ in
             return self.runScript(workerJS)
@@ -416,7 +418,7 @@ class ServiceWorkerOutOfScopeError : ErrorType {
         
         return Promise<String> {fulfill, reject in
             
-            let workerContextPath = NSBundle.mainBundle().pathForResource("worker-context", ofType: "js", inDirectory: "js-dist")!;
+            let workerContextPath = Util.appBundle().pathForResource("worker-context", ofType: "js", inDirectory: "js-dist")!;
            
             let contextJS = try NSString(contentsOfFile: workerContextPath, encoding: NSUTF8StringEncoding) as String
             fulfill(contextJS)

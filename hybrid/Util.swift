@@ -42,5 +42,34 @@ class Util {
         color.getHue(nil, saturation: nil, brightness: nil, alpha: nil)
     }
     
-
+    static func HTTPDateToNSDate(httpDate:String) -> NSDate? {
+        let dateFormat = NSDateFormatter()
+        dateFormat.dateFormat = "EEE, dd MMM yyyy HH:mm:ss z"
+        dateFormat.locale = NSLocale(localeIdentifier: "en_US_POSIX")
+        
+        let date = dateFormat.dateFromString(httpDate)
+        return date
+        
+    }
+    
+    static func sha256(data:NSData) -> NSData {
+        var hash = [UInt8](count: Int(CC_SHA256_DIGEST_LENGTH), repeatedValue: 0)
+        CC_SHA256(data.bytes, CC_LONG(data.length), &hash)
+        let res = NSData(bytes: hash, length: Int(CC_SHA256_DIGEST_LENGTH))
+        return res
+    }
+    
+    static func sha256String(str:String) -> NSData {
+        let asData = str.dataUsingEncoding(NSUTF8StringEncoding)
+        return sha256(asData!)
+    }
+    
+    static func appBundle() -> NSBundle {
+        var bundle = NSBundle.mainBundle()
+        if bundle.bundleURL.pathExtension == "appex" {
+            // Peel off two directory levels - MY_APP.app/PlugIns/MY_APP_EXTENSION.appex
+            bundle = NSBundle(URL: bundle.bundleURL.URLByDeletingLastPathComponent!.URLByDeletingLastPathComponent!)!
+        }
+        return bundle
+    }
 }

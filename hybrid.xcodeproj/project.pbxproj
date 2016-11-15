@@ -111,6 +111,8 @@
 		8ACCDCE31D7A323800A137E1 /* WebviewClientManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */; };
 		8AD283501D55070000D2DF07 /* test-workers in Resources */ = {isa = PBXBuildFile; fileRef = 8AD2834F1D55070000D2DF07 /* test-workers */; };
 		8AD283521D55076D00D2DF07 /* TestUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AD283511D55076D00D2DF07 /* TestUtil.swift */; };
+		8ADDB6981DDBA66600B69AE8 /* ServiceWorkerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */; };
+		8ADDB6991DDBA74C00B69AE8 /* ServiceWorkerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */; };
 		8AEA3F261D54056C000A7C70 /* server-test-data in Resources */ = {isa = PBXBuildFile; fileRef = 8AEA3F251D54056C000A7C70 /* server-test-data */; };
 		8AEBD0D21D42E6230042A4AB /* WebServerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */; };
 		8AEEDE5C1D26CF450032D588 /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
@@ -256,6 +258,9 @@
 		8ACCDCCE1D7A0CD700A137E1 /* Console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		8AD2834F1D55070000D2DF07 /* test-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "test-workers"; sourceTree = "<group>"; };
 		8AD283511D55076D00D2DF07 /* TestUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtil.swift; sourceTree = "<group>"; };
+		8ADDB6951DDBA48D00B69AE8 /* hybrid-notification-content-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "hybrid-notification-content-Bridging-Header.h"; sourceTree = "<group>"; };
+		8ADDB6961DDBA4B000B69AE8 /* hybrid-notification-extension-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "hybrid-notification-extension-Bridging-Header.h"; sourceTree = "<group>"; };
+		8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerStub.swift; sourceTree = "<group>"; };
 		8AEA3F251D54056C000A7C70 /* server-test-data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "server-test-data"; sourceTree = "<group>"; };
 		8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServerSpec.swift; sourceTree = "<group>"; };
 		8AEEDE5B1D26CF450032D588 /* db.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = db.swift; sourceTree = "<group>"; };
@@ -375,6 +380,7 @@
 				8A4BB68D1D9D59BE00A1DCBD /* notification-extension.entitlements */,
 				8A7A49F41D91A991004C8253 /* NotificationService.swift */,
 				8A7A49F61D91A991004C8253 /* Info.plist */,
+				8ADDB6961DDBA4B000B69AE8 /* hybrid-notification-extension-Bridging-Header.h */,
 			);
 			path = "notification-extension";
 			sourceTree = "<group>";
@@ -397,6 +403,7 @@
 				8A5283B11DBAAB2C00EB0886 /* ImageBitmap.swift */,
 				8AA06FD41DCD233E00DE4F45 /* NotificationVideo.swift */,
 				8A4C47E81DD59B490023B00A /* ExtendableEvent.swift */,
+				8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */,
 			);
 			name = "service-worker";
 			sourceTree = "<group>";
@@ -450,6 +457,7 @@
 				8AA112951D79E3CD001EC463 /* NotificationViewController.swift */,
 				8AA1129A1D79E3CD001EC463 /* Info.plist */,
 				8A5283B41DBAC29700EB0886 /* CanvasView.swift */,
+				8ADDB6951DDBA48D00B69AE8 /* hybrid-notification-content-Bridging-Header.h */,
 			);
 			path = "hybrid-notification-content";
 			sourceTree = "<group>";
@@ -1021,6 +1029,7 @@
 				8ACCDCD81D7A131900A137E1 /* ServiceWorkerRegistration.swift in Sources */,
 				8A4C47EA1DD59E7A0023B00A /* ExtendableEvent.swift in Sources */,
 				8A5283BB1DBE98B200EB0886 /* PayloadToNotificationContent.swift in Sources */,
+				8ADDB6991DDBA74C00B69AE8 /* ServiceWorkerStub.swift in Sources */,
 				8ACCDCD91D7A131900A137E1 /* PushManager.swift in Sources */,
 				8ACCDCDA1D7A131900A137E1 /* Console.swift in Sources */,
 				8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */,
@@ -1039,6 +1048,7 @@
 				8A0156D01D65FCAE0091995E /* GlobalFetch.swift in Sources */,
 				8AA2CBD31DB943E4004F95C3 /* StoredPushEvent.swift in Sources */,
 				8A54109F1D381EF000F44F38 /* HybridWebView.swift in Sources */,
+				8ADDB6981DDBA66600B69AE8 /* ServiceWorkerStub.swift in Sources */,
 				8A5283B21DBAAB2C00EB0886 /* ImageBitmap.swift in Sources */,
 				8A24493D1D6CF6F400052D92 /* ServiceWorkerRegistration.swift in Sources */,
 				8A2449421D6D0B6E00052D92 /* NotificationPermissionHandler.swift in Sources */,
@@ -1164,6 +1174,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "hybrid notify-ext dev";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OBJC_BRIDGING_HEADER = "notification-extension/hybrid-notification-extension-Bridging-Header.h";
 				SWIFT_VERSION = 2.3;
 			};
 			name = Debug;
@@ -1184,6 +1195,7 @@
 				PROVISIONING_PROFILE = "b7af0ff4-fa3b-426f-8994-4da6ff0f729a";
 				PROVISIONING_PROFILE_SPECIFIER = "XC iOS: gdnmobilelab.hybrid.notification-extension";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "notification-extension/hybrid-notification-extension-Bridging-Header.h";
 				SWIFT_VERSION = 2.3;
 			};
 			name = Release;
@@ -1206,6 +1218,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "gdnmobilelab dev notify";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OBJC_BRIDGING_HEADER = "hybrid-notification-content/hybrid-notification-content-Bridging-Header.h";
 				SWIFT_VERSION = 2.3;
 			};
 			name = Debug;
@@ -1227,6 +1240,7 @@
 				PROVISIONING_PROFILE = "f3dc524e-988f-40db-90eb-8d600dba83b3";
 				PROVISIONING_PROFILE_SPECIFIER = "XC iOS: gdnmobilelab.hybrid.hybrid-notification-content";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "hybrid-notification-content/hybrid-notification-content-Bridging-Header.h";
 				SWIFT_VERSION = 2.3;
 			};
 			name = Release;

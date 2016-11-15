@@ -155,7 +155,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     }
     
     func injectJS(userController: WKUserContentController) throws {
-        let docStartPath = NSBundle.mainBundle().pathForResource("document-start", ofType: "js", inDirectory: "js-dist")!;
+        let docStartPath = Util.appBundle().pathForResource("document-start", ofType: "js", inDirectory: "js-dist")!;
         let documentStartJS = try NSString(contentsOfFile: docStartPath, encoding: NSUTF8StringEncoding) as String;
      
         let userScript = WKUserScript(source: documentStartJS, injectionTime: .AtDocumentStart, forMainFrameOnly: true);

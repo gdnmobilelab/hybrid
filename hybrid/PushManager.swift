@@ -90,7 +90,7 @@ import JavaScriptCore
             return
         }
         
-        let appName = NSBundle.mainBundle().bundleIdentifier!
+        let appName = Util.appBundle().bundleIdentifier!
         
         let returnObj = [
             "platform": "iOS",

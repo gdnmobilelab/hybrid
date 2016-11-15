@@ -54,15 +54,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             let rootController = HybridNavigationController.create()
             
+            #if IS_DEBUG
+
             if AppDelegate.runningInTests == false {
                 // todo: remove
-//                ServiceWorkerManager.clearActiveServiceWorkers()
-//                try Db.mainDatabase.inDatabase({ (db) in
-//                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
-//                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
-//                })
+                ServiceWorkerManager.clearActiveServiceWorkers()
+                try Db.mainDatabase.inDatabase({ (db) in
+                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
+                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
+                })
 
             }
+                
+            #endif
             
             let windowOpenActions = PendingWebviewActions.getAll().filter { event in
                 return event.type == WebviewClientEventType.OpenWindow
