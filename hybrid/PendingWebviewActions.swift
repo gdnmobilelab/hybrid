@@ -17,7 +17,7 @@ class PendingWebviewActions {
         NSKeyedUnarchiver.setClass(WebviewClientEvent.self, forClassName: "WebviewClientEvent")
         NSKeyedUnarchiver.setClass(WebviewRecord.self, forClassName: "WebviewRecord")
         
-        if let storedData = SharedSettings.storage.dataForKey("pending_webview_actions") {
+        if let storedData = SharedResources.userDefaults.dataForKey("pending_webview_actions") {
             let stored = NSKeyedUnarchiver.unarchiveObjectWithData(storedData) as! [WebviewClientEvent]
             
             return stored
@@ -39,7 +39,7 @@ class PendingWebviewActions {
     static func set(clients: [WebviewClientEvent]) {
         NSKeyedArchiver.setClassName("WebviewClientEvent", forClass: WebviewClientEvent.self)
         NSKeyedArchiver.setClassName("WebviewRecord", forClass: WebviewRecord.self)
-        SharedSettings.storage.setObject(NSKeyedArchiver.archivedDataWithRootObject(clients), forKey: "pending_webview_actions")
+        SharedResources.userDefaults.setObject(NSKeyedArchiver.archivedDataWithRootObject(clients), forKey: "pending_webview_actions")
     }
     
     static func add(event:WebviewClientEvent) {
@@ -51,6 +51,6 @@ class PendingWebviewActions {
     }
     
     static func clear() {
-        SharedSettings.storage.removeObjectForKey("pending_webview_actions")
+        SharedResources.userDefaults.removeObjectForKey("pending_webview_actions")
     }
 }

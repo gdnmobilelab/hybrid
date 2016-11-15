@@ -52,46 +52,6 @@ import PromiseKit
         self.worker = worker
     }
     
-    static let assetStoreDirectory = Fs.sharedStoreURL.URLByAppendingPathComponent("NotificationStore", isDirectory: true)!
-    
-    static func getStoredPathForURL(url:NSURL) -> NSURL {
-        
-        let escapedAssetURL = url.absoluteString!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
-        
-        return assetStoreDirectory
-            .URLByAppendingPathComponent(escapedAssetURL)!
-            .URLByAppendingPathExtension(url.pathExtension!)!
-    }
-    
-    private func getIcon(options: [String:AnyObject], content:UNMutableNotificationContent) -> Promise<Void> {
-        
-        if options["icon"] == nil {
-            return Promise<Void>()
-        }
-        
-        let icon = options["icon"] as! String
-        
-        let iconURL = NSURL(string: icon, relativeToURL: NSURL(string:self.scope)!)!
-        
-        return self.worker.dispatchFetchEvent(FetchRequest(url: iconURL.absoluteString!, options: nil))
-        .then { r in
-            
-            let destPath = ServiceWorkerRegistration.getStoredPathForURL(iconURL)
-            
-            if NSFileManager.defaultManager().fileExistsAtPath(ServiceWorkerRegistration.assetStoreDirectory.path!) == false {
-                try NSFileManager.defaultManager().createDirectoryAtPath(ServiceWorkerRegistration.assetStoreDirectory.path!, withIntermediateDirectories: true, attributes: nil)
-            }
-            
-            
-            try r!.data!.writeToFile(destPath.path!, options: NSDataWritingOptions.DataWritingFileProtectionNone)
-            let attachment = try UNNotificationAttachment(identifier: "icon", URL: destPath, options: [
-                UNNotificationAttachmentOptionsThumbnailClippingRectKey: CGRectCreateDictionaryRepresentation(CGRect(x:0, y: 0, width: 1, height: 1))
-            ])
-            content.attachments.append(attachment)
-            
-            return Promise<Void>()
-        }
-    }
     
     func showNotification(title:String, options: [String:AnyObject]) {
         

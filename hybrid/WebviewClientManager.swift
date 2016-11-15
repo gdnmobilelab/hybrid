@@ -29,46 +29,22 @@ import OMGHTTPURLRQ
     }
     
     func postMessage(message: String, ports: [MessagePort], callback:JSValue) {
-        do {
-            let port = SharedSettings.storage.objectForKey(SharedSettings.WEBSERVER_PORT_KEY)
-            
-            if port == nil {
-                
-                // Shouldn't be any way for this to happen, but you never know
-                
-                log.error("Tried to postMessage to webview, but server isn't running?")
-                let error = JSValue(newErrorFromMessage: "Web server is not running?", inContext: callback.context)
-                callback.callWithArguments([error])
-                return
-            }
-            
-            let url = NSURLComponents(string: "http://localhost/__activeWebviews/" + String(self.id))!
-            url.port = port as! Int
         
-            let postRequest = try OMGHTTPURLRQ.POST(url.URL!.absoluteString!, JSON: [
-                "message": message,
-                "numberOfPorts": ports.count
-            ])
-            
-            // This doesn't actually return anything. So when we know we can successfully post, callback
-            
-            callback.callWithArguments([])
-            
-            NSURLConnection.promise(postRequest)
-            .then { response -> Void in
-                let jsonResponse = try NSJSONSerialization.JSONObjectWithData(response, options: []) as! [String]
-                
-                for (idx, portResponse) in jsonResponse.enumerate() {
-                    
-                    ports[idx].postStringMessage(portResponse)
-                }
-            }
-            
-            
-        } catch {
-            let jsError = JSValue(newErrorFromMessage: String(error), inContext: callback.context)
-            callback.callWithArguments([jsError])
-        }
+        let record = WebviewRecord(url: NSURL(string: self.url), index: Int(self.id)!, workerId: nil)
+        
+        // workerId maybe shouldn't be nil but we don't know it here because we're going to the webview
+        // not from
+        
+        let newEvent = WebviewClientEvent(type: WebviewClientEventType.PostMessage, record: record, options: [
+            "message": message
+        ])
+        
+        WebviewClientManager.clientEvents.emit(newEvent)
+        
+        // This doesn't actually return anything. So when we know we can successfully post, callback
+        
+        callback.callWithArguments([])
+
     }
     
     func focus() {
@@ -118,6 +94,7 @@ enum WebviewClientEventType: Int32 {
     case Claim = 0
     case Focus
     case OpenWindow
+    case PostMessage
 }
 
 @objc class WebviewClientEvent: NSObject, NSCoding {
@@ -201,13 +178,13 @@ enum WebviewClientEventType: Int32 {
     static let clientEvents = Event<WebviewClientEvent>()
     
     static func resetActiveWebviewRecords() {
-        SharedSettings.storage.removeObjectForKey(SharedSettings.ACTIVE_WEBVIEWS_KEY)
+        SharedResources.userDefaults.removeObjectForKey(SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
     }
     
     static var currentWebviewRecords: [WebviewRecord] {
         
         get {
-            let recordsAsData = SharedSettings.storage.dataForKey(SharedSettings.ACTIVE_WEBVIEWS_KEY)
+            let recordsAsData = SharedResources.userDefaults.dataForKey(SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
             
             if recordsAsData == nil {
                 // No store, so no active web view records
@@ -228,14 +205,14 @@ enum WebviewClientEventType: Int32 {
         set(value) {
             
             if value.count == 0 {
-                SharedSettings.storage.removeObjectForKey(SharedSettings.ACTIVE_WEBVIEWS_KEY)
+                SharedResources.userDefaults.removeObjectForKey(SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
                 return
             }
             
             NSKeyedArchiver.setClassName("WebviewRecord", forClass: WebviewRecord.self)
             
             let data = NSKeyedArchiver.archivedDataWithRootObject(value)
-            SharedSettings.storage.setObject(data, forKey: SharedSettings.ACTIVE_WEBVIEWS_KEY)
+            SharedResources.userDefaults.setObject(data, forKey: SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
             
         }
         

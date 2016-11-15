@@ -416,7 +416,7 @@ class ServiceWorkerOutOfScopeError : ErrorType {
         
         return Promise<String> {fulfill, reject in
             
-            let workerContextPath = Fs.sharedStoreURL
+            let workerContextPath = SharedResources.fileSystemURL
                 .URLByAppendingPathComponent("js-dist", isDirectory: true)!
                 .URLByAppendingPathComponent("worker-context")!
                 .URLByAppendingPathExtension("js")!

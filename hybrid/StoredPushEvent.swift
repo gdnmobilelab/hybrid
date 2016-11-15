@@ -49,7 +49,7 @@ class PushEventStore {
        
         NSKeyedUnarchiver.setClass(StoredPushEvent.self, forClassName: "StoredPushEvent")
         
-         if let storedData = SharedSettings.storage.dataForKey("stored_push_events") {
+         if let storedData = SharedResources.userDefaults.dataForKey("stored_push_events") {
             var stored = NSKeyedUnarchiver.unarchiveObjectWithData(storedData) as? [StoredPushEvent]
             
             if stored == nil {
@@ -79,7 +79,7 @@ class PushEventStore {
     
     static private func set(events: [StoredPushEvent]) {
         NSKeyedArchiver.setClassName("StoredPushEvent", forClass: StoredPushEvent.self)
-        SharedSettings.storage.setObject(NSKeyedArchiver.archivedDataWithRootObject(events), forKey: "stored_push_events")
+        SharedResources.userDefaults.setObject(NSKeyedArchiver.archivedDataWithRootObject(events), forKey: "stored_push_events")
     }
     
     static func add(pushEvent:StoredPushEvent) {
@@ -102,6 +102,6 @@ class PushEventStore {
     }
     
     static func removeAll() {
-        SharedSettings.storage.removeObjectForKey("stored_push_events")
+        SharedResources.userDefaults.removeObjectForKey("stored_push_events")
     }
  }

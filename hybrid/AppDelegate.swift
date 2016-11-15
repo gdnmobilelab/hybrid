@@ -31,7 +31,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         
-        SharedSettings.storage.setValue("NO", forKey: "RECEIVE_EVENT_REACHED")
         log.setup(.Debug, showLogIdentifier: false, showFunctionName: false, showThreadName: true, showLogLevel: true, showFileNames: false, showLineNumbers: false, showDate: false, writeToFile: nil, fileLogLevel: nil)
         
         do {
@@ -53,7 +52,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             // Copy over js-dist. Future improvements might be to allow this to be updated over the wire
             // Needs to be copied so notification extension can access it.
             
-            let jsDistTargetURL = Fs.sharedStoreURL.URLByAppendingPathComponent("js-dist")!
+            let jsDistTargetURL = SharedResources.fileSystemURL.URLByAppendingPathComponent("js-dist")!
 
             
             
@@ -107,9 +106,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             AppDelegate.window!.makeKeyAndVisible();
             
+            log.info("App is running.")
             
-            NSLog("Running")
-
             return true
             
             
@@ -164,7 +162,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func applicationDidBecomeActive(application: UIApplication) {
         
-        NSLog("Became active")
+        
+        let numPendingActions = ServiceWorkerManager.currentlyActiveServiceWorkers.count
+        
+        log.info("App became active again with " + String(numPendingActions) + " pending actions")
         
         // There's a chance that some push events have arrived while the app has been inactive. So let's make sure
         // all of our active workers are up to date.

@@ -55,7 +55,7 @@ class Db {
     
     private static var databasesURL:NSURL {
         get {
-            return Fs.sharedStoreURL.URLByAppendingPathComponent("Databases", isDirectory: true)!
+            return SharedResources.fileSystemURL.URLByAppendingPathComponent("Databases", isDirectory: true)!
         }
     }
     
