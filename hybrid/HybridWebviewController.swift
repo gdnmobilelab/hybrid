@@ -222,7 +222,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
         
         Promise<Void> { fulfill, reject in
-            self.webview!.evaluateJavaScript(LoadingIndicatorJS.setIndicator, completionHandler: { (obj:AnyObject?, err: NSError?) in
+            self.webview!.evaluateJavaScript(WebviewJS.setLoadingIndicator, completionHandler: { (obj:AnyObject?, err: NSError?) in
                 if err != nil {
                     // Injecting HTML failed. Why?
                     
@@ -341,7 +341,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
                 self.tempCheckView!.removeFromSuperview()
             }
             
-            self.webview!.evaluateJavaScript(LoadingIndicatorJS.removeIndicator, completionHandler: nil)
+            self.webview!.evaluateJavaScript(WebviewJS.removeLoadingIndicator, completionHandler: nil)
             fulfill()
         } else {
             log.debug("Checked if webview was ready, it was not")

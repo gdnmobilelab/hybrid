@@ -82,7 +82,7 @@
 		8A9D71151DC0F7F800375365 /* StoredPushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */; };
 		8A9D71161DC12B9100375365 /* StoredPushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */; };
 		8A9D71181DC27DAD00375365 /* BackButtonSymbol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A9D71171DC27DAD00375365 /* BackButtonSymbol.swift */; };
-		8AA06FD31DCCF95600DE4F45 /* LoadingIndicatorJS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA06FD21DCCF95600DE4F45 /* LoadingIndicatorJS.swift */; };
+		8AA06FD31DCCF95600DE4F45 /* WebviewJS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA06FD21DCCF95600DE4F45 /* WebviewJS.swift */; };
 		8AA06FD51DCD233E00DE4F45 /* NotificationVideo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA06FD41DCD233E00DE4F45 /* NotificationVideo.swift */; };
 		8AA06FD61DCD30E800DE4F45 /* NotificationVideo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA06FD41DCD233E00DE4F45 /* NotificationVideo.swift */; };
 		8AA112911D79E3CD001EC463 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA112901D79E3CD001EC463 /* UserNotifications.framework */; };
@@ -244,7 +244,7 @@
 		8A933F661D87049500F9DC72 /* SharedResources.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharedResources.swift; sourceTree = "<group>"; };
 		8A933F8E1D874B5700F9DC72 /* WebviewClientManagerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebviewClientManagerSpec.swift; sourceTree = "<group>"; };
 		8A9D71171DC27DAD00375365 /* BackButtonSymbol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackButtonSymbol.swift; sourceTree = "<group>"; };
-		8AA06FD21DCCF95600DE4F45 /* LoadingIndicatorJS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoadingIndicatorJS.swift; sourceTree = "<group>"; };
+		8AA06FD21DCCF95600DE4F45 /* WebviewJS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebviewJS.swift; sourceTree = "<group>"; };
 		8AA06FD41DCD233E00DE4F45 /* NotificationVideo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationVideo.swift; sourceTree = "<group>"; };
 		8AA1128F1D79E3CD001EC463 /* hybrid-notification-content.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "hybrid-notification-content.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8AA112901D79E3CD001EC463 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
@@ -354,7 +354,7 @@
 				8A2449481D6F676700052D92 /* HybridNavigationController.swift */,
 				8A9D71171DC27DAD00375365 /* BackButtonSymbol.swift */,
 				8A0970B71DC977A300F16CF4 /* WebServerDomainManager.swift */,
-				8AA06FD21DCCF95600DE4F45 /* LoadingIndicatorJS.swift */,
+				8AA06FD21DCCF95600DE4F45 /* WebviewJS.swift */,
 			);
 			name = native;
 			sourceTree = "<group>";
@@ -1048,7 +1048,7 @@
 				8A933F671D87049500F9DC72 /* SharedResources.swift in Sources */,
 				8A6EA5151D81F6D0003FDA00 /* JSCallbackWrapper.swift in Sources */,
 				8A0970BA1DCA692E00F16CF4 /* PendingWebviewActions.swift in Sources */,
-				8AA06FD31DCCF95600DE4F45 /* LoadingIndicatorJS.swift in Sources */,
+				8AA06FD31DCCF95600DE4F45 /* WebviewJS.swift in Sources */,
 				8A88460D1D3504EA00CF9369 /* ServiceWorkerWebSql.swift in Sources */,
 				8AA06FD51DCD233E00DE4F45 /* NotificationVideo.swift in Sources */,
 				8A24494B1D6F760300052D92 /* Util.swift in Sources */,

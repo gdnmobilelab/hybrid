@@ -164,7 +164,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     
     func getMetadata() -> Promise<HybridWebviewMetadata> {
         return Promise<HybridWebviewMetadata> { fulfill, reject in
-            self.evaluateJavaScript("var getMeta = function(name) { var t = document.querySelector(\"meta[name='\" + name + \"']\"); return t ? t.getAttribute('content') : null;}; [getMeta('theme-color'), document.title, getMeta('default-back-url')]", completionHandler: { (result, err) in
+            self.evaluateJavaScript(WebviewJS.getMetadataJS, completionHandler: { (result, err) in
                 if err != nil {
                     reject(err!)
                     return

@@ -8,8 +8,15 @@
 
 import Foundation
 
-class LoadingIndicatorJS {
-    static var setIndicator:String {
+
+/// Kind of daft, but this class is a tiny store for JS snippets we use in the course of
+/// loading webviews. It could be moved into js-src and injected into document-start.js
+/// in the future, as all webviews should have access to it. Also hopefully Swift
+/// introduces multi-line strings soon.
+
+class WebviewJS {
+    
+    static var setLoadingIndicator:String {
         get {
             let js:[String] = [
                 "loadedIndicator = document.createElement('div');",
@@ -29,9 +36,20 @@ class LoadingIndicatorJS {
         }
     }
     
-    static var removeIndicator:String {
+    static var removeLoadingIndicator:String {
         get {
             return "document.body.removeChild(window.__loadedIndicator); delete window.__loadedIndicator;"
+        }
+    }
+    
+    static var getMetadataJS:String {
+        get {
+            return (["var getMeta = function(name) {",
+                    "   var t = document.querySelector(\"meta[name='\" + name + \"']\");",
+                    "   return t ? t.getAttribute('content') : null;",
+                    "};",
+                    "[getMeta('theme-color'), document.title, getMeta('default-back-url')]"
+                    ] as [String]).joinWithSeparator("")
         }
     }
 }
