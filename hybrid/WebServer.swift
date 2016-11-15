@@ -59,7 +59,7 @@ class WebServer {
         
         let mappedURL = WebServerDomainManager.mapServerURLToRequestURL(request.URL)
         log.info("Request for " + mappedURL.absoluteString!)
-        ServiceWorkerManager.getServiceWorkerForURL(mappedURL)
+        ServiceWorkerManager.getServiceWorkerWhoseScopeContainsURL(mappedURL)
         .then { (sw) -> Promise<Void> in
             if (sw == nil) {
                 

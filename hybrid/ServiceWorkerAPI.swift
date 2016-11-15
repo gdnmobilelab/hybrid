@@ -126,7 +126,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
     }
     
     func getAllWorkers(webviewURL:NSURL) -> Promise<String> {
-        return ServiceWorkerManager.getAllServiceWorkersForURL(webviewURL)
+        return ServiceWorkerManager.getAllServiceWorkersWithScopeContainingURL(webviewURL)
         .then { matches -> String in
             
             let activeWorkers = matches.filter({ match in

@@ -65,7 +65,7 @@ class NotificationHandler {
             action = response.actionIdentifier
         }
         
-        return ServiceWorkerManager.getServiceWorkerForURL(NSURL(string:workerScope)!)
+        return ServiceWorkerManager.getServiceWorkerWhoseScopeContainsURL(NSURL(string:workerScope)!)
         .then { sw in
             
             var eventType = "notificationclick"

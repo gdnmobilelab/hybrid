@@ -176,40 +176,6 @@ class ServiceWorkerManager {
             
             let newest = try self.getNewestWorker(urlOfServiceWorker)
             
-            // Get the newest worker. Following spec here: http://www.w3.org/TR/service-workers/#get-newest-worker-algorithm
-            
-            // shorter way of saying it is grab workers in following order: activated, activating, installed, installing
-            // so we use SQL to just select the first one, ordered by install state.
-            
-//            var existingJS:String?
-//            var scopeToUse = scope
-//            var lastChecked:Int = -1
-//            var serviceWorkerId:Int?
-//            var currentInstallState:ServiceWorkerInstallState?
-//            
-//            try Db.mainDatabase.inDatabase({ (db) in
-//                let result = try db.executeQuery("SELECT * FROM service_workers WHERE url = ? AND NOT install_state = ? ORDER BY install_state DESC LIMIT 1", values: [urlOfServiceWorker, ServiceWorkerInstallState.Redundant.rawValue])
-//                
-//                if result.next() == false {
-//                    
-//                    // If there's no existing service worker record, we must update
-//                    log.debug("No existing version for worker " + urlOfServiceWorker.absoluteString!)
-//                    result.close()
-//                    return
-//                }
-//                
-//                existingJS = String(data: result.dataForColumn("contents"), encoding: NSUTF8StringEncoding)
-//                serviceWorkerId = Int(result.intForColumn("instance_id"))
-//                lastChecked = Int(result.intForColumn("last_checked"))
-//                currentInstallState = ServiceWorkerInstallState(rawValue: Int(result.intForColumn("install_state")))
-//                
-//                // Confusion caused by combining update and register. Should separate at some point.
-//                
-//                if scopeToUse == nil {
-//                    scopeToUse = NSURL(string: result.stringForColumn("scope"))
-//                }
-//                result.close()
-//            })
             
             // If our worker is installing or activating, then we return the existing one rather than start a new check loop
             
@@ -275,7 +241,13 @@ class ServiceWorkerManager {
 
     }
     
-    static func getAllServiceWorkersForURL(pageURL:NSURL) -> Promise<[ServiceWorkerMatch]> {
+    
+    /// Return an array of ServiceWorkerMatches for all the workers whose scope contains the specified
+    /// URL. Includes workers of all states (installing, etc)
+    ///
+    /// - Parameter pageURL: The URL we want to check
+    /// - Returns: A promise of a ServiceWorkerMatch array. If no matches, will be empty.
+    static func getAllServiceWorkersWithScopeContainingURL(pageURL:NSURL) -> Promise<[ServiceWorkerMatch]> {
         return Promise<Void>()
         .then {
             var workerRecords:[ServiceWorkerMatch] = [];
@@ -304,9 +276,16 @@ class ServiceWorkerManager {
         }
     }
     
+    /// Actually insert the worker's JavaScript source into the database
+    ///
+    /// - Parameters:
+    ///   - serviceWorkerURL: The URL this source came from
+    ///   - scope: The scope for this worker
+    ///   - lastChecked: Second-based timestamp of the time this was downloaded
+    ///   - js: The JavaScript string itself
+    ///   - installState: The ServiceWorkerInstallState. Default is "installing" but we can override, e.g. for tests
+    /// - Returns: A promise returning the instance ID of the inserted worker.
     static func insertServiceWorkerIntoDB(serviceWorkerURL:NSURL, scope: NSURL, lastChecked:Int, js:NSData, installState:ServiceWorkerInstallState = ServiceWorkerInstallState.Installing) -> Promise<Int> {
-        
-        
         
         return Promise<Void>()
         .then {
@@ -335,6 +314,14 @@ class ServiceWorkerManager {
        
     }
     
+    
+    /// Update the state of a worker in the database, as well as emit events accordingly.
+    ///
+    /// - Parameters:
+    ///   - id: The instance ID to update
+    ///   - state: The new install state
+    ///   - updateDatabase: Whether we should update the database or not. Sometimes this has already been done and we just want to send events (need to tweak this)
+    /// - Throws: An error if database connectivity fails
     private static func updateServiceWorkerInstallState(id: Int, state:ServiceWorkerInstallState, updateDatabase:Bool = true) throws {
         
         let idAsNSNumber = NSNumber(longLong: Int64(id))
@@ -380,6 +367,11 @@ class ServiceWorkerManager {
         self.events.emit(STATUS_CHANGE_EVENT, matchToDispatch)
     }
     
+    
+    /// Run an "activate" event inside the worker
+    ///
+    /// - Parameter swInstance: The instance we want to activate
+    /// - Returns: A promise that waits until the "activate" ExtendedEvent completes.
     static func activateServiceWorker(swInstance:ServiceWorkerInstance) -> Promise<Void> {
         return Promise<Void>()
         .then {
@@ -444,6 +436,12 @@ class ServiceWorkerManager {
     }
     
     
+    /// Run an "install" event on a service worker, where it typically adds items to the cache etc. If the
+    /// worker calls self.skipWaiting() as part of the install process, it will immediately move onto the
+    /// activation event.
+    ///
+    /// - Parameter id: The instance ID of the worker to install
+    /// - Returns: A promise containing the resulting install state - either Installed, Activated or Redundant if either step fails
     static func installServiceWorker(id:Int) -> Promise<ServiceWorkerInstallState> {
         
         // Service workers run "install" events, and if successful, "activate" events.
@@ -488,7 +486,12 @@ class ServiceWorkerManager {
     }
     
     
-    
+    /// If we have multiple workers for a URL, we want to cycle through them and see if any are
+    /// at an Installed state and pending activation. If so, we want to try activating it, but if
+    /// it fails, move onto the next worker.
+    ///
+    /// - Parameter workerIds: array of worker instance IDs
+    /// - Returns: A promise containing an active service worker. Nil if there isn't one.
     static func cycleThroughEligibleWorkers(workerIds:[Int]) -> Promise<ServiceWorkerInstance?> {
         if (workerIds.count == 0) {
             return Promise<ServiceWorkerInstance?>(nil)
@@ -515,7 +518,12 @@ class ServiceWorkerManager {
         }
     }
     
-    static func getServiceWorkerForURL(url:NSURL) -> Promise<ServiceWorkerInstance?> {
+    
+    /// Return a service worker with a scope that contains the provided URL.
+    ///
+    /// - Parameter url: The URL to match
+    /// - Returns: A promise containing a service worker, or nil if there is no scope match.
+    static func getServiceWorkerWhoseScopeContainsURL(url:NSURL) -> Promise<ServiceWorkerInstance?> {
         
         for (_, sw) in self.currentlyActiveServiceWorkers {
             

@@ -27,7 +27,7 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
         let workerScope = userInfo["serviceWorkerScope"] as! String
         let notificationData = userInfo["originalNotificationOptions"]!
         
-        return ServiceWorkerManager.getServiceWorkerForURL(NSURL(string: workerScope)!)
+        return ServiceWorkerManager.getServiceWorkerWhoseScopeContainsURL(NSURL(string: workerScope)!)
         .then { sw in
             let notification = Notification(title: userInfo["originalTitle"] as! String, notificationData: notificationData)
             let event = NotificationEvent(type: "notificationclick", notification: notification)
