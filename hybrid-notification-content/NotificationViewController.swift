@@ -259,7 +259,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             self.notificationViews.removeAll()
             
         
-            ServiceWorkerManager.getServiceWorkerForURL(NSURL(string: scope)!)
+            ServiceWorkerManager.getServiceWorkerWhoseScopeContainsURL(NSURL(string: scope)!)
             .then { sw -> Promise<Void> in
                 self.checkForCanvas(notification.request.content.userInfo, worker: sw!)
                 self.checkForImage(notification.request.content.attachments, worker: sw!)

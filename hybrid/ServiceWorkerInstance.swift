@@ -11,51 +11,15 @@ import JavaScriptCore
 import PromiseKit
 import FMDB
 
-class JSContextError : ErrorType {
-    let message:String
-    let stack:String?
-    
-    init(message:String){
-        self.message = message
-        self.stack = nil
-        
-    }
-    
-    init(jsValue:JSValue) {
-        if jsValue.isObject == true {
-            let dict = jsValue.toObject() as! [String: String]
-            if let message = dict["message"] {
-                self.message = message
-                self.stack = dict["stack"]
-            } else {
-                var msg = ""
-                for (key, val) in dict {
-                    msg = msg + key + " : " + val
-                }
-                self.message = msg
-                self.stack = nil
-            }
-        } else {
-            self.message = jsValue.toString()
-            self.stack = nil
-        }
-       
-        
-        
-    }
-
-}
 
 
-
+/// A quick struct to store promise fulfill/reject functions in. Serves the same
+/// purpose as a tuple, just simpler to read in code.
 struct PromiseReturn {
     let fulfill:(JSValue) -> Void
     let reject:(ErrorType) -> Void
 }
 
-class ServiceWorkerOutOfScopeError : ErrorType {
-    
-}
 
 @objc protocol ServiceWorkerInstanceExports : JSExport {
     var scriptURL:String {get}
@@ -63,26 +27,55 @@ class ServiceWorkerOutOfScopeError : ErrorType {
 
 @objc public class ServiceWorkerInstance : NSObject, ServiceWorkerInstanceExports {
     
+    
+    /// The actual JavascriptCore context in which our worker lives and runs.
     var jsContext:JSContext!
+    
     var cache:ServiceWorkerCacheHandler!
-    var contextErrorValue:JSValue?
+    
+    
+    /// Errors encountered in the JSContext are passed to exceptionHandler() rather than
+    /// immediately returning. So, we store the error in this variable and pluck it back
+    /// out so that we can keep it in our Promise chain.
+    private var contextErrorValue:JSValue?
+    
+    
+    /// The remote URL this service worker was downloaded from.
     let url:NSURL!
+    
+    
+    /// The scope for this service worker
     let scope:NSURL!
+    
     let timeoutManager = ServiceWorkerTimeoutManager()
     var registration: ServiceWorkerRegistration?
+    
+    
+    /// While service workers don't support WebSQL, we're using a WebSQL-based shim to add
+    /// IndexedDB support.
     let webSQL: WebSQLDatabaseCreator!
     var clientManager:WebviewClientManager?
-    var jsHash:NSData?
     
+   
     var installState:ServiceWorkerInstallState!
+    
+    
+    /// The ID for this worker. This is controlled by the database, where it is set by an
+    /// auto-incrementing primary key.
     let instanceId:Int
     
+    
+    /// The same as the url property, but returns a string instead of NSURL, so that we can use
+    /// this in the JSContext. Matches the Service Worker spec's scriptURL property.
     var scriptURL:String {
         get {
             return self.url.absoluteString!
         }
     }
     
+    
+    /// Another shim to match the service worker spec, this turns out installstate enum into
+    /// a string.
     var state:String {
         get {
             if self.installState == ServiceWorkerInstallState.Activated {
@@ -104,8 +97,6 @@ class ServiceWorkerOutOfScopeError : ErrorType {
          }
     }
     
-    
-    var pendingPromises = Dictionary<Int, PromiseReturn>()
     
     init(url:NSURL, scope: NSURL?, instanceId:Int, installState: ServiceWorkerInstallState) {
         
@@ -144,7 +135,21 @@ class ServiceWorkerOutOfScopeError : ErrorType {
         ServiceWorkerManager.currentlyActiveServiceWorkers[instanceId] = self
     }
     
+    
+    /// Fetch a service worker by its URL (not scope). Will return an already running worker if it exists, if not
+    /// if it will create a new one.
+    ///
+    /// - Parameter url: The URL this service worker was downloaded from
+    /// - Returns: A promise that returns a ServiceWorkerInstance if it exists locally, if not, nil
     static func getActiveWorkerByURL(url:NSURL) -> Promise<ServiceWorkerInstance?> {
+        
+        log.info("Request for service worker at URL: " + url.absoluteString!)
+        
+        for (_, worker) in ServiceWorkerManager.currentlyActiveServiceWorkers {
+            if worker.url == url {
+                return Promise<ServiceWorkerInstance?>(worker)
+            }
+        }
         
         var instance:ServiceWorkerInstance? = nil
         var contents:String? = nil
@@ -188,6 +193,12 @@ class ServiceWorkerOutOfScopeError : ErrorType {
     }
     
    
+    /// Fetch a service worker directly by ID. In many cases (particularly cross-process) we already know
+    /// exactly which worker we want to target. Will return an already running worker if it exists, if not
+    /// if it will create a new one.
+    ///
+    /// - Parameter id: The service worker ID, as created by the database primary key
+    /// - Returns: A promise returning either a ServiceWorkerInstance if it exists, or nil if not
     static func getById(id:Int) -> Promise<ServiceWorkerInstance?> {
         
         log.debug("Request for service worker with ID " + String(id))
@@ -242,22 +253,32 @@ class ServiceWorkerOutOfScopeError : ErrorType {
         
     }
     
+    
+    /// Receive a MessageEvent from a webview. Can have MessagePorts to allow replies back to WebViews.
+    ///
+    /// - Parameters:
+    ///   - message: message to send - usually a JSON string, but not necessarily.
+    ///   - ports: An array of MessagePorts, to be used to send back messages from the worker to the client.
     func receiveMessage(message:String, ports: [MessagePort]) {
         self.jsContext.objectForKeyedSubscript("hybrid")
             .objectForKeyedSubscript("dispatchMessageEvent")
             .callWithArguments([message, ports])
     }
+
     
+    /// Very simple check to see if any given URL lives within the scope of this worker
+    ///
+    /// - Parameter url: The URL to check
+    /// - Returns: true if within scope, otherwise false
     func scopeContainsURL(url:NSURL) -> Bool {
         return url.absoluteString!.hasPrefix(self.scope.absoluteString!)
     }
     
     
-    func hookFunctions() {
+    /// Add various classes and objects to the global scope of the service worker. To be broken out
+    /// into a ServiceWorkerGlobalScope class at some point, possibly.
+    private func hookFunctions() {
         
-        let promiseCallbackAsConvention: @convention(block) (JSValue, JSValue, JSValue) -> Void = self.nativePromiseCallback
-        self.jsContext.setObject(unsafeBitCast(promiseCallbackAsConvention, AnyObject.self), forKeyedSubscript: "__promiseCallback")
-
         self.timeoutManager.hookFunctions(self.jsContext)
         
         self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
@@ -277,78 +298,24 @@ class ServiceWorkerOutOfScopeError : ErrorType {
         self.jsContext.setObject(Notification.self, forKeyedSubscript: "Notification")
     }
     
-
-    private func jsPromiseCallback(pendingIndex: Int, fulfillValue:AnyObject?, rejectValue: AnyObject?) {
-        let funcToRun = self.jsContext
-            .objectForKeyedSubscript("hybrid")
-            .objectForKeyedSubscript("promiseCallback")
-        if rejectValue != nil {
-            funcToRun.callWithArguments([pendingIndex, NSNull(), rejectValue!])
-        } else {
-            
-            // TODO: investigate this. callWithArguments doesn't seem to like ? variables,
-            // but I'm not sure why.
-            
-            var fulfillValueToReturn:AnyObject = NSNull()
-            if fulfillValue != nil {
-                fulfillValueToReturn = fulfillValue!
-            }
-            
-            funcToRun.callWithArguments([pendingIndex, fulfillValueToReturn, NSNull()])
-        }
-        
-    }
     
-    private func nativePromiseCallback(pendingIndex: JSValue, error: JSValue, response: JSValue) {
-        let pendingIndexAsInt = Int(pendingIndex.toInt32())
-        if (error.isNull == false) {
-            pendingPromises[pendingIndexAsInt]?.reject(JSContextError(jsValue: error))
-        } else {
-            pendingPromises[pendingIndexAsInt]?.fulfill(response)
-        }
-        pendingPromises.removeValueForKey(pendingIndexAsInt)
-    }
-    
-    private func getVacantPromiseIndex() -> Int {
-        // We can't use an array because we need the indexes to stay consistent even
-        // when an entry has been removed. So instead we check every index until we
-        // find an empty one, then use that.
-        
-        var pendingIndex = 0
-        while pendingPromises[pendingIndex] != nil {
-            pendingIndex += 1
-        }
-        return pendingIndex
-    }
-    
-    func executeJSPromise(js:String) -> Promise<JSValue> {
-        
-        // We can't use an array because we need the indexes to stay consistent even
-        // when an entry has been removed. So instead we check every index until we
-        // find an empty one, then use that.
-        
-        let pendingIndex = self.getVacantPromiseIndex()
-       
-        return Promise<JSValue> { fulfill, reject in
-            pendingPromises[pendingIndex] = PromiseReturn(fulfill: fulfill, reject: reject)
-            self.runScript("hybrid.promiseBridgeBackToNative(" + String(pendingIndex) + "," + js + ");",closeDatabasesAfter: false)
-            .error { err in
-                reject(err)
-            }
-        } .always {
-            // We don't want to auto-close DB connections after runScript because the promise
-            // will continue to execute after that. So instead, we tidy up our webSQL connections
-            // once the promise has fulfilled (or errored out)
-            //self.webSQL.closeAll()
-        }
-    }
-    
+    /// Execute a JavaScript string. Usage stronly discouraged, to be deprecated ASAP (currently only
+    /// used to check the skipWaiting() status of a worker), use event dispatching etc. instead.
+    ///
+    /// - Parameter js: String of the JS to execute
+    /// - Returns: Any JSValue that comes out of that execution
     func executeJS(js:String) -> JSValue {
         return self.jsContext.evaluateScript(js)
     }
     
+    
+    /// Service workers have "extendable events" - normal JS events that come with an e.waitUntil()
+    /// function attached. These allow you to extend the life of a service worker until the promises
+    /// inside waitUntil() have completed.
+    ///
+    /// - Parameter ev: The ExtendableEvent to dispatch. We have a few subclasses like NotificationEvent.
+    /// - Returns: A promise that waits until any waitUntil() call has completed. Right now it returns a value from that, it should not.
     func dispatchExtendableEvent(ev:ExtendableEvent) -> Promise<JSValue?> {
-        
         
         let funcToRun = self.jsContext.objectForKeyedSubscript("hybrid")
             .objectForKeyedSubscript("dispatchExtendableEvent")
@@ -357,6 +324,12 @@ class ServiceWorkerOutOfScopeError : ErrorType {
 
     }
     
+    
+    /// Similar to dispatchExtendableEvent, except that FetchEvents do actually have response you can parse
+    /// - they use e.respondWith() instead of e.waitUntil()
+    ///
+    /// - Parameter fetch: A FetchRequest to process.
+    /// - Returns: The FetchResponse returned by processing the fetch event
     func dispatchFetchEvent(fetch: FetchRequest) -> Promise<FetchResponse?> {
         
         let dispatch = self.jsContext.objectForKeyedSubscript("hybrid")
@@ -384,7 +357,6 @@ class ServiceWorkerOutOfScopeError : ErrorType {
     }
     
     func loadServiceWorker(workerJS:String) -> Promise<Void> {
-        self.jsHash = Util.sha256String(workerJS)
         return self.loadContextScript()
         .then {_ in
             return self.runScript(workerJS)

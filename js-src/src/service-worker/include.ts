@@ -13,7 +13,6 @@ import './globals/canvas-rendering-context-2d';
 import './globals/image-bitmap';
 import './globals/notification';
 
-import './hybrid/promise-bridge';
 import './hybrid/dispatch-extended-event';
 
 import './self/skip-waiting';

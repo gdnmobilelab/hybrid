@@ -73,8 +73,9 @@ class ServiceWorkerDoesNotExistError : ErrorType {}
 class ServiceWorkerNotHTTPSError : ErrorType {}
 
 
-/// The ServiceWorkerManager is responsible for a few things. Firstly, for the worker lifecycle itself -
-/// installing, updating, etc. etc.
+/// The ServiceWorkerManager is responsible for managing the worker lifecycle itself -
+/// installing, updating, etc. etc., as well as retreiving service worker instances based
+/// on service worker scopes.
 class ServiceWorkerManager {
     
     /// Just a static string for us to ensure we are using the right event

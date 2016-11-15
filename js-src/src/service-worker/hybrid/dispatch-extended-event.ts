@@ -39,14 +39,12 @@ hybrid.dispatchMessageEvent = function(message:string, ports: [MessagePort]) {
         ports: ports,
         data: JSON.parse(message)
     }
-    console.log("DO EVENT DISPATCH")
     self.dispatchEvent(ev as MessageEvent);
 }
 
 hybrid.dispatchPushEvent = function(data:string) {
     return Promise.resolve()
     .then(() => {
-        console.log("DISPATCH PUSH???")
         let pushEvent = new PushEvent(data);
         self.dispatchEvent(pushEvent as any);
         return pushEvent.resolve();

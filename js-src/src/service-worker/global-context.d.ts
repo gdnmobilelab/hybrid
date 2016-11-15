@@ -1,4 +1,4 @@
-declare function __promiseCallback(callbackIndex: number, error?: any, response?: any): void;
+// declare function __promiseCallback(callbackIndex: number, error?: any, response?: any): void;
 declare function __execDatabaseQuery(nativeDbId:number, queries:string, readOnly:Boolean): string;
 declare function __setGlobals(keys: [string]): void;
 declare function __console(message:string): void;

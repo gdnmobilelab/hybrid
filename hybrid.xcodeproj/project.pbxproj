@@ -113,6 +113,8 @@
 		8AD283521D55076D00D2DF07 /* TestUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AD283511D55076D00D2DF07 /* TestUtil.swift */; };
 		8ADDB6981DDBA66600B69AE8 /* ServiceWorkerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */; };
 		8ADDB6991DDBA74C00B69AE8 /* ServiceWorkerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */; };
+		8ADDB69B1DDBB4A800B69AE8 /* JSContextError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB69A1DDBB4A800B69AE8 /* JSContextError.swift */; };
+		8ADDB69C1DDBB4CD00B69AE8 /* JSContextError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB69A1DDBB4A800B69AE8 /* JSContextError.swift */; };
 		8AEA3F261D54056C000A7C70 /* server-test-data in Resources */ = {isa = PBXBuildFile; fileRef = 8AEA3F251D54056C000A7C70 /* server-test-data */; };
 		8AEBD0D21D42E6230042A4AB /* WebServerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */; };
 		8AEEDE5C1D26CF450032D588 /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
@@ -261,6 +263,7 @@
 		8ADDB6951DDBA48D00B69AE8 /* hybrid-notification-content-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "hybrid-notification-content-Bridging-Header.h"; sourceTree = "<group>"; };
 		8ADDB6961DDBA4B000B69AE8 /* hybrid-notification-extension-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "hybrid-notification-extension-Bridging-Header.h"; sourceTree = "<group>"; };
 		8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerStub.swift; sourceTree = "<group>"; };
+		8ADDB69A1DDBB4A800B69AE8 /* JSContextError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSContextError.swift; sourceTree = "<group>"; };
 		8AEA3F251D54056C000A7C70 /* server-test-data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "server-test-data"; sourceTree = "<group>"; };
 		8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServerSpec.swift; sourceTree = "<group>"; };
 		8AEEDE5B1D26CF450032D588 /* db.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = db.swift; sourceTree = "<group>"; };
@@ -404,6 +407,7 @@
 				8AA06FD41DCD233E00DE4F45 /* NotificationVideo.swift */,
 				8A4C47E81DD59B490023B00A /* ExtendableEvent.swift */,
 				8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */,
+				8ADDB69A1DDBB4A800B69AE8 /* JSContextError.swift */,
 			);
 			name = "service-worker";
 			sourceTree = "<group>";
@@ -1008,6 +1012,7 @@
 				8A6C4E981DA5616D008429C0 /* NotificationHandler.swift in Sources */,
 				8A5283B51DBAC29700EB0886 /* CanvasView.swift in Sources */,
 				8A933F651D8214F200F9DC72 /* Notification.swift in Sources */,
+				8ADDB69C1DDBB4CD00B69AE8 /* JSContextError.swift in Sources */,
 				8A9D71161DC12B9100375365 /* StoredPushEvent.swift in Sources */,
 				8A6EA5161D81F9EE003FDA00 /* JSCallbackWrapper.swift in Sources */,
 				8A5283B31DBAB7C400EB0886 /* ImageBitmap.swift in Sources */,
@@ -1049,6 +1054,7 @@
 				8AA2CBD31DB943E4004F95C3 /* StoredPushEvent.swift in Sources */,
 				8A54109F1D381EF000F44F38 /* HybridWebView.swift in Sources */,
 				8ADDB6981DDBA66600B69AE8 /* ServiceWorkerStub.swift in Sources */,
+				8ADDB69B1DDBB4A800B69AE8 /* JSContextError.swift in Sources */,
 				8A5283B21DBAAB2C00EB0886 /* ImageBitmap.swift in Sources */,
 				8A24493D1D6CF6F400052D92 /* ServiceWorkerRegistration.swift in Sources */,
 				8A2449421D6D0B6E00052D92 /* NotificationPermissionHandler.swift in Sources */,
