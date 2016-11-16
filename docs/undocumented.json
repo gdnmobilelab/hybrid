@@ -310,6 +310,13 @@
     },
     {
       "file": "/Users/alastair.coote/Projects/hybrid/hybrid/Canvas.swift",
+      "line": 162,
+      "symbol": "TwoDContext.fillStyleColor",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/Canvas.swift",
       "line": 164,
       "symbol": "TwoDContext.fillStyle",
       "symbol_kind": "source.lang.swift.decl.var.instance",
@@ -317,8 +324,22 @@
     },
     {
       "file": "/Users/alastair.coote/Projects/hybrid/hybrid/Canvas.swift",
+      "line": 177,
+      "symbol": "TwoDContext.strokeStyleColor",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/Canvas.swift",
       "line": 179,
       "symbol": "TwoDContext.strokeStyle",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/Canvas.swift",
+      "line": 193,
+      "symbol": "TwoDContext.currentLineWidth",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
@@ -362,6 +383,13 @@
       "line": 215,
       "symbol": "OffscreenCanvas",
       "symbol_kind": "source.lang.swift.decl.class",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/Canvas.swift",
+      "line": 217,
+      "symbol": "OffscreenCanvas.twoDContext",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
@@ -523,6 +551,13 @@
       "line": 23,
       "symbol": "FetchHeadersExports.init()",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/GlobalFetch.swift",
+      "line": 30,
+      "symbol": "FetchHeaders.values",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
     {
@@ -989,6 +1024,13 @@
     },
     {
       "file": "/Users/alastair.coote/Projects/hybrid/hybrid/MessageChannel.swift",
+      "line": 70,
+      "symbol": "MessagePort.messageListener",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/MessageChannel.swift",
       "line": 71,
       "symbol": "MessagePort.onmessage",
       "symbol_kind": "source.lang.swift.decl.var.instance",
@@ -998,6 +1040,13 @@
       "file": "/Users/alastair.coote/Projects/hybrid/hybrid/MessageChannel.swift",
       "line": 74,
       "symbol": "MessagePort.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/MessageChannel.swift",
+      "line": 80,
+      "symbol": "MessagePort.handleMessage(message:)",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },
@@ -1082,6 +1131,20 @@
       "file": "/Users/alastair.coote/Projects/hybrid/hybrid/MessageChannel.swift",
       "line": 143,
       "symbol": "MessageChannel.port2",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/MessageChannel.swift",
+      "line": 145,
+      "symbol": "MessageChannel.listener1",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/MessageChannel.swift",
+      "line": 146,
+      "symbol": "MessageChannel.listener2",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
@@ -1311,6 +1374,27 @@
     },
     {
       "file": "/Users/alastair.coote/Projects/hybrid/hybrid/NotificationHandler.swift",
+      "line": 18,
+      "symbol": "PendingNotificationActions.groupDefaults",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/NotificationHandler.swift",
+      "line": 20,
+      "symbol": "PendingNotificationActions.setValue(name:val:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/NotificationHandler.swift",
+      "line": 29,
+      "symbol": "PendingNotificationActions.getValue(name:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/NotificationHandler.swift",
       "line": 33,
       "symbol": "PendingNotificationActions.closeNotification",
       "symbol_kind": "source.lang.swift.decl.var.static",
@@ -1474,6 +1558,13 @@
       "file": "/Users/alastair.coote/Projects/hybrid/hybrid/NotificationVideo.swift",
       "line": 40,
       "symbol": "NotificationVideo.isMuted",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/NotificationVideo.swift",
+      "line": 46,
+      "symbol": "NotificationVideo.videoURL",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
     },
@@ -1748,6 +1839,20 @@
       "line": 27,
       "symbol": "PushManager",
       "symbol_kind": "source.lang.swift.decl.class",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/PushManager.swift",
+      "line": 29,
+      "symbol": "PushManager.deviceTokenListener",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/PushManager.swift",
+      "line": 30,
+      "symbol": "PushManager.deviceToken",
+      "symbol_kind": "source.lang.swift.decl.var.static",
       "warning": "undocumented"
     },
     {
@@ -2983,6 +3088,13 @@
       "warning": "undocumented"
     },
     {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid/db.swift",
+      "line": 143,
+      "symbol": "Db.mainDB",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
       "file": "/Users/alastair.coote/Projects/hybrid/hybrid-notification-content/CanvasView.swift",
       "line": 14,
       "symbol": "CanvasEventDataExports",
@@ -3064,6 +3176,34 @@
       "line": 43,
       "symbol": "CanvasView",
       "symbol_kind": "source.lang.swift.decl.class",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid-notification-content/CanvasView.swift",
+      "line": 45,
+      "symbol": "CanvasView.canvasData",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid-notification-content/CanvasView.swift",
+      "line": 46,
+      "symbol": "CanvasView.worker",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid-notification-content/CanvasView.swift",
+      "line": 47,
+      "symbol": "CanvasView.displayLink",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid-notification-content/CanvasView.swift",
+      "line": 49,
+      "symbol": "CanvasView.multiplyByRatio(num:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },
     {
@@ -3196,6 +3336,13 @@
       "file": "/Users/alastair.coote/Projects/hybrid/hybrid-notification-content/NotificationViewController.swift",
       "line": 108,
       "symbol": "NotificationViewController.checkForVideo(attachments:options:worker:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/alastair.coote/Projects/hybrid/hybrid-notification-content/NotificationViewController.swift",
+      "line": 154,
+      "symbol": "NotificationViewController.setFrame(view:height:)",
       "symbol_kind": "source.lang.swift.decl.function.method.instance",
       "warning": "undocumented"
     },

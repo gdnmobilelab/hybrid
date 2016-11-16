@@ -14,7 +14,7 @@
     <a title="ServiceWorkerManager Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html"> Docs</a> (18% documented)</p>
+        <p><a href="../index.html"> Docs</a> (19% documented)</p>
       </div>
     </header>
     <div class="content-wrapper">
@@ -498,6 +498,142 @@ clear out existing workers.</p>
                 <li class="item">
                   <div>
                     <code>
+                    <a name="/s:ZFC27hybrid_notification_content20ServiceWorkerManagerP33_B11C0DB0AF7C848A4B4978D7BFD8FF8915getLastModifiedERR"></a>
+                    <a name="//apple_ref/swift/Method/getLastModified(url:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZFC27hybrid_notification_content20ServiceWorkerManagerP33_B11C0DB0AF7C848A4B4978D7BFD8FF8915getLastModifiedERR">getLastModified(url:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Send a HEAD request to the URL specified and turn the resulting
+Last-Modified header into an NSDate</p>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter url: URL to fetch
+
+</div>
+
+<div class="aside aside-returns">
+    <p class="aside-title">Returns</p>
+    NSDate if the Last-Modified header exists, nil if it doesn&rsquo;t
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">static</span> <span class="kd">private</span> <span class="kd">func</span> <span class="nf">getLastModified</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span><span class="kt">NSURL</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Promise</span><span class="o">&lt;</span><span class="kt">NSDate</span><span class="p">?</span><span class="o">&gt;</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>url</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>URL to fetch</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>NSDate if the Last-Modified header exists, nil if it doesn’t</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZFC27hybrid_notification_content20ServiceWorkerManagerP33_B11C0DB0AF7C848A4B4978D7BFD8FF8915getNewestWorkerFzT11urlOfWorkerCSo5NSURL_GSqVS_17ServiceWorkerStub_"></a>
+                    <a name="//apple_ref/swift/Method/getNewestWorker(urlOfWorker:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZFC27hybrid_notification_content20ServiceWorkerManagerP33_B11C0DB0AF7C848A4B4978D7BFD8FF8915getNewestWorkerFzT11urlOfWorkerCSo5NSURL_GSqVS_17ServiceWorkerStub_">getNewestWorker(urlOfWorker:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Fetch a stub of the newest worker for a given URL, with following order: activated,
+activating, installed, installing</p>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter urlOfWorker: the URL to query in the database
+
+</div>
+
+<div class="aside aside-returns">
+    <p class="aside-title">Returns</p>
+    a ServiceWorkerStub, if the worker exists. The stub just contains metadata, rather than a full instance.
+
+</div>
+
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    If the database connection fails, will throw an error.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">private</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">getNewestWorker</span><span class="p">(</span><span class="nv">urlOfWorker</span><span class="p">:</span><span class="kt">NSURL</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Structs/ServiceWorkerStub.html">ServiceWorkerStub</a></span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>urlOfWorker</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>the URL to query in the database</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>a ServiceWorkerStub, if the worker exists. The stub just contains metadata, rather than a full instance.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
                     <a name="/s:ZFC27hybrid_notification_content20ServiceWorkerManager6updateERR"></a>
                     <a name="//apple_ref/swift/Method/update(urlOfServiceWorker:scope:forceCheck:)" class="dashAnchor"></a>
                     <a class="token" href="#/s:ZFC27hybrid_notification_content20ServiceWorkerManager6updateERR">update(urlOfServiceWorker:scope:forceCheck:)</a>
@@ -769,6 +905,92 @@ URL. Includes workers of all states (installing, etc)</p>
                         <h4>Return Value</h4>
                         <p>A promise returning the instance ID of the inserted worker.</p>
 
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:ZFC27hybrid_notification_content20ServiceWorkerManagerP33_B11C0DB0AF7C848A4B4978D7BFD8FF8931updateServiceWorkerInstallStateFzT2idSi5stateOS_25ServiceWorkerInstallState14updateDatabaseSb_T_"></a>
+                    <a name="//apple_ref/swift/Method/updateServiceWorkerInstallState(id:state:updateDatabase:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:ZFC27hybrid_notification_content20ServiceWorkerManagerP33_B11C0DB0AF7C848A4B4978D7BFD8FF8931updateServiceWorkerInstallStateFzT2idSi5stateOS_25ServiceWorkerInstallState14updateDatabaseSb_T_">updateServiceWorkerInstallState(id:state:updateDatabase:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Update the state of a worker in the database, as well as emit events accordingly.</p>
+
+<p><li>Parameters:</p>
+
+<p><ul>
+<li>id: The instance ID to update</li>
+<li>state: The new install state</li>
+<li>updateDatabase: Whether we should update the database or not. Sometimes this has already been done and we just want to send events (need to tweak this)</li>
+</ul></li>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    An error if database connectivity fails</p>
+
+<p></div></p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">private</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">updateServiceWorkerInstallState</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kt">Int</span><span class="p">,</span> <span class="nv">state</span><span class="p">:</span><span class="kt"><a href="../Enums/ServiceWorkerInstallState.html">ServiceWorkerInstallState</a></span><span class="p">,</span> <span class="nv">updateDatabase</span><span class="p">:</span><span class="kt">Bool</span> <span class="o">=</span> <span class="kc">true</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>id</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The instance ID to update</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>state</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The new install state</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>updateDatabase</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>Whether we should update the database or not. Sometimes this has already been done and we just want to send events (need to tweak this)</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>

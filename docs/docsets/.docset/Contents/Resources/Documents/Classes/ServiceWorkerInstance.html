@@ -14,7 +14,7 @@
     <a title="ServiceWorkerInstance Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html"> Docs</a> (18% documented)</p>
+        <p><a href="../index.html"> Docs</a> (19% documented)</p>
       </div>
     </header>
     <div class="content-wrapper">
@@ -431,6 +431,35 @@ that add our SW helper library, as well as provide hooks for things like setTime
                         <div class="language">
                           <p class="aside-title">Swift</p>
                           <pre class="highlight"><code><span class="kd">@objc</span> <span class="kd">public</span> <span class="kd">class</span> <span class="kt">ServiceWorkerInstance</span> <span class="p">:</span> <span class="kt">NSObject</span><span class="p">,</span> <span class="kt"><a href="../Protocols/ServiceWorkerInstanceExports.html">ServiceWorkerInstanceExports</a></span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:vC27hybrid_notification_content21ServiceWorkerInstanceP33_4747F0419EC1B5C35943DF83215B0C7C17contextErrorValueGSqCSo7JSValue_"></a>
+                    <a name="//apple_ref/swift/Property/contextErrorValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:vC27hybrid_notification_content21ServiceWorkerInstanceP33_4747F0419EC1B5C35943DF83215B0C7C17contextErrorValueGSqCSo7JSValue_">contextErrorValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Errors encountered in the JSContext are passed to exceptionHandler() rather than
+immediately returning. So, we store the error in this variable and pluck it back
+out so that we can keep it in our Promise chain.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">private</span> <span class="k">var</span> <span class="nv">contextErrorValue</span><span class="p">:</span><span class="kt">JSValue</span><span class="p">?</span></code></pre>
 
                         </div>
                       </div>
@@ -1005,6 +1034,34 @@ if it will create a new one.</p>
                 <li class="item">
                   <div>
                     <code>
+                    <a name="/s:FC27hybrid_notification_content21ServiceWorkerInstanceP33_4747F0419EC1B5C35943DF83215B0C7C13hookFunctionsFT_T_"></a>
+                    <a name="//apple_ref/swift/Method/hookFunctions()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC27hybrid_notification_content21ServiceWorkerInstanceP33_4747F0419EC1B5C35943DF83215B0C7C13hookFunctionsFT_T_">hookFunctions()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Add various classes and objects to the global scope of the service worker. To be broken out
+into a ServiceWorkerGlobalScope class at some point, possibly.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">private</span> <span class="kd">func</span> <span class="nf">hookFunctions</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
                     <a name="/s:FC27hybrid_notification_content21ServiceWorkerInstance9executeJSFT2jsSS_CSo7JSValue"></a>
                     <a name="//apple_ref/swift/Method/executeJS(js:)" class="dashAnchor"></a>
                     <a class="token" href="#/s:FC27hybrid_notification_content21ServiceWorkerInstance9executeJSFT2jsSS_CSo7JSValue">executeJS(js:)</a>
@@ -1298,6 +1355,208 @@ This function will process any push events created in a notification content con
                         <h4>Return Value</h4>
                         <p>An empty promise that will fulfill when all push events have been processed.</p>
 
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC27hybrid_notification_content21ServiceWorkerInstanceP33_4747F0419EC1B5C35943DF83215B0C7C17loadContextScriptERR"></a>
+                    <a name="//apple_ref/swift/Method/loadContextScript()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC27hybrid_notification_content21ServiceWorkerInstanceP33_4747F0419EC1B5C35943DF83215B0C7C17loadContextScriptERR">loadContextScript()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Loads the shell JavaScript, containing our various shims and utility functions to replicate the global
+service worker environment.</p>
+
+<div class="aside aside-returns">
+    <p class="aside-title">Returns</p>
+    An empty promise that fulfills immediately (the operation is synchonous). Promise is used to catch errors.
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">private</span> <span class="kd">func</span> <span class="nf">loadContextScript</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Promise</span><span class="o">&lt;</span><span class="kt">Void</span><span class="o">&gt;</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>An empty promise that fulfills immediately (the operation is synchonous). Promise is used to catch errors.</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC27hybrid_notification_content21ServiceWorkerInstanceP33_4747F0419EC1B5C35943DF83215B0C7C20applyGlobalVariablesFT_T_"></a>
+                    <a name="//apple_ref/swift/Method/applyGlobalVariables()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC27hybrid_notification_content21ServiceWorkerInstanceP33_4747F0419EC1B5C35943DF83215B0C7C20applyGlobalVariablesFT_T_">applyGlobalVariables()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>JSContext doesn&rsquo;t have a &lsquo;global&rsquo; variable so instead we make our own,
+then go through and manually declare global variables.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">private</span> <span class="kd">func</span> <span class="nf">applyGlobalVariables</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC27hybrid_notification_content21ServiceWorkerInstanceP33_4747F0419EC1B5C35943DF83215B0C7C9runScriptERR"></a>
+                    <a name="//apple_ref/swift/Method/runScript(js:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC27hybrid_notification_content21ServiceWorkerInstanceP33_4747F0419EC1B5C35943DF83215B0C7C9runScriptERR">runScript(js:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>JSContext logs exceptions via the exceptionHandler() function, so this is a quick wrapper
+to run JS, catch any potential error, or return if the script was successful.</p>
+
+<div class="aside aside-parameter">
+    <p class="aside-title">Parameter</p>
+    Parameter js: the JavaScript to execute
+
+</div>
+
+<div class="aside aside-returns">
+    <p class="aside-title">Returns</p>
+    Empty promise upon execution completion
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">private</span> <span class="kd">func</span> <span class="nf">runScript</span><span class="p">(</span><span class="nv">js</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Promise</span><span class="o">&lt;</span><span class="kt">JSValue</span><span class="o">&gt;</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>js</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>the JavaScript to execute</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Empty promise upon execution completion</p>
+
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:FC27hybrid_notification_content21ServiceWorkerInstanceP33_4747F0419EC1B5C35943DF83215B0C7C16exceptionHandlerFT7contextGSQCSo9JSContext_9exceptionGSQCSo7JSValue__T_"></a>
+                    <a name="//apple_ref/swift/Method/exceptionHandler(context:exception:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:FC27hybrid_notification_content21ServiceWorkerInstanceP33_4747F0419EC1B5C35943DF83215B0C7C16exceptionHandlerFT7contextGSQCSo9JSContext_9exceptionGSQCSo7JSValue__T_">exceptionHandler(context:exception:)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Used to catch JS exceptions, to be returned as part of runScript(). Not run directly, run by
+the JSContext itself.</p>
+
+<ul>
+<li>Parameters:
+
+<ul>
+<li>context: the worker&rsquo;s JSContext</li>
+<li>exception: The error as a JSValue</li>
+</ul></li>
+</ul>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight"><code><span class="kd">private</span> <span class="kd">func</span> <span class="nf">exceptionHandler</span><span class="p">(</span><span class="nv">context</span><span class="p">:</span><span class="kt">JSContext</span><span class="o">!</span><span class="p">,</span> <span class="nv">exception</span><span class="p">:</span><span class="kt">JSValue</span><span class="o">!</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>context</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>the worker’s JSContext</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>exception</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>The error as a JSValue</p>
+
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
                     </section>
                   </div>
