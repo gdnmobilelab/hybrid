@@ -55,8 +55,6 @@
 		8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */; };
 		8A6C4E971DA560B4008429C0 /* NotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */; };
 		8A6C4E981DA5616D008429C0 /* NotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */; };
-		8A6EA5151D81F6D0003FDA00 /* JSCallbackWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5141D81F6D0003FDA00 /* JSCallbackWrapper.swift */; };
-		8A6EA5161D81F9EE003FDA00 /* JSCallbackWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5141D81F6D0003FDA00 /* JSCallbackWrapper.swift */; };
 		8A6EA5181D8200E7003FDA00 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5171D8200E7003FDA00 /* Notification.swift */; };
 		8A701C9C1DA2B796007A11F3 /* Pods_hybrid_notification_content.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 393685B7B6A75F7DDF465A46 /* Pods_hybrid_notification_content.framework */; };
 		8A7461D21D9D70140020F74A /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A7461D11D9D70140020F74A /* JavaScriptCore.framework */; };
@@ -115,6 +113,10 @@
 		8ADDB6991DDBA74C00B69AE8 /* ServiceWorkerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */; };
 		8ADDB69B1DDBB4A800B69AE8 /* JSContextError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB69A1DDBB4A800B69AE8 /* JSContextError.swift */; };
 		8ADDB69C1DDBB4CD00B69AE8 /* JSContextError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB69A1DDBB4A800B69AE8 /* JSContextError.swift */; };
+		8ADDB6A11DDBCA7100B69AE8 /* PushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A01DDBCA7100B69AE8 /* PushEvent.swift */; };
+		8ADDB6A21DDBCAE100B69AE8 /* PushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A01DDBCA7100B69AE8 /* PushEvent.swift */; };
+		8ADDB6A41DDCF08E00B69AE8 /* HexColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A31DDCF08E00B69AE8 /* HexColor.swift */; };
+		8ADDB6A51DDCF09500B69AE8 /* HexColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A31DDCF08E00B69AE8 /* HexColor.swift */; };
 		8AEA3F261D54056C000A7C70 /* server-test-data in Resources */ = {isa = PBXBuildFile; fileRef = 8AEA3F251D54056C000A7C70 /* server-test-data */; };
 		8AEBD0D21D42E6230042A4AB /* WebServerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */; };
 		8AEEDE5C1D26CF450032D588 /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
@@ -227,7 +229,6 @@
 		8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebviewClientManager.swift; sourceTree = "<group>"; };
 		8A61C2718D624655AC9BD4D7 /* Pods-hybrid.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid.release.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid/Pods-hybrid.release.xcconfig"; sourceTree = "<group>"; };
 		8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationHandler.swift; sourceTree = "<group>"; };
-		8A6EA5141D81F6D0003FDA00 /* JSCallbackWrapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSCallbackWrapper.swift; sourceTree = "<group>"; };
 		8A6EA5171D8200E7003FDA00 /* Notification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		8A7461D11D9D70140020F74A /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		8A7786331D5B74E30062E12B /* ConsoleManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleManager.swift; sourceTree = "<group>"; };
@@ -264,6 +265,8 @@
 		8ADDB6961DDBA4B000B69AE8 /* hybrid-notification-extension-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "hybrid-notification-extension-Bridging-Header.h"; sourceTree = "<group>"; };
 		8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerStub.swift; sourceTree = "<group>"; };
 		8ADDB69A1DDBB4A800B69AE8 /* JSContextError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSContextError.swift; sourceTree = "<group>"; };
+		8ADDB6A01DDBCA7100B69AE8 /* PushEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushEvent.swift; sourceTree = "<group>"; };
+		8ADDB6A31DDCF08E00B69AE8 /* HexColor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HexColor.swift; sourceTree = "<group>"; };
 		8AEA3F251D54056C000A7C70 /* server-test-data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "server-test-data"; sourceTree = "<group>"; };
 		8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServerSpec.swift; sourceTree = "<group>"; };
 		8AEEDE5B1D26CF450032D588 /* db.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = db.swift; sourceTree = "<group>"; };
@@ -408,6 +411,7 @@
 				8A4C47E81DD59B490023B00A /* ExtendableEvent.swift */,
 				8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */,
 				8ADDB69A1DDBB4A800B69AE8 /* JSContextError.swift */,
+				8ADDB6A01DDBCA7100B69AE8 /* PushEvent.swift */,
 			);
 			name = "service-worker";
 			sourceTree = "<group>";
@@ -472,7 +476,6 @@
 				8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */,
 				8AEEDE5B1D26CF450032D588 /* db.swift */,
 				8A24494A1D6F760300052D92 /* Util.swift */,
-				8A6EA5141D81F6D0003FDA00 /* JSCallbackWrapper.swift */,
 				8A933F661D87049500F9DC72 /* SharedResources.swift */,
 				8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */,
 				8A5283B61DBE5B6D00EB0886 /* PayloadToNotificationContent.swift */,
@@ -480,6 +483,7 @@
 				8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */,
 				8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */,
 				8A4C47EB1DD658830023B00A /* JSONSerializable.swift */,
+				8ADDB6A31DDCF08E00B69AE8 /* HexColor.swift */,
 			);
 			name = shared;
 			sourceTree = "<group>";
@@ -1014,13 +1018,14 @@
 				8A933F651D8214F200F9DC72 /* Notification.swift in Sources */,
 				8ADDB69C1DDBB4CD00B69AE8 /* JSContextError.swift in Sources */,
 				8A9D71161DC12B9100375365 /* StoredPushEvent.swift in Sources */,
-				8A6EA5161D81F9EE003FDA00 /* JSCallbackWrapper.swift in Sources */,
 				8A5283B31DBAB7C400EB0886 /* ImageBitmap.swift in Sources */,
 				8ACCDCE31D7A323800A137E1 /* WebviewClientManager.swift in Sources */,
 				8ACCDCDF1D7A1A7C00A137E1 /* MessageChannel.swift in Sources */,
 				8ACCDCDC1D7A163700A137E1 /* db.swift in Sources */,
 				8AA06FD61DCD30E800DE4F45 /* NotificationVideo.swift in Sources */,
+				8ADDB6A21DDBCAE100B69AE8 /* PushEvent.swift in Sources */,
 				8A4C47ED1DD659AC0023B00A /* JSONSerializable.swift in Sources */,
+				8ADDB6A51DDCF09500B69AE8 /* HexColor.swift in Sources */,
 				8ACCDCDE1D7A163700A137E1 /* Util.swift in Sources */,
 				8ACCDCD01D7A131900A137E1 /* ServiceWorkerInstance.swift in Sources */,
 				8ACCDCD11D7A131900A137E1 /* ServiceWorkerWebSql.swift in Sources */,
@@ -1051,6 +1056,7 @@
 				8A4C47E91DD59B490023B00A /* ExtendableEvent.swift in Sources */,
 				8A5283AF1DBA752200EB0886 /* Canvas.swift in Sources */,
 				8A0156D01D65FCAE0091995E /* GlobalFetch.swift in Sources */,
+				8ADDB6A41DDCF08E00B69AE8 /* HexColor.swift in Sources */,
 				8AA2CBD31DB943E4004F95C3 /* StoredPushEvent.swift in Sources */,
 				8A54109F1D381EF000F44F38 /* HybridWebView.swift in Sources */,
 				8ADDB6981DDBA66600B69AE8 /* ServiceWorkerStub.swift in Sources */,
@@ -1062,12 +1068,12 @@
 				8A24493F1D6CF71500052D92 /* PushManager.swift in Sources */,
 				D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */,
 				8A933F671D87049500F9DC72 /* SharedResources.swift in Sources */,
-				8A6EA5151D81F6D0003FDA00 /* JSCallbackWrapper.swift in Sources */,
 				8A0970BA1DCA692E00F16CF4 /* PendingWebviewActions.swift in Sources */,
 				8AA06FD31DCCF95600DE4F45 /* WebviewJS.swift in Sources */,
 				8A88460D1D3504EA00CF9369 /* ServiceWorkerWebSql.swift in Sources */,
 				8AA06FD51DCD233E00DE4F45 /* NotificationVideo.swift in Sources */,
 				8A24494B1D6F760300052D92 /* Util.swift in Sources */,
+				8ADDB6A11DDBCA7100B69AE8 /* PushEvent.swift in Sources */,
 				8A2449471D6F374D00052D92 /* HybridWebviewController.swift in Sources */,
 				8A878AC61D4A8F7600D31F85 /* ServiceWorkerCache.swift in Sources */,
 				8ACCDCCF1D7A0CD700A137E1 /* Console.swift in Sources */,

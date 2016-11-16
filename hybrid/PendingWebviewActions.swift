@@ -8,10 +8,11 @@
 
 import Foundation
 
+/// Our notification extension cannot communicate directly with our webviews, so when a notification
+/// action triggers a webview action we store it. Then pick it back up when the app launches.
 class PendingWebviewActions {
     
-    // Our notification extension cannot communicate directly with our webviews, so when a notification
-    // action triggers a webview action we store it. Then pick it back up when the app launches.
+    
     
     static func getAll() -> [WebviewClientEvent] {
         NSKeyedUnarchiver.setClass(WebviewClientEvent.self, forClassName: "WebviewClientEvent")

@@ -9,14 +9,22 @@
 import Foundation
 
 
+/// In order to share data between our notification extension and our main app, we have to use an app group.
+/// This is a quick utility class to avoid having to type the app group name everywhere.
 class SharedResources {
+    
+    
+    /// Mostly just to avoid typos, some hard-coded keys that we use when storing data.
     class userDefaultKeys {
-        static let WEBSERVER_PORT_KEY = "webServerPort"
         static let APP_CURRENTLY_ACTIVE_KEY = "appCurrentlyActive"
         static let ACTIVE_WEBVIEWS_KEY = "currentActiveWebviews"
     }
     
+    
+    /// The shared UserDefaults storage that we store things like pending notifications actions in.
     static let userDefaults = NSUserDefaults(suiteName: "group.gdnmobilelab.hybrid")!
     
+    
+    /// The shared directory where we store our database files.
     static let fileSystemURL = NSFileManager.defaultManager().containerURLForSecurityApplicationGroupIdentifier("group.gdnmobilelab.hybrid")!
 }

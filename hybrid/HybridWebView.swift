@@ -175,7 +175,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
                 var metadata = HybridWebviewMetadata()
                 
                 if let color = responses[0] as? String {
-                    metadata.color = Util.hexStringToUIColor(color)
+                    metadata.color = HexColor(hexString: color).toUIColor()
                 }
                 
                 if let title = responses[1] as? String {

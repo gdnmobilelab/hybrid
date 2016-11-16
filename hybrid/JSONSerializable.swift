@@ -8,7 +8,8 @@
 
 import Foundation
 
-
+/// A tiny helper class to serialize JSON. Was originally going to be a lot more than
+/// just this, so can probably be refactored away at some point.
 class JSONSerializable : NSObject {
     
     static func serialize(obj:AnyObject) -> String? {

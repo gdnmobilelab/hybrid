@@ -11,8 +11,20 @@ import UserNotifications
 import PromiseKit
 import CoreGraphics
 
+
+/// Converter to take a JavaScript Notification API (https://developer.mozilla.org/en-US/docs/Web/API/Notification/Notification) 
+/// call and transform it into a native representation. Not feature complete.
 class PayloadToNotificationContent {
     
+    
+    /// Download and attach images and videos to the notification. Note that videos can be skipped by
+    /// setting preload: false in the notification options.
+    ///
+    /// - Parameters:
+    ///   - options: The Notification API options object.
+    ///   - content: The UNMutableNotificationContent instance to add attachments to
+    ///   - scope: The service worker scope. Used to resolve relative URLs in attachments
+    /// - Returns: A promise that resolves when all downloads are complete and attached.
     private static func addAssets(options:AnyObject, content:UNMutableNotificationContent, scope: String) -> Promise<Void> {
         var assetsToFetch: [String] = []
         
@@ -81,6 +93,12 @@ class PayloadToNotificationContent {
 
     }
     
+    
+    /// Clear all notifications with the specified tag. This is required as we can't use the built-in identifier-based replacement
+    /// because the identifier is set by the remote push notification, and we can't change it later (when parsing our showNotification())
+    /// call
+    ///
+    /// - Parameter tag: The tag to clear
     static func clearWithTag(tag:String) {
         UNUserNotificationCenter.currentNotificationCenter().getDeliveredNotificationsWithCompletionHandler { notifications in
             let identifiers = notifications
@@ -96,6 +114,13 @@ class PayloadToNotificationContent {
         }
     }
     
+    
+    /// The main function to run the conversion.
+    ///
+    /// - Parameters:
+    ///   - notificationCommandPayload: The object containing both title and option attributes.
+    ///   - serviceWorkerScope: The scope to evaluate this under - is used for resolving relative URLs
+    /// - Returns: A UNNotificationContent instance containing the relevant metadata and attachments
     static func Convert(notificationCommandPayload:AnyObject, serviceWorkerScope: String) -> Promise<UNNotificationContent> {
         
         let title = notificationCommandPayload["title"] as! String

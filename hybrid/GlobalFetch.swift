@@ -10,8 +10,9 @@ import Foundation
 import PromiseKit
 import JavaScriptCore
 
-class FetchSetupError : ErrorType {}
 
+
+/// The part of our FetchHeaders object that will be available inside a JSContext
 @objc protocol FetchHeadersExports : JSExport {
     func set(name: String, value:String)
     func get(name: String) -> String?
@@ -20,9 +21,10 @@ class FetchSetupError : ErrorType {}
     func append(name:String, value:String)
     func keys() -> [String]
     init()
-//    init(dictionary: [String: AnyObject])
 }
 
+
+/// Replicating the Fetch APIs Headers object: https://developer.mozilla.org/en-US/docs/Web/API/Headers
 @objc public class FetchHeaders : NSObject, FetchHeadersExports {
     
     private var values = [String: [String]]()
@@ -65,6 +67,9 @@ class FetchSetupError : ErrorType {}
     
     
     
+    /// Parse headers from an existing object. Can accept headers that are either a string or an array of strings
+    ///
+    /// - Parameter dictionary: Object containing string keys, and either string or array values
     public required init(dictionary: [String: AnyObject]) {
         super.init()
         
@@ -85,6 +90,13 @@ class FetchSetupError : ErrorType {}
         }
     }
     
+    
+    /// Transform a JSON string into a FetchHeaders object. Used when returning responses from the service worker
+    /// cache, which stores headers as a JSON string in the database.
+    ///
+    /// - Parameter json: The JSON string to parse
+    /// - Returns: A complete FetchHeaders object with the headers provided in the JSON
+    /// - Throws: If the JSON cannot be parsed successfully.
     static func fromJSON(json:String) throws -> FetchHeaders {
         let headersObj = try NSJSONSerialization.JSONObjectWithData(json.dataUsingEncoding(NSUTF8StringEncoding)!, options: NSJSONReadingOptions()) as! [String: [String]]
         
@@ -98,6 +110,11 @@ class FetchSetupError : ErrorType {}
         return fh
     }
     
+    
+    /// Convert a FetchHeaders object to a JSON string, for storage (i.e. in the cache database)
+    ///
+    /// - Returns: A JSON string
+    /// - Throws: if the JSON can't be encoded. Not sure what would ever cause this to happen.
     func toJSON() throws -> String {
         var dict = [String: [String]]()
         
@@ -115,24 +132,32 @@ class FetchSetupError : ErrorType {}
     
 }
 
+/// The part of our FetchBody object that will be available inside a JSContext
 @objc protocol FetchBodyExports : JSExport {
     
-    // TODO: implement more, like blob()
-   
     func json(callback:JSValue, errorCallback: JSValue) -> Void
     func text(callback:JSValue, errorCallback: JSValue) -> Void
-    func blob(callback:JSValue, errorCallback:JSValue) -> Void
+    func blob(callback:JSValue, errorCallback: JSValue) -> Void
     var bodyUsed:Bool {get}
 }
 
+
+/// A class inherited by FetchRequest and FetchResponse, to provide calls to retreive the body of either
 @objc public class FetchBody: NSObject, FetchBodyExports {
+    
+    /// Boolean to indicate whether the body of this request/response has already been consumed
     var bodyUsed:Bool = false
+    
     var data:NSData?
     
-    class FetchNoBodyError : ErrorType {}
     
-  
-    
+    /// The API is promise-based, but we can't seamlessly pass promises (yet?) between the two environments
+    /// so this function wraps a function in callbacks, which we will transform into promises on the JSContext side
+    ///
+    /// - Parameters:
+    ///   - callback: The JS function to run on success
+    ///   - errorCallback: The JS function to run on failure
+    ///   - block: The Swift function to try to execute, passing to the above on success or failure
     private func wrapInCallbacks(callback:JSValue, errorCallback:JSValue, block: () throws -> AnyObject) {
         do {
             let returnObj = try block()
@@ -143,6 +168,11 @@ class FetchSetupError : ErrorType {}
     }
     
     
+    /// Parse the body as JSON
+    ///
+    /// - Parameters:
+    ///   - callback: JS function to pass the successfully parsed JSON to
+    ///   - errorCallback: JS function to pass an error to if parsing fails
     public func json(callback:JSValue, errorCallback: JSValue) -> Void{
         
         self.wrapInCallbacks(callback, errorCallback: errorCallback) { _ in
@@ -153,13 +183,15 @@ class FetchSetupError : ErrorType {}
         
     }
     
+    
+    /// Parse the body as plaintext
+    ///
+    /// - Parameters:
+    ///   - callback: JS function to pass the text to
+    ///   - errorCallback: JS function to pass an error to in the case of failure
     func text(callback:JSValue, errorCallback: JSValue) {
         
         self.wrapInCallbacks(callback, errorCallback: errorCallback) { _ in
-            
-            if self.data == nil {
-                throw FetchNoBodyError()
-            }
             
             let str = String(data: self.data!, encoding: NSUTF8StringEncoding)!
             self.bodyUsed = true
@@ -168,6 +200,12 @@ class FetchSetupError : ErrorType {}
     
     }
     
+    
+    /// Do not parse the body, and pass on the raw data.
+    ///
+    /// - Parameters:
+    ///   - callback: The JS function to send the NSData object to
+    ///   - errorCallback: JS function to call when an error occurs (if there is no data)
     func blob(callback: JSValue, errorCallback:JSValue) {
         self.wrapInCallbacks(callback, errorCallback: errorCallback) { _ in
             self.bodyUsed = true
@@ -176,12 +214,16 @@ class FetchSetupError : ErrorType {}
     }
 }
 
+
+/// The part of our FetchRequest object that will be available inside a JSContext
 @objc protocol FetchRequestExports : FetchBodyExports, JSExport {
     init(url:String, options: [String:AnyObject]?)
     var referrer:String? {get}
     var url:String {get}
 }
 
+
+/// A port of the Fetch APIs Request object: https://developer.mozilla.org/en-US/docs/Web/API/Request/Request
 @objc public class FetchRequest : FetchBody, FetchRequestExports {
     
     var url:String
@@ -229,6 +271,10 @@ class FetchSetupError : ErrorType {}
     }
    
     
+    /// Helper function to transform this request internally into an NSURLRequest, to allow
+    /// us to actually run the fetch operation
+    ///
+    /// - Returns: an NSURLRequest object populated with the info contained in this FetchRequest
     func toNSURLRequest() -> NSURLRequest {
 
         let request = NSMutableURLRequest(URL: NSURL(string: self.url)!)
@@ -248,12 +294,13 @@ class FetchSetupError : ErrorType {}
     }
 }
 
+/// The part of our FetchResponse object that will be available inside a JSContext
 @objc protocol FetchResponseExports : FetchBodyExports, JSExport {
     init(body:AnyObject?, options: [String:AnyObject]?)
 }
 
-class FetchResponseBodyTypeNotRecognisedError : ErrorType {}
 
+/// A port of the Fetch API's Response object: https://developer.mozilla.org/en-US/docs/Web/API/Response
 @objc public class FetchResponse : FetchBody, FetchResponseExports {
     
     let headers:FetchHeaders
@@ -267,13 +314,15 @@ class FetchResponseBodyTypeNotRecognisedError : ErrorType {}
         super.init()
         
         self.data = body
-        
-        
     }
     
     
-    
-    
+    /// If created without a status, it is assumed the status is 200. This initialiser
+    /// matches the JS API
+    ///
+    /// - Parameters:
+    ///   - body: The body for this response
+    ///   - options: Options object, containing status, headers, etc
     required public init(body: AnyObject?, options: [String:AnyObject]?) {
         var status = 200
         var statusText = "OK"
@@ -315,16 +364,20 @@ class FetchResponseBodyTypeNotRecognisedError : ErrorType {}
         
     }
     
-  
 }
 
+
+/// What our GlobalFetch class exports in JSContexts - i.e., just a single fetch function that matches the JS API.
 @objc protocol GlobalFetchExports: JSExport {
     static func fetch(url:JSValue, options:JSValue, scope:String, callback:JSValue, errorCallback:JSValue) -> Void
 }
 
 class NoErrorButNoResponseError : ErrorType {}
 
-class SessionDelegate : NSObject, NSURLSessionDelegate {
+
+/// By default the Fetch API follows redirects: https://fetch.spec.whatwg.org/#concept-request-redirect-mode
+/// But if we want to disable this, we need to use this delegate
+class DoNotFollowRedirectSessionDelegate : NSObject, NSURLSessionDelegate {
     
     func URLSession(session: NSURLSession, task: NSURLSessionTask, willPerformHTTPRedirection response: NSHTTPURLResponse, newRequest request: NSURLRequest, completionHandler: (NSURLRequest?) -> Void) {
         // Do not follow redirects
@@ -333,9 +386,19 @@ class SessionDelegate : NSObject, NSURLSessionDelegate {
     
 }
 
+
+/// The container for the Fetch API functions. As well as the one passed to JSContexts, we also have one that can
+/// be used in Swift contexts too.
 @objc class GlobalFetch: NSObject, GlobalFetchExports {
     
     
+    /// When coming from JSContexts, the request parameter can be a FetchRequest or simply a string URL. This
+    /// will detect which is being passed, and convert any strings to FetchRequests.
+    ///
+    /// - Parameters:
+    ///   - request: the FetchRequest or string unknown variable
+    ///   - options: options passed in with the fetch function call
+    /// - Returns: A FetchRequest with all options combined.
     private static func getRequest(request: JSValue, options:JSValue) -> FetchRequest {
         // This parameter can be either a URL string or an instance of a
         // FetchRequest class.
@@ -347,7 +410,14 @@ class SessionDelegate : NSObject, NSURLSessionDelegate {
         return FetchRequest(url: request.toString(), options: options.toObject() as? [String : AnyObject])
     }
     
-    static func fetchRequest(request: FetchRequest) -> Promise<FetchResponse> {
+    
+    /// The function that actually does the remote fetch and returns data
+    ///
+    /// - Parameters:
+    ///   - request: The FetchRequest to process
+    ///   - options: The options for this request, as outlined in the 'init' object here: https://developer.mozilla.org/en-US/docs/Web/API/GlobalFetch/fetch
+    /// - Returns: A promise that will resolve with a FetchResponse when the operation succeeds.
+    static func fetchRequest(request: FetchRequest, options:[String:AnyObject] = [:]) -> Promise<FetchResponse> {
         
         let urlRequest = request.toNSURLRequest()
         
@@ -355,9 +425,13 @@ class SessionDelegate : NSObject, NSURLSessionDelegate {
         
         return Promise<FetchResponse> { fulfill, reject in
             
-            let delegate = SessionDelegate()
+            var delegate: NSURLSessionDelegate? = nil
             
-//            delegate.completion
+            if options["redirect"] != nil && options["redirect"] as? String != "follow" {
+                // TODO: work out what "manual" means in the spec
+                delegate = DoNotFollowRedirectSessionDelegate()
+            }
+            
 
             let session = NSURLSession(configuration: NSURLSessionConfiguration.ephemeralSessionConfiguration(), delegate: delegate, delegateQueue: NSOperationQueue.mainQueue())
             
@@ -400,10 +474,24 @@ class SessionDelegate : NSObject, NSURLSessionDelegate {
         
     }
     
+    
+    /// Quick function to allow us to run a GET request directly to a URL
+    ///
+    /// - Parameter url: The string URL to download
+    /// - Returns: a promise that evaluates to a FetchResponse.
     static func fetch(url:String) -> Promise<FetchResponse> {
         return fetchRequest(FetchRequest(url: url, options: nil))
     }
     
+    
+    /// Function call that matches the JavaScript Fetch API, albeit wrapped in callbacks rather than promises.
+    ///
+    /// - Parameters:
+    ///   - requestVal: Either a string or an instance of a FetchRequest class.
+    ///   - options: The options for this request, as outlined in the 'init' object here: https://developer.mozilla.org/en-US/docs/Web/API/GlobalFetch/fetch
+    ///   - scope: The service worker scope this is being run in - to resolve relative URLs
+    ///   - callback: JS function to run on successful fetch
+    ///   - errorCallback: JS function to run in case of an error
     static func fetch(requestVal: JSValue, options:JSValue, scope:String, callback:JSValue, errorCallback:JSValue) {
         
         let request = self.getRequest(requestVal, options: options)
@@ -423,6 +511,10 @@ class SessionDelegate : NSObject, NSURLSessionDelegate {
 
     }
     
+    
+    /// Add Request, Response, Headers and Body to a JSContext's global scope.
+    ///
+    /// - Parameter context: The JSContext to add to.
     static func addToJSContext(context:JSContext) {
         context.setObject(FetchRequest.self, forKeyedSubscript: "Request")
         context.setObject(FetchResponse.self, forKeyedSubscript: "Response")

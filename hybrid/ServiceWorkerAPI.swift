@@ -18,7 +18,7 @@ class ServiceWorkerRegisterOptions {
     var scope:String?
 }
 
-class ServiceWorkerRegisterRequest : JSONSerializable {
+class ServiceWorkerRegisterRequest {
     var path:NSURL!
     var pathAsString:String!
     var options:ServiceWorkerRegisterOptions?

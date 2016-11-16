@@ -9,6 +9,9 @@
 import Foundation
 import PromiseKit
 
+
+/// Used when preparing notification attachments. We download the remote assets into temporary storage, before
+/// attaching them to the notification.
 class DownloadToTemporaryStorage {
     
     static func start(fromURL:NSURL) -> Promise<NSURL> {
@@ -29,6 +32,8 @@ class DownloadToTemporaryStorage {
                         // Notification attachments appear to be controlled by file extension. The download task
                         // sets everything to a file with a .tmp extension - if we can, let's append the original
                         // extension on there.
+                        //
+                        // If we don't do this, the attachment fails. A .mp4 video with a .tmp extension is not recognised.
                         
                         let filenameAsURL = NSURL(fileURLWithPath: filename)
                         let fileExtension = filenameAsURL.pathExtension

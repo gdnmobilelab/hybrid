@@ -12,64 +12,62 @@ import JavaScriptCore
 import FMDBMigrationManager
 import PromiseKit
 
-//class DbTransactionPromise<T>: Promise<T> {
-//    
-//    typealias DBRun = (db:FMDatabase) throws -> Promise<T>
-//    
-//    init(toRun: DBRun) {
-//        super.init(resolvers: { fulfill, reject in
-//            Db.mainDatabase.dbQueue.inTransaction() {
-//                db, rollback in
-//                
-//                do {
-//                    // It can fail synchronously
-//                    try toRun(db: db)
-//                        
-//                        .then { returnedPromise -> Void in
-//
-//                            fulfill(returnedPromise)
-//                        }
-//                        .error { error in
-//                            // Or asynchronously
-//                            //db.rollback()
-//                            rollback.initialize(true)
-//                            rollback.memory = true
-//                            reject(error)
-//                    }
-//                } catch {
-//                   // db.rollback()
-//                    rollback.initialize(true)
-//                    rollback.memory = true
-//                    reject(error)
-//                }
-//            }
-//        })
-//    }
-//}
 
+/// An error that is thrown when we complete an inDatabase or inTransaction call without closing the result
+/// sets we create in that call. We need to ensure we do so to avoid leaks etc.
 class ResultSetsStillOpenError : ErrorType {}
 
+
+/// Handler class for all of our database operations. A wrapper around FMDB: https://github.com/ccgus/fmdb
 class Db {
     
-    let dbQueue:FMDatabaseQueue!
+    /// FMDB recommends using a database queue to ensure thread safety.
+    private let dbQueue:FMDatabaseQueue!
     
+    
+    /// The base URL for our database storage - a directory named Databases in our shared file system.
     private static var databasesURL:NSURL {
         get {
             return SharedResources.fileSystemURL.URLByAppendingPathComponent("Databases", isDirectory: true)!
         }
     }
     
-    static func getFullPathForDB(dbFilename:String) -> NSURL {
-        return Db.databasesURL
-            .URLByAppendingPathComponent(dbFilename)!
+    
+    /// Return the full path for a database with the given name
+    ///
+    /// - Parameter dbFilename: The basename of the database - without any directory or file extension info
+    /// - Returns: Full file URL for database path
+    static func getFullPathForDB(dbFilename:String, inDirectory:String? = nil) throws -> NSURL {
+        var url = Db.databasesURL
+        
+        if inDirectory != nil {
+            url = url.URLByAppendingPathComponent(inDirectory!, isDirectory: true)!
+            
+            if NSFileManager.defaultManager().fileExistsAtPath(url.path!) == false {
+                try NSFileManager.defaultManager().createDirectoryAtPath(url.path!, withIntermediateDirectories: true, attributes: nil)
+            }
+            
+        }
+            
+        return url.URLByAppendingPathComponent(dbFilename)!
             .URLByAppendingPathExtension("sqlite")!
     }
     
+    
+    /// Create a new instance of our DB wrapper. We mostly use mainDatabase, but site-specific WebSQL storage
+    /// requires us to create different files.
+    ///
+    /// - Parameter dbFilename: The name of the database we wish to create
+    /// - Throws: If for some reason we were not able to create the Database directory, this will fail.
     init(dbFilename:String) throws {
         
-        try Db.createDirectoryFor(Db.databasesURL)
+        let fm = NSFileManager.defaultManager()
+        if fm.fileExistsAtPath(Db.databasesURL.path!) == false {
+            try fm.createDirectoryAtPath(Db.databasesURL.path!, withIntermediateDirectories: true, attributes: nil)
+        }
         
-        let dbURL = Db.getFullPathForDB(dbFilename)
+        
+        let dbURL = try Db.getFullPathForDB(dbFilename)
     
         log.debug("Creating database queue for: " + dbURL.path!)
         
@@ -77,30 +75,17 @@ class Db {
         
     }
     
-    static func getFullDatabasePath(dbDir:String, dbFilename: String) throws -> String {
-        
-        let dbDirURL = Db.databasesURL
-            .URLByAppendingPathComponent(dbDir, isDirectory: true)!
-        
-        try Db.createDirectoryFor(dbDirURL)
-        
-        return dbDirURL
-            .URLByAppendingPathComponent(dbFilename)!
-            .URLByAppendingPathExtension("sqlite")!
-            .path!
-    }
     
-    static private func createDirectoryFor(url:NSURL) throws {
-        let fm = NSFileManager.defaultManager()
-        if fm.fileExistsAtPath(url.path!) == false {
-            try fm.createDirectoryAtPath(url.path!, withIntermediateDirectories: true, attributes: nil)
-        }
-    }
-    
+    /// Close the database queue
     func destroy() {
         dbQueue.close()
     }
     
+    
+    /// Run a series of database operations inside a transaction. Operations have to be synchronous.
+    ///
+    /// - Parameter toRun: A function using the FMDatabase instance passed to it
+    /// - Throws: If any operation inside the function fails, or if the transaction commit fails, it will throw
     func inTransaction(toRun: (db:FMDatabase) throws -> Void) throws {
         
         var err:ErrorType? = nil
@@ -125,6 +110,12 @@ class Db {
         
     }
     
+    
+    /// Run a series of database operations outside of a transaction. To be used for SELECT statements, where
+    /// transactions don't matter as much.
+    ///
+    /// - Parameter toRun: A function using the FMDatabase instance passed to it
+    /// - Throws: If any operation inside the function fails, it will throw
     func inDatabase(toRun: (db:FMDatabase) throws -> Void) throws {
         
         var err:ErrorType? = nil
@@ -151,10 +142,16 @@ class Db {
 
     private static var mainDB:Db?
     
+    
+    /// Called in the AppDelegate to ensure the mainDatabase is available to all code from app startup
+    ///
+    /// - Throws: If we can't create the database, it'll throw, and the app will not launch successfully
     static func createMainDatabase() throws {
         Db.mainDB = try Db(dbFilename: "db")
     }
     
+    
+    /// The DB instance that most of our operations (service worker, cache) go through.
     static var mainDatabase:Db {
         get {
             return self.mainDB!
@@ -163,7 +160,15 @@ class Db {
     
 }
 
+
+/// Thin wrapper around FMDBMigrationManager (https://github.com/layerhq/FMDBMigrationManager) to ensure our
+/// SQLite databases are at the latest migration on app startup
 class DbMigrate {
+    
+    
+    /// Called in the app delegate so that all migrations are completed before any code attempts to use the database
+    ///
+    /// - Throws: If a migration fails. App will fail to launch, as the DB will be considered to be in an invalid state.
     static func migrate() throws {
         
         try Db.mainDatabase.inDatabase { (db) in

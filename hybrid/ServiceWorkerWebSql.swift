@@ -58,8 +58,8 @@ import JavaScriptCore
         // of the error and DB
         
         do {
-            let dbPath = try Db.getFullDatabasePath(self.sanitisedOrigin, dbFilename: name)
-            let db = WebSQLDatabase(dbPath: dbPath, context: self.context)
+            let dbPath = try Db.getFullPathForDB(name, inDirectory: self.sanitisedOrigin)
+            let db = WebSQLDatabase(dbPath: dbPath.path!, context: self.context)
             return [JSValue(nullInContext:self.context), db]
         } catch {
             return [JSValue(newErrorFromMessage: String(error), inContext: self.context)]

@@ -11,6 +11,9 @@ import UserNotifications
 import JavaScriptCore
 import PromiseKit
 
+
+/// Likely to be deprecated - currently only stores a flag to indicate whether a notification
+/// is pending close or not.
 class PendingNotificationActions {
     private static let groupDefaults = NSUserDefaults(suiteName: "group.gdnmobilelab.hybrid")!
     
@@ -43,12 +46,27 @@ class PendingNotificationActions {
     }
 }
 
+
+/// Quick struct to store which views are currently active inside out notification-content extension. We need to keep
+/// track of these so that the worker can play/pause video and animate the canvas as part of the NotificationEvent
 struct ActiveNotificationViews {
     var video:NotificationVideo?
     var canvas:CanvasView?
 }
 
+
+/// Handles the response to a user interacting with a notification. Fires a NotificationEvent inside the worker, which can in turn
+/// do things like close the notification, or push another one to replace the current view.
 class NotificationHandler {
+    
+    
+    /// This is called by the NotificationViewController when a user interacts with a notification
+    ///
+    /// - Parameters:
+    ///   - response: The response - contains info on whether it was an action tap, a close, or other
+    ///   - userInfo: The original userInfo object created when the notification was posted
+    ///   - activeViews: To be passed into the worker and allow video/canvas control in response to events
+    /// - Returns: A promise that resolves when the event has fired and any waitUntil() calls are complete
     static func processAction(response:UNNotificationResponse, userInfo:[NSObject: AnyObject], activeViews: ActiveNotificationViews) -> Promise<Void> {
        
         let notificationData = userInfo["originalNotificationOptions"]!

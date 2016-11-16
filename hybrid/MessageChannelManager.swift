@@ -11,7 +11,7 @@ import WebKit
 import PromiseKit
 import EmitterKit
 
-class MessagePortMessage : JSONSerializable {
+class MessagePortMessage {
     
     func toSerializableObject() -> [String: AnyObject] {
         return [
@@ -30,14 +30,13 @@ class MessagePortMessage : JSONSerializable {
     
 }
 
-// We don't have access to the JSContext of WKWebViews, and can only communicate
-// via message handlers. So we need to keep references to our message channels
-// on the native side, and provide simple identifiers to the WKWebView itself.
 
-// TODO: how do we tidy these up when we're done? We're not aware on the native
-// side when a channel is finished with.
+/// We don't have access to the JSContext of WKWebViews, and can only communicate
+/// via message handlers. So we need to keep references to our message channels
+/// on the native side, and provide simple identifiers to the WKWebView itself.
 
-
+/// TODO: how do we tidy these up when we're done? We're not aware on the native
+/// side when a channel is finished with.
 class MessageChannelManager: ScriptMessageManager {
     
     var activePorts = [Int: MessagePort]()

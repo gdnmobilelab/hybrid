@@ -15,33 +15,13 @@ let log = XCGLogger.defaultInstance()
 let ApplicationEvents = Event<AnyObject>()
 
 
+/// A dumping ground for some quick utility functions we've used across the app
 class Util {
-    static func hexStringToUIColor (hex:String) -> UIColor {
-        var cString:String = hex.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet() as NSCharacterSet).uppercaseString
-        
-        if (cString.hasPrefix("#")) {
-            cString = cString.substringFromIndex(cString.startIndex.advancedBy(1))
-        }
-        
-        if ((cString.characters.count) != 6) {
-            return UIColor.grayColor()
-        }
-        
-        var rgbValue:UInt32 = 0
-        NSScanner(string: cString).scanHexInt(&rgbValue)
-        
-        return UIColor(
-            red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
-            green: CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0,
-            blue: CGFloat(rgbValue & 0x0000FF) / 255.0,
-            alpha: CGFloat(1.0)
-        )
-    }
     
-    static func colorBrightNess(color:UIColor) {
-        color.getHue(nil, saturation: nil, brightness: nil, alpha: nil)
-    }
-    
+    /// Parse an HTTP Date header (EEE, dd MMM yyyy HH:mm:ss z) into an NSDate
+    ///
+    /// - Parameter httpDate: contents of the Date header as a string
+    /// - Returns: a matching NSDate
     static func HTTPDateToNSDate(httpDate:String) -> NSDate? {
         let dateFormat = NSDateFormatter()
         dateFormat.dateFormat = "EEE, dd MMM yyyy HH:mm:ss z"
@@ -52,6 +32,11 @@ class Util {
         
     }
     
+    
+    /// Create a SHA256 representation of any data provided
+    ///
+    /// - Parameter data: the data to hash
+    /// - Returns: the hash, in the form of NSData
     static func sha256(data:NSData) -> NSData {
         var hash = [UInt8](count: Int(CC_SHA256_DIGEST_LENGTH), repeatedValue: 0)
         CC_SHA256(data.bytes, CC_LONG(data.length), &hash)
@@ -59,11 +44,23 @@ class Util {
         return res
     }
     
+    
+    /// Wrapper to provide SHA256 hashing of a string. Used in the ServiceWorkerStub to compare
+    /// JS content without having to hold both large text blobs in memory
+    ///
+    /// - Parameter str: string to hash
+    /// - Returns: hash as NSData
     static func sha256String(str:String) -> NSData {
         let asData = str.dataUsingEncoding(NSUTF8StringEncoding)
         return sha256(asData!)
     }
     
+    
+    /// Because we have content extensions, mainBundle() can sometimes return an extension
+    /// rather than the app itself. This function detects that, and resets it, so we know for
+    /// sure that we are always receiving the app bundle.
+    ///
+    /// - Returns: An NSBundle for the main hybrid app
     static func appBundle() -> NSBundle {
         var bundle = NSBundle.mainBundle()
         if bundle.bundleURL.pathExtension == "appex" {

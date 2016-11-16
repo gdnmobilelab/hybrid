@@ -21,10 +21,15 @@ struct PromiseReturn {
 }
 
 
+/// The variables and methods we expose to be used inside the JSContext. The instance itself
+/// is available within the context as self.registration.active
 @objc protocol ServiceWorkerInstanceExports : JSExport {
     var scriptURL:String {get}
 }
 
+
+/// The core of our service worker functionality. This class wraps a JSContext with a series of helper functions
+/// that add our SW helper library, as well as provide hooks for things like setTimeout and event execution
 @objc public class ServiceWorkerInstance : NSObject, ServiceWorkerInstanceExports {
     
     
@@ -339,23 +344,13 @@ struct PromiseReturn {
         return PromiseBridge<FetchResponse>(jsPromise: dispatch)
     }
     
-    func dispatchPushEvent(data: String) -> Promise<Void> {
-        let dispatch = self.jsContext.objectForKeyedSubscript("hybrid")
-            .objectForKeyedSubscript("dispatchPushEvent")
-            .callWithArguments([data])
-        
-        return PromiseBridge<NSObject>(jsPromise: dispatch)
-        .then { returnValue in
-            
-            // It isn't actually possible to return anything from this, but
-            // we still want to return a promise so that we can wait to know
-            // the promise has completed if we want to.
-            
-            return Promise<Void>()
-            
-        }
-    }
     
+    
+    /// Process and load the service worker JS. Will also load the service worker shell that is embedded in the main app bundle.
+    /// Once loaded, it will fire any pending push events that occurred while the app was not open (e.g. in a notification)
+    ///
+    /// - Parameter workerJS: The JS to run
+    /// - Returns: A promise when execution is complete and any pending push events have fired.
     func loadServiceWorker(workerJS:String) -> Promise<Void> {
         return self.loadContextScript()
         .then {_ in
@@ -366,18 +361,23 @@ struct PromiseReturn {
         }
     }
     
+    
+    /// Unfortunately, we can't necessarily process push events as they arrive because the app may not be active.
+    /// This function will process any push events created in a notification content context, or other.
+    ///
+    /// - Returns: An empty promise that will fulfill when all push events have been processed.
     func processPendingPushEvents() -> Promise<Void> {
-        
-        // Unfortunately, we can't necessarily process push events as they arrive because
-        // the app may not be active. So, whenever we create a service worker, we immediately
-        // process any pending push events that happen to be waiting.
         
         let pendingPushes = PushEventStore.getByWorkerScope(self.scope.absoluteString!)
         
-        let processPromises = pendingPushes.map { push in
-            return self.dispatchPushEvent(push.payload)
-                .then {
-                    PushEventStore.remove(push)
+        let processPromises = pendingPushes.map { push -> Promise<Void> in
+            
+            let pushEvent = PushEvent(data: push.payload)
+            
+            return self.dispatchExtendableEvent(pushEvent)
+            .then {_ in
+                PushEventStore.remove(push)
+                return Promise<Void>()
             }
             
         }
@@ -386,6 +386,11 @@ struct PromiseReturn {
 
     }
     
+    
+    /// Loads the shell JavaScript, containing our various shims and utility functions to replicate the global
+    /// service worker environment.
+    ///
+    /// - Returns: An empty promise that fulfills immediately (the operation is synchonous). Promise is used to catch errors.
     private func loadContextScript() -> Promise<Void> {
         
         return Promise<String> {fulfill, reject in
@@ -402,9 +407,10 @@ struct PromiseReturn {
         }
     }
     
-    func applyGlobalVariables() {
-        // JSContext doesn't have a 'global' variable so instead we make our own,
-        // then go through and manually declare global variables.
+    
+    /// JSContext doesn't have a 'global' variable so instead we make our own,
+    /// then go through and manually declare global variables.
+    private func applyGlobalVariables() {
         
         let global = self.jsContext.objectForKeyedSubscript("global")
         
@@ -421,7 +427,12 @@ struct PromiseReturn {
     }
 
     
-    func runScript(js: String, closeDatabasesAfter: Bool = true) -> Promise<JSValue> {
+    /// JSContext logs exceptions via the exceptionHandler() function, so this is a quick wrapper
+    /// to run JS, catch any potential error, or return if the script was successful.
+    ///
+    /// - Parameter js: the JavaScript to execute
+    /// - Returns: Empty promise upon execution completion
+    private func runScript(js: String) -> Promise<JSValue> {
         self.contextErrorValue = nil
         return Promise<JSValue> { fulfill, reject in
             let result = self.jsContext.evaluateScript(js)
@@ -431,52 +442,21 @@ struct PromiseReturn {
             } else {
                 fulfill(result)
             }
-        }.always {
-            if (closeDatabasesAfter == true) {
-                // There is no standard hook on closing WebSQL connections, so we handle
-                // it manually. We assume we'll close unless told otherwise (as we do with
-                // promises)
-               // self.webSQL.closeAll()
-            }
         }
     }
     
     
-    func exceptionHandler(context:JSContext!, exception:JSValue!) {
+    /// Used to catch JS exceptions, to be returned as part of runScript(). Not run directly, run by
+    /// the JSContext itself.
+    ///
+    /// - Parameters:
+    ///   - context: the worker's JSContext
+    ///   - exception: The error as a JSValue
+    private func exceptionHandler(context:JSContext!, exception:JSValue!) {
         self.contextErrorValue = exception
         
         log.error("JSCONTEXT error: " + exception.toString())
         
     }
     
-//    func getURLInsideServiceWorkerScope(url: NSURL) throws -> NSURL {
-//        
-//        //let startRange = self.scope.absoluteString.ra
-//        let range = url.absoluteString!.rangeOfString(self.scope.absoluteString!)
-//        
-//        if range == nil || range!.startIndex != self.scope.absoluteString!.startIndex {
-//            throw ServiceWorkerOutOfScopeError()
-//        }
-//        
-//        let escapedServiceWorkerURL = self.url.absoluteString!.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.alphanumericCharacterSet())!
-//        
-//        
-//        let returnComponents = NSURLComponents(string: "http://localhost")!
-//        returnComponents.port = WebServer.current!.port
-//        
-//        let pathComponents:[String] = [
-//            "__service_worker",
-//            escapedServiceWorkerURL,
-//            url.host!,
-//            url.path!.substringFromIndex(url.path!.startIndex.advancedBy(1))
-//        ]
-//        
-//        
-//        returnComponents.path = "/" + pathComponents.joinWithSeparator("/")
-//        NSLog(pathComponents.joinWithSeparator("/"))
-//        return returnComponents.URL!
-//
-//        
-//        //stringByAddingPercentEncodingWithAllowedCharacters
-//    }
 }

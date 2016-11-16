@@ -35,15 +35,5 @@ export class FetchEvent {
     }
 }
 
-export class PushEvent extends ExtendableEvent {
-    data: PushMessageData
-
-    constructor(content:string) {
-        super("push", {});
-        this.data = new PushMessageData(content);
-    }
-}
-
 // global.ExtendableEvent = ExtendableEvent;
 global.FetchEvent = FetchEvent;
-global.PushEvent = PushEvent;

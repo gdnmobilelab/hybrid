@@ -41,16 +41,3 @@ hybrid.dispatchMessageEvent = function(message:string, ports: [MessagePort]) {
     }
     self.dispatchEvent(ev as MessageEvent);
 }
-
-hybrid.dispatchPushEvent = function(data:string) {
-    return Promise.resolve()
-    .then(() => {
-        let pushEvent = new PushEvent(data);
-        self.dispatchEvent(pushEvent as any);
-        return pushEvent.resolve();
-    })
-    .catch((err) => {
-        console.error(err, err.stack)
-        throw err;
-    })
-}
