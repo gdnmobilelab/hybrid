@@ -11,8 +11,7 @@ import WebKit
 import EmitterKit
 import PromiseKit
 
-// Only really used for tests - actual code should be in defined handlers
-
+/// Only really used for tests - actual code should be in defined handlers
 class EventManager: ScriptMessageManager {
     
     var events = Event<String?>()

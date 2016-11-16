@@ -10,12 +10,19 @@ import Foundation
 import WebKit
 import PromiseKit
 
+
+/// A bridge to allow console messages in WKWebViews to be transmitted over to internal app logs.
 class ConsoleManager: ScriptMessageManager {
     
     init(userController:WKUserContentController, webView:HybridWebview) {
         super.init(userController: userController, webView: webView, handlerName: "console")
     }
     
+    
+    /// Log a console message
+    ///
+    /// - Parameter message: An object with a "level" string and an "args" array of items to log
+    /// - Returns: nil
     override func handleMessage(message:AnyObject) -> Promise<String>? {
         
         let level = message["level"] as! String

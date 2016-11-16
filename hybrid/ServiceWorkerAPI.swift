@@ -11,25 +11,16 @@ import WebKit
 import PromiseKit
 import EmitterKit
 
-class ServiceWorkerRegisterOptions {
-    
-   
-    
-    var scope:String?
-}
 
-class ServiceWorkerRegisterRequest {
-    var path:NSURL!
-    var pathAsString:String!
-    var options:ServiceWorkerRegisterOptions?
-}
-
-class ServiceWorkerRegisterFailedError: ErrorType {}
-
+/// Emulates the navigator.serviceWorker object in a webview. Extensive bridging in the webview JS library.
 class ServiceWorkerAPI: ScriptMessageManager {
     
+    
+    /// Event listener that receives every service worker change event and runs self.serviceWorkerChange()
     private var swChangeListener:Listener?
     
+    
+    /// The current, active service worker for this webview
     var currentActiveServiceWorker:ServiceWorkerInstance?
     
     init(userController:WKUserContentController, webView:HybridWebview) {
@@ -37,16 +28,25 @@ class ServiceWorkerAPI: ScriptMessageManager {
         
         self.swChangeListener = ServiceWorkerManager.events.on(ServiceWorkerManager.STATUS_CHANGE_EVENT, self.serviceWorkerChange)
         
-        
-        
         self.webview.messageChannelManager!.onMessage = self.handleIncomingPostMessage
     }
     
+    
+    /// Receives postMessage()s sent from within the webview, and forwards onto the current worker
+    ///
+    /// - Parameters:
+    ///   - message: The message, usually a JSON-encoded string
+    ///   - ports: Ports to pass onwards to the worker to be used to send replies back
     func handleIncomingPostMessage(message:String, ports:[MessagePort]) {
 
         self.currentActiveServiceWorker!.receiveMessage(message, ports: ports)
     }
     
+    
+    /// Listener for all service worker changes that occur in the app. Noisier than it ought to be, as the first thing
+    /// this function does is filter out any events not applicable to the current worker or scope. Candidate for refactoring.
+    ///
+    /// - Parameter match: The ServiceWorkerMatch that has changed - contains relevant worker metadata
     func serviceWorkerChange(match:ServiceWorkerMatch) {
         
         if self.webview.mappedURL == nil {
@@ -63,11 +63,16 @@ class ServiceWorkerAPI: ScriptMessageManager {
         self.sendEvent("sw-change", arguments: [matchJSON!])
     }
     
+    
+    /// Receive a new service worker to replace any active worker attached to the webview
+    ///
+    /// - Parameter newWorker: The new service worker to set as active
     func setNewActiveServiceWorker(newWorker:ServiceWorkerInstance) {
         self.currentActiveServiceWorker = newWorker
         
         let match = ServiceWorkerMatch(instanceId: newWorker.instanceId, url: newWorker.url, installState: newWorker.installState, scope: newWorker.scope)
         
+        // If we've got a new worker, any currently open ports should be removed.
         self.webview.messageChannelManager!.activePorts.removeAll()
         self.webview.messageChannelManager!.portListeners.removeAll()
         
@@ -76,7 +81,14 @@ class ServiceWorkerAPI: ScriptMessageManager {
         self.sendEvent("claimed", arguments: [matchJSON!])
     }
     
-    func register(swPath:NSURL, scope:String?, webviewURL:NSURL) -> Promise<String> {
+    
+    /// Equivalent of navigator.serviceWorker.register()
+    ///
+    /// - Parameters:
+    ///   - swPath: Path to the JS file containing the service worker
+    ///   - scope: The scope to register the worker under
+    /// - Returns: A JSON string for a ServiceWorkerMatch. Is converted to a ServiceWorkerRegistration on the JS side.
+    func register(swPath:NSURL, scope:String?) -> Promise<String> {
         
         var actualSWPath = swPath
         
@@ -91,8 +103,6 @@ class ServiceWorkerAPI: ScriptMessageManager {
         var serviceWorkerScope:NSURL = actualSWPath.URLByDeletingLastPathComponent!
         if scope != nil {
             serviceWorkerScope = NSURL(string: scope!, relativeToURL: actualSWPath)!
-            
-            NSLog(serviceWorkerScope.absoluteString!)
         }
         
         return ServiceWorkerManager.update(actualSWPath, scope: serviceWorkerScope)
@@ -110,6 +120,10 @@ class ServiceWorkerAPI: ScriptMessageManager {
         }
     }
     
+    /// Equivalent of ServiceWorkerRegistration.update()
+    ///
+    /// - Parameter swURL: URL of the service worker to update
+    /// - Returns: A string containing "null" - the update function receives no updates on update progress
     func update(swURL:NSURL) -> Promise<String> {
         return ServiceWorkerManager.update(swURL, scope: nil, forceCheck: true)
         .then { newId in
@@ -125,6 +139,11 @@ class ServiceWorkerAPI: ScriptMessageManager {
         }
     }
     
+    
+    /// Get all service workers that match this scope. If any are active, attach them to this webview immediately.
+    ///
+    /// - Parameter webviewURL: The URL of the webview
+    /// - Returns: A JSON-encoded array of ServiceWorkerMatch objects
     func getAllWorkers(webviewURL:NSURL) -> Promise<String> {
         return ServiceWorkerManager.getAllServiceWorkersWithScopeContainingURL(webviewURL)
         .then { matches -> String in
@@ -152,6 +171,11 @@ class ServiceWorkerAPI: ScriptMessageManager {
         }
     }
     
+    
+    /// Handler for incoming messages on the messageHandler
+    ///
+    /// - Parameter message: Object with required key "operation", which must be register, update or getAll
+    /// - Returns: Depends on operation called
     override func handleMessage(message:AnyObject) -> Promise<String>? {
         let operation = message["operation"] as! String
         
@@ -169,7 +193,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
             let swPath = message["swPath"] as! String
             let scope = message["scope"] as? String
             
-            return self.register(NSURL(string:swPath)!, scope: scope, webviewURL: webviewURL)
+            return self.register(NSURL(string:swPath)!, scope: scope)
         }
         
         if operation == "update" {

@@ -11,16 +11,11 @@ import WebKit
 import PromiseKit
 import EmitterKit
 
-struct HybridWebviewMetadata {
-    var color:UIColor?
-    var title:String
-    var defaultBackURL:String?
-    
-    init() {
-        title = ""
-    }
-}
 
+
+
+/// Inherits from WKWebView, adds a few pieces of functionality we need, as well as tracking
+/// of active webviews.
 class HybridWebview : WKWebView, WKNavigationDelegate {
     
     var console:ConsoleManager?
@@ -29,13 +24,19 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     var serviceWorkerAPI:ServiceWorkerAPI?
     var eventManager: EventManager?
     
+    
+    /// A store for all the active webviews currently in use by the app
     private static var activeWebviews = [HybridWebview]()
     
-    // The easiest way I could find to connect these two together in a way that doesn't bind them - the
-    // notification target doesn't include HybridWebView so we can't reference the class in WebviewClientManager
-    
+    /// The WebviewClientManager and the HybridWebview can't be directly connected because the former exists
+    /// in the notification extension, while the latter doesn't. So we use this listener to connect the two,
+    /// when they're in the same environment. It is set by registerWebviewForServiceWorkerEvents()
     static var webviewClientListener:Listener?
     
+    
+    /// Registers this webview for things like WebviewClientManager events. Claim, postMessage, etc. Also
+    /// sets the static webviewClientListener variable. For some reason EmitterKit doesn't let you
+    /// declare a listener in the class directly, so instead we set it the first time we register a webview.
     func registerWebviewForServiceWorkerEvents() {
         if HybridWebview.activeWebviews.contains(self) {
             return
@@ -53,11 +54,12 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         HybridWebview.saveWebViewRecords()
     }
     
+    
+    /// Again for cross-process communication, we save a record of all the active webviews to UserDefaults.
     static func saveWebViewRecords() {
         
         // We need to save this somewhere that out-of-app code can still access it
         
- 
         WebviewClientManager.currentWebviewRecords = HybridWebview.activeWebviews.enumerate().map { (idx, wv) in
             return WebviewRecord(
                 url: wv.mappedURL,
@@ -68,17 +70,31 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
 
     }
     
+    
+    /// Active webviews are stored by index. This retreives based on that index.
+    ///
+    /// - Parameter index: index of webview to fetch
+    /// - Returns: The hybrid webview at that index
     static func getActiveWebviewAtIndex(index:Int) -> HybridWebview {
         return self.activeWebviews[index]
     }
     
     
+    /// When a worker exists the navigation stack (i.e. is returned to waiting area)
+    /// we want to stop it from receiving any worker events.
+    ///
+    /// - Parameter hw: HybridWebview to remove
     static func deregisterWebviewFromServiceWorkerEvents(hw: HybridWebview) {
         let idx = HybridWebview.activeWebviews.indexOf(hw)
         HybridWebview.activeWebviews.removeAtIndex(idx!)
         saveWebViewRecords()
     }
     
+    
+    /// Takes events that were fired either in or out of process by a worker and runs them.
+    /// Covers claim, focus, openWindow and postMessage events.
+    ///
+    /// - Parameter event: WebviewClientEvent, either applied directly or taken from UserDefaults storage
     static func processClientEvent(event:WebviewClientEvent) {
         if event.type == WebviewClientEventType.Claim {
             let webView = HybridWebview.activeWebviews[event.record!.index]
@@ -120,6 +136,9 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         }
     }
     
+    
+    /// Remove all registered webviews. Since this data is stored in UserDefaults it persists across
+    /// app launches. We need to reset it on launch or we'll have stale data.
     static func clearRegisteredWebviews() {
         activeWebviews.removeAll()
     }
@@ -154,7 +173,12 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func injectJS(userController: WKUserContentController) throws {
+    
+    /// Add the assistant library we have that adds support for navigator.serviceWorker and the like in the browser.
+    ///
+    /// - Parameter userController: userController to inject into
+    /// - Throws: If the JS file cannot be read
+    private func injectJS(userController: WKUserContentController) throws {
         let docStartPath = Util.appBundle().pathForResource("document-start", ofType: "js", inDirectory: "js-dist")!;
         let documentStartJS = try NSString(contentsOfFile: docStartPath, encoding: NSUTF8StringEncoding) as String;
      
@@ -162,6 +186,10 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         userController.addUserScript(userScript)
     }
     
+    
+    /// Grab metadata from the current page. Inspects various tags in the <head>
+    ///
+    /// - Returns: A metadata struct with as much info as could be extracted
     func getMetadata() -> Promise<HybridWebviewMetadata> {
         return Promise<HybridWebviewMetadata> { fulfill, reject in
             self.evaluateJavaScript(WebviewJS.getMetadataJS, completionHandler: { (result, err) in
@@ -192,6 +220,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     }
     
     
+    /// Stops page loads for any URL that is under the scope of a service worker, which we want to load locallys
     func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
         
         // If the URL falls within the scope of any service worker, we want to redirect the
@@ -210,6 +239,8 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
 
     }
     
+    
+    /// Transform the raw URL into a remote URL, if it happens to be running on localhost
     var mappedURL:NSURL? {
         get {
             let currentURL = self.URL

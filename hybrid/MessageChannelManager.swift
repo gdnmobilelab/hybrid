@@ -11,8 +11,13 @@ import WebKit
 import PromiseKit
 import EmitterKit
 
+/// A Serialization target for MessagePort messages when we are passing them back into a WKWebView.
 class MessagePortMessage {
     
+    
+    /// Turn into a simple object that can be serialized to JSON.
+    ///
+    /// - Returns: <#return value description#>
     func toSerializableObject() -> [String: AnyObject] {
         return [
             "data": self.data,
@@ -21,6 +26,9 @@ class MessagePortMessage {
     }
     
     var data:String!
+    
+    /// We can't pass MessagePorts themselves into the WKWebView, so instead we keep track of the port
+    /// IDs we're sending, and using the JS bridge to communicate between native and web.
     var passedPortIds:[Int]!
 
     init(data:String, passedPortIds:[Int]) {
@@ -34,7 +42,7 @@ class MessagePortMessage {
 /// We don't have access to the JSContext of WKWebViews, and can only communicate
 /// via message handlers. So we need to keep references to our message channels
 /// on the native side, and provide simple identifiers to the WKWebView itself.
-
+///
 /// TODO: how do we tidy these up when we're done? We're not aware on the native
 /// side when a channel is finished with.
 class MessageChannelManager: ScriptMessageManager {
@@ -47,6 +55,11 @@ class MessageChannelManager: ScriptMessageManager {
         super.init(userController: userController, webView: webView, handlerName: "messageChannel")
     }
     
+    
+    /// Handle operations sent from within the WKWebView.
+    ///
+    /// - Parameter message: Message object. Must have key named "operation" with value of create, delete, sendToPort or postMessage
+    /// - Returns: nil, unless the operation is "create", in which case it returns the new ID as a string
     override func handleMessage(message:AnyObject) -> Promise<String>? {
        
         let operation = message["operation"] as! String
@@ -84,6 +97,13 @@ class MessageChannelManager: ScriptMessageManager {
         return nil
     }
     
+    
+    /// Send a message to one of the ports in our saved port collection
+    ///
+    /// - Parameters:
+    ///   - portIndex: The index of the port to send to
+    ///   - data: The data to send - a string, usually a JSON string, but not necessarily
+    ///   - additionalPortIndexes: The additional ports to attach to postMessage() as a secondary argument
     func sendToPort(portIndex:Int, data:String, additionalPortIndexes:[Int]) {
         let port = self.activePorts[portIndex]
         
@@ -99,6 +119,11 @@ class MessageChannelManager: ScriptMessageManager {
         port!.postStringMessage(data, ports: portsFromIndexes, fromWebView: self.webview)
     }
     
+    
+    /// Only used in testing. Do not use in the app itself.
+    ///
+    /// - Parameter port: The port to add to our port collection
+    /// - Returns: The new index for the port we've added
     func manuallyAddPort(port:MessagePort) -> Int {
         // only really called directly during testing
         
@@ -141,10 +166,17 @@ class MessageChannelManager: ScriptMessageManager {
 
     }
     
+    /// Create a new port and add it to the store
+    ///
+    /// - Returns: The index of the newly created port
     func createNewPort() -> Int {
         return self.manuallyAddPort(MessagePort())
     }
     
+    
+    /// Remove a port from the store
+    ///
+    /// - Parameter index: The index of the port to remove
     func deletePort(index:Int) {
         self.activePorts.removeValueForKey(index)
         self.portListeners.removeValueForKey(index)
