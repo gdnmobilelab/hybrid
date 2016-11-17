@@ -22,6 +22,8 @@ class RenderCheck {
     private var pixel:UnsafeMutablePointer<CUnsignedChar>?
     private let width: Int
     private let height: Int
+    private var displayLink:CADisplayLink?
+    private var onRender:(()->())?
     
     init(target:WKWebView) {
         self.target = target
@@ -36,7 +38,6 @@ class RenderCheck {
         // the view (I haven't yet found out how to avoid doing that, anyway)
         
         self.width = Int(target.frame.width)
-
     }
     
     private func checkIfRendered() -> Bool {
@@ -51,24 +52,25 @@ class RenderCheck {
         return red == 0 && blue == 255 && green == 255
     }
     
-    private func waitForRenderLoop(onRender: () -> ()) {
+    @objc private func checkForRender() {
         if self.checkIfRendered() == true {
             log.debug("Checked if webview was ready, it WAS")
             self.pixel!.destroy()
-
-            
-            self.target.evaluateJavaScript(WebviewJS.removeLoadingIndicator, completionHandler: nil)
-            onRender()
+            self.displayLink!.removeFromRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+            self.onRender!()
         } else {
             log.debug("Checked if webview was ready, it was not")
-            let triggerTime = (Double(NSEC_PER_SEC) * 0.05)
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(triggerTime)), dispatch_get_main_queue(), { () -> Void in
-                self.waitForRenderLoop(onRender)
-            })
         }
     }
     
+    
+    
+    
+    /// Start the  loop that checks whether the view has rendered or not.
+    ///
+    /// - Parameter onRender: The function to run when the render was successful.
     func waitForRender(onRender: () -> ()) {
+        self.onRender = onRender
         // 4 * because we need to store the red, green, blue and alpha of each pixel
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.PremultipliedLast.rawValue)
@@ -76,7 +78,9 @@ class RenderCheck {
         self.renderCheckContext = CGBitmapContextCreate(pixel!, width, height, 8, width * 4, colorSpace, bitmapInfo.rawValue)!
         
         self.target.evaluateJavaScript(WebviewJS.setLoadingIndicator, completionHandler: nil)
-        self.waitForRenderLoop(onRender)
+
+        self.displayLink = CADisplayLink(target: self, selector: #selector(self.checkForRender))
+        self.displayLink!.addToRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
 
     }
 }

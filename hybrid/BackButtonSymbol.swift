@@ -10,6 +10,9 @@ import Foundation
 import UIKit
 import CoreGraphics
 
+
+/// Not currently used, but the BackButtonSymbol is for when we want to manually create the back button
+/// on our controllers. This will allow us to remove the "flash" when the back button appears.
 class BackButtonSymbol: UIButton {
     
     var onTap:(() -> ())?

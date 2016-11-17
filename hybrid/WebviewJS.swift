@@ -13,13 +13,14 @@ import Foundation
 /// loading webviews. It could be moved into js-src and injected into document-start.js
 /// in the future, as all webviews should have access to it. Also hopefully Swift
 /// introduces multi-line strings soon.
-
 class WebviewJS {
     
+    /// JavaScript to insert a 1px square in the top right of the view, to be used by RenderCheck to see if 
+    /// the webview has painted onto the screen or not.
     static var setLoadingIndicator:String {
         get {
             let js:[String] = [
-                "loadedIndicator = document.createElement('div');",
+                "var loadedIndicator = document.createElement('div');",
                 "loadedIndicator.style.position = 'absolute';",
                 "loadedIndicator.style.right = '0px';",
                 "loadedIndicator.style.top = '0px';",
@@ -36,12 +37,16 @@ class WebviewJS {
         }
     }
     
+    
+    /// Remove the loading indicator created by setLoadingIndicator()
     static var removeLoadingIndicator:String {
         get {
-            return "document.body.removeChild(window.__loadedIndicator); delete window.__loadedIndicator;"
+            return "document.body.removeChild(window.__loadedIndicator); delete window.__loadedIndicator; true;"
         }
     }
     
+    
+    /// Tiny script to grab the title, theme color and back URL from meta tags in the header
     static var getMetadataJS:String {
         get {
             return (["var getMeta = function(name) {",

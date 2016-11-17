@@ -8,6 +8,8 @@
 
 import Foundation
 
+
+/// Struct used in the WebServerDomainManager as a key to store WebServer instances.
 struct URLHostAndPort : Hashable, Equatable {
     var host:String
     var scheme:String
@@ -37,9 +39,20 @@ func ==(one:URLHostAndPort, two: URLHostAndPort) -> Bool {
     return one.host == two.host && one.port == two.port
 }
 
+
+/// We create a new WebServer for every domain that has service workers on it - this allows us to relatively
+/// seamlessly map domains from their real address to localhost:<random port number>. These port numbers do not
+/// persist though, which means things like LocalStorage disappear between app loads. Which isn't ideal.
 class WebServerDomainManager {
     private static var domainServerMap = [URLHostAndPort:WebServer]()
     
+    
+    /// If the provided URL is within a domain used by a service worker, return a mapped version of the URL
+    /// that'll load the page locally. This involes a DB call, which it probably shouldn't. Future optimisation
+    /// will be to keep a simple track of this in memory instead.
+    ///
+    /// - Parameter url: The URL to check
+    /// - Returns: If the URL is not in a service worker domain, it will return the same URL. Otherwise, a localhost-mapped one.
     static func rewriteURLIfInWorkerDomain(url:NSURL) -> NSURL {
         
         if url.host == "localhost" {
@@ -87,18 +100,28 @@ class WebServerDomainManager {
         
     }
     
+    
+    /// Stop all servers. Used when the app goes into background mode.
     static func stopAll() {
         self.domainServerMap.forEach {key, server in
             server.stop()
         }
     }
     
+    
+    /// Start servers back up again. Used when the app resumes from background mode.
+    ///
+    /// - Throws: If the servers cannot be restarted for some reason
     static func startAll() throws {
         try self.domainServerMap.forEach {key, server in
             try server.start()
         }
     }
     
+    
+    /// - Parameter domain: An NSURL containing the domain you want the web server for
+    /// - Returns: The web server for this domain. If one does not exist, it starts one
+    /// - Throws: If a new web server could not be started
     private static func getForDomain(domain:NSURL) throws -> WebServer {
         
         let key = URLHostAndPort(scheme: domain.scheme!, host: domain.host!, port: domain.port)
@@ -115,12 +138,9 @@ class WebServerDomainManager {
         return newServer
     }
     
+    /// Convert a normal URL, for example: http://www.theguardian.co.uk/test.html to:
+    /// http://localhost:23423/test.html
     static private func mapRequestURLToServerURL(requestURL:NSURL) throws -> NSURL {
-        
-        // To convert a normal URL, for example:
-        // http://www.theguardian.co.uk/test.html
-        // to:
-        // http://localhost:23423/test.html
         
         let components = NSURLComponents(URL: requestURL, resolvingAgainstBaseURL: true)!
         
@@ -136,6 +156,11 @@ class WebServerDomainManager {
         
     }
     
+    
+    /// Map a local domain back to the original request URL.
+    ///
+    /// - Parameter serverURL: The http://localhost URL you want to convert
+    /// - Returns: A URL with the original domain set, and existing path, search etc carried over.
     static func mapServerURLToRequestURL(serverURL:NSURL) -> NSURL {
         
         // And do the reverse.
@@ -156,6 +181,8 @@ class WebServerDomainManager {
         
     }
     
+    
+    /// Simple check to see if the URL provided is a localhost service worker URL or not.
     static func isLocalServerURL(maybeServerURL:NSURL) -> Bool {
         return maybeServerURL.host == "localhost"
     }

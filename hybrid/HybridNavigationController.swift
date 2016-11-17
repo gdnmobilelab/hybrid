@@ -10,15 +10,24 @@ import Foundation
 import UIKit
 import PromiseKit
 
+
+/// The main view stack of the app. Contains a hidden "waiting area" where we store HybridWebviews not currently
+/// in use, which lets us speed up load times
 class HybridNavigationController : UINavigationController, UINavigationControllerDelegate {
     
+    /// Feels very hacky, but we create a view that sits 1px to the right of the edge of the screen where we
+    /// store HybridWebviews that we can immediately push into our view stack. This seems to have a significant
+    /// benefit in loading times.
     let waitingArea:UIView
+    
+    
+    /// We manually recreate the launch view storyboard in order to seamlessly pass off from the launch view to our
+    /// controller without any visual difference. Then when our first webview has rendered successfully we transition
+    /// the launch view out.
     var launchViewController:UIViewController?
     
     init() {
         self.waitingArea = UIView()
-        let storyBoard = UIStoryboard(name: "LaunchScreen", bundle: nil)
-        self.launchViewController = storyBoard.instantiateInitialViewController()!
 
         super.init(nibName: nil, bundle: nil)
         
@@ -28,6 +37,13 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         self.navigationBar.translucent = false
         self.delegate = self
         
+        self.addLaunchViewToController()
+    }
+    
+    /// Take the launch storyboard and manually add it on top of our existing view stack.
+    func addLaunchViewToController() {
+        let storyBoard = UIStoryboard(name: "LaunchScreen", bundle: nil)
+        self.launchViewController = storyBoard.instantiateInitialViewController()!
         self.view.addSubview(self.launchViewController!.view)
     }
     
@@ -35,6 +51,9 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         fatalError("init(coder:) has not been implemented")
     }
     
+    
+    /// Different HybridWebviewControllers can have different background colors, so we
+    /// want to make sure we set the bar to the color of the new top view when we pop.
     override func popViewControllerAnimated(animated: Bool) -> UIViewController? {
         
         // We want to restore the color/styles of the last viewcontroller.
@@ -50,47 +69,88 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         return poppedController
     }
     
+    
+    /// An array of HybridWebviewControllers that we have available to be used immediately
+    /// when we want to push a new view into our stack
     var waitingAreaViewControllers = [HybridWebviewController]()
     
+    
+    /// Grab the next available controller in the waiting area, remove from our array of
+    /// waiting controllers and return. If there are no controllers available, create a new one
+    /// and return it immediately.
+    ///
+    /// - Returns: a HybridWebviewController whose view is currently rendering in the waiting area.
     func getNewController() -> HybridWebviewController {
         let inWaitingArea = waitingAreaViewControllers.last
        
         if inWaitingArea != nil && inWaitingArea!.isReady == true {
-            self.removeFromWaiting(inWaitingArea!)
+            self.removeControllerFromWaitingArray(inWaitingArea!)
             return inWaitingArea!
         }
         let newController = HybridWebviewController()
-        self.addToWaiting(newController)
-        self.removeFromWaiting(newController)
+        
+        self.addViewToWaitingArea(newController.webview!)
         return newController
     }
     
-    func removeFromWaiting(controller:HybridWebviewController) {
+    
+    /// Remove the provided controller from the array of waiting controllers. Does not remove
+    /// the view from the waiting area because that will happen automatically when we add it
+    /// to another view.
+    ///
+    /// - Parameter controller: The controller to remove from the array
+    private func removeControllerFromWaitingArray(controller:HybridWebviewController) {
         let idx = self.waitingAreaViewControllers.indexOf(controller)
         self.waitingAreaViewControllers.removeAtIndex(idx!)
     }
     
-    func addToWaiting(controller:HybridWebviewController) {
+    
+    /// Add the provided controller to out internal array of waiting controllers. NOTE: this
+    /// does not add the HybridWebView to the waiting area view. Use addViewToWaitingArea()
+    /// for that.
+    ///
+    /// - Parameter controller: The controller to add
+    private func addControllerToWaitingArray(controller:HybridWebviewController) {
         self.waitingArea.addSubview(controller.webview!)
         self.waitingAreaViewControllers.insert(controller, atIndex: 0)
     }
     
-    func addControllerToWaitingArea(controller: HybridWebviewController, forDomain: NSURL) {
+    
+    /// Add a HybridWebview to the waiting area. Does not also add the controller to the
+    /// waiting controllers array - use addControllerToWaitingArray() for that.
+    ///
+    /// - Parameter view: The HybridWebview to add to the waiting area view.
+    private func addViewToWaitingArea(view:HybridWebview) {
+        self.waitingArea.addSubview(view)
+    }
+    
+    
+    /// Add both the controller and its view to our waiting area. Also reset the content of
+    /// the webview to be an empty page, to attempt to claw back some memory
+    ///
+    /// - Parameters:
+    ///   - controller: The controller to add and reset
+    ///   - forDomain: Currently not used, but might be reactivated to improve load times by using direct HTML injection in the future
+    func addControllerAndViewToWaitingArea(controller: HybridWebviewController, forDomain: NSURL) {
         
-        self.addToWaiting(controller)
+        self.addControllerToWaitingArray(controller)
+        self.addViewToWaitingArea(controller.webview!)
         
-        controller.webview?.loadHTMLString("<html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1,user-scalable=no\" /></head><body></body></html>", baseURL: forDomain)
+        controller.webview!.loadHTMLString("<html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1,user-scalable=no\" /></head><body></body></html>", baseURL: forDomain)
 
     }
     
+    
+    /// Grab an available HybridWebviewController and load the provided URL into it
+    ///
+    /// - Parameter url: The URL we want to load. Not a localhost URL - it will be mapped automatically.
+    /// - Returns: A promise that resolves when the page is loaded and the view is painted and ready.
     private func prepareWebviewFor(url:NSURL) -> Promise<HybridWebviewController> {
         let newInstance = self.getNewController()
         
-        var hasFiredReady = false
-        
         return Promise<HybridWebviewController> { fulfill, reject in
             newInstance.events.once("ready", { _ in
-                hasFiredReady = true
+               
                 if let meta = newInstance.currentMetadata {
                     self.applyMetadata(meta)
                 }
@@ -103,23 +163,17 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             newInstance.events.once("popped", self.addPoppedViewBackToWaitingStack)
             
             newInstance.loadURL(url)
-            
-            // Every now and then a view just doesn't load, for reasons that aren't clear.
-            // So if it hasn't loaded within a second, push it anyway.
-            
-            let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(1 * Double(NSEC_PER_SEC)))
-            dispatch_after(delayTime, dispatch_get_main_queue()) {
-                if hasFiredReady == false {
-//                    newInstance.events.emit("ready", newInstance)
-                }
-            }
-            
-            
 
         }
         
     }
     
+    
+    /// Added as a listener to controllers when they are pushed into the view stack, to
+    /// ensure they are re-added to the waiting area once they are pushed back off the
+    /// view stack.
+    ///
+    /// - Parameter hybrid: The controller that has been popped.
     func addPoppedViewBackToWaitingStack(hybrid:HybridWebviewController) {
         // Once this has been pushed off the stack, reset it with
         // the placeholder URL for the new top domain
@@ -127,36 +181,29 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         let newTop = self.topViewController as? HybridWebviewController
         
         if newTop != nil {
-            self.addControllerToWaitingArea(hybrid, forDomain: newTop!.webview!.mappedURL!)
+            self.addControllerAndViewToWaitingArea(hybrid, forDomain: newTop!.webview!.mappedURL!)
         } else {
             // if we don't have a top view (should never happen!) just
             // use the view's own domain
-            self.addControllerToWaitingArea(hybrid, forDomain: hybrid.webview!.mappedURL!)
+            self.addControllerAndViewToWaitingArea(hybrid, forDomain: hybrid.webview!.mappedURL!)
         }
 
     }
     
+    
+    /// Prepare and load a webview for the specified URL, then push it into the view stack
+    /// when it is ready.
+    ///
+    /// - Parameter url: The URL to load. Not localhost URL - is mapped automatically.
     func pushNewHybridWebViewControllerFor(url:NSURL) {
         
         self.prepareWebviewFor(url)
         .then { newInstance -> Void in
             
             self.pushViewController(newInstance, animated: true)
-            
-//            newInstance.fiddleContentInsets()
-            
+
             if self.launchViewController != nil {
-                
-                let viewController = self.launchViewController!
-                self.launchViewController = nil
-                
-                UIView.animateWithDuration(0.2, animations: {
-                    viewController.view.transform = CGAffineTransformMakeScale(4, 4)
-                    viewController.view.alpha = 0
-                    }, completion: { finished in
-                        viewController.view.removeFromSuperview()
-                        
-                })
+                self.hideLaunchView()
             }
                 
         }
@@ -164,16 +211,26 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     }
     
     
-//    func popToNewHybridWebViewControllerFor(url:NSURL) {
-//        self.prepareWebviewFor(url)
-//        .then { newInstance -> Void in
-//            newInstance.prepareHeaderControls(self.viewControllers.count > 1)
-//            self.viewControllers.insert(newInstance, atIndex: self.viewControllers.count - 1)
-//            newInstance.fiddleContentInsets()
-//            self.popViewControllerAnimated(true)
-//        }
-//    }
+    /// Transition the launch view out of view by making transparent and scaling outwards
+    /// then removing the view entirely once that transition is complete
+    func hideLaunchView() {
+        let viewController = self.launchViewController!
+        self.launchViewController = nil
+        
+        UIView.animateWithDuration(0.2, animations: {
+            viewController.view.transform = CGAffineTransformMakeScale(4, 4)
+            viewController.view.alpha = 0
+            }, completion: { finished in
+                viewController.view.removeFromSuperview()
+                
+        })
+    }
     
+    
+    /// Set bar tint color and attempt to set the status bar style depending on
+    /// what that color is. This needs a lot of work.
+    ///
+    /// - Parameter metadata: the controller metadata to apply
     func applyMetadata(metadata:HybridWebviewMetadata) {
         self.navigationBar.barTintColor = metadata.color
         
@@ -206,25 +263,17 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         
     }
     
+    
+    /// When a controller show is complete, we check to see if there is a controller in the waiting area - if not, create one.
+    /// Then check to see if our new controller has a default back URL. If it does, and we don't have a parent view, create
+    /// it and put it in the stack.
     func navigationController(navigationController: UINavigationController, didShowViewController viewController: UIViewController, animated: Bool) {
         
         let hybrid = viewController as! HybridWebviewController
         
-        
-        // Ensure we have a cached view ready to go
-        
         if self.waitingAreaViewControllers.count == 0 {
-            
-            // We put this behind a timer because for some reason the title text
-            // of the recently pushed view sometimes disappears if we don't. Hooray
-            // weird, inconsistent bugs!
-            
-            
-            let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(1 * Double(NSEC_PER_SEC)))
-            dispatch_after(delayTime, dispatch_get_main_queue()) {
-                self.addControllerToWaitingArea(HybridWebviewController(), forDomain: hybrid.webview!.mappedURL!)
-
-            }
+            // Ensure we have a cached view ready to go
+            self.addControllerAndViewToWaitingArea(HybridWebviewController(), forDomain: hybrid.webview!.mappedURL!)
         }
         
         if self.viewControllers.indexOf(viewController) == 0 && hybrid.currentMetadata?.defaultBackURL != nil {
@@ -242,35 +291,26 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             .then { controller in
                 self.viewControllers.insert(controller, atIndex: 0)
             }
-            
-//            let underneathView = self.getNewController()
-//            
-//            self.viewControllers.insert(underneathView, atIndex: 0)
-//            let backURL = NSURL(string:hybrid.currentMetadata!.defaultBackURL!, relativeToURL: hybrid.webview!.URL!)!
-//            underneathView.events.once("popped", self.addPoppedViewBackToWaitingStack)
-//            
-//            var urlToLoad = backURL
-//            
-//            if WebServerDomainManager.isLocalServerURL(urlToLoad) {
-//                urlToLoad = WebServerDomainManager.mapServerURLToRequestURL(backURL)
-//            }
-//            
-//            underneathView.loadURL(urlToLoad, attemptAcceleratedLoading: false)
 
         }
-    
-        
-        
+
     }
     
+    
+    /// In theory this is set during setMetadata(). Haven't experimented extensively with light-colored navigation bars
+    /// though, so this needs more work.
     private var statusBarStyle = UIStatusBarStyle.Default
     
     override func preferredStatusBarStyle() -> UIStatusBarStyle {
         return statusBarStyle
     }
     
+    
+    /// The main HybridNavigationController the app uses. We only ever need one.
     static var current:HybridNavigationController?
     
+    
+    /// Create our main controller. Called in our AppDelegate.
     static func create() -> HybridNavigationController {
         self.current = HybridNavigationController()
         return self.current!
