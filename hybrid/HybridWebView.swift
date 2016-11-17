@@ -240,7 +240,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     }
     
     
-    /// Transform the raw URL into a remote URL, if it happens to be running on localhost
+    /// Transform the raw URL into a remote URL, if it happens to be running on localhost. If not, just return the current URL
     var mappedURL:NSURL? {
         get {
             let currentURL = self.URL

@@ -118,6 +118,7 @@
 		8ADDB6A41DDCF08E00B69AE8 /* HexColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A31DDCF08E00B69AE8 /* HexColor.swift */; };
 		8ADDB6A51DDCF09500B69AE8 /* HexColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A31DDCF08E00B69AE8 /* HexColor.swift */; };
 		8ADDB6A71DDD197500B69AE8 /* HybridWebviewMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A61DDD197400B69AE8 /* HybridWebviewMetadata.swift */; };
+		8ADDB6A91DDE067200B69AE8 /* RenderCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A81DDE067200B69AE8 /* RenderCheck.swift */; };
 		8AEA3F261D54056C000A7C70 /* server-test-data in Resources */ = {isa = PBXBuildFile; fileRef = 8AEA3F251D54056C000A7C70 /* server-test-data */; };
 		8AEBD0D21D42E6230042A4AB /* WebServerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */; };
 		8AEEDE5C1D26CF450032D588 /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
@@ -269,6 +270,7 @@
 		8ADDB6A01DDBCA7100B69AE8 /* PushEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushEvent.swift; sourceTree = "<group>"; };
 		8ADDB6A31DDCF08E00B69AE8 /* HexColor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HexColor.swift; sourceTree = "<group>"; };
 		8ADDB6A61DDD197400B69AE8 /* HybridWebviewMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridWebviewMetadata.swift; sourceTree = "<group>"; };
+		8ADDB6A81DDE067200B69AE8 /* RenderCheck.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RenderCheck.swift; sourceTree = "<group>"; };
 		8AEA3F251D54056C000A7C70 /* server-test-data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "server-test-data"; sourceTree = "<group>"; };
 		8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServerSpec.swift; sourceTree = "<group>"; };
 		8AEEDE5B1D26CF450032D588 /* db.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = db.swift; sourceTree = "<group>"; };
@@ -367,6 +369,7 @@
 				8A9D71171DC27DAD00375365 /* BackButtonSymbol.swift */,
 				8A0970B71DC977A300F16CF4 /* WebServerDomainManager.swift */,
 				8AA06FD21DCCF95600DE4F45 /* WebviewJS.swift */,
+				8ADDB6A81DDE067200B69AE8 /* RenderCheck.swift */,
 			);
 			name = native;
 			sourceTree = "<group>";
@@ -1064,6 +1067,7 @@
 				8A54109F1D381EF000F44F38 /* HybridWebView.swift in Sources */,
 				8ADDB6981DDBA66600B69AE8 /* ServiceWorkerStub.swift in Sources */,
 				8ADDB69B1DDBB4A800B69AE8 /* JSContextError.swift in Sources */,
+				8ADDB6A91DDE067200B69AE8 /* RenderCheck.swift in Sources */,
 				8A5283B21DBAAB2C00EB0886 /* ImageBitmap.swift in Sources */,
 				8A24493D1D6CF6F400052D92 /* ServiceWorkerRegistration.swift in Sources */,
 				8A2449421D6D0B6E00052D92 /* NotificationPermissionHandler.swift in Sources */,

@@ -10,29 +10,35 @@ import Foundation
 import GCDWebServer
 import PromiseKit
 
+
+/// A wrapper around GCDWebServer (https://github.com/swisspol/GCDWebServer). An instance is spun up for each origin (i.e. domain)
+/// we have a service worker running on. We use this server to pipe HTTP requests through worker fetch events when applicable.
 class WebServer {
     
-    var server = GCDWebServer()
+    private var server = GCDWebServer()
+    
+    
+    /// We store the port number that GCDWebServer decides on when it first starts up, so that when the app suspends and resumes
+    /// we can make sure that it is using the correct port.
     var chosenPortNumber: Int?
     
     init() throws {
         
-        self.server.addDefaultHandlerForMethod("POST", requestClass: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleRequest);
-        
-        self.server.addDefaultHandlerForMethod("GET", requestClass: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleRequest);
+        self.server.addDefaultHandlerForMethod("POST", requestClass: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleServiceWorkerRequest)
+        self.server.addDefaultHandlerForMethod("GET", requestClass: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleServiceWorkerRequest)
+        self.server.addDefaultHandlerForMethod("HEAD", requestClass: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleServiceWorkerRequest)
         
         try self.start()
         
     }
     
+    /// GCDWebServer has the ability to automatically suspend in the background, but
+    /// the port will change if we do that. Given that we might have webviews currently
+    /// sitting on those URLs, we want to keep port numbers consistent.
+    ///
+    /// So, we store the number in self.chosenPortNumber, then handle activation/deactivation ourselves in the
+    /// AppDelegate.
     func start() throws {
-        
-        // GCDWebServer has the ability to automatically suspend in the background, but
-        // the port will change if we do that. Given that we might have webviews currently
-        // sitting on those URLs, we want to keep port numbers consistent.
-        //
-        // So, we store the number, then handle activation/deactivation ourselves in the
-        // AppDelegate
         
         var options: [String: AnyObject] = [
             GCDWebServerOption_BindToLocalhost: true,
@@ -50,14 +56,21 @@ class WebServer {
     }
     
     
+    /// Shut down the server
     func stop() {
         self.server.stop()
     }
     
     
-    func handleServiceWorkerRequest(request:GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
+    /// This takes the HTTP request from our WKWebView and transforms it into a service worker fetch request,
+    /// if we are in the scope of one. If not, passes along to self.passRequestThroughToNetwork()
+    ///
+    /// - Parameters:
+    ///   - request: The request being sent
+    ///   - completionBlock: The GCD async execution block that allows us to send a response back
+    func handleServiceWorkerRequest(request:GCDWebServerRequest?, completionBlock: GCDWebServerCompletionBlock?) {
         
-        let mappedURL = WebServerDomainManager.mapServerURLToRequestURL(request.URL)
+        let mappedURL = WebServerDomainManager.mapServerURLToRequestURL(request!.URL)
         log.info("Request for " + mappedURL.absoluteString!)
         ServiceWorkerManager.getServiceWorkerWhoseScopeContainsURL(mappedURL)
         .then { (sw) -> Promise<Void> in
@@ -65,15 +78,15 @@ class WebServer {
                 
                 // We are likely on a domain that has a worker, but not within the scope of that worker.
                 
-                self.passRequestThroughToNetwork(request, completionBlock: completionBlock)
+                self.passRequestThroughToNetwork(request!, completionBlock: completionBlock!)
                 return Promise<Void>()
                 
             }
             
             
             let fetch = FetchRequest(url: mappedURL.absoluteString!, options: [
-                "method": request.method,
-                "headers": request.headers as! [String:String]
+                "method": request!.method,
+                "headers": request!.headers as! [String:String]
             ])
             
             fetch.headers.set("host", value: mappedURL.host!)
@@ -111,7 +124,7 @@ class WebServer {
                     gcdresponse.setValue(response.headers.get(key), forAdditionalHeader: key)
                 }
                 
-                completionBlock(gcdresponse)
+                completionBlock!(gcdresponse)
                 return Promise<Void>()
             }
             
@@ -122,12 +135,19 @@ class WebServer {
             let errAsNSData = String(err).dataUsingEncoding(NSUTF8StringEncoding)!
             let errorResponse = GCDWebServerDataResponse(data:errAsNSData, contentType: "text/plain")
             errorResponse.statusCode = 500
-            completionBlock(errorResponse)
+            completionBlock!(errorResponse)
 
         }
         
     }
     
+    
+    /// If our request is outside the scope of a service worker, we will pass it onto the outside network.
+    /// This requires rewriting the Host header, and rewriting the request URL.
+    ///
+    /// - Parameters:
+    ///   - request: The request we've detected to be outside of worker scope
+    ///   - completionBlock: The async block that lets us return content
     func passRequestThroughToNetwork(request: GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
         
         let urlToActuallyFetch = WebServerDomainManager.mapServerURLToRequestURL(request.URL)
@@ -167,107 +187,30 @@ class WebServer {
         
     }
     
-//    static func checkServerURLForReferrer(url: NSURL, referrer:String?) -> NSURL {
+//    func handleRequest(request: GCDWebServerRequest?, completionBlock:GCDWebServerCompletionBlock?) {
+//        log.info("Request for " + request!.URL.absoluteString!)
 //        
-//        if url.pathComponents?.count > 1 && url.pathComponents![1] == "__service_worker" {
-//            // we're already OK
-//            return url
+//        if request!.URL.path! == "/__placeholder" {
+//            self.respondWithPlaceholder(completionBlock!);
+//            return
 //        }
 //        
-//        if referrer == nil {
-//            // No referrer, nothing we can do anyway
-//            return url
-//        }
 //        
-//        var originalPath = url.path!
-//        
-//        if url.absoluteString!.hasSuffix("/") && originalPath.hasSuffix("/") == false {
-//            // NSURL strips this out and I don't know why. Very annoying.
-//            
-//            originalPath += "/"
-//        }
-//        
-//        let referrerURL = NSURL(string: referrer!)
-//        
-//        if referrerURL?.pathComponents?.count < 2 || referrerURL?.pathComponents?[1] != "__service_worker" {
-//            // isn't a service worker URL, so we can't map it
-//            return url
-//        }
-//        
-//        let redirectComponents = NSURLComponents(URL: referrerURL!, resolvingAgainstBaseURL: false)!
-//        
-//        let pathComponents:[String] = [
-//            referrerURL!.pathComponents![0], // /
-//            referrerURL!.pathComponents![1], // __service_worker
-//            "/",
-//            referrerURL!.pathComponents![2], // [hostname]
-//            originalPath
-//        ]
-//        
-//        
-//        redirectComponents.path = pathComponents.joinWithSeparator("")
-//        
-//        return redirectComponents.URL!
-//
+//        self.handleServiceWorkerRequest(request!, completionBlock: completionBlock!)
 //    }
-    
-//    func webviewBridge(request: GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
+//    
+//    func respondWithPlaceholder(completionBlock:GCDWebServerCompletionBlock) {
+//        // The placeholder we load in webviews when we're waiting for their final content
 //        
-//        if request.URL.path! == "/__activeWebviews" {
-//            // We need to be able to communicate with the notification process and tell it
-//            // which webviews we have active. To do this, we bundle up the WebviewRecord
-//            // into an NSData blob and send it over HTTP. Which feels kind of messy, but it
-//            // is easier than creating yet another communication channel.
-//            
-//            let records = HybridWebview.getActiveWebviewInfo()
-//            let encodedAsData = NSKeyedArchiver.archivedDataWithRootObject(records)
-//            let response = GCDWebServerDataResponse(data: encodedAsData, contentType: "application/octet-stream")
-//            completionBlock(response)
-//        } else if request.URL!.pathComponents?.count == 3 {
-//            let activeWebviewID = Int(request.URL!.pathComponents![2])!
-//            let webview = HybridWebview.getActiveWebviewAtIndex(activeWebviewID)
-//            let dataRequest = request as! GCDWebServerDataRequest
-//            let j = dataRequest.jsonObject
-//            
-//            let numberOfPorts = j["numberOfPorts"] as! Int
-//            
-//            webview.serviceWorkerAPI!.sendEventAwaitResponse("postMessage", arguments: [j["message"] as! String, String(numberOfPorts)])
-//            .then { response -> Void in
-//                let portResponses = try NSJSONSerialization.dataWithJSONObject(response, options: NSJSONWritingOptions())
-//                let dataResponse = GCDWebServerDataResponse(data: portResponses, contentType: "application/json")
-//                completionBlock(dataResponse)
-//                
-//            }
-//            .error { err in
-//                log.error(String(err))
-//            }
-//        }
+//        let template = "<html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1,user-scalable=no\" /></head><body><div style='background:red;position:absolute; top:0;left:0;width:100%;height:100%;padding-bottom:50px'>Hello</div></body></html>"
+//        
+//        let resp = GCDWebServerDataResponse(data: template.dataUsingEncoding(NSUTF8StringEncoding), contentType: "text/html")
+//        completionBlock(resp)
 //    }
-    
-    func handleRequest(request: GCDWebServerRequest?, completionBlock:GCDWebServerCompletionBlock?) {
-        log.info("Request for " + request!.URL.absoluteString!)
-        
-        if request!.URL.path! == "/__placeholder" {
-            self.respondWithPlaceholder(completionBlock!);
-            return
-        }
-        
-        
-        self.handleServiceWorkerRequest(request!, completionBlock: completionBlock!)
-    }
-    
-    func respondWithPlaceholder(completionBlock:GCDWebServerCompletionBlock) {
-        // The placeholder we load in webviews when we're waiting for their final content
-        
-        let template = "<html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1,user-scalable=no\" /></head><body><div style='background:red;position:absolute; top:0;left:0;width:100%;height:100%;padding-bottom:50px'>Hello</div></body></html>"
-        
-        let resp = GCDWebServerDataResponse(data: template.dataUsingEncoding(NSUTF8StringEncoding), contentType: "text/html")
-        completionBlock(resp)
-    }
     
     var port:Int {
         get {
-            return Int(server.port);
+            return Int(server.port)
         }
     }
     

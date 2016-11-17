@@ -1,0 +1,4 @@
+output: ../hybrid-docs/docs
+min_acl: private
+xcodebuild_arguments: [-workspace,hybrid.xcworkspace,-scheme,hybrid]
+skip_undocumented: true

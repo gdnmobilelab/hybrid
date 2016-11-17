@@ -42,14 +42,11 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         
         let poppedController = super.popViewControllerAnimated(animated)
         let top = self.topViewController as? HybridWebviewController
+        
         if top != nil && top?.currentMetadata != nil {
             self.applyMetadata(top!.currentMetadata!)
         }
-        
-        if top != nil {
-            top!.fiddleContentInsets()
-        }
-        
+    
         return poppedController
     }
     
@@ -83,31 +80,10 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         self.addToWaiting(controller)
         
         controller.webview?.loadHTMLString("<html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1,user-scalable=no\" /></head><body></body></html>", baseURL: forDomain)
-        
-       
-//        // Reset our webview with a new request to the placeholder
-//        
-//        let rewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(forDomain)
-//        
-//        if rewrittenURL == forDomain && WebServerDomainManager.isLocalServerURL(rewrittenURL) == false {
-//            // If the page isn't under any service worker scope we can't really do our
-//            // placeholder
-//            
-//            log.warning("Tried to create placeholder view for non-local URL " + forDomain.absoluteString!)
-//            controller.loadURL(NSURL(string: "about:blank")!, attemptAcceleratedLoading: false)
-//            return
-//        }
-//        
-//        
-//        let components = NSURLComponents(URL: forDomain, resolvingAgainstBaseURL: true)!
-//        
-//        components.path = "/__placeholder"
-//        
-//        controller.loadURL(components.URL!, attemptAcceleratedLoading: false)
 
     }
     
-    private func prepareWebviewFor(url:NSURL, attemptAcceleratedLoading:Bool) -> Promise<HybridWebviewController> {
+    private func prepareWebviewFor(url:NSURL) -> Promise<HybridWebviewController> {
         let newInstance = self.getNewController()
         
         var hasFiredReady = false
@@ -126,7 +102,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             
             newInstance.events.once("popped", self.addPoppedViewBackToWaitingStack)
             
-            newInstance.loadURL(url, attemptAcceleratedLoading: attemptAcceleratedLoading)
+            newInstance.loadURL(url)
             
             // Every now and then a view just doesn't load, for reasons that aren't clear.
             // So if it hasn't loaded within a second, push it anyway.
@@ -162,12 +138,12 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     
     func pushNewHybridWebViewControllerFor(url:NSURL) {
         
-        self.prepareWebviewFor(url, attemptAcceleratedLoading: true)
+        self.prepareWebviewFor(url)
         .then { newInstance -> Void in
             
             self.pushViewController(newInstance, animated: true)
             
-            newInstance.fiddleContentInsets()
+//            newInstance.fiddleContentInsets()
             
             if self.launchViewController != nil {
                 
@@ -262,7 +238,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
                 backURL = WebServerDomainManager.mapServerURLToRequestURL(backURL)
             }
             
-            self.prepareWebviewFor(backURL, attemptAcceleratedLoading: false)
+            self.prepareWebviewFor(backURL)
             .then { controller in
                 self.viewControllers.insert(controller, atIndex: 0)
             }
