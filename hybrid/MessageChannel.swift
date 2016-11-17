@@ -12,25 +12,26 @@ import WebKit
 import JavaScriptCore
 
 
-@objc protocol MessageEventExports : JSExport {
-    var data:String {get}
+@objc protocol ExtendableMessageEventExports : JSExport {
+    var data:AnyObject? {get}
     var ports:[MessagePort] {get}
-    init(data:String?, ports:[MessagePort]?)
+    init(data:AnyObject?, ports:[MessagePort]?)
 }
 
-@objc public class MessageEvent : NSObject, MessageEventExports {
-    var data:String
+
+/// Implementation of browser ExtendableMessageEvent: https://developer.mozilla.org/en-US/docs/Web/API/ExtendableMessageEvent
+@objc class ExtendableMessageEvent : ExtendableEvent, ExtendableMessageEventExports {
+    var data:AnyObject?
     var ports:[MessagePort]
+    
+    /// We use this to make sure we aren't echoing messages back to the
+    /// webview that sent them. Need to look at the logic of this because
+    /// it doesn't make a lot of sense that it would ever do that
     var fromWebView:WKWebView?
     
-
-    public required init(data:String?, ports: [MessagePort]?) {
+    required init(data:AnyObject?, ports: [MessagePort]?) {
       
-        if data != nil {
-            self.data = data!
-        } else {
-            self.data = ""
-        }
+        self.data = data
        
         if ports != nil {
             self.ports = ports!
@@ -39,37 +40,39 @@ import JavaScriptCore
         }
         
         self.fromWebView = nil
-        super.init()
+        super.init(type: "message")
 
     }
     
     
-    init(data:String, ports:[MessagePort], fromWebView:WKWebView?) {
+    init(data:AnyObject?, ports:[MessagePort], fromWebView:WKWebView?) {
         self.data = data
         self.ports = ports
         
-        // We use this to make sure we aren't echoing messages back to the
-        // webview that sent them.
         self.fromWebView = fromWebView
-        super.init()
+        super.init(type: "message")
+    }
+    
+    required init(type: String) {
+        fatalError("ExtendableMessageEvent must be created with data, ports initializer")
     }
 }
 
 @objc protocol MessagePortExports : JSExport {
-    func postMessage(message:JSValue, ports: [MessagePort]) -> Void
-    func postMessage(message:JSValue) -> Void
+    func postMessage(message:AnyObject, ports: [MessagePort]) -> Void
+    func postMessage(message:AnyObject) -> Void
     var onmessage:JSValue? {get set }
     init()
 }
 
-class CannotConvertToJSONError: ErrorType {}
-
+/// An implementation of MessagePort: https://developer.mozilla.org/en-US/docs/Web/API/MessagePort
 @objc public class MessagePort : NSObject, MessagePortExports {
     
-    let eventEmitter = Event<MessageEvent>()
+    let eventEmitter = Event<ExtendableMessageEvent>()
     private var messageListener:Listener?
-    dynamic var onmessage:JSValue?
     
+    /// Required for JS compatibility - you can use both addEventListener() and onmessage in JS contexts
+    var onmessage:JSValue?
     
     override required public init() {
         super.init()
@@ -77,7 +80,10 @@ class CannotConvertToJSONError: ErrorType {}
     }
     
     
-    private func handleMessage(message:MessageEvent) {
+    /// Attached to the eventEmitter to listen for incoming ExtendableMessageEvents
+    ///
+    /// - Parameter message: The message we want to pass onto our onmessage handler
+    private func handleMessage(message:ExtendableMessageEvent) {
         
         if self.onmessage == nil {
             return
@@ -86,50 +92,17 @@ class CannotConvertToJSONError: ErrorType {}
         onmessage!.callWithArguments([message])
     }
     
-    func jsValueToString(val:JSValue) throws -> String {
-        if val.isString == true {
-            return val.toString()
-        }
-        
-        var converted:AnyObject?
-        
-        if val.isObject == true {
-            converted = val.toObject()
-        }
-        if val.isArray == true {
-            converted = val.toArray()
-        }
-        if val.isNumber == true {
-            return String(val.toNumber())
-        }
-        
-        if converted == nil {
-            throw CannotConvertToJSONError()
-        }
-        let data = try NSJSONSerialization.dataWithJSONObject(converted!, options: NSJSONWritingOptions())
-        return String(data: data, encoding: NSUTF8StringEncoding)!
-    }
-    
-    func postMessage(data: JSValue) {
+    func postMessage(data: AnyObject) {
         self.postMessage(data, ports: [], fromWebView: nil)
     }
     
-    func postMessage(data:JSValue, ports:[MessagePort]) {
+    func postMessage(data:AnyObject, ports:[MessagePort]) {
         self.postMessage(data, ports: ports, fromWebView: nil)
     }
-    func postMessage(data:JSValue, ports:[MessagePort], fromWebView:WKWebView?) {
-        
-        do {
-            let converted = try self.jsValueToString(data)
-            self.postStringMessage(converted, ports: ports, fromWebView: fromWebView)
-        } catch {
-            log.error("JSValue conversion FAILED: " + String(error))
-        }
+    func postMessage(data:AnyObject, ports:[MessagePort], fromWebView:WKWebView?) {
+        self.eventEmitter.emit("emit", ExtendableMessageEvent(data: data, ports: ports,fromWebView: fromWebView))
     }
     
-    func postStringMessage(message:String, ports:[MessagePort] = [], fromWebView:WKWebView? = nil) {
-        self.eventEmitter.emit("emit", MessageEvent(data: message, ports: ports,fromWebView: fromWebView))
-    }
 }
 
 @objc protocol MessageChannelExports : JSExport {
@@ -138,6 +111,9 @@ class CannotConvertToJSONError: ErrorType {}
     init()
 }
 
+
+/// Implementation of MessageChannel: https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel
+/// Basically just a pairing of two MessagePorts - postMessage-ing into one triggers a message event on the other.
 @objc class MessageChannel : NSObject, MessageChannelExports {
     dynamic var port1 = MessagePort()
     dynamic var port2 = MessagePort()
@@ -147,11 +123,11 @@ class CannotConvertToJSONError: ErrorType {}
     
     override required init() {
         super.init()
-        self.listener1 = port1.eventEmitter.on("emit", { (msg: MessageEvent) in
+        self.listener1 = port1.eventEmitter.on("emit", { (msg: ExtendableMessageEvent) in
             self.port2.eventEmitter.emit("message", msg)
         })
         
-        self.listener2 = port2.eventEmitter.on("emit", { (msg: MessageEvent) in
+        self.listener2 = port2.eventEmitter.on("emit", { (msg: ExtendableMessageEvent) in
             self.port1.eventEmitter.emit("message", msg)
         })
         

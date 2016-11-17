@@ -26,7 +26,7 @@ class WebviewJS {
                 "loadedIndicator.style.top = '0px';",
                 "loadedIndicator.style.width = '1px';",
                 "loadedIndicator.style.height = '1px';",
-                "loadedIndicator.style.backgroundColor = 'rgb(0,255,255)';",
+                "loadedIndicator.style.backgroundColor = '" + RenderCheck.colorToCheckFor.toRGBString() + "';",
                 "loadedIndicator.style.zIndex = '999999';",
                 "document.body.appendChild(loadedIndicator);",
                 "window.__loadedIndicator = loadedIndicator;",

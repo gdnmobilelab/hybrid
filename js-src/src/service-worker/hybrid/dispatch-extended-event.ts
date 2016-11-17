@@ -1,7 +1,7 @@
 import {PushEvent} from '../globals/extended-event-types';
 
 hybrid.dispatchExtendableEvent = function(extendedEvent:any, cb:any) {
-    
+    debugger;
     let promise = Promise.resolve()
     .then(() => {
         self.dispatchEvent(extendedEvent);
@@ -33,11 +33,11 @@ hybrid.dispatchFetchEvent = function(data:any) {
     })
 }
 
-hybrid.dispatchMessageEvent = function(message:string, ports: [MessagePort]) {
-    let ev = {
-        type: "message",
-        ports: ports,
-        data: JSON.parse(message)
-    }
-    self.dispatchEvent(ev as MessageEvent);
-}
+// hybrid.dispatchMessageEvent = function(message:string, ports: [MessagePort]) {
+//     let ev = {
+//         type: "message",
+//         ports: ports,
+//         data: JSON.parse(message)
+//     }
+//     self.dispatchEvent(ev as MessageEvent);
+// }

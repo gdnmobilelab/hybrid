@@ -264,11 +264,11 @@ struct PromiseReturn {
     /// - Parameters:
     ///   - message: message to send - usually a JSON string, but not necessarily.
     ///   - ports: An array of MessagePorts, to be used to send back messages from the worker to the client.
-    func receiveMessage(message:String, ports: [MessagePort]) {
-        self.jsContext.objectForKeyedSubscript("hybrid")
-            .objectForKeyedSubscript("dispatchMessageEvent")
-            .callWithArguments([message, ports])
-    }
+//    func receiveMessage(message:String, ports: [MessagePort]) {
+//        self.jsContext.objectForKeyedSubscript("hybrid")
+//            .objectForKeyedSubscript("dispatchMessageEvent")
+//            .callWithArguments([message, ports])
+//    }
 
     
     /// Very simple check to see if any given URL lives within the scope of this worker
@@ -294,7 +294,7 @@ struct PromiseReturn {
         self.jsContext.setObject(self.clientManager, forKeyedSubscript: "clients")
         self.jsContext.setObject(MessageChannel.self, forKeyedSubscript: "MessageChannel")
         self.jsContext.setObject(WebviewClient.self, forKeyedSubscript: "Client")
-        self.jsContext.setObject(MessageEvent.self, forKeyedSubscript: "MessageEvent")
+        self.jsContext.setObject(ExtendableMessageEvent.self, forKeyedSubscript: "ExtendableMessageEvent")
         self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
         self.jsContext.setObject(OffscreenCanvas.self, forKeyedSubscript: "OffscreenCanvas")
         self.jsContext.setObject(TwoDContext.self, forKeyedSubscript: "CanvasRenderingContext2D")

@@ -16,22 +16,20 @@ class MessagePortMessage {
     
     
     /// Turn into a simple object that can be serialized to JSON.
-    ///
-    /// - Returns: <#return value description#>
     func toSerializableObject() -> [String: AnyObject] {
         return [
-            "data": self.data,
+            "data": self.data != nil ? self.data! : NSNull(),
             "passedPortIds": self.passedPortIds
         ]
     }
     
-    var data:String!
+    let data:AnyObject?
     
     /// We can't pass MessagePorts themselves into the WKWebView, so instead we keep track of the port
     /// IDs we're sending, and using the JS bridge to communicate between native and web.
     var passedPortIds:[Int]!
 
-    init(data:String, passedPortIds:[Int]) {
+    init(data:AnyObject?, passedPortIds:[Int]) {
         self.data = data
         self.passedPortIds = passedPortIds
     }
@@ -77,7 +75,7 @@ class MessageChannelManager: ScriptMessageManager {
             let data = message["data"] as! String
             let additionalPortIndexes = message["additionalPortIndexes"] as! [Int]
             
-            self.sendToPort(index, data: data, additionalPortIndexes: additionalPortIndexes)
+            self.sendToPort(index, jsonString: data, additionalPortIndexes: additionalPortIndexes)
             return nil
         }
         if (operation == "postMessage") {
@@ -104,7 +102,7 @@ class MessageChannelManager: ScriptMessageManager {
     ///   - portIndex: The index of the port to send to
     ///   - data: The data to send - a string, usually a JSON string, but not necessarily
     ///   - additionalPortIndexes: The additional ports to attach to postMessage() as a secondary argument
-    func sendToPort(portIndex:Int, data:String, additionalPortIndexes:[Int]) {
+    func sendToPort(portIndex:Int, jsonString:String, additionalPortIndexes:[Int]) {
         let port = self.activePorts[portIndex]
         
         if port == nil {
@@ -116,7 +114,15 @@ class MessageChannelManager: ScriptMessageManager {
             return self.activePorts[index]!
         }
         
-        port!.postStringMessage(data, ports: portsFromIndexes, fromWebView: self.webview)
+        do {
+            let data = try NSJSONSerialization.JSONObjectWithData(jsonString.dataUsingEncoding(NSUTF8StringEncoding)!, options: [])
+            port!.postMessage(data, ports: portsFromIndexes, fromWebView: self.webview)
+        } catch {
+            log.error("Could not post JSON string: " + String(error))
+        }
+        
+        
+        
     }
     
     

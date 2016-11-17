@@ -25,6 +25,21 @@ class RenderCheck {
     private var displayLink:CADisplayLink?
     private var onRender:(()->())?
     
+    class colorToCheckFor {
+        static let red:CGFloat = 0
+        static let blue:CGFloat = 255
+        static let green:CGFloat = 255
+        
+        static func toRGBString() -> String {
+            
+            let asString = [red,green,blue].map { i in
+                return String(Int(i))
+            }.joinWithSeparator(",")
+            
+            return "rgb(" + asString + ")"
+        }
+    }
+    
     init(target:WKWebView) {
         self.target = target
         
@@ -40,6 +55,10 @@ class RenderCheck {
         self.width = Int(target.frame.width)
     }
     
+    
+    /// Check the pixel to see if it's the color we specified in the indicator
+    ///
+    /// - Returns: True if the pixel matches the color specified in colorToCheckFor. Otherwise, false.
     private func checkIfRendered() -> Bool {
         self.target.scrollView.layer.renderInContext(self.renderCheckContext!)
         
@@ -49,9 +68,11 @@ class RenderCheck {
         let green = CGFloat(self.pixel![startAt + 1])
         let blue =  CGFloat(self.pixel![startAt + 2])
         
-        return red == 0 && blue == 255 && green == 255
+        return red == colorToCheckFor.red && blue == colorToCheckFor.blue && green == colorToCheckFor.green
     }
     
+    
+    /// Used in the CADisplayLink callback to fire the actual pixel check, then fire onRender if successful
     @objc private func checkForRender() {
         if self.checkIfRendered() == true {
             log.debug("Checked if webview was ready, it WAS")
@@ -71,10 +92,13 @@ class RenderCheck {
     /// - Parameter onRender: The function to run when the render was successful.
     func waitForRender(onRender: () -> ()) {
         self.onRender = onRender
-        // 4 * because we need to store the red, green, blue and alpha of each pixel
+        
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.PremultipliedLast.rawValue)
+        
+        // 4 * because we need to store the red, green, blue and alpha of each pixel
         self.pixel = UnsafeMutablePointer<CUnsignedChar>.alloc(4 * width * height)
+        
         self.renderCheckContext = CGBitmapContextCreate(pixel!, width, height, 8, width * 4, colorSpace, bitmapInfo.rawValue)!
         
         self.target.evaluateJavaScript(WebviewJS.setLoadingIndicator, completionHandler: nil)

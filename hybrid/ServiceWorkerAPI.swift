@@ -38,8 +38,16 @@ class ServiceWorkerAPI: ScriptMessageManager {
     ///   - message: The message, usually a JSON-encoded string
     ///   - ports: Ports to pass onwards to the worker to be used to send replies back
     func handleIncomingPostMessage(message:String, ports:[MessagePort]) {
+        
+        do {
+            let parsed = try NSJSONSerialization.JSONObjectWithData(message.dataUsingEncoding(NSUTF8StringEncoding)!, options: [])
+            let ev = ExtendableMessageEvent(data: parsed, ports: ports)
+            self.currentActiveServiceWorker?.dispatchExtendableEvent(ev)
+        } catch {
+            log.error("Could not parse JSON for incoming postMessage. " + String(error))
+        }
 
-        self.currentActiveServiceWorker!.receiveMessage(message, ports: ports)
+
     }
     
     
