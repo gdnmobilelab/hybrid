@@ -15,11 +15,11 @@ import JavaScriptCore
     func createDB(name:String) -> [AnyObject]
 }
 
+
+/// While service workers don't implement WebSQL, there are no independent implementations of IndexedDB
+/// we can use in the workers. So instead, we implement WebSQL on top of FMDB, then use a JS shim to
+/// provide IndexedDB functionality, backed by WebSQL.
 @objc class WebSQLDatabaseCreator: NSObject, WebSQLDatabaseCreatorExports {
-    
-    // We need to store DBs based on origin, but the actual webview doesn't have the
-    // correct URL for this (it has the localhost one) so this is quick wrapper
-    // class allowing us to create a DB in the webview.
     
     let origin:String
     let context:JSContext
@@ -52,6 +52,11 @@ import JavaScriptCore
         self.context.setObject(self, forKeyedSubscript: "__WebSQLDatabaseCreator")
     }
     
+    
+    /// Create our WebSQL database
+    ///
+    /// - Parameter name: Name of the database. Is used as the DB filename
+    /// - Returns: An two-item array. First item is an error, if it exists. Second is the DB instance, if there is no error.
     func createDB(name:String) -> [AnyObject] {
         
         // JSExport doesn't like functions that throw, so we're passing back an array
@@ -74,6 +79,9 @@ import JavaScriptCore
     var rows: [[String : AnyObject]] {get}
 }
 
+
+
+/// Implementation of SQLResultSet: https://www.w3.org/TR/webdatabase/#sqlresultset
 @objc class WebSQLResultSet : NSObject, WebSQLResultSetExports {
     var error:JSValue? = nil
     var insertId:NSNumber? = nil
@@ -86,6 +94,7 @@ import JavaScriptCore
 }
 
 
+/// Obj-C functionality that is used in js-src's websql.ts.
 @objc class WebSQLDatabase: NSObject, WebSQLDatabaseExports {
     
     let db:FMDatabase
@@ -97,7 +106,9 @@ import JavaScriptCore
         self.db.open()
     }
     
-    func runQuery(query:String, args: [AnyObject]?) -> WebSQLResultSet {
+    
+    
+    private func runQuery(query:String, args: [AnyObject]?) -> WebSQLResultSet {
         
         let resultSet = WebSQLResultSet()
         
@@ -141,8 +152,13 @@ import JavaScriptCore
         return resultSet
     }
     
+    /// Implementation of https://www.w3.org/TR/webdatabase/#dom-sqltransaction-sync-executesql
+    ///
+    /// - Parameters:
+    ///   - query: The text SQL query
+    ///   - args: The values to pass into the query (substituting ? values)
+    /// - Returns: A result set for the completed query, with the error property set if an error occurred.
     func exec(queries: [[String : AnyObject]], readOnly: Bool, callback: JSValue) {
-//        self.db.beginTransaction()
         
         var resultSets = [WebSQLResultSet]()
         
@@ -159,10 +175,8 @@ import JavaScriptCore
         }
         
         if resultSetsWithErrors.count > 0 {
-//            self.db.rollback()
             callback.callWithArguments([resultSetsWithErrors[0]])
         } else {
-//            self.db.commit()
             callback.callWithArguments([JSValue(undefinedInContext: self.context), resultSets])
         }
     }

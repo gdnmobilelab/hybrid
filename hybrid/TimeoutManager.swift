@@ -22,9 +22,17 @@ struct Interval {
     var timeoutIndex: Int
 }
 
+
+/// JSContext has no built-in support for setTimeout, setInterval, etc. So we need to manually
+/// add that support into the context. All public methods are exactly as you'd expect.
 @objc class ServiceWorkerTimeoutManager : NSObject, ServiceWorkerTimeoutManagerExports {
     
     var lastTimeoutIndex:Int = -1
+    
+    
+    /// Couldn't find an easy way to cancel a dispatch_after, so instead, when the dispatch completes
+    /// we check this array to see if the timeout has been cancelled. If it has, we don't run the
+    /// corresponding JS function.
     var cancelledTimeouts = Set<Int>()
     
     func hookFunctions(jsContext:JSContext) {
@@ -45,7 +53,7 @@ struct Interval {
         
     }
     
-    func fireInterval(interval: Interval) {
+    private func fireInterval(interval: Interval) {
         
         dispatch_after(
             dispatch_time(
@@ -70,7 +78,7 @@ struct Interval {
         self.clearTimeout(index)
     }
     
-    func jsValueMaybeNullToDouble(val:JSValue) -> Double {
+    private func jsValueMaybeNullToDouble(val:JSValue) -> Double {
         
         var timeout:Double = 0
         

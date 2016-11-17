@@ -19,6 +19,11 @@
 		8A0970C31DCB988900F16CF4 /* DownloadToDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */; };
 		8A0970C41DCB9C1F00F16CF4 /* DownloadToDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */; };
 		8A0970C51DCB9C1F00F16CF4 /* DownloadToDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */; };
+		8A1278701DDE4E92006EE758 /* OffscreenCanvasRenderingContext2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A12786F1DDE4E92006EE758 /* OffscreenCanvasRenderingContext2D.swift */; };
+		8A1278711DDE4EF8006EE758 /* OffscreenCanvasRenderingContext2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A12786F1DDE4E92006EE758 /* OffscreenCanvasRenderingContext2D.swift */; };
+		8A1278731DDE5057006EE758 /* WindowClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1278721DDE5057006EE758 /* WindowClient.swift */; };
+		8A1278741DDE5064006EE758 /* WindowClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1278721DDE5057006EE758 /* WindowClient.swift */; };
+		8A1278751DDE6916006EE758 /* OffscreenCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283AE1DBA752200EB0886 /* OffscreenCanvas.swift */; };
 		8A24493D1D6CF6F400052D92 /* ServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */; };
 		8A24493F1D6CF71500052D92 /* PushManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493E1D6CF71500052D92 /* PushManager.swift */; };
 		8A2449421D6D0B6E00052D92 /* NotificationPermissionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449411D6D0B6E00052D92 /* NotificationPermissionHandler.swift */; };
@@ -36,8 +41,7 @@
 		8A4C47EA1DD59E7A0023B00A /* ExtendableEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4C47E81DD59B490023B00A /* ExtendableEvent.swift */; };
 		8A4C47EC1DD658830023B00A /* JSONSerializable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4C47EB1DD658830023B00A /* JSONSerializable.swift */; };
 		8A4C47ED1DD659AC0023B00A /* JSONSerializable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4C47EB1DD658830023B00A /* JSONSerializable.swift */; };
-		8A5283AF1DBA752200EB0886 /* Canvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283AE1DBA752200EB0886 /* Canvas.swift */; };
-		8A5283B01DBAA61D00EB0886 /* Canvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283AE1DBA752200EB0886 /* Canvas.swift */; };
+		8A5283AF1DBA752200EB0886 /* OffscreenCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283AE1DBA752200EB0886 /* OffscreenCanvas.swift */; };
 		8A5283B21DBAAB2C00EB0886 /* ImageBitmap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283B11DBAAB2C00EB0886 /* ImageBitmap.swift */; };
 		8A5283B31DBAB7C400EB0886 /* ImageBitmap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283B11DBAAB2C00EB0886 /* ImageBitmap.swift */; };
 		8A5283B51DBAC29700EB0886 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283B41DBAC29700EB0886 /* CanvasView.swift */; };
@@ -200,6 +204,8 @@
 		8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PendingWebviewActions.swift; sourceTree = "<group>"; };
 		8A0970C01DCB8D6700F16CF4 /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 		8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadToDisk.swift; sourceTree = "<group>"; };
+		8A12786F1DDE4E92006EE758 /* OffscreenCanvasRenderingContext2D.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OffscreenCanvasRenderingContext2D.swift; sourceTree = "<group>"; };
+		8A1278721DDE5057006EE758 /* WindowClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WindowClient.swift; sourceTree = "<group>"; };
 		8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistration.swift; sourceTree = "<group>"; };
 		8A24493E1D6CF71500052D92 /* PushManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushManager.swift; sourceTree = "<group>"; };
 		8A2449401D6D0ABD00052D92 /* hybrid.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = hybrid.entitlements; sourceTree = "<group>"; };
@@ -217,7 +223,7 @@
 		8A4BB68D1D9D59BE00A1DCBD /* notification-extension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "notification-extension.entitlements"; sourceTree = "<group>"; };
 		8A4C47E81DD59B490023B00A /* ExtendableEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExtendableEvent.swift; sourceTree = "<group>"; };
 		8A4C47EB1DD658830023B00A /* JSONSerializable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSONSerializable.swift; sourceTree = "<group>"; };
-		8A5283AE1DBA752200EB0886 /* Canvas.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Canvas.swift; sourceTree = "<group>"; };
+		8A5283AE1DBA752200EB0886 /* OffscreenCanvas.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OffscreenCanvas.swift; sourceTree = "<group>"; };
 		8A5283B11DBAAB2C00EB0886 /* ImageBitmap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageBitmap.swift; sourceTree = "<group>"; };
 		8A5283B41DBAC29700EB0886 /* CanvasView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
 		8A5283B61DBE5B6D00EB0886 /* PayloadToNotificationContent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PayloadToNotificationContent.swift; sourceTree = "<group>"; };
@@ -398,7 +404,7 @@
 		8A8846041D30072100CF9369 /* service-worker */ = {
 			isa = PBXGroup;
 			children = (
-				8A5283AE1DBA752200EB0886 /* Canvas.swift */,
+				8A5283AE1DBA752200EB0886 /* OffscreenCanvas.swift */,
 				8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */,
 				8A8846051D30074500CF9369 /* ServiceWorkerInstance.swift */,
 				8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */,
@@ -416,6 +422,8 @@
 				8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */,
 				8ADDB69A1DDBB4A800B69AE8 /* JSContextError.swift */,
 				8ADDB6A01DDBCA7100B69AE8 /* PushEvent.swift */,
+				8A12786F1DDE4E92006EE758 /* OffscreenCanvasRenderingContext2D.swift */,
+				8A1278721DDE5057006EE758 /* WindowClient.swift */,
 			);
 			name = "service-worker";
 			sourceTree = "<group>";
@@ -1018,9 +1026,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8A5283B01DBAA61D00EB0886 /* Canvas.swift in Sources */,
 				8A6C4E981DA5616D008429C0 /* NotificationHandler.swift in Sources */,
 				8A5283B51DBAC29700EB0886 /* CanvasView.swift in Sources */,
+				8A1278711DDE4EF8006EE758 /* OffscreenCanvasRenderingContext2D.swift in Sources */,
 				8A933F651D8214F200F9DC72 /* Notification.swift in Sources */,
 				8ADDB69C1DDBB4CD00B69AE8 /* JSContextError.swift in Sources */,
 				8A9D71161DC12B9100375365 /* StoredPushEvent.swift in Sources */,
@@ -1043,6 +1051,7 @@
 				8ACCDCD71D7A131900A137E1 /* PromiseBridge.swift in Sources */,
 				8A933F681D87049500F9DC72 /* SharedResources.swift in Sources */,
 				8ACCDCD81D7A131900A137E1 /* ServiceWorkerRegistration.swift in Sources */,
+				8A1278741DDE5064006EE758 /* WindowClient.swift in Sources */,
 				8A4C47EA1DD59E7A0023B00A /* ExtendableEvent.swift in Sources */,
 				8A5283BB1DBE98B200EB0886 /* PayloadToNotificationContent.swift in Sources */,
 				8ADDB6991DDBA74C00B69AE8 /* ServiceWorkerStub.swift in Sources */,
@@ -1050,6 +1059,7 @@
 				8ACCDCDA1D7A131900A137E1 /* Console.swift in Sources */,
 				8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */,
 				8A0970C41DCB9C1F00F16CF4 /* DownloadToDisk.swift in Sources */,
+				8A1278751DDE6916006EE758 /* OffscreenCanvas.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1060,7 +1070,8 @@
 				8A4C47EC1DD658830023B00A /* JSONSerializable.swift in Sources */,
 				8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */,
 				8A4C47E91DD59B490023B00A /* ExtendableEvent.swift in Sources */,
-				8A5283AF1DBA752200EB0886 /* Canvas.swift in Sources */,
+				8A1278701DDE4E92006EE758 /* OffscreenCanvasRenderingContext2D.swift in Sources */,
+				8A5283AF1DBA752200EB0886 /* OffscreenCanvas.swift in Sources */,
 				8A0156D01D65FCAE0091995E /* GlobalFetch.swift in Sources */,
 				8ADDB6A41DDCF08E00B69AE8 /* HexColor.swift in Sources */,
 				8AA2CBD31DB943E4004F95C3 /* StoredPushEvent.swift in Sources */,
@@ -1096,6 +1107,7 @@
 				8A7786391D5B98130062E12B /* ScriptMessageHandler.swift in Sources */,
 				8A77863D1D5D1C520062E12B /* ServiceWorkerAPI.swift in Sources */,
 				8A6C4E971DA560B4008429C0 /* NotificationHandler.swift in Sources */,
+				8A1278731DDE5057006EE758 /* WindowClient.swift in Sources */,
 				8A7786341D5B74E30062E12B /* ConsoleManager.swift in Sources */,
 				8A9D71181DC27DAD00375365 /* BackButtonSymbol.swift in Sources */,
 				8A2449441D6E118300052D92 /* NotificationDelegate.swift in Sources */,

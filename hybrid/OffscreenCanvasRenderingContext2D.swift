@@ -1,8 +1,8 @@
 //
-//  Canvas.swift
+//  CanvasRenderingContext2D.swift
 //  hybrid
 //
-//  Created by alastair.coote on 21/10/2016.
+//  Created by alastair.coote on 17/11/2016.
 //  Copyright © 2016 Alastair Coote. All rights reserved.
 //
 
@@ -10,9 +10,7 @@ import Foundation
 import JavaScriptCore
 import UIKit
 
-
-
-@objc protocol TwoDContextExports : JSExport {
+@objc protocol OffscreenCanvasRenderingContext2DExports : JSExport {
     init(width: Int, height: Int)
     func clearRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat)
     func fillRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat)
@@ -39,7 +37,7 @@ import UIKit
     
 }
 
-@objc class TwoDContext: NSObject, TwoDContextExports {
+@objc class OffscreenCanvasRenderingContext2D: NSObject, OffscreenCanvasRenderingContext2DExports {
     
     let context: CGContext
     
@@ -133,7 +131,7 @@ import UIKit
         
         // Have to do this to avoid image drawing upside down
         
-
+        
         CGContextSaveGState(self.context)
         
         CGContextTranslateCTM(self.context, 0, CGFloat(bitmap.height))
@@ -142,9 +140,9 @@ import UIKit
         CGContextDrawImage(self.context, destRect, bitmap.image)
         
         CGContextRestoreGState(self.context)
-//        
-//        CGContextScaleCTM(self.context, -1.0, 1.0)
-//        CGContextTranslateCTM(self.context, 0, CGFloat(-bitmap.height))
+        //
+        //        CGContextScaleCTM(self.context, -1.0, 1.0)
+        //        CGContextTranslateCTM(self.context, 0, CGFloat(-bitmap.height))
     }
     
     func drawImage(bitmap:ImageBitmap, sx: CGFloat, sy: CGFloat, sWidth: CGFloat, sHeight: CGFloat, dx:CGFloat, dy: CGFloat, dWidth:CGFloat, dHeight:CGFloat) {
@@ -158,7 +156,7 @@ import UIKit
         self.drawImage(bitmapCrop, dx: dx, dy: dy, dWidth: dWidth, dHeight: dHeight)
     }
     
-
+    
     private var fillStyleColor = HexColor(hexString: "#000000")
     
     var fillStyle:String {
@@ -203,39 +201,4 @@ import UIKit
         }
     }
     
-}
-
-@objc protocol OffscreenCanvasExports : JSExport {
-    func getContext(contextType:String) -> TwoDContext?
-    var width:Int {get}
-    var height:Int {get}
-}
-
-
-@objc class OffscreenCanvas : NSObject, OffscreenCanvasExports {
-    
-    private let twoDContext: TwoDContext
-    let width:Int
-    let height:Int
-    
-    init(width: Int, height: Int) {
-        self.width = width
-        self.height = height
-        self.twoDContext = TwoDContext(width: width, height: height)
-    }
-    
-    init(existingContext: CGContext) {
-        self.width = CGBitmapContextGetWidth(existingContext)
-        self.height = CGBitmapContextGetHeight(existingContext)
-        self.twoDContext = TwoDContext(context: existingContext)
-    }
-    
-    func getContext(contextType:String) -> TwoDContext? {
-    
-        if contextType != "2d" {
-            return nil
-        }
-        
-        return self.twoDContext
-    }
 }

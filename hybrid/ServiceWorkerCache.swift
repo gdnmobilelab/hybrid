@@ -20,19 +20,25 @@ class CacheNoMatchError : ErrorType {}
     func keysCallback(success: JSValue, failure: JSValue) -> Void
 }
 
+
+/// Implemention of the Cache API: https://developer.mozilla.org/en-US/docs/Web/API/Cache using
+/// callbacks instead of promises. We wrap in promises on the js-src side - might be possible to
+/// directly use promises here, but I'm yet to work out how.
 @objc class ServiceWorkerCacheHandler : NSObject, ServiceWorkerCacheHandlerExports {
     
+    /// The instance this cache handler is attached to
     let worker: ServiceWorkerInstance
-    let jsContext: JSContext
     
-    init(jsContext: JSContext, serviceWorker: ServiceWorkerInstance) {
-        self.jsContext = jsContext
+    init(serviceWorker: ServiceWorkerInstance) {
         self.worker = serviceWorker
         
         super.init()
         
-        jsContext.setObject(self, forKeyedSubscript: "caches")
-        jsContext.setObject(ServiceWorkerCache.self, forKeyedSubscript: "Cache")
+        // Set the global caches object
+        self.worker.jsContext.setObject(self, forKeyedSubscript: "caches")
+        
+        // And set the class variable
+        self.worker.jsContext.setObject(ServiceWorkerCache.self, forKeyedSubscript: "Cache")
         
         
     }
@@ -41,9 +47,9 @@ class CacheNoMatchError : ErrorType {}
         success.callWithArguments([ServiceWorkerCache(swURL: self.worker.url, swScope: self.worker.scope, name: name)])
     }
     
-    func open(name:String) -> ServiceWorkerCache {
-        return ServiceWorkerCache(swURL: self.worker.url, swScope: self.worker.scope, name: name)
-    }
+//    func open(name:String) -> ServiceWorkerCache {
+//        return ServiceWorkerCache(swURL: self.worker.url, swScope: self.worker.scope, name: name)
+//    }
     
     func keysCallback(success: JSValue, failure: JSValue) {
         do {

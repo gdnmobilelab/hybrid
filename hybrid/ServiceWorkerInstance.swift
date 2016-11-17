@@ -125,7 +125,7 @@ struct PromiseReturn {
     
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.jsContext.name = "SW — " + url.absoluteString!
-        self.cache = ServiceWorkerCacheHandler(jsContext: self.jsContext, serviceWorker: self)
+        self.cache = ServiceWorkerCacheHandler(serviceWorker: self)
         GlobalFetch.addToJSContext(self.jsContext)
         
         self.registration = ServiceWorkerRegistration(worker: self)
@@ -259,18 +259,6 @@ struct PromiseReturn {
     }
     
     
-    /// Receive a MessageEvent from a webview. Can have MessagePorts to allow replies back to WebViews.
-    ///
-    /// - Parameters:
-    ///   - message: message to send - usually a JSON string, but not necessarily.
-    ///   - ports: An array of MessagePorts, to be used to send back messages from the worker to the client.
-//    func receiveMessage(message:String, ports: [MessagePort]) {
-//        self.jsContext.objectForKeyedSubscript("hybrid")
-//            .objectForKeyedSubscript("dispatchMessageEvent")
-//            .callWithArguments([message, ports])
-//    }
-
-    
     /// Very simple check to see if any given URL lives within the scope of this worker
     ///
     /// - Parameter url: The URL to check
@@ -293,11 +281,11 @@ struct PromiseReturn {
         self.jsContext.setObject(Console.self, forKeyedSubscript: "NativeConsole")
         self.jsContext.setObject(self.clientManager, forKeyedSubscript: "clients")
         self.jsContext.setObject(MessageChannel.self, forKeyedSubscript: "MessageChannel")
-        self.jsContext.setObject(WebviewClient.self, forKeyedSubscript: "Client")
+        self.jsContext.setObject(WindowClient.self, forKeyedSubscript: "Client")
         self.jsContext.setObject(ExtendableMessageEvent.self, forKeyedSubscript: "ExtendableMessageEvent")
         self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
         self.jsContext.setObject(OffscreenCanvas.self, forKeyedSubscript: "OffscreenCanvas")
-        self.jsContext.setObject(TwoDContext.self, forKeyedSubscript: "CanvasRenderingContext2D")
+        self.jsContext.setObject(OffscreenCanvasRenderingContext2D.self, forKeyedSubscript: "CanvasRenderingContext2D")
         self.jsContext.setObject(ImageBitmap.self, forKeyedSubscript: "ImageBitmap")
         self.jsContext.setObject(ExtendableEvent.self, forKeyedSubscript: "ExtendableEvent")
         self.jsContext.setObject(Notification.self, forKeyedSubscript: "Notification")

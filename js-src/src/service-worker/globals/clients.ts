@@ -31,9 +31,5 @@
 (self as any).clients = clients;
 
 (Client.prototype as any).postMessage = function(message:any, ports: MessagePort[]) {
-    Client.prototype.postMessagePortsCallback.apply(this, [JSON.stringify(message), ports, (err:Error) => {
-        if (err) {
-            throw err;
-        }
-    }])
+    Client.prototype.postMessagePortsCallback.apply(this, [message, ports])
 }
