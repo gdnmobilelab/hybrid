@@ -15,37 +15,52 @@ import PromiseKit
     var pushManager:PushManager {get}
     var scope:String {get}
     var active:ServiceWorkerInstance? {get}
+    var waiting:ServiceWorkerInstance? {get}
+    var installing:ServiceWorkerInstance? {get}
     func showNotification(title:String, options: [String:AnyObject])
     func updateCallback(success:JSValue, failure:JSValue)
 }
 
+
+/// A port of web ServiceWorkerRegistration: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration
 @objc class ServiceWorkerRegistration: NSObject, ServiceWorkerRegistrationExports {
     var pushManager:PushManager
     var worker:ServiceWorkerInstance
     
-    
-    // We use this in our notification extension - in the web APIs push and notifications
-    // are totally separate, but they aren't in iOS. So, if we happen to be running inside
-    // the extension and intercepting a notification, rather than run the normal local
-    // notification show functions, we call this content handler.
-    
-    static var notificationExtensionContentHandler: ((UNNotificationContent) -> Void)? = nil
-    
-    static let WORKER_ID = "workerID"
-    
+    /// For compatibility with the JS API - we need scope to be accessible at the registration level
     var scope:String {
         get {
             return self.worker.scope.absoluteString!
         }
     }
     
+    // All three of these need some work - in the web API you could have both installing and activated workers
+    // at once. The way we've got this, it's just one worker switching attributes depending on current status.
+    
+    // TODO: We need to track current workers while new ones are being installed, etc.
+    
+    
+    /// Return the current service worker if it is in an Activated state.
     var active:ServiceWorkerInstance? {
         get {
-            // Could expand logic here - current worker could (maybe?) be installing, but another worker
-            // still be active
             return self.worker.installState == ServiceWorkerInstallState.Activated ? self.worker : nil
         }
     }
+    
+    /// Return the current service worker if it is in an Installed state
+    var waiting:ServiceWorkerInstance? {
+        get {
+            return self.worker.installState == ServiceWorkerInstallState.Installed ? self.worker : nil
+        }
+    }
+    
+    /// Return the current service worker if it is in an Installing state
+    var installing:ServiceWorkerInstance? {
+        get {
+            return self.worker.installState == ServiceWorkerInstallState.Installing ? self.worker : nil
+        }
+    }
+
     
     init(worker:ServiceWorkerInstance) {
         self.pushManager = PushManager()
@@ -53,6 +68,12 @@ import PromiseKit
     }
     
     
+    /// Show a notification locally, without going through any remote notification handlers.
+    ///
+    /// - Parameters:
+    ///   - title: The text for the notification title
+    ///   - options: Options object as outlined here: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification,
+    ///              with additional options for canvas and video.
     func showNotification(title:String, options: [String:AnyObject]) {
         
         let payload = [
@@ -78,6 +99,12 @@ import PromiseKit
        
     }
     
+    
+    /// Update the current service worker. Uses JS callbacks, wrapped in a promise in js-src
+    ///
+    /// - Parameters:
+    ///   - success: JS function to call on success
+    ///   - failure: JS function to run on failure
     func updateCallback(success:JSValue, failure: JSValue) {
         ServiceWorkerManager.update(self.worker.url, scope: nil, forceCheck: true)
         .then { serviceWorkerId -> Void in

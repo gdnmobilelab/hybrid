@@ -1,4 +1,8 @@
+author: The Guardian Mobile Innovation Lab
+author_url: https://www.gdnmobilelab.com
+root_url: https://gdnmobilelab.github.io/hybrid/docs
 output: ../hybrid-docs/docs
+copyright: test
 min_acl: private
 xcodebuild_arguments: [-workspace,hybrid.xcworkspace,-scheme,hybrid]
-skip_undocumented: true
+#skip_undocumented: true

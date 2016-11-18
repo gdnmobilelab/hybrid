@@ -24,6 +24,8 @@
 		8A1278731DDE5057006EE758 /* WindowClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1278721DDE5057006EE758 /* WindowClient.swift */; };
 		8A1278741DDE5064006EE758 /* WindowClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1278721DDE5057006EE758 /* WindowClient.swift */; };
 		8A1278751DDE6916006EE758 /* OffscreenCanvas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283AE1DBA752200EB0886 /* OffscreenCanvas.swift */; };
+		8A1278771DDE6A9F006EE758 /* ServiceWorkerCacheStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1278761DDE6A9F006EE758 /* ServiceWorkerCacheStorage.swift */; };
+		8A1278781DDE720E006EE758 /* ServiceWorkerCacheStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1278761DDE6A9F006EE758 /* ServiceWorkerCacheStorage.swift */; };
 		8A24493D1D6CF6F400052D92 /* ServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */; };
 		8A24493F1D6CF71500052D92 /* PushManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493E1D6CF71500052D92 /* PushManager.swift */; };
 		8A2449421D6D0B6E00052D92 /* NotificationPermissionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449411D6D0B6E00052D92 /* NotificationPermissionHandler.swift */; };
@@ -206,6 +208,7 @@
 		8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadToDisk.swift; sourceTree = "<group>"; };
 		8A12786F1DDE4E92006EE758 /* OffscreenCanvasRenderingContext2D.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OffscreenCanvasRenderingContext2D.swift; sourceTree = "<group>"; };
 		8A1278721DDE5057006EE758 /* WindowClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WindowClient.swift; sourceTree = "<group>"; };
+		8A1278761DDE6A9F006EE758 /* ServiceWorkerCacheStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerCacheStorage.swift; sourceTree = "<group>"; };
 		8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistration.swift; sourceTree = "<group>"; };
 		8A24493E1D6CF71500052D92 /* PushManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushManager.swift; sourceTree = "<group>"; };
 		8A2449401D6D0ABD00052D92 /* hybrid.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = hybrid.entitlements; sourceTree = "<group>"; };
@@ -411,6 +414,7 @@
 				8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */,
 				8A54109A1D38179E00F44F38 /* ServiceWorkerManager.swift */,
 				8A878AC51D4A8F7600D31F85 /* ServiceWorkerCache.swift */,
+				8A1278761DDE6A9F006EE758 /* ServiceWorkerCacheStorage.swift */,
 				8A0156D11D66402D0091995E /* PromiseBridge.swift */,
 				8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */,
 				8A24493E1D6CF71500052D92 /* PushManager.swift */,
@@ -1026,6 +1030,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A1278781DDE720E006EE758 /* ServiceWorkerCacheStorage.swift in Sources */,
 				8A6C4E981DA5616D008429C0 /* NotificationHandler.swift in Sources */,
 				8A5283B51DBAC29700EB0886 /* CanvasView.swift in Sources */,
 				8A1278711DDE4EF8006EE758 /* OffscreenCanvasRenderingContext2D.swift in Sources */,
@@ -1089,6 +1094,7 @@
 				8A933F671D87049500F9DC72 /* SharedResources.swift in Sources */,
 				8A0970BA1DCA692E00F16CF4 /* PendingWebviewActions.swift in Sources */,
 				8AA06FD31DCCF95600DE4F45 /* WebviewJS.swift in Sources */,
+				8A1278771DDE6A9F006EE758 /* ServiceWorkerCacheStorage.swift in Sources */,
 				8A88460D1D3504EA00CF9369 /* ServiceWorkerWebSql.swift in Sources */,
 				8AA06FD51DCD233E00DE4F45 /* NotificationVideo.swift in Sources */,
 				8A24494B1D6F760300052D92 /* Util.swift in Sources */,

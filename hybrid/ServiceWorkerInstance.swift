@@ -36,7 +36,7 @@ struct PromiseReturn {
     /// The actual JavascriptCore context in which our worker lives and runs.
     var jsContext:JSContext!
     
-    var cache:ServiceWorkerCacheHandler!
+    var cache:ServiceWorkerCacheStorage!
     
     
     /// Errors encountered in the JSContext are passed to exceptionHandler() rather than
@@ -125,17 +125,13 @@ struct PromiseReturn {
     
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.jsContext.name = "SW — " + url.absoluteString!
-        self.cache = ServiceWorkerCacheHandler(serviceWorker: self)
+        self.cache = ServiceWorkerCacheStorage(serviceWorker: self)
         GlobalFetch.addToJSContext(self.jsContext)
         
         self.registration = ServiceWorkerRegistration(worker: self)
         self.clientManager = WebviewClientManager(serviceWorker: self)
         
         self.hookFunctions()
-        
-        if ServiceWorkerManager.currentlyActiveServiceWorkers[instanceId] != nil {
-            NSLog("THIS SHOULD NOT OCCUR")
-        }
         
         ServiceWorkerManager.currentlyActiveServiceWorkers[instanceId] = self
     }

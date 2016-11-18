@@ -11,69 +11,12 @@ import PromiseKit
 import FMDB
 import JavaScriptCore
 
-class CacheOperationNotSupportedError: ErrorType {}
+
+/// If a URL to be cached returns a non-200 status code, we throw an error.
 class CacheAddRequestFailedError : ErrorType {}
+
+/// When Cache.match() fails it throws an error rather than return a null response.
 class CacheNoMatchError : ErrorType {}
-
-@objc protocol ServiceWorkerCacheHandlerExports: JSExport {
-    func openCallback(name:String, success: JSValue, failure: JSValue) -> Void
-    func keysCallback(success: JSValue, failure: JSValue) -> Void
-}
-
-
-/// Implemention of the Cache API: https://developer.mozilla.org/en-US/docs/Web/API/Cache using
-/// callbacks instead of promises. We wrap in promises on the js-src side - might be possible to
-/// directly use promises here, but I'm yet to work out how.
-@objc class ServiceWorkerCacheHandler : NSObject, ServiceWorkerCacheHandlerExports {
-    
-    /// The instance this cache handler is attached to
-    let worker: ServiceWorkerInstance
-    
-    init(serviceWorker: ServiceWorkerInstance) {
-        self.worker = serviceWorker
-        
-        super.init()
-        
-        // Set the global caches object
-        self.worker.jsContext.setObject(self, forKeyedSubscript: "caches")
-        
-        // And set the class variable
-        self.worker.jsContext.setObject(ServiceWorkerCache.self, forKeyedSubscript: "Cache")
-        
-        
-    }
-    
-    func openCallback(name: String, success: JSValue, failure: JSValue) {
-        success.callWithArguments([ServiceWorkerCache(swURL: self.worker.url, swScope: self.worker.scope, name: name)])
-    }
-    
-//    func open(name:String) -> ServiceWorkerCache {
-//        return ServiceWorkerCache(swURL: self.worker.url, swScope: self.worker.scope, name: name)
-//    }
-    
-    func keysCallback(success: JSValue, failure: JSValue) {
-        do {
-            try Db.mainDatabase.inTransaction({ (db) in
-                
-                let resultSet = try db.executeQuery("SELECT DISTINCT cache_id FROM cache WHERE service_worker_url = ?", values: [self.worker.url.absoluteString!])
-                
-                var ids: [String] = []
-                
-                while resultSet.next() {
-                    ids.append(resultSet.stringForColumn("cache_id"))
-                }
-                
-                resultSet.close()
-                
-                success.callWithArguments([JSValue(object: ids, inContext: success.context)])
-                
-            })
-        } catch {
-            failure.callWithArguments([JSValue(newErrorFromMessage: String(error), inContext: failure.context)])
-        }
-    }
-}
-
 
 @objc protocol ServiceWorkerCacheExports : JSExport {
     func addAllCallback(urls:[String], success:JSValue, failure: JSValue) -> Void
@@ -87,6 +30,7 @@ struct RequestAndResponse {
 }
 
 
+/// An implementation of the Cache API: https://developer.mozilla.org/en-US/docs/Web/API/Cache
 @objc class ServiceWorkerCache: NSObject, ServiceWorkerCacheExports {
     
     let serviceWorkerURL:NSURL
@@ -100,21 +44,36 @@ struct RequestAndResponse {
         self.name = name
     }
     
+    
+    /// Since the only difference between add and addAll is that addAll takes an array,
+    /// we just immediately pass this to addAll with a single value array.
     func addCallback(url:String, success: JSValue, failure:JSValue) {
         self.addAllCallback([url], success: success, failure: failure)
     }
     
+    
+    /// Callback wrapper for addAll(). Is turned back into a JS promise-based function in js-src
+    ///
+    /// - Parameters:
+    ///   - urls: An array of URLs as strings
+    ///   - success: The JS function to run on cache success
+    ///   - failure: The JS function to run with an error occurs.
     func addAllCallback(urls:[String], success:JSValue, failure: JSValue) {
         self.addAll(urls)
-        .then { returnBool in
-            success.callWithArguments([returnBool])
+        .then {
+            success.callWithArguments([])
         }
         .error { err in
             failure.callWithArguments([String(err)])
         }
     }
     
-    func addAll(urls: [String]) -> Promise<Bool> {
+    
+    /// Take an array of URLs, download them, and store them in our FDMB instance.
+    ///
+    /// - Parameter urls: An array of URLs, in string form. Resolved to service worker scope if they are relative URLs.
+    /// - Returns: A Promise that resolves when the operation has completed (or throws if it doesn't work)
+    private func addAll(urls: [String]) -> Promise<Void> {
         
         // TODO: what about URLs that redirect?
         
@@ -162,15 +121,21 @@ struct RequestAndResponse {
     
                     })
                     
-                    
                     log.info("Successfully cached: " + urls.joinWithSeparator(", "))
-                    return Promise<Bool>(true)
+                    return Promise<Void>()
             }
 
         })
         
     }
     
+    
+    /// JS callback wrapper for match() function. Is wrapped in JS promises in js-src.
+    ///
+    /// - Parameters:
+    ///   - request: Either an instance of FetchRequest or a string URL.
+    ///   - success: The JS function to pass the cache match
+    ///   - failure: The JS function to pass any error that occurs when trying to match, which includes the lack of a match
     func matchCallback(request: JSValue, success: JSValue, failure: JSValue) {
         
         var url = ""
@@ -189,12 +154,12 @@ struct RequestAndResponse {
         }
     }
     
+    
+    /// Query the database to see if we have a match for the URL provided, within this cache's ID.
+    ///
+    /// - Parameter url: The URL to try to match
+    /// - Returns: A promise that resolves to a FetchResponse, or throws an error if one is not found
     func match(url: NSURL) -> Promise<FetchResponse> {
-        
-        // match doesn't actually return the response object because sending to the JSContext
-        // would be too costly. Instead we map it back again in the web server. That said, means
-        // we can't touch/adjust response in JS. Is that a problem?
-        
         
         return Promise<Void>()
         .then {

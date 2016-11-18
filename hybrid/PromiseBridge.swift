@@ -16,6 +16,9 @@ import JavaScriptCore
     
 }
 
+
+/// A wrapper around JavaScript promises that allows us to hook into success and failure
+/// when they are executed.
 @objc public class JSPromiseBridge: NSObject, JSPromiseBridgeExports {
     
     typealias CompleteFunc = (JSValue?, JSValue?) -> Void
@@ -35,13 +38,9 @@ import JavaScriptCore
     }
 }
 
-class TestError : ErrorType {}
 
+/// Wrap around a JS promise and turn into a PromiseKit promise. This needs some work.
 class PromiseBridge<T: NSObject> : Promise<T?> {
-    
-//    init(jsContext: JSContext, path: String, args: [AnyObject]) {
-//        
-//    }
     
     init(jsPromise:JSValue) {
         super.init { (fulfill, reject) in

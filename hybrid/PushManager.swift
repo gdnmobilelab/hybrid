@@ -11,11 +11,41 @@ import EmitterKit
 import JavaScriptCore
 
 @objc protocol PushSubscriptionExports : JSExport {
-    
+    var platform:String {get}
+    var bundle_name:String {get}
+    var device_id:String {get}
+    var sandbox:Bool {get}
+    func toJSON() -> AnyObject
 }
 
+
+/// In theory this is an implementation of https://developer.mozilla.org/en-US/docs/Web/API/
+/// PushSubscription, but the keys are totally different, because native notifications are
+/// handled very differently.
 @objc class PushSubscription : NSObject, PushSubscriptionExports {
+    var platform = "iOS"
+    var bundle_name:String
+    var device_id:String
+    var sandbox:Bool
     
+    init(bundleName: String, deviceId:String, sandbox:Bool) {
+        self.bundle_name = bundleName
+        self.device_id = deviceId
+        self.sandbox = sandbox
+    }
+    
+    
+    /// Seems somewhat redundant, but it's in the spec, so we'll recreate it
+    ///
+    /// - Returns: an object with all the keys of the PushSubscription
+    func toJSON() -> AnyObject {
+        return [
+            "platform": self.platform,
+            "device_id": self.device_id,
+            "bundle_name": self.bundle_name,
+            "sandbox": self.sandbox
+        ]
+    }
 }
 
 @objc protocol PushManagerExports : JSExport {
@@ -24,6 +54,9 @@ import JavaScriptCore
     init()
 }
 
+
+/// Implementation of https://developer.mozilla.org/en-US/docs/Web/API/PushManager, except
+/// that functions are wrapped in callbacks. They're then wrapped in JS promises in js-src
 @objc class PushManager : NSObject, PushManagerExports {
     
     private static var deviceTokenListener:Listener?
@@ -92,12 +125,7 @@ import JavaScriptCore
         
         let appName = Util.appBundle().bundleIdentifier!
         
-        let returnObj = [
-            "platform": "iOS",
-            "bundle_name": appName,
-            "device_id" : PushManager.deviceToken!,
-            "sandbox": PushManager.isAPNSSandbox()
-        ]
+        let returnObj = PushSubscription(bundleName: appName, deviceId: PushManager.deviceToken!, sandbox: PushManager.isAPNSSandbox())
         
         success.callWithArguments([returnObj])
     }
