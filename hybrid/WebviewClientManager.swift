@@ -125,9 +125,11 @@ enum WebviewClientEventType: Int32 {
 }
 
 @objc protocol WebviewClientManagerExports : JSExport {
-    func claimCallback(callback:JSValue)
-    func matchAll(options:JSValue, callback:JSValue)
-    func openWindow(url:String, options:AnyObject, callback:JSValue)
+    func claim() -> JSPromise
+    func matchAll(options:JSValue) -> JSPromise
+    
+    @objc(openWindow::)
+    func openWindow(url:String, options:AnyObject?) -> JSPromise
 }
 
 
@@ -189,9 +191,7 @@ enum WebviewClientEventType: Int32 {
     
     
     /// Allows a worker to claim any webviews under its scope and become their active worker
-    ///
-    /// - Parameter callback: Callback to run on completion - is wrapped into a promise in js-src
-    func claimCallback(callback:JSValue) {
+    func claim() -> JSPromise {
         
         WebviewClientManager.currentWebviewRecords.forEach { record in
             if record.url == nil {
@@ -211,18 +211,13 @@ enum WebviewClientEventType: Int32 {
             }
         }
         
-        callback.callWithArguments([])
-
+        return JSPromise.resolve(nil)
         
     }
     
     
     /// Find all webviews that fall under the current worker scope
-    ///
-    /// - Parameters:
-    ///   - options: Currently not implemented. Details here: https://developer.mozilla.org/en-US/docs/Web/API/Clients/matchAll
-    ///   - callback: Callback to run on completion. Mapped to a promise in js-src
-    func matchAll(options:JSValue, callback:JSValue) {
+    func matchAll(options: JSValue) -> JSPromise {
 
         let matchingRecords = WebviewClientManager.currentWebviewRecords.filter { record in
             
@@ -236,29 +231,33 @@ enum WebviewClientEventType: Int32 {
             return WindowClient(url: record.url!.absoluteString!, uniqueId: String(record.index))
         }
         
-        callback.callWithArguments([JSValue(nullInContext: callback.context), matchesToClients])
+        return JSPromise.resolve(matchesToClients)
         
     }
-    
+    @objc(openWindow::)
     /// Open a new webview with the selected URL. Implements non-standard options argument, if external:true
     /// is provided in this options object, we will pass the open on to the OS rather than open a webview.
     ///
     /// - Parameters:
     ///   - url: The URL to open
     ///   - options: An object, currently the 'external' attribute is the only one supported.
-    ///   - callback: Callback to run on completion. Wrapped into a promise in js-src
-    func openWindow(url:String, options:AnyObject, callback:JSValue) {
+    func openWindow(url:String, options:AnyObject?) -> JSPromise {
         
         let urlToOpen = NSURL(string: url,relativeToURL: self.serviceWorker.scope)!
         
-        let newEvent = WebviewClientEvent(type: WebviewClientEventType.OpenWindow, record: nil, options: [
-            "urlToOpen": urlToOpen.absoluteString!,
-            "openOptions": options
-        ])
+        var optionsToSave: [String:AnyObject] = [
+            "urlToOpen": urlToOpen.absoluteString!
+        ]
+        
+        if let optionsExists = options {
+            optionsToSave["openOptions"] = optionsExists
+        }
+        
+        let newEvent = WebviewClientEvent(type: WebviewClientEventType.OpenWindow, record: nil, options: optionsToSave)
         
         WebviewClientManager.clientEvents.emit(newEvent)
  
-        callback.callWithArguments([JSValue(nullInContext: callback.context)])
+        return JSPromise.resolve(nil)
     }
     
     required init(serviceWorker:ServiceWorkerInstance) {

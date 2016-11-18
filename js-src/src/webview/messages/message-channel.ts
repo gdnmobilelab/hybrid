@@ -32,7 +32,7 @@ function receiveMessage(portIndex:number, message:MessagePortMessage) {
         })
         
         console.debug("Posting message to native index", thisPort.nativePortIndex);
-        thisPort.sendOriginalPostMessage(JSON.parse(message.data), mappedPorts);
+        thisPort.sendOriginalPostMessage(message.data, mappedPorts);
     } catch (err) {
         console.error(err)
     }

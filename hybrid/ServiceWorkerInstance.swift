@@ -78,6 +78,8 @@ struct PromiseReturn {
         }
     }
     
+    var globalFetch:GlobalFetch
+    
     
     /// Another shim to match the service worker spec, this turns out installstate enum into
     /// a string.
@@ -115,6 +117,8 @@ struct PromiseReturn {
         self.installState = installState
         self.instanceId = instanceId
         
+        self.globalFetch = GlobalFetch(workerScope: self.scope)
+        
         let urlComponents = NSURLComponents(URL: url, resolvingAgainstBaseURL: false)!
         urlComponents.path = nil
         self.jsContext = JSContext()
@@ -126,7 +130,7 @@ struct PromiseReturn {
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.jsContext.name = "SW — " + url.absoluteString!
         self.cache = ServiceWorkerCacheStorage(serviceWorker: self)
-        GlobalFetch.addToJSContext(self.jsContext)
+        self.globalFetch.addToJSContext(self.jsContext)
         
         self.registration = ServiceWorkerRegistration(worker: self)
         self.clientManager = WebviewClientManager(serviceWorker: self)
@@ -268,6 +272,9 @@ struct PromiseReturn {
     /// into a ServiceWorkerGlobalScope class at some point, possibly.
     private func hookFunctions() {
         
+        let selfObj = JSValue(newObjectInContext: self.jsContext)
+        self.jsContext.setObject(selfObj, forKeyedSubscript: "self")
+        
         self.timeoutManager.hookFunctions(self.jsContext)
         
         self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
@@ -285,6 +292,14 @@ struct PromiseReturn {
         self.jsContext.setObject(ImageBitmap.self, forKeyedSubscript: "ImageBitmap")
         self.jsContext.setObject(ExtendableEvent.self, forKeyedSubscript: "ExtendableEvent")
         self.jsContext.setObject(Notification.self, forKeyedSubscript: "Notification")
+        self.jsContext.setObject(JSPromise.self, forKeyedSubscript: "HybridPromise")
+        self.jsContext.setObject(PushMessageData.self, forKeyedSubscript: "PushMessageData")
+        
+        
+        // Need to add to a ServiceWorkerGlobalScope, really
+        
+        selfObj.setObject(self.clientManager, forKeyedSubscript: "clients")
+        
     }
     
     
@@ -356,7 +371,7 @@ struct PromiseReturn {
         
         let processPromises = pendingPushes.map { push -> Promise<Void> in
             
-            let pushEvent = PushEvent(data: push.payload)
+            let pushEvent = PushEvent(dataAsString: push.payload)
             
             return self.dispatchExtendableEvent(pushEvent)
             .then {_ in
@@ -384,7 +399,7 @@ struct PromiseReturn {
             let contextJS = try NSString(contentsOfFile: workerContextPath, encoding: NSUTF8StringEncoding) as String
             fulfill(contextJS)
         }.then { js in
-            return self.runScript("var self = {}; var global = self; hybrid = {}; var window = global; var navigator = {}; navigator.userAgent = 'Hybrid service worker';" + js)
+            return self.runScript("var global = self; hybrid = {}; var window = global; var navigator = {}; navigator.userAgent = 'Hybrid service worker';" + js)
         }.then { js in
             self.applyGlobalVariables()
             return Promise<Void>()

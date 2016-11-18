@@ -10,15 +10,16 @@ import Foundation
 import JavaScriptCore
 
 @objc protocol PushEventExports : JSExport {
-    var data: String {get}
+    var data: PushMessageData {get}
 }
 
 @objc class PushEvent: ExtendableEvent, PushEventExports {
    
-    let data: String
+    let data: PushMessageData
     
-    init(data:String) {
-        self.data = data
+    init(dataAsString:String) {
+        self.data = PushMessageData()
+        self.data.data = dataAsString.dataUsingEncoding(NSUTF8StringEncoding)
         super.init(type: "push")
     }
     

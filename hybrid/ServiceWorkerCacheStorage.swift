@@ -10,8 +10,8 @@ import Foundation
 import JavaScriptCore
 
 @objc protocol ServiceWorkerCacheStorageExports: JSExport {
-    func openCallback(name:String, success: JSValue, failure: JSValue) -> Void
-    func keysCallback(success: JSValue, failure: JSValue) -> Void
+    func open(name:String) -> JSPromise
+    func keys() -> JSPromise
 }
 
 
@@ -30,32 +30,28 @@ import JavaScriptCore
         
         // Set the global caches object
         self.worker.jsContext.setObject(self, forKeyedSubscript: "caches")
-        
+        "".uppercaseString
         // And set the class variable
         self.worker.jsContext.setObject(ServiceWorkerCache.self, forKeyedSubscript: "Cache")
         
     }
     
     
-    /// Create a new ServiceWorkerCache instance with the specified name. Uses callbacks, wrapped
-    /// into promises on the JS side
+    /// Create a new ServiceWorkerCache instance with the specified name. 
     ///
     /// - Parameters:
     ///   - name: The name to use
-    ///   - success: The JS function to call with the new instance
-    ///   - failure: Is never called, this can't actually fail
-    func openCallback(name: String, success: JSValue, failure: JSValue) {
-        success.callWithArguments([ServiceWorkerCache(swURL: self.worker.url, swScope: self.worker.scope, name: name)])
+    func open(name: String) -> JSPromise {
+        return JSPromise.resolve(ServiceWorkerCache(swURL: self.worker.url, swScope: self.worker.scope, name: name))
     }
     
     
     /// Get the keys of all the caches in the database. Didn't notice this when first implementing, so we have to do a custom
     /// SQL query to get distinct keys. Not sure there's really a huge performance issue though.
-    ///
-    /// - Parameters:
-    ///   - success: The JS function to call with an array of strings representing the keys
-    ///   - failure: The JS function to pass the error to if database connection fails
-    func keysCallback(success: JSValue, failure: JSValue) {
+    func keys() -> JSPromise {
+       
+        let promise = JSPromise()
+        
         do {
             try Db.mainDatabase.inTransaction({ (db) in
                 
@@ -69,11 +65,13 @@ import JavaScriptCore
                 
                 resultSet.close()
                 
-                success.callWithArguments([JSValue(object: ids, inContext: success.context)])
+                promise.resolve(ids)
                 
             })
         } catch {
-            failure.callWithArguments([JSValue(newErrorFromMessage: String(error), inContext: failure.context)])
+            promise.reject(error)
         }
+        
+        return promise
     }
 }

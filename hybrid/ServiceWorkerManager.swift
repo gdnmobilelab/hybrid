@@ -293,7 +293,7 @@ class ServiceWorkerManager {
             
             if serviceWorkerURL.host != "localhost" && (serviceWorkerURL.scheme == "http" || scope.scheme == "http") {
                 log.error("Both scope and service worker URL must be under HTTPS")
-                throw ServiceWorkerNotHTTPSError()
+//                throw ServiceWorkerNotHTTPSError()
             }
             
             var newId:Int64 = -1

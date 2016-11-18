@@ -9,6 +9,7 @@
 import Foundation
 import EmitterKit
 import JavaScriptCore
+import PromiseKit
 
 @objc protocol PushSubscriptionExports : JSExport {
     var platform:String {get}
@@ -49,9 +50,9 @@ import JavaScriptCore
 }
 
 @objc protocol PushManagerExports : JSExport {
-    func getSubscriptionCallback(success: JSValue, failure: JSValue)
-    func subscribeCallback(success: JSValue, failure: JSValue)
-    init()
+    
+    func subscribe() -> JSPromise
+    func getSubscription() -> JSPromise
 }
 
 
@@ -86,13 +87,16 @@ import JavaScriptCore
             return false
         #endif
     }
-    
-    override required init() {
-        super.init()
-    }
-    
-    func subscribeCallback(success: JSValue, failure: JSValue) {
-        if PushManager.deviceToken == nil {
+
+    func _subscribe() -> Promise<PushSubscription> {
+        
+        let sub = self._getSubscription()
+        
+        if sub != nil {
+            
+            return Promise<PushSubscription>(sub!)
+            
+        } else {
             
             // There is a slight delay in receiving the remote device token. So if we've
             // called subscribe as opposed to get, we wait for it.
@@ -101,32 +105,41 @@ import JavaScriptCore
             // here, but it's not available in the notification-content context, so we can't.
             // Instead, we call it when we request notification permission in
             // NotificationPermissionHandler.swift
+
             
-            ApplicationEvents.once("didRegisterForRemoteNotificationsWithDeviceToken", { _ in
-                self.getSubscriptionCallback(success, failure: failure)
-            })
-        } else {
-            self.getSubscriptionCallback(success, failure: failure)
+            return Promise<PushSubscription> { fulfill, reject in
+                ApplicationEvents.once("didRegisterForRemoteNotificationsWithDeviceToken", { _ in
+                    fulfill(self._getSubscription()!)
+                })
+            }
         }
     }
     
-    func getSubscriptionCallback(success: JSValue, failure: JSValue) {
-        
+    func subscribe() -> JSPromise {
+        return PromiseToJSPromise.pass(self._subscribe())
+    }
+    
+    func getSubscription() -> JSPromise {
+        return JSPromise.resolve(self._getSubscription())
+    }
+
+    
+    func _getSubscription() -> PushSubscription? {
         if PushManager.deviceToken == nil {
             
             // If we don't have the device token yet then we don't technically have a
             // subscription.
             
-            success.callWithArguments([JSValue(nullInContext: success.context)])
+            return nil
+
+        } else {
+            let appName = Util.appBundle().bundleIdentifier!
             
-//            failure.callWithArguments([JSValue(newErrorFromMessage: "Not registered for remote notifications", inContext: failure.context)])
-            return
+            let returnObj = PushSubscription(bundleName: appName, deviceId: PushManager.deviceToken!, sandbox: PushManager.isAPNSSandbox())
+            
+            return returnObj
         }
-        
-        let appName = Util.appBundle().bundleIdentifier!
-        
-        let returnObj = PushSubscription(bundleName: appName, deviceId: PushManager.deviceToken!, sandbox: PushManager.isAPNSSandbox())
-        
-        success.callWithArguments([returnObj])
+
     }
+    
 }

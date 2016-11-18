@@ -14,11 +14,17 @@ import JavaScriptCore
 
 /// The part of our FetchHeaders object that will be available inside a JSContext
 @objc protocol FetchHeadersExports : JSExport {
+    
+    @objc(set::)
     func set(name: String, value:String)
+    
     func get(name: String) -> String?
-    func deleteValue(name:String)
+    func delete(name:String)
     func getAll(name:String) -> [String]?
+    
+    @objc(append::)
     func append(name:String, value:String)
+    
     func keys() -> [String]
     init()
 }
@@ -29,14 +35,16 @@ import JavaScriptCore
     
     private var values = [String: [String]]()
     
+    @objc(set::)
     func set(name: String, value: String) {
         values[name.lowercaseString] = [value]
     }
     
-    func deleteValue(name:String) {
+    func delete(name:String) {
         values.removeValueForKey(name.lowercaseString)
     }
     
+    @objc(append::)
     func append(name: String, value: String) {
         if var val = values[name.lowercaseString] {
             val.append(value)
@@ -135,15 +143,15 @@ import JavaScriptCore
 /// The part of our FetchBody object that will be available inside a JSContext
 @objc protocol FetchBodyExports : JSExport {
     
-    func json(callback:JSValue, errorCallback: JSValue) -> Void
-    func text(callback:JSValue, errorCallback: JSValue) -> Void
-    func blob(callback:JSValue, errorCallback: JSValue) -> Void
+    func json() -> JSPromise
+    func text() -> JSPromise
+    func blob() -> JSPromise
     var bodyUsed:Bool {get}
 }
 
 
 /// A class inherited by FetchRequest and FetchResponse, to provide calls to retreive the body of either
-@objc public class FetchBody: NSObject, FetchBodyExports {
+@objc class FetchBody: NSObject, FetchBodyExports {
     
     /// Boolean to indicate whether the body of this request/response has already been consumed
     var bodyUsed:Bool = false
@@ -168,49 +176,65 @@ import JavaScriptCore
     }
     
     
+    
     /// Parse the body as JSON
     ///
-    /// - Parameters:
-    ///   - callback: JS function to pass the successfully parsed JSON to
-    ///   - errorCallback: JS function to pass an error to if parsing fails
-    public func json(callback:JSValue, errorCallback: JSValue) -> Void{
+    /// - Returns: a JS promise that resolves to JSON, or throws if the text can't be parsed
+    func json() -> JSPromise {
         
-        self.wrapInCallbacks(callback, errorCallback: errorCallback) { _ in
+        let promise = JSPromise()
+        do {
             let obj = try NSJSONSerialization.JSONObjectWithData(self.data!, options: NSJSONReadingOptions())
             self.bodyUsed = true
-            return obj
+            promise.resolve(obj)
+        } catch {
+            promise.reject(error)
         }
+        
+        return promise
         
     }
     
+    class DataTransformError : ErrorType {}
     
     /// Parse the body as plaintext
     ///
-    /// - Parameters:
-    ///   - callback: JS function to pass the text to
-    ///   - errorCallback: JS function to pass an error to in the case of failure
-    func text(callback:JSValue, errorCallback: JSValue) {
+    /// - Returns: a JS promise that resolves to text. Throws if data can't be converted
+    func text() -> JSPromise {
         
-        self.wrapInCallbacks(callback, errorCallback: errorCallback) { _ in
+        let promise = JSPromise()
+        
+        do {
+            let str = String(data: self.data!, encoding: NSUTF8StringEncoding)
             
-            let str = String(data: self.data!, encoding: NSUTF8StringEncoding)!
+            if str == nil {
+                throw DataTransformError()
+            }
+            
             self.bodyUsed = true
-            return str
+            promise.resolve(str!)
+        } catch {
+            promise.reject(error)
         }
+        
+        return promise
     
     }
     
     
     /// Do not parse the body, and pass on the raw data.
     ///
-    /// - Parameters:
-    ///   - callback: The JS function to send the NSData object to
-    ///   - errorCallback: JS function to call when an error occurs (if there is no data)
-    func blob(callback: JSValue, errorCallback:JSValue) {
-        self.wrapInCallbacks(callback, errorCallback: errorCallback) { _ in
-            self.bodyUsed = true
-            return self.data!
+    /// - Returns: a JS promise that resolves to the data. Throws if there is no data
+    func blob() -> JSPromise {
+        let promise = JSPromise()
+        
+        if self.data == nil {
+            promise.reject(DataTransformError())
+        } else {
+            promise.resolve(self.data!)
         }
+        
+        return promise
     }
 }
 
@@ -224,13 +248,13 @@ import JavaScriptCore
 
 
 /// A port of the Fetch APIs Request object: https://developer.mozilla.org/en-US/docs/Web/API/Request/Request
-@objc public class FetchRequest : FetchBody, FetchRequestExports {
+@objc class FetchRequest : FetchBody, FetchRequestExports {
     
     var url:String
     var method:String
     var headers:FetchHeaders
    
-    required public init(url:String, options: [String: AnyObject]?)  {
+    required init(url:String, options: [String: AnyObject]?)  {
         self.url = url
         
         var data:NSData? = nil
@@ -301,7 +325,7 @@ import JavaScriptCore
 
 
 /// A port of the Fetch API's Response object: https://developer.mozilla.org/en-US/docs/Web/API/Response
-@objc public class FetchResponse : FetchBody, FetchResponseExports {
+@objc class FetchResponse : FetchBody, FetchResponseExports {
     
     let headers:FetchHeaders
     let status:Int
@@ -323,7 +347,7 @@ import JavaScriptCore
     /// - Parameters:
     ///   - body: The body for this response
     ///   - options: Options object, containing status, headers, etc
-    required public init(body: AnyObject?, options: [String:AnyObject]?) {
+    required init(body: AnyObject?, options: [String:AnyObject]?) {
         var status = 200
         var statusText = "OK"
         var headers = FetchHeaders()
@@ -369,7 +393,8 @@ import JavaScriptCore
 
 /// What our GlobalFetch class exports in JSContexts - i.e., just a single fetch function that matches the JS API.
 @objc protocol GlobalFetchExports: JSExport {
-    static func fetch(url:JSValue, options:JSValue, scope:String, callback:JSValue, errorCallback:JSValue) -> Void
+    @objc(fetch::)
+    func fetch(url:JSValue, options:JSValue) -> JSPromise
 }
 
 class NoErrorButNoResponseError : ErrorType {}
@@ -391,6 +416,11 @@ class DoNotFollowRedirectSessionDelegate : NSObject, NSURLSessionDelegate {
 /// be used in Swift contexts too.
 @objc class GlobalFetch: NSObject, GlobalFetchExports {
     
+    let scope:NSURL
+    
+    init(workerScope: NSURL) {
+        self.scope = workerScope
+    }
     
     /// When coming from JSContexts, the request parameter can be a FetchRequest or simply a string URL. This
     /// will detect which is being passed, and convert any strings to FetchRequests.
@@ -483,31 +513,21 @@ class DoNotFollowRedirectSessionDelegate : NSObject, NSURLSessionDelegate {
         return fetchRequest(FetchRequest(url: url, options: nil))
     }
     
-    
+    @objc(fetch::)
     /// Function call that matches the JavaScript Fetch API, albeit wrapped in callbacks rather than promises.
     ///
     /// - Parameters:
     ///   - requestVal: Either a string or an instance of a FetchRequest class.
     ///   - options: The options for this request, as outlined in the 'init' object here: https://developer.mozilla.org/en-US/docs/Web/API/GlobalFetch/fetch
-    ///   - scope: The service worker scope this is being run in - to resolve relative URLs
-    ///   - callback: JS function to run on successful fetch
-    ///   - errorCallback: JS function to run in case of an error
-    static func fetch(requestVal: JSValue, options:JSValue, scope:String, callback:JSValue, errorCallback:JSValue) {
+    /// - Returns: a JS promise that evaluates to a FetchResponse or throws in the case of error
+    func fetch(requestVal: JSValue, options:JSValue) -> JSPromise {
         
-        let request = self.getRequest(requestVal, options: options)
-        
-        let scopeURL = NSURL(string:scope)
+        let request = GlobalFetch.getRequest(requestVal, options: options)
         
         // It's possible to request relative to scope. So we need to make sure we handle that.
-        request.url = NSURL(string: request.url, relativeToURL: scopeURL)!.absoluteString!
+        request.url = NSURL(string: request.url, relativeToURL: self.scope)!.absoluteString!
         
-        self.fetchRequest(request)
-        .then { fetchResponse in
-            callback.callWithArguments([fetchResponse])
-        }
-        .error { err in
-            errorCallback.callWithArguments([String(err)])
-        }
+        return PromiseToJSPromise.pass(GlobalFetch.fetchRequest(request))
 
     }
     
@@ -515,11 +535,16 @@ class DoNotFollowRedirectSessionDelegate : NSObject, NSURLSessionDelegate {
     /// Add Request, Response, Headers and Body to a JSContext's global scope.
     ///
     /// - Parameter context: The JSContext to add to.
-    static func addToJSContext(context:JSContext) {
+    func addToJSContext(context:JSContext) {
         context.setObject(FetchRequest.self, forKeyedSubscript: "Request")
         context.setObject(FetchResponse.self, forKeyedSubscript: "Response")
         context.setObject(FetchHeaders.self, forKeyedSubscript: "Headers")
         context.setObject(FetchBody.self, forKeyedSubscript: "Body")
         context.setObject(GlobalFetch.self, forKeyedSubscript: "GlobalFetch")
+        
+        let fetchAsConvention: @convention(block) (JSValue, JSValue) -> JSPromise = self.fetch
+        
+        context.setObject(unsafeBitCast(fetchAsConvention, AnyObject.self), forKeyedSubscript: "fetch")
+        
     }
 }

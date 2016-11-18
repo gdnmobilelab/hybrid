@@ -12,7 +12,10 @@ import JavaScriptCore
 @objc protocol WindowClientExports : JSExport {
     var url:String {get}
     var id:String {get}
+    
+    @objc(postMessage::)
     func postMessage(message:AnyObject, ports: [MessagePort])
+    
     func focus()
 }
 
@@ -26,7 +29,7 @@ import JavaScriptCore
         self.id = uniqueId
     }
     
-    
+    @objc(postMessage::)
     /// Send a message to the webview, where it is picked up through navigator.serviceWorker.addEventListener('message')
     ///
     /// - Parameters:

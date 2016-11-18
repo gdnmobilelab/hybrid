@@ -9,23 +9,15 @@
 import Foundation
 import JavaScriptCore
 
-@objc protocol ServiceWorkerTimeoutManagerExports : JSExport {
-    func setTimeout(callback:JSValue, timeout: JSValue) -> Int
-    func clearTimeout(index:Int)
-    func setInterval(callback:JSValue, interval: JSValue) -> Int
-    func clearInterval(index:Int)
-}
-
 struct Interval {
     var timeout: Double
     var function: JSValue
     var timeoutIndex: Int
 }
 
-
 /// JSContext has no built-in support for setTimeout, setInterval, etc. So we need to manually
 /// add that support into the context. All public methods are exactly as you'd expect.
-@objc class ServiceWorkerTimeoutManager : NSObject, ServiceWorkerTimeoutManagerExports {
+@objc class ServiceWorkerTimeoutManager : NSObject {
     
     var lastTimeoutIndex:Int = -1
     
@@ -36,7 +28,16 @@ struct Interval {
     var cancelledTimeouts = Set<Int>()
     
     func hookFunctions(jsContext:JSContext) {
-        jsContext.setObject(self, forKeyedSubscript: "__timeoutManager")
+        
+        let setTimeoutConvention: @convention(block) (JSValue, JSValue) -> Int = self.setTimeout
+        let setIntervalConvention: @convention(block) (JSValue, JSValue) -> Int = self.setInterval
+        let clearTimeoutConvention: @convention(block) (Int) -> Void = self.clearTimeout
+        let clearIntervalConvention: @convention(block) (Int) -> Void = self.clearInterval
+        
+        jsContext.setObject(unsafeBitCast(setTimeoutConvention, AnyObject.self), forKeyedSubscript: "setTimeout")
+        jsContext.setObject(unsafeBitCast(setIntervalConvention, AnyObject.self), forKeyedSubscript: "setInterval")
+        jsContext.setObject(unsafeBitCast(clearTimeoutConvention, AnyObject.self), forKeyedSubscript: "clearTimeout")
+        jsContext.setObject(unsafeBitCast(clearIntervalConvention, AnyObject.self), forKeyedSubscript: "clearInterval")
     }
     
     func setInterval(callback:JSValue, interval: JSValue) -> Int {
@@ -88,7 +89,6 @@ struct Interval {
         
         return timeout
     }
-    
     
     func setTimeout(callback:JSValue, timeout: JSValue) -> Int {
         

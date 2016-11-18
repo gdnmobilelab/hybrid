@@ -19,9 +19,9 @@ class CacheAddRequestFailedError : ErrorType {}
 class CacheNoMatchError : ErrorType {}
 
 @objc protocol ServiceWorkerCacheExports : JSExport {
-    func addAllCallback(urls:[String], success:JSValue, failure: JSValue) -> Void
-    func addCallback(url:String, success:JSValue, failure: JSValue) -> Void
-    func matchCallback(url: JSValue, success: JSValue, failure: JSValue) -> Void
+    func addAll(urls:[String]) -> JSPromise
+    func add(url:String) -> JSPromise
+    func match(url: JSValue) -> JSPromise
 }
 
 struct RequestAndResponse {
@@ -47,25 +47,17 @@ struct RequestAndResponse {
     
     /// Since the only difference between add and addAll is that addAll takes an array,
     /// we just immediately pass this to addAll with a single value array.
-    func addCallback(url:String, success: JSValue, failure:JSValue) {
-        self.addAllCallback([url], success: success, failure: failure)
+    func add(url:String) -> JSPromise {
+        return self.addAll([url])
     }
     
     
-    /// Callback wrapper for addAll(). Is turned back into a JS promise-based function in js-src
+    /// Add all of the provided URLs to the cache.
     ///
     /// - Parameters:
     ///   - urls: An array of URLs as strings
-    ///   - success: The JS function to run on cache success
-    ///   - failure: The JS function to run with an error occurs.
-    func addAllCallback(urls:[String], success:JSValue, failure: JSValue) {
-        self.addAll(urls)
-        .then {
-            success.callWithArguments([])
-        }
-        .error { err in
-            failure.callWithArguments([String(err)])
-        }
+    func addAll(urls:[String]) -> JSPromise {
+        return PromiseToJSPromise<Void>.pass(self._addAll(urls))
     }
     
     
@@ -73,7 +65,7 @@ struct RequestAndResponse {
     ///
     /// - Parameter urls: An array of URLs, in string form. Resolved to service worker scope if they are relative URLs.
     /// - Returns: A Promise that resolves when the operation has completed (or throws if it doesn't work)
-    private func addAll(urls: [String]) -> Promise<Void> {
+    private func _addAll(urls: [String]) -> Promise<Void> {
         
         // TODO: what about URLs that redirect?
         
@@ -130,13 +122,11 @@ struct RequestAndResponse {
     }
     
     
-    /// JS callback wrapper for match() function. Is wrapped in JS promises in js-src.
+    /// Query the database to see if we have a match for the URL provided, within this cache's ID.
     ///
     /// - Parameters:
     ///   - request: Either an instance of FetchRequest or a string URL.
-    ///   - success: The JS function to pass the cache match
-    ///   - failure: The JS function to pass any error that occurs when trying to match, which includes the lack of a match
-    func matchCallback(request: JSValue, success: JSValue, failure: JSValue) {
+    func match(request: JSValue) -> JSPromise {
         
         var url = ""
 
@@ -146,12 +136,8 @@ struct RequestAndResponse {
             url = request.toString()
         }
         
-        self.match(NSURL(string: url, relativeToURL: self.serviceWorkerScope)!)
-        .then { response in
-            success.callWithArguments([response])
-        }.error { error in
-            failure.callWithArguments([String(error)])
-        }
+        return PromiseToJSPromise.pass(self._match(NSURL(string: url, relativeToURL: self.serviceWorkerScope)!))
+       
     }
     
     
@@ -159,7 +145,7 @@ struct RequestAndResponse {
     ///
     /// - Parameter url: The URL to try to match
     /// - Returns: A promise that resolves to a FetchResponse, or throws an error if one is not found
-    func match(url: NSURL) -> Promise<FetchResponse> {
+    func _match(url: NSURL) -> Promise<FetchResponse> {
         
         return Promise<Void>()
         .then {
