@@ -1,11 +1,11 @@
-let selfAsAny = self as any;
+// let selfAsAny = self as any;
 
-let __waitSkipped = false;
+// let __waitSkipped = false;
 
-selfAsAny.skipWaiting = function() {
-    __waitSkipped = true;
-}
+// selfAsAny.skipWaiting = function() {
+//     __waitSkipped = true;
+// }
 
-hybrid.__getSkippedWaitingStatus = function() {
-    return __waitSkipped;
-}
+// hybrid.__getSkippedWaitingStatus = function() {
+//     return __waitSkipped;
+// }

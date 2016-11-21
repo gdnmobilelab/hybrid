@@ -18,6 +18,13 @@ let ApplicationEvents = Event<AnyObject>()
 /// A dumping ground for some quick utility functions we've used across the app
 class Util {
     
+    static func getColorBrightness(color:UIColor) -> CGFloat {
+        var brightness:CGFloat = 0
+        color.getHue(nil, saturation: nil, brightness: &brightness, alpha: nil)
+        
+        return brightness * 255
+    }
+    
     /// Parse an HTTP Date header (EEE, dd MMM yyyy HH:mm:ss z) into an NSDate
     ///
     /// - Parameter httpDate: contents of the Date header as a string

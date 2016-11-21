@@ -1,11 +1,7 @@
-import './globals/console';
 import './globals/promise';
 import './globals/extended-event-types';
 import './globals/websql';
 import './globals/indexeddb';
-import './globals/sw-registration';
-import './globals/image-bitmap';
-import './globals/notification';
 
 import './hybrid/dispatch-extended-event';
 

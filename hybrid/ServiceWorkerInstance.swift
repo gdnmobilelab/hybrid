@@ -79,7 +79,7 @@ struct PromiseReturn {
     }
     
     var globalFetch:GlobalFetch
-    
+    var console:Console
     
     /// Another shim to match the service worker spec, this turns out installstate enum into
     /// a string.
@@ -104,6 +104,8 @@ struct PromiseReturn {
          }
     }
     
+    var globalScope:ServiceWorkerGlobalScope
+    
     
     init(url:NSURL, scope: NSURL?, instanceId:Int, installState: ServiceWorkerInstallState) {
         
@@ -122,7 +124,10 @@ struct PromiseReturn {
         let urlComponents = NSURLComponents(URL: url, resolvingAgainstBaseURL: false)!
         urlComponents.path = nil
         self.jsContext = JSContext()
+        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext)
         self.webSQL = WebSQLDatabaseCreator(context: self.jsContext, origin: urlComponents.URL!.absoluteString!)
+        
+        self.console = Console(context: self.jsContext)
         
         super.init()
         
@@ -272,44 +277,20 @@ struct PromiseReturn {
     /// into a ServiceWorkerGlobalScope class at some point, possibly.
     private func hookFunctions() {
         
-        let selfObj = JSValue(newObjectInContext: self.jsContext)
-        self.jsContext.setObject(selfObj, forKeyedSubscript: "self")
-        
         self.timeoutManager.hookFunctions(self.jsContext)
         
-        self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
+        let selfObj = self.jsContext.objectForKeyedSubscript("self")
         
-        self.jsContext.setObject(self.registration, forKeyedSubscript: "__serviceWorkerRegistration")
-        self.jsContext.setObject(PushManager.self, forKeyedSubscript: "PushManager")
-        self.jsContext.setObject(Console.self, forKeyedSubscript: "NativeConsole")
-        self.jsContext.setObject(self.clientManager, forKeyedSubscript: "clients")
-        self.jsContext.setObject(MessageChannel.self, forKeyedSubscript: "MessageChannel")
-        self.jsContext.setObject(WindowClient.self, forKeyedSubscript: "Client")
-        self.jsContext.setObject(ExtendableMessageEvent.self, forKeyedSubscript: "ExtendableMessageEvent")
-        self.jsContext.setObject(MessagePort.self, forKeyedSubscript: "MessagePort")
-        self.jsContext.setObject(OffscreenCanvas.self, forKeyedSubscript: "OffscreenCanvas")
-        self.jsContext.setObject(OffscreenCanvasRenderingContext2D.self, forKeyedSubscript: "CanvasRenderingContext2D")
-        self.jsContext.setObject(ImageBitmap.self, forKeyedSubscript: "ImageBitmap")
-        self.jsContext.setObject(ExtendableEvent.self, forKeyedSubscript: "ExtendableEvent")
-        self.jsContext.setObject(Notification.self, forKeyedSubscript: "Notification")
-        self.jsContext.setObject(JSPromise.self, forKeyedSubscript: "HybridPromise")
-        self.jsContext.setObject(PushMessageData.self, forKeyedSubscript: "PushMessageData")
+        let toBind: [String:AnyObject] = [
+            "registration": self.registration!,
+            "clients": self.clientManager!,
+        ]
         
+        for (key, val) in toBind {
+            selfObj.setObject(val, forKeyedSubscript: key)
+            self.jsContext.setObject(val, forKeyedSubscript: key)
+        }
         
-        // Need to add to a ServiceWorkerGlobalScope, really
-        
-        selfObj.setObject(self.clientManager, forKeyedSubscript: "clients")
-        
-    }
-    
-    
-    /// Execute a JavaScript string. Usage stronly discouraged, to be deprecated ASAP (currently only
-    /// used to check the skipWaiting() status of a worker), use event dispatching etc. instead.
-    ///
-    /// - Parameter js: String of the JS to execute
-    /// - Returns: Any JSValue that comes out of that execution
-    func executeJS(js:String) -> JSValue {
-        return self.jsContext.evaluateScript(js)
     }
     
     

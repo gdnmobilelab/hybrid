@@ -7,7 +7,7 @@
 //
 
 import Foundation
-
+import UIKit
 
 /// Kind of daft, but this class is a tiny store for JS snippets we use in the course of
 /// loading webviews. It could be moved into js-src and injected into document-start.js
@@ -19,13 +19,20 @@ class WebviewJS {
     /// the webview has painted onto the screen or not.
     static var setLoadingIndicator:String {
         get {
+            
+            // We use vw because if the webview doesn't have a scaling meta tag a 1px square
+            // might not actually be 1px wide. Multiply by the width below to make it as small
+            // as possible - should be able to use 100, but the scaling seems to anti-alias or something
+            // and the colour doesn't look right.
+            let width = String(200 / UIScreen.mainScreen().bounds.width)
+            
             let js:[String] = [
                 "var loadedIndicator = document.createElement('div');",
-                "loadedIndicator.style.position = 'absolute';",
+                "loadedIndicator.style.position = 'fixed';",
                 "loadedIndicator.style.right = '0px';",
                 "loadedIndicator.style.top = '0px';",
-                "loadedIndicator.style.width = '1px';",
-                "loadedIndicator.style.height = '1px';",
+                "loadedIndicator.style.width = '" + width + "vw';",
+                "loadedIndicator.style.height = '" + width + "vw';",
                 "loadedIndicator.style.backgroundColor = '" + RenderCheck.colorToCheckFor.toRGBString() + "';",
                 "loadedIndicator.style.zIndex = '999999';",
                 "document.body.appendChild(loadedIndicator);",

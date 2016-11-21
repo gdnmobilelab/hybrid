@@ -36,8 +36,10 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     
     var isReady = false
 
+    let titleTextView:UILabel
     
     init() {
+        self.titleTextView = UILabel(frame: CGRect(x: 0, y: 0, width: 200, height: 40))
         super.init(nibName: nil, bundle: nil)
         
         self.view = HybridWebview(frame: self.view.frame)
@@ -49,6 +51,12 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         // Don't show text in back button - it's causing some odd display problems
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
         
+        self.titleTextView.font = UIFont.preferredFontForTextStyle(UIFontTextStyleHeadline)
+        self.titleTextView.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
+        self.titleTextView.textAlignment = .Center
+        self.titleTextView.adjustsFontSizeToFitWidth = true
+        
+        self.navigationItem.titleView = self.titleTextView
     }
     
     
@@ -172,7 +180,14 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     func setMetadata() -> Promise<Void> {
         return self.webview!.getMetadata()
         .then { metadata -> Void in
-            self.navigationItem.title = metadata.title
+
+            self.titleTextView.text = metadata.title
+            if let color = metadata.color {
+                self.titleTextView.textColor = Util.getColorBrightness(color) < 150 ? UIColor.whiteColor() : UIColor.blackColor()
+            } else {
+                self.titleTextView.textColor = UIColor.blackColor()
+            }
+            
             self.currentMetadata = metadata
             
         }

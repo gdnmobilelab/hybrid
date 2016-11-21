@@ -15,7 +15,7 @@ import JavaScriptCore
 @objc protocol ExtendableMessageEventExports : JSExport {
     var data:AnyObject? {get}
     var ports:[MessagePort] {get}
-    init(data:AnyObject?, ports:[MessagePort]?)
+//    init(data:AnyObject?, ports:[MessagePort]?)
 }
 
 

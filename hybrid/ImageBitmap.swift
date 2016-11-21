@@ -13,12 +13,15 @@ import JavaScriptCore
 @objc protocol ImageBitmapExports : JSExport {
     var width:Int {get}
     var height:Int {get}
-    static func createImageBitmap(data:NSData, callback:JSValue, errorCallback: JSValue)
 }
 
 @objc class ImageBitmap : NSObject, ImageBitmapExports {
     
     let image:CGImage
+    
+    static let createImageBitmap = unsafeBitCast((ImageBitmap.createImageBitmapFunc) as @convention(block) (NSData) -> JSPromise, AnyObject.self)
+    
+//    context.setObject(unsafeBitCast(fetchAsConvention, AnyObject.self), forKeyedSubscript: "fetch")
     
     init(data:NSData) {
         let dataPtr = CFDataCreate(kCFAllocatorDefault, UnsafePointer<UInt8>(data.bytes), data.length)
@@ -42,8 +45,8 @@ import JavaScriptCore
         }
     }
     
-    static func createImageBitmap(data:NSData, callback:JSValue, errorCallback: JSValue) {
+    private static func createImageBitmapFunc(data:NSData) -> JSPromise {
         let ib = ImageBitmap(data: data)
-        callback.callWithArguments([ib])
+        return JSPromise.resolve(ib)
     }
 }

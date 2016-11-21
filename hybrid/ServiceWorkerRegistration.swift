@@ -17,8 +17,11 @@ import PromiseKit
     var active:ServiceWorkerInstance? {get}
     var waiting:ServiceWorkerInstance? {get}
     var installing:ServiceWorkerInstance? {get}
-    func showNotification(title:String, options: [String:AnyObject])
-    func updateCallback(success:JSValue, failure:JSValue)
+    
+    @objc(showNotification::)
+    func showNotification(title:String, options: [String:AnyObject]) -> JSPromise
+    
+    func update() -> JSPromise
 }
 
 
@@ -67,19 +70,21 @@ import PromiseKit
         self.worker = worker
     }
     
-    
+    @objc(showNotification::)
     /// Show a notification locally, without going through any remote notification handlers.
     ///
     /// - Parameters:
     ///   - title: The text for the notification title
     ///   - options: Options object as outlined here: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification,
     ///              with additional options for canvas and video.
-    func showNotification(title:String, options: [String:AnyObject]) {
+    func showNotification(title:String, options: [String:AnyObject]) -> JSPromise {
         
         let payload = [
             "title": title,
             "options": options
         ]
+        
+        let promise = JSPromise()
         
         PayloadToNotificationContent.Convert(payload, serviceWorkerScope: self.scope)
         .then { content -> Void in
@@ -91,27 +96,25 @@ import PromiseKit
             
             UNUserNotificationCenter.currentNotificationCenter().addNotificationRequest(request) { (err) in
                 NSLog(String(err))
+                promise.resolve(nil)
             }
         }
         .recover  { err -> Void in
             log.error("Failed to post notification: " + String(err))
+            promise.reject(err)
         }
+        
+        return promise
        
     }
     
     
-    /// Update the current service worker. Uses JS callbacks, wrapped in a promise in js-src
-    ///
-    /// - Parameters:
-    ///   - success: JS function to call on success
-    ///   - failure: JS function to run on failure
-    func updateCallback(success:JSValue, failure: JSValue) {
-        ServiceWorkerManager.update(self.worker.url, scope: nil, forceCheck: true)
-        .then { serviceWorkerId -> Void in
-            success.callWithArguments([])
-        }
-        .error { err in
-            failure.callWithArguments([JSValue(newErrorFromMessage: String(err), inContext: failure.context)])
-        }
+    /// Update the current service worker.
+    func update() -> JSPromise {
+        return PromiseToJSPromise.pass(ServiceWorkerManager.update(self.worker.url, scope: nil, forceCheck: true).then { i in
+                // Int isn't AnyObject. Swift is weird.
+                return NSNumber(integer: i)
+            })
+        
     }
 }

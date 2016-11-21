@@ -44,13 +44,6 @@ import Foundation
         self.init(serviceWorkerScope: serviceWorkerScope, payload: payload, date: dateAdded, uuid: uuid)
     }
     
-    override func isEqual(object: AnyObject?) -> Bool {
-        if let objAsPush = object as? StoredPushEvent {
-            return objAsPush.uuid == object?.uuid
-        } else {
-            return false
-        }
-    }
 }
 
 

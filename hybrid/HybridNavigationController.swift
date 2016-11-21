@@ -195,12 +195,12 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     /// when it is ready.
     ///
     /// - Parameter url: The URL to load. Not localhost URL - is mapped automatically.
-    func pushNewHybridWebViewControllerFor(url:NSURL) {
+    func pushNewHybridWebViewControllerFor(url:NSURL, animated:Bool = true) {
         
         self.prepareWebviewFor(url)
         .then { newInstance -> Void in
             
-            self.pushViewController(newInstance, animated: true)
+            self.pushViewController(newInstance, animated: animated)
 
             if self.launchViewController != nil {
                 self.hideLaunchView()
@@ -232,7 +232,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     ///
     /// - Parameter metadata: the controller metadata to apply
     func applyMetadata(metadata:HybridWebviewMetadata) {
-        self.navigationBar.barTintColor = metadata.color
+        
         
         var isBright = true
         
@@ -241,7 +241,9 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             color.getHue(nil, saturation: nil, brightness: &brightness, alpha: nil)
             
             isBright = brightness * 255 > 150
-
+            self.navigationBar.barTintColor = color
+        } else {
+            self.navigationBar.barTintColor = UIColor.whiteColor()
         }
         
         if isBright == false {

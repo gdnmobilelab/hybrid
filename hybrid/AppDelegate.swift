@@ -58,11 +58,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
             if AppDelegate.runningInTests == false {
 //                // todo: remove
-//                ServiceWorkerManager.clearActiveServiceWorkers()
-//                try Db.mainDatabase.inDatabase({ (db) in
-//                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
-//                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
-//                })
+                ServiceWorkerManager.clearActiveServiceWorkers()
+                try Db.mainDatabase.inDatabase({ (db) in
+                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
+                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
+                })
 
             }
                 
@@ -75,7 +75,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             if windowOpenActions.count == 0 {
                 
                 #if IS_DEBUG
-                    rootController.pushNewHybridWebViewControllerFor(NSURL(string:"http://www.gdnmobilelab.local:4567/app-demo/")!)
+                    rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo/")!)
 //                    rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo/")!)
                 #else
                     rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo/")!)
@@ -108,6 +108,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //        completionHandler(UIBackgroundFetchResult.NewData)
 //    }
     
+    func application(application: UIApplication, continueUserActivity userActivity: NSUserActivity, restorationHandler: ([AnyObject]?) -> Void) -> Bool {
+        
+        if userActivity.activityType != "NSUserActivityTypeBrowsingWeb" {
+            return false
+        }
+        
+        let actionURL = userActivity.webpageURL!
+        HybridNavigationController.current!.pushNewHybridWebViewControllerFor(actionURL, animated: false)
+        return true
+    }
 
 
     func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {
