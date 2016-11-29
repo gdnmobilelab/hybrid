@@ -15,7 +15,6 @@ import AVKit
 import AVFoundation
 
 @objc(NotificationViewController)
-
 class NotificationViewController: UIViewController, UNNotificationContentExtension {
 
     var notificationViews = [UIView]()
@@ -76,27 +75,30 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
 
     }
     
+    
     func checkForCanvas(userInfo:AnyObject, worker: ServiceWorkerInstance) {
         
         let options = userInfo["originalNotificationOptions"]!!
         
         
         var hasCanvas = false
+        var proportion:Float = 1.0
+
         
-        if let specifiedValue = options["canvas"] as? Bool {
-            hasCanvas = specifiedValue
+        if let canvasOptions = options["canvas"]! {
+            hasCanvas = true
+            
+            if let canvasProportion = canvasOptions["proportion"] as? Float {
+                proportion = canvasProportion
+            }
         }
         
         if hasCanvas == false {
             return
         }
         
-        var ratio:Float = 1.0
-        if let specifiedRatio = options["canvasRatio"] as? Float {
-            ratio = specifiedRatio
-        }
         
-        let canvasView = CanvasView(width: Int(self.view.frame.width), ratio: ratio, worker: worker)
+        let canvasView = CanvasView(width: Int(self.view.frame.width), ratio: proportion, worker: worker)
         setFrame(canvasView)
         self.notificationViews.append(canvasView)
         self.activeCanvas = canvasView
@@ -162,7 +164,14 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         view.frame = CGRect(x: left, y: top, width: self.view.frame.width, height: height != nil ? height! : view.frame.height)
     }
     
-    func recreateOriginalText(notification: UNNotification) -> Promise<Void> {
+    func recreateOriginalText(notification: UNNotification, options: AnyObject) -> Promise<Void> {
+        
+        if let hideText = options["hideText"] as? Bool {
+            if hideText == true {
+                return Promise<Void>()
+            }
+        }
+        
         
         let textContainer = UIView(frame:CGRect(x:0,y:0,width: self.view.frame.width, height: 0))
         
@@ -172,8 +181,6 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             return attachment.identifier == "icon"
         }.first
         
-//        UNUserNotificationCenter.currentNotificationCenter()
-       
         if icon != nil && icon!.URL.startAccessingSecurityScopedResource() {
             
             targetWidth = targetWidth - 90
@@ -236,9 +243,6 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
 
     func didReceiveNotification(notification: UNNotification) {
         
-//        self.extensionContext!.cancelRequestWithError(NSError(domain: "test", code: 1, userInfo: nil))
-        
-        
         // iOS doesn't update userInfo when we push more than one notification
         // sequentially. So we need to keep our own record of the latest.
         latestUserInfo = notification.request.content.userInfo
@@ -264,7 +268,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                 self.checkForCanvas(notification.request.content.userInfo, worker: sw!)
                 self.checkForImage(notification.request.content.attachments, worker: sw!)
                 self.checkForVideo(notification.request.content.attachments, options: options, worker: sw!)
-                return self.recreateOriginalText(notification)
+                return self.recreateOriginalText(notification, options: options)
             }
             
             .then { _ -> Void in

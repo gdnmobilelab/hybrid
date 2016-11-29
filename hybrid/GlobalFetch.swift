@@ -146,6 +146,7 @@ import JavaScriptCore
     func json() -> JSPromise
     func text() -> JSPromise
     func blob() -> JSPromise
+    func arrayBuffer() -> JSPromise
     var bodyUsed:Bool {get}
 }
 
@@ -157,25 +158,6 @@ import JavaScriptCore
     var bodyUsed:Bool = false
     
     var data:NSData?
-    
-    
-    /// The API is promise-based, but we can't seamlessly pass promises (yet?) between the two environments
-    /// so this function wraps a function in callbacks, which we will transform into promises on the JSContext side
-    ///
-    /// - Parameters:
-    ///   - callback: The JS function to run on success
-    ///   - errorCallback: The JS function to run on failure
-    ///   - block: The Swift function to try to execute, passing to the above on success or failure
-    private func wrapInCallbacks(callback:JSValue, errorCallback:JSValue, block: () throws -> AnyObject) {
-        do {
-            let returnObj = try block()
-            callback.callWithArguments([returnObj])
-        } catch {
-            errorCallback.callWithArguments([String(error)])
-        }
-    }
-    
-    
     
     /// Parse the body as JSON
     ///
@@ -236,6 +218,21 @@ import JavaScriptCore
         
         return promise
     }
+    
+    /// Do not parse the body, and pass on as an array buffer.
+    ///
+    /// - Returns: a JS promise that resolves to the data. Throws if there is no data
+    func arrayBuffer() -> JSPromise {
+        let promise = JSPromise()
+        
+        if self.data == nil {
+            promise.reject(DataTransformError())
+        } else {
+            return ArrayBufferJSPromise(data: self.data!)
+        }
+        return promise
+    }
+
 }
 
 
@@ -260,7 +257,11 @@ import JavaScriptCore
         var data:NSData? = nil
         
         if let opts = options {
-            self.method = opts["method"] as! String
+            if let method = opts["method"] as? String {
+                self.method = method
+            } else {
+                self.method = "GET"
+            }
             
             // Headers can be an instance of FetchHeaders or a simple JS object.
             

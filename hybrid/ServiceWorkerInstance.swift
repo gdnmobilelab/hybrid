@@ -380,7 +380,7 @@ struct PromiseReturn {
             let contextJS = try NSString(contentsOfFile: workerContextPath, encoding: NSUTF8StringEncoding) as String
             fulfill(contextJS)
         }.then { js in
-            return self.runScript("var global = self; hybrid = {}; var window = global; var navigator = {}; navigator.userAgent = 'Hybrid service worker';" + js)
+            return self.runScript("var global = self; hybrid = {}; var window = global; var navigator = {}; navigator.userAgent = 'hybrid service worker';" + js)
         }.then { js in
             self.applyGlobalVariables()
             return Promise<Void>()

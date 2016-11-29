@@ -35,6 +35,8 @@
 		8A1310131DDFA1430074944D /* JSPromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1278791DDF635D006EE758 /* JSPromise.swift */; };
 		8A1310151DE215B00074944D /* ServiceWorkerGlobalScope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1310141DE215B00074944D /* ServiceWorkerGlobalScope.swift */; };
 		8A1310161DE216BC0074944D /* ServiceWorkerGlobalScope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1310141DE215B00074944D /* ServiceWorkerGlobalScope.swift */; };
+		8A13101B1DE3CB660074944D /* ArrayBufferJSPromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A13101A1DE3CB660074944D /* ArrayBufferJSPromise.swift */; };
+		8A13101C1DE3CB700074944D /* ArrayBufferJSPromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A13101A1DE3CB660074944D /* ArrayBufferJSPromise.swift */; };
 		8A24493D1D6CF6F400052D92 /* ServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */; };
 		8A24493F1D6CF71500052D92 /* PushManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493E1D6CF71500052D92 /* PushManager.swift */; };
 		8A2449421D6D0B6E00052D92 /* NotificationPermissionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449411D6D0B6E00052D92 /* NotificationPermissionHandler.swift */; };
@@ -221,6 +223,7 @@
 		8A13100D1DDF84940074944D /* PromiseToJSPromise.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PromiseToJSPromise.swift; sourceTree = "<group>"; };
 		8A1310101DDF9B4F0074944D /* PushMessageData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushMessageData.swift; sourceTree = "<group>"; };
 		8A1310141DE215B00074944D /* ServiceWorkerGlobalScope.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerGlobalScope.swift; sourceTree = "<group>"; };
+		8A13101A1DE3CB660074944D /* ArrayBufferJSPromise.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayBufferJSPromise.swift; sourceTree = "<group>"; };
 		8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistration.swift; sourceTree = "<group>"; };
 		8A24493E1D6CF71500052D92 /* PushManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushManager.swift; sourceTree = "<group>"; };
 		8A2449401D6D0ABD00052D92 /* hybrid.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = hybrid.entitlements; sourceTree = "<group>"; };
@@ -383,14 +386,14 @@
 		8A2449451D6F373D00052D92 /* native */ = {
 			isa = PBXGroup;
 			children = (
-				8A932BD31D5A619100FA15F8 /* webview */,
-				8A5410A01D38235000F44F38 /* WebServer.swift */,
-				8A2449461D6F374C00052D92 /* HybridWebviewController.swift */,
-				8A2449481D6F676700052D92 /* HybridNavigationController.swift */,
 				8A9D71171DC27DAD00375365 /* BackButtonSymbol.swift */,
-				8A0970B71DC977A300F16CF4 /* WebServerDomainManager.swift */,
-				8AA06FD21DCCF95600DE4F45 /* WebviewJS.swift */,
+				8A2449481D6F676700052D92 /* HybridNavigationController.swift */,
+				8A2449461D6F374C00052D92 /* HybridWebviewController.swift */,
 				8ADDB6A81DDE067200B69AE8 /* RenderCheck.swift */,
+				8A5410A01D38235000F44F38 /* WebServer.swift */,
+				8A0970B71DC977A300F16CF4 /* WebServerDomainManager.swift */,
+				8A932BD31D5A619100FA15F8 /* webview */,
+				8AA06FD21DCCF95600DE4F45 /* WebviewJS.swift */,
 			);
 			name = native;
 			sourceTree = "<group>";
@@ -518,6 +521,7 @@
 				8ADDB6A31DDCF08E00B69AE8 /* HexColor.swift */,
 				8A1278791DDF635D006EE758 /* JSPromise.swift */,
 				8A13100D1DDF84940074944D /* PromiseToJSPromise.swift */,
+				8A13101A1DE3CB660074944D /* ArrayBufferJSPromise.swift */,
 			);
 			name = shared;
 			sourceTree = "<group>";
@@ -1086,6 +1090,7 @@
 				8A1310121DDF9B5B0074944D /* PushMessageData.swift in Sources */,
 				8ACCDCD91D7A131900A137E1 /* PushManager.swift in Sources */,
 				8ACCDCDA1D7A131900A137E1 /* Console.swift in Sources */,
+				8A13101C1DE3CB700074944D /* ArrayBufferJSPromise.swift in Sources */,
 				8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */,
 				8A0970C41DCB9C1F00F16CF4 /* DownloadToDisk.swift in Sources */,
 				8A12787C1DDF6B76006EE758 /* JSPromise.swift in Sources */,
@@ -1132,6 +1137,7 @@
 				8A263A7F1D354D7C00B6505E /* TimeoutManager.swift in Sources */,
 				8A1310151DE215B00074944D /* ServiceWorkerGlobalScope.swift in Sources */,
 				8A4A265F1D5A32930021B0A2 /* MessageChannel.swift in Sources */,
+				8A13101B1DE3CB660074944D /* ArrayBufferJSPromise.swift in Sources */,
 				8A5410A11D38235000F44F38 /* WebServer.swift in Sources */,
 				8AEEDE5C1D26CF450032D588 /* db.swift in Sources */,
 				8A932BD71D5A668500FA15F8 /* MessageChannelManager.swift in Sources */,

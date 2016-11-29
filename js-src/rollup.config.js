@@ -20,7 +20,7 @@ export default {
                 'node_modules/es6-promise/dist/es6-promise.js': ['Promise'],
                 // 'node_modules/eventemitter3/index.js': ['EventEmitter']
             }
-        }),
-        uglify()
+        })/*,
+        uglify()*/
     ]
 }

@@ -55,7 +55,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let rootController = HybridNavigationController.create()
             
             #if IS_DEBUG
-
+            
             if AppDelegate.runningInTests == false {
 //                // todo: remove
                 ServiceWorkerManager.clearActiveServiceWorkers()
@@ -75,7 +75,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             if windowOpenActions.count == 0 {
                 
                 #if IS_DEBUG
-                    rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/app-demo/")!)
+                    rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/reader/")!)
 //                    rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo/")!)
                 #else
                     rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo/")!)

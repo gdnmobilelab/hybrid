@@ -11,22 +11,25 @@ import UIKit
 import JavaScriptCore
 import PromiseKit
 
-@objc protocol CanvasEventDataExports: JSExport {
+enum NotificationCanvasEventType {
+    case New
+    case Frame
+}
+
+@objc protocol NotificationCanvasEventExports: JSExport {
     var canvas: OffscreenCanvas {get}
-    var new:Bool {get}
     func requestAnimationFrame()
 }
 
-@objc class CanvasEventData : ExtendableEvent, CanvasEventDataExports {
+@objc class NotificationCanvasEvent : ExtendableEvent, NotificationCanvasEventExports {
     
     let canvas:OffscreenCanvas
     let targetView:CanvasView
-    var new:Bool = true
     
-    init(canvas:OffscreenCanvas, targetView: CanvasView) {
+    init(canvas:OffscreenCanvas, targetView: CanvasView, type:NotificationCanvasEventType) {
         self.canvas = canvas
         self.targetView = targetView
-        super.init(type: "notification-canvas")
+        super.init(type: type == NotificationCanvasEventType.New ? "notificationcanvasshow" : "notificationcanvasframe" )
     }
     
     required init(type: String) {
@@ -34,7 +37,6 @@ import PromiseKit
     }
     
     func requestAnimationFrame() {
-        self.new = false
         self.targetView.requestAnimationFrame()
     }
 
@@ -42,11 +44,12 @@ import PromiseKit
 
 class CanvasView: UIView {
     
-    private var canvasData: CanvasEventData?
+//    private var canvasData: CanvasEvent?
+    private let canvas:OffscreenCanvas
     private let worker: ServiceWorkerInstance
     private var displayLink:CADisplayLink?
     
-    private func multiplyByRatio(num:Int) -> Int {
+    private static func multiplyByRatio(num:Int) -> Int {
         return Int(CGFloat(num) * UIScreen.mainScreen().scale)
     }
     
@@ -55,15 +58,22 @@ class CanvasView: UIView {
         let height = Int(Float(width) * ratio)
         self.worker = worker
         
-     
+        self.canvas = OffscreenCanvas(width: CanvasView.multiplyByRatio(width), height: CanvasView.multiplyByRatio(height))
+        self.canvas.getContext("2d")!.fillStyle = "#ffffff"
+        self.canvas.getContext("2d")!.fillRect(0, y: 0, width: CGFloat(canvas.width), height: CGFloat(canvas.height))
+//        self.canvasData = CanvasEvent(canvas: canvas, targetView: self)
         
         super.init(frame: CGRect(x: 0, y: 0, width: width, height: height))
         
-        
-        let canvas = OffscreenCanvas(width: multiplyByRatio(width), height: multiplyByRatio(height))
-        canvas.getContext("2d")!.fillStyle = "#ffffff"
-        canvas.getContext("2d")!.fillRect(0, y: 0, width: CGFloat(canvas.width), height: CGFloat(canvas.height))
-        self.canvasData = CanvasEventData(canvas: canvas, targetView: self)
+        let initialEvent = NotificationCanvasEvent(canvas: self.canvas, targetView: self, type: NotificationCanvasEventType.New)
+        worker.dispatchExtendableEvent(initialEvent)
+        .then { _ -> Void in
+            self.pendingRender = true
+            self.setNeedsDisplay()
+        }
+        .error { error in
+            log.error("Error in rendering canvas: " + String(error))
+        }
         
         self.requestAnimationFrame()
         
@@ -84,10 +94,14 @@ class CanvasView: UIView {
 
         if self.wantsAnimationFrame == true && self.pendingRender == false {
             self.wantsAnimationFrame = false
-            worker.dispatchExtendableEvent(self.canvasData!)
-                .then { _ -> Void in
-                    self.pendingRender = true
-                    self.setNeedsDisplay()
+            let frameEvent = NotificationCanvasEvent(canvas: self.canvas, targetView: self, type: NotificationCanvasEventType.Frame)
+            worker.dispatchExtendableEvent(frameEvent)
+            .then { _ -> Void in
+                self.pendingRender = true
+                self.setNeedsDisplay()
+            }
+            .error { error in
+                log.error("Error in rendering canvas: " + String(error))
             }
         }
         
@@ -104,7 +118,7 @@ class CanvasView: UIView {
     
     override func drawRect(rect: CGRect) {
         
-        let ctx = self.canvasData!.canvas.getContext("2d")!.context
+        let ctx = self.canvas.getContext("2d")!.context
         
         UIGraphicsPushContext(ctx)
         

@@ -150,6 +150,11 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         
         super.init(frame: frame, configuration: config)
         
+        self.evaluateJavaScript("navigator.userAgent") { (userAgent, err) in
+            self.customUserAgent = (userAgent as! String) + " hybridwebview"
+            
+        }
+        
         do {
             try self.injectJS(config.userContentController)
 
