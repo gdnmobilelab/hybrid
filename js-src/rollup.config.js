@@ -3,24 +3,37 @@ import commonJS from 'rollup-plugin-commonjs';
 import buble from 'rollup-plugin-buble';
 import typescript from 'rollup-plugin-typescript';
 import uglify from 'rollup-plugin-uglify';
+import {minify} from 'uglify-js';
 
-export default {
+const config = {
     sourceMap: false,
     treeshake: false,
     plugins: [
-        typescript(),
-        buble(),
+        typescript({
+            include: "src/**"
+        }),
         nodeResolve({
-            preferBuiltins: false
+            preferBuiltins: false,
+            jsnext: true
         }),
         commonJS({
-            include: 'node_modules/**',
+            include: [
+                'node_modules/**'
+            ],
+            exclude: [
+                'node_modules/indexeddbshim/rollup-ready/**'
+            ],
             extensions: ['.js', '.ts'],
             namedExports: {
                 'node_modules/es6-promise/dist/es6-promise.js': ['Promise'],
                 // 'node_modules/eventemitter3/index.js': ['EventEmitter']
             }
-        })/*,
-        uglify()*/
+        })
     ]
 }
+
+if (process.env["CONFIGURATION"] && process.env["CONFIGURATION"] !== "Debug") {
+    config.plugins.push(uglify({},minify));
+}
+
+export default config;

@@ -1,6 +1,7 @@
 import {PromiseOverWKMessage} from '../util/promise-over-wkmessage';
 import EventEmitter from 'eventemitter3';
-import * as url from 'url';
+// import * as url from 'url';
+import resolveURL from 'resolve-url';
 import {postMessage} from '../messages/message-channel';
 import {HybridPushManager} from './push-manager';
 
@@ -223,7 +224,7 @@ class HybridServiceWorkerContainer extends EventEmitterToJSEvent implements Serv
     }
 
     register(urlToRegister:string, options: ServiceWorkerRegisterOptions): Promise<ServiceWorkerRegistration> {
-        let fullSWURL = url.resolve(window.location.href, urlToRegister);
+        let fullSWURL = resolveURL(window.location.href, urlToRegister);
        
         console.info("Attempting to register service worker at", fullSWURL);
     

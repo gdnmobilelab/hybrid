@@ -25,6 +25,7 @@ class BackButtonSymbol: UIButton {
     init() {
         super.init(frame: CGRect())
         self.addTarget(self, action: #selector(self.tapped), forControlEvents: .TouchUpInside)
+        self.backgroundColor = UIColor.greenColor()
     }
     
     func tapped(sender: UIButton!) {

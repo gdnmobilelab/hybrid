@@ -20,9 +20,9 @@ class PromiseToJSPromise<T> {
         
         promise.then {
             jspromise.resolve(nil)
-            }
-            .error { err in
-                jspromise.reject(err)
+        }
+        .error { err in
+            jspromise.reject(err)
         }
         
         return jspromise
@@ -34,8 +34,23 @@ extension PromiseToJSPromise where T: AnyObject {
     static func pass(promise:Promise<T>) -> JSPromise {
         let jspromise = JSPromise()
         
-        promise.then { result in
+        promise
+        .then { result in
             jspromise.resolve(result)
+        }
+        .error { err in
+            jspromise.reject(err)
+        }
+        
+        return jspromise
+    }
+    
+    static func pass(promiseArray:Promise<[T]>) -> JSPromise {
+        let jspromise = JSPromise()
+        
+        promiseArray
+            .then { result in
+                jspromise.resolve(result)
             }
             .error { err in
                 jspromise.reject(err)
@@ -44,3 +59,4 @@ extension PromiseToJSPromise where T: AnyObject {
         return jspromise
     }
 }
+

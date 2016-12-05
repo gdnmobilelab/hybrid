@@ -63,12 +63,14 @@ class WebServerDomainManager {
         let withoutPath = NSURLComponents(URL: url, resolvingAgainstBaseURL: true)!
         withoutPath.path = "/"
         
+        let domain = withoutPath.URL!.absoluteString!
+        
         var workersExistForThisDomain = false
         
         do {
             try Db.mainDatabase.inDatabase { db in
                 
-                let resultSet = try db.executeQuery("SELECT COUNT(*) as worker_count FROM service_workers WHERE url LIKE (? || '%') AND NOT install_state = ?", values: [withoutPath.URL!.absoluteString!, ServiceWorkerInstallState.Redundant.rawValue])
+                let resultSet = try db.executeQuery("SELECT COUNT(*) as worker_count FROM service_workers WHERE url LIKE (? || '%') AND NOT install_state = ?", values: [domain, ServiceWorkerInstallState.Redundant.rawValue])
                 
                 resultSet.next()
                 

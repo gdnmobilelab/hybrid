@@ -22,16 +22,21 @@ class JSContextError : ErrorType {
     
     init(jsValue:JSValue) {
         if jsValue.isObject == true {
-            let dict = jsValue.toObject() as! [String: String]
+            let dict = jsValue.toObject() as! [String: AnyObject]
             if let message = dict["message"] {
-                self.message = message
-                self.stack = dict["stack"]
+                self.message = message as! String
+                self.stack = nil
+//                self.stack = dict["stack"]
             } else {
-                var msg = ""
+//                var msg = ""
+//                for (key, val) in dict {
+//                    msg = msg + key + " : " + (val as? String)
+//                }
+//                self.message = msg
                 for (key, val) in dict {
-                    msg = msg + key + " : " + val
+                    NSLog("key? " + key + ": " + String(val))
                 }
-                self.message = msg
+                self.message = jsValue.toString()
                 self.stack = nil
             }
         } else {

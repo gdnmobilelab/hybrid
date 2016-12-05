@@ -78,6 +78,7 @@ class RenderCheck {
             log.debug("Checked if webview was ready, it WAS")
             self.pixel!.destroy()
             self.displayLink!.removeFromRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+            self.target.evaluateJavaScript(WebviewJS.removeLoadingIndicator, completionHandler: nil)
             self.onRender!()
         } else {
             log.debug("Checked if webview was ready, it was not")

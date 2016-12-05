@@ -7,5 +7,3 @@ import './hybrid/dispatch-extended-event';
 
 import './self/skip-waiting';
 import './self/events';
-
-global.Blob = function(){}

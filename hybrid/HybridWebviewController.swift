@@ -54,7 +54,9 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         self.titleTextView.font = UIFont.preferredFontForTextStyle(UIFontTextStyleHeadline)
         self.titleTextView.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
         self.titleTextView.textAlignment = .Center
-        self.titleTextView.adjustsFontSizeToFitWidth = true
+//        self.titleTextView.adjustsFontSizeToFitWidth = true
+        self.titleTextView.lineBreakMode = NSLineBreakMode.ByTruncatingTail
+//        self.titleTextView.backgroundColor = UIColor.redColor()
         
         self.navigationItem.titleView = self.titleTextView
     }
@@ -109,6 +111,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
 //        let backTo = BackButtonSymbol(onTap: self.popThisView)
 //        backTo.sizeToFit()
 //        let back = UIBarButtonItem(customView: backTo)
+//        
 //        self.navigationItem.leftBarButtonItem = back
     }
     

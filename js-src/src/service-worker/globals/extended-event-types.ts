@@ -1,15 +1,15 @@
 import {PushMessageData} from './push';
 
-(ExtendableEvent as any).prototype.waitUntil = function(promise:Promise<any>) {
-    this.waitUntilPromise = promise;
-};
+// (ExtendableEvent as any).prototype.waitUntil = function(promise:Promise<any>) {
+//     this.waitUntilPromise = promise;
+// };
 
-(ExtendableEvent as any).prototype.resolve = function() {
-    if (this.waitUntilPromise !== null) {
-        return this.waitUntilPromise
-    }
-    return Promise.resolve();
-}
+// (ExtendableEvent as any).prototype.resolve = function() {
+//     if (this.waitUntilPromise !== null) {
+//         return this.waitUntilPromise
+//     }
+//     return Promise.resolve();
+// }
 
 export class FetchEvent {
 

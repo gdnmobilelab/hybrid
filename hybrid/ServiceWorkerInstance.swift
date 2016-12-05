@@ -300,12 +300,22 @@ struct PromiseReturn {
     ///
     /// - Parameter ev: The ExtendableEvent to dispatch. We have a few subclasses like NotificationEvent.
     /// - Returns: A promise that waits until any waitUntil() call has completed. Right now it returns a value from that, it should not.
-    func dispatchExtendableEvent(ev:ExtendableEvent) -> Promise<JSValue?> {
+    func dispatchExtendableEvent(ev:ExtendableEvent) -> Promise<Void> {
         
-        let funcToRun = self.jsContext.objectForKeyedSubscript("hybrid")
-            .objectForKeyedSubscript("dispatchExtendableEvent")
+        let funcToRun = self.jsContext.objectForKeyedSubscript("self")
+            .objectForKeyedSubscript("dispatchEvent")
         
-        return PromiseBridge<JSValue>(jsPromise: funcToRun.callWithArguments([ev]))
+        funcToRun.callWithArguments([ev])
+        
+        return ev.resolve()
+        
+//        return PromiseBridge<JSValue>(jsPromise: funcToRun.callWithArguments([ev]))
+//        .then { returnValue -> JSValue? in
+//            if self.contextErrorValue != nil {
+//                throw JSContextError(jsValue: returnValue!)
+//            }
+//            return returnValue
+//        }
 
     }
     
@@ -380,7 +390,7 @@ struct PromiseReturn {
             let contextJS = try NSString(contentsOfFile: workerContextPath, encoding: NSUTF8StringEncoding) as String
             fulfill(contextJS)
         }.then { js in
-            return self.runScript("var global = self; hybrid = {}; var window = global; var navigator = {}; navigator.userAgent = 'hybrid service worker';" + js)
+            return self.runScript("var global = self; hybrid = {}; var navigator = {}; navigator.userAgent = 'hybrid service worker';" + js)
         }.then { js in
             self.applyGlobalVariables()
             return Promise<Void>()
@@ -434,7 +444,7 @@ struct PromiseReturn {
     ///   - exception: The error as a JSValue
     private func exceptionHandler(context:JSContext!, exception:JSValue!) {
         self.contextErrorValue = exception
-        
+        let msg = exception.objectForKeyedSubscript("message").toString()
         log.error("JSCONTEXT error: " + exception.toString())
         
     }

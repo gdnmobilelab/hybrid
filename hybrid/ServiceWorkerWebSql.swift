@@ -109,7 +109,7 @@ import JavaScriptCore
     
     
     private func runQuery(query:String, args: [AnyObject]?) -> WebSQLResultSet {
-        
+        NSLog(query)
         let resultSet = WebSQLResultSet()
         
         do {

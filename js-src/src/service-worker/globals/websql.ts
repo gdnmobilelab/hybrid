@@ -1,4 +1,4 @@
-import * as customOpenDatabase from 'websql/custom';
+import customOpenDatabase from 'websql/custom';
 
 // regretting using typescript right now.
 let custOpen = (customOpenDatabase.default || customOpenDatabase)
@@ -8,7 +8,6 @@ class CustomImplementation {
     private db:any;
 
     constructor(name:string) {
-        console.log('TRYING TO CREATE DB')
         let returnArray = __WebSQLDatabaseCreator.createDB(name);
         if (returnArray[0]) {
             throw returnArray[0];
@@ -17,10 +16,15 @@ class CustomImplementation {
     }
 
     exec()  {
-        console.log("QUERY:", arguments[0])
-        this.db.execReadOnlyCallback.apply(this.db, arguments);
+        let args = arguments;
+        // The callback has to execute asynchronously, as libraries like treo
+        // set event listeners up after calling a query
+        setTimeout(() => {
+            this.db.execReadOnlyCallback.apply(this.db, args);
+        },0);
+        
     }
 }
-let openDatabase = custOpen(CustomImplementation);
+let openDatabase = customOpenDatabase(CustomImplementation);
 export default openDatabase;
 global.openDatabase = openDatabase;

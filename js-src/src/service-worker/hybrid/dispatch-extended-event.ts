@@ -1,7 +1,7 @@
 import {PushEvent} from '../globals/extended-event-types';
 
 hybrid.dispatchExtendableEvent = function(extendedEvent:any, cb:any) {
-    debugger;
+
     let promise = Promise.resolve()
     .then(() => {
         self.dispatchEvent(extendedEvent);

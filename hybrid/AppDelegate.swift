@@ -54,19 +54,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             let rootController = HybridNavigationController.create()
             
-            #if IS_DEBUG
+            let emptyWorkers = NSBundle.mainBundle().objectForInfoDictionaryKey("EMPTY_WORKERS_ON_LOAD") as! String == "1"
             
-            if AppDelegate.runningInTests == false {
-//                // todo: remove
+            if emptyWorkers {
+                
+                // Just used for debugging local builds, test out installation, etc.
+                
                 ServiceWorkerManager.clearActiveServiceWorkers()
                 try Db.mainDatabase.inDatabase({ (db) in
                     db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
                     db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
                 })
-
             }
-                
-            #endif
             
             let windowOpenActions = PendingWebviewActions.getAll().filter { event in
                 return event.type == WebviewClientEventType.OpenWindow
@@ -74,12 +73,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             if windowOpenActions.count == 0 {
                 
-                #if IS_DEBUG
-                    rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://alastairtest.ngrok.io/reader/")!)
-//                    rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo/")!)
-                #else
-                    rootController.pushNewHybridWebViewControllerFor(NSURL(string:"https://www.gdnmobilelab.com/app-demo/")!)
-                #endif
+                let initialURL = NSBundle.mainBundle().objectForInfoDictionaryKey("INITIAL_URL") as! String
+                
+                rootController.pushNewHybridWebViewControllerFor(NSURL(string:initialURL)!)
                 
             }
             
