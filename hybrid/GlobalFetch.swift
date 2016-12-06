@@ -106,11 +106,11 @@ import JavaScriptCore
     /// - Returns: A complete FetchHeaders object with the headers provided in the JSON
     /// - Throws: If the JSON cannot be parsed successfully.
     static func fromJSON(json:String) throws -> FetchHeaders {
-        let headersObj = try NSJSONSerialization.JSONObjectWithData(json.dataUsingEncoding(NSUTF8StringEncoding)!, options: NSJSONReadingOptions()) as! [String: [String]]
-        
+        let jsonAsData = json.dataUsingEncoding(NSUTF8StringEncoding)!
+        let headersObj = try NSJSONSerialization.JSONObjectWithData(jsonAsData, options: NSJSONReadingOptions())
         let fh = FetchHeaders()
         
-        for (key, values) in headersObj {
+        for (key, values) in headersObj as! [String: [String]] {
             for value in values {
                 fh.append(key, value: value)
             }

@@ -86,7 +86,7 @@ class Db {
     ///
     /// - Parameter toRun: A function using the FMDatabase instance passed to it
     /// - Throws: If any operation inside the function fails, or if the transaction commit fails, it will throw
-    func inTransaction(toRun: (db:FMDatabase) throws -> Void) throws {
+    func inTransaction(toRun: (_:FMDatabase) throws -> Void) throws {
         
         var err:ErrorType? = nil
         
@@ -94,7 +94,7 @@ class Db {
             db, rollback in
             
             do {
-                try toRun(db: db!)
+                try toRun(db!)
                 if db.hasOpenResultSets() {
                     throw ResultSetsStillOpenError()
                 }
@@ -116,7 +116,7 @@ class Db {
     ///
     /// - Parameter toRun: A function using the FMDatabase instance passed to it
     /// - Throws: If any operation inside the function fails, it will throw
-    func inDatabase(toRun: (db:FMDatabase) throws -> Void) throws {
+    func inDatabase(toRun: (_:FMDatabase) throws -> Void) throws {
         
         var err:ErrorType? = nil
         
@@ -124,7 +124,7 @@ class Db {
             db in
             
             do {
-                try toRun(db: db!)
+                try toRun(db!)
                 if db.hasOpenResultSets() {
                     throw ResultSetsStillOpenError()
                 }
@@ -160,10 +160,86 @@ class Db {
     
 }
 
+class CustomMigration : NSObject, FMDBMigrating {
+    
+    let sql:String
+    let name:String
+    let version:UInt64
+    
+    
+    init(name: String, sql:String) {
+        self.version = UInt64(name)!
+        self.name = name
+        self.sql = sql
+        super.init()
+    }
+    
+    func migrateDatabase(database: FMDatabase!) throws {
+        
+        try database.executeStatements(self.sql)
+    }
+    
+}
+
 
 /// Thin wrapper around FMDBMigrationManager (https://github.com/layerhq/FMDBMigrationManager) to ensure our
 /// SQLite databases are at the latest migration on app startup
 class DbMigrate {
+    
+    private static func addPreloadedWorkers(manager:FMDBMigrationManager, db:FMDatabase) throws {
+        
+        let plistPath = Util.appBundle().pathForResource("workers", ofType: "plist", inDirectory: "preload-workers")
+        
+        if plistPath == nil {
+            // no workers to preload
+            return
+        }
+        
+        var entries = NSArray(contentsOfFile: plistPath!) as! [AnyObject]
+
+        // If we haven't run the first migration yet then we know we want to
+        // add all of our bundled workers. Also the tables don't exist, so we
+        // can't query them
+        
+        if manager.currentVersion >= 201606290 {
+            
+            let existingWorkers = try db.executeQuery("SELECT DISTINCT url, scope FROM service_workers WHERE install_state < ?", values: [ServiceWorkerInstallState.Redundant.rawValue])
+            
+            while existingWorkers.next() {
+                let workerURL = existingWorkers.stringForColumn("url")
+                let workerScope = existingWorkers.stringForColumn("scope")
+                
+                let indexOfPreloadWorker = entries.indexOf { obj in
+                    return obj["url"] as! String == workerURL && obj["scope"] as! String == workerScope
+                }
+                
+                if indexOfPreloadWorker != nil {
+                    // We already have this worker installed and potentially more
+                    // up to date than the bundled one. So remove it.
+                    entries.removeAtIndex(indexOfPreloadWorker!)
+                }
+                
+            }
+            
+        }
+        
+        log.info(String(entries.count) + " bundled service workers to be installed...")
+        
+        for entry in entries {
+            
+            let file = entry["file"] as! String
+            
+            let sqlPath = Util.appBundle().pathForResource("worker_" + file, ofType: "sql", inDirectory: "preload-workers")!
+            
+            let sql = try String(contentsOfFile: sqlPath)
+
+            
+            let migrate = CustomMigration(name: file, sql: sql)
+            
+            manager.addMigration(migrate)
+        }
+        
+    }
     
     
     /// Called in the app delegate so that all migrations are completed before any code attempts to use the database
@@ -172,15 +248,24 @@ class DbMigrate {
     static func migrate() throws {
         
         try Db.mainDatabase.inDatabase { (db) in
-            let migrateManager = FMDBMigrationManager(database: db, migrationsBundle: NSBundle.mainBundle())!
+            let migrateManager = FMDBMigrationManager(database: db, migrationsBundle: Util.appBundle())!
+            
+            // Has to be disabled, or the manager tries to add the static CustomMigration to migrate list
+            migrateManager.dynamicMigrationsEnabled = false
+            
+            try addPreloadedWorkers(migrateManager, db: db)
             
             if migrateManager.hasMigrationsTable == false {
                 try migrateManager.createMigrationsTable()
             }
             log.debug("Database currently at migration " + String(migrateManager.currentVersion) + ", " + String(migrateManager.pendingVersions.count) + " migrations pending.")
             
-            try migrateManager.migrateDatabaseToVersion(UInt64.max, progress: nil)
+            if migrateManager.pendingVersions.count > 0 {
             
+                try migrateManager.migrateDatabaseToVersion(UInt64.max, progress: nil)
+                
+                log.debug("Migrated. Database now at version " + String(migrateManager.currentVersion))
+            }
         }
         
     }

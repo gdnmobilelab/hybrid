@@ -6,7 +6,8 @@
   "scripts": {
     "test": "mocha --require ts-node/register --require ./test-bootstrap.js test/**/*.ts test/**/**/*.ts",
     "rollup": "node_modules/.bin/rollup --config rollup.config.js",
-    "browserify": "browserify"
+    "browserify": "browserify",
+    "debug-preload": "CONFIGURATION=Debug node preload-workers/index.js ~/Projects/hybrid/preload-workers.json ~/Projects/hybrid/preload-workers"
   },
   "author": "",
   "license": "ISC",
@@ -17,8 +18,10 @@
     "events": "^1.1.1",
     "indexeddbshim": "^2.2.1",
     "inherits": "^2.0.1",
+    "knex": "^0.12.6",
     "mocha": "^2.5.3",
     "path-browserify": "0.0.0",
+    "plist": "^2.0.1",
     "promise-tools": "^1.0.2",
     "resolve-url": "^0.2.1",
     "rollup": "^0.34.7",

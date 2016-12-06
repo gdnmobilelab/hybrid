@@ -3,6 +3,7 @@ node_modules
 .DS_Store
 typings
 hybrid/gdn-mobile-lab-build/
+.vscode
 
 ## Build generated
 build/

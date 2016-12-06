@@ -106,7 +106,6 @@
 		8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA112951D79E3CD001EC463 /* NotificationViewController.swift */; };
 		8AA1129D1D79E3CD001EC463 /* hybrid-notification-content.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 8AA1128F1D79E3CD001EC463 /* hybrid-notification-content.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8AA2CBD31DB943E4004F95C3 /* StoredPushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */; };
-		8AACFB521DDA19D500595F58 /* 201611140.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AACFB511DDA19D500595F58 /* 201611140.sql */; };
 		8AACFB531DDA7F7600595F58 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283B41DBAC29700EB0886 /* CanvasView.swift */; };
 		8AB7EF211D9F155800176FAE /* Pods_notification_extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA86B1E9F949C6813A60BAB8 /* Pods_notification_extension.framework */; };
 		8AB7EF271D9F156100176FAE /* SharedResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A933F661D87049500F9DC72 /* SharedResources.swift */; };
@@ -137,11 +136,14 @@
 		8ADDB6A51DDCF09500B69AE8 /* HexColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A31DDCF08E00B69AE8 /* HexColor.swift */; };
 		8ADDB6A71DDD197500B69AE8 /* HybridWebviewMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A61DDD197400B69AE8 /* HybridWebviewMetadata.swift */; };
 		8ADDB6A91DDE067200B69AE8 /* RenderCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A81DDE067200B69AE8 /* RenderCheck.swift */; };
+		8ADE58AE1DF66BD9007E7A4D /* 2016111400000000.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8ADE58AB1DF66BD9007E7A4D /* 2016111400000000.sql */; };
+		8ADE58AF1DF66BD9007E7A4D /* 2016062900000000.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8ADE58AC1DF66BD9007E7A4D /* 2016062900000000.sql */; };
+		8ADE58B01DF66BD9007E7A4D /* 2016070600000000.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8ADE58AD1DF66BD9007E7A4D /* 2016070600000000.sql */; };
+		8ADE58B21DF66BF2007E7A4D /* preload-workers in Resources */ = {isa = PBXBuildFile; fileRef = 8ADE58B11DF66BF2007E7A4D /* preload-workers */; };
+		8ADE58B71DF735EF007E7A4D /* 201606290.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8ADE58B61DF735EF007E7A4D /* 201606290.sql */; };
 		8AEA3F261D54056C000A7C70 /* server-test-data in Resources */ = {isa = PBXBuildFile; fileRef = 8AEA3F251D54056C000A7C70 /* server-test-data */; };
 		8AEBD0D21D42E6230042A4AB /* WebServerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */; };
 		8AEEDE5C1D26CF450032D588 /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
-		8AEEDE631D2D90DF0032D588 /* 201606290.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AEEDE621D2D90DF0032D588 /* 201606290.sql */; };
-		8AEEDE671D2D93570032D588 /* 201607060.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AEEDE661D2D93570032D588 /* 201607060.sql */; };
 		CA84C83AD6F1B9C9CE1C18A7 /* Pods_hybrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 311DE092863FE59F27435153 /* Pods_hybrid.framework */; };
 		D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */; };
 		D31BC1141CD534CF00CF6BEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D31BC1131CD534CF00CF6BEB /* Assets.xcassets */; };
@@ -248,7 +250,6 @@
 		8A5283B41DBAC29700EB0886 /* CanvasView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
 		8A5283B61DBE5B6D00EB0886 /* PayloadToNotificationContent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PayloadToNotificationContent.swift; sourceTree = "<group>"; };
 		8A53C9261DEE183500560310 /* JSPromiseToPromise.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSPromiseToPromise.swift; sourceTree = "<group>"; };
-		8A53C92A1DF5D09A00560310 /* preload-workers.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "preload-workers.json"; sourceTree = "<group>"; };
 		8A54109A1D38179E00F44F38 /* ServiceWorkerManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerManager.swift; sourceTree = "<group>"; };
 		8A54109C1D3819DE00F44F38 /* ServiceWorkerManagerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerManagerSpec.swift; sourceTree = "<group>"; };
 		8A54109E1D381EF000F44F38 /* HybridWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridWebView.swift; sourceTree = "<group>"; };
@@ -287,7 +288,6 @@
 		8AA112951D79E3CD001EC463 /* NotificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewController.swift; sourceTree = "<group>"; };
 		8AA1129A1D79E3CD001EC463 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoredPushEvent.swift; sourceTree = "<group>"; };
-		8AACFB511DDA19D500595F58 /* 201611140.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 201611140.sql; sourceTree = "<group>"; };
 		8ACCDCCE1D7A0CD700A137E1 /* Console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		8AD2834F1D55070000D2DF07 /* test-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "test-workers"; sourceTree = "<group>"; };
 		8AD283511D55076D00D2DF07 /* TestUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtil.swift; sourceTree = "<group>"; };
@@ -299,11 +299,15 @@
 		8ADDB6A31DDCF08E00B69AE8 /* HexColor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HexColor.swift; sourceTree = "<group>"; };
 		8ADDB6A61DDD197400B69AE8 /* HybridWebviewMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridWebviewMetadata.swift; sourceTree = "<group>"; };
 		8ADDB6A81DDE067200B69AE8 /* RenderCheck.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RenderCheck.swift; sourceTree = "<group>"; };
+		8ADE58AB1DF66BD9007E7A4D /* 2016111400000000.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = 2016111400000000.sql; path = migrations/2016111400000000.sql; sourceTree = "<group>"; };
+		8ADE58AC1DF66BD9007E7A4D /* 2016062900000000.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = 2016062900000000.sql; path = migrations/2016062900000000.sql; sourceTree = "<group>"; };
+		8ADE58AD1DF66BD9007E7A4D /* 2016070600000000.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = 2016070600000000.sql; path = migrations/2016070600000000.sql; sourceTree = "<group>"; };
+		8ADE58B11DF66BF2007E7A4D /* preload-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "preload-workers"; sourceTree = "<group>"; };
+		8ADE58B31DF72584007E7A4D /* preload-workers.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "preload-workers.json"; sourceTree = "<group>"; };
+		8ADE58B61DF735EF007E7A4D /* 201606290.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 201606290.sql; sourceTree = "<group>"; };
 		8AEA3F251D54056C000A7C70 /* server-test-data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "server-test-data"; sourceTree = "<group>"; };
 		8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServerSpec.swift; sourceTree = "<group>"; };
 		8AEEDE5B1D26CF450032D588 /* db.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = db.swift; sourceTree = "<group>"; };
-		8AEEDE621D2D90DF0032D588 /* 201606290.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 201606290.sql; sourceTree = "<group>"; };
-		8AEEDE661D2D93570032D588 /* 201607060.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 201607060.sql; sourceTree = "<group>"; };
 		8E8D71D2823364A4E2EFDFEF /* Pods-notification-extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-notification-extension.debug.xcconfig"; path = "Pods/Target Support Files/Pods-notification-extension/Pods-notification-extension.debug.xcconfig"; sourceTree = "<group>"; };
 		A574A3671639BA500C5F81F0 /* Pods-hybrid-notification-content.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid-notification-content.debug.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid-notification-content/Pods-hybrid-notification-content.debug.xcconfig"; sourceTree = "<group>"; };
 		AAE308DFFF75C7288575B903 /* Pods-hybrid-notification-content.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid-notification-content.release.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid-notification-content/Pods-hybrid-notification-content.release.xcconfig"; sourceTree = "<group>"; };
@@ -531,12 +535,13 @@
 			name = shared;
 			sourceTree = "<group>";
 		};
-		8AEEDE611D2D90C00032D588 /* migrations */ = {
+		8ADE58AA1DF66BB3007E7A4D /* migrations */ = {
 			isa = PBXGroup;
 			children = (
-				8AEEDE621D2D90DF0032D588 /* 201606290.sql */,
-				8AEEDE661D2D93570032D588 /* 201607060.sql */,
-				8AACFB511DDA19D500595F58 /* 201611140.sql */,
+				8ADE58AC1DF66BD9007E7A4D /* 2016062900000000.sql */,
+				8ADE58AD1DF66BD9007E7A4D /* 2016070600000000.sql */,
+				8ADE58AB1DF66BD9007E7A4D /* 2016111400000000.sql */,
+				8ADE58B61DF735EF007E7A4D /* 201606290.sql */,
 			);
 			name = migrations;
 			sourceTree = "<group>";
@@ -559,7 +564,9 @@
 		D31BC1001CD534CE00CF6BEB = {
 			isa = PBXGroup;
 			children = (
-				8A53C92A1DF5D09A00560310 /* preload-workers.json */,
+				8ADE58B31DF72584007E7A4D /* preload-workers.json */,
+				8ADE58B11DF66BF2007E7A4D /* preload-workers */,
+				8ADE58AA1DF66BB3007E7A4D /* migrations */,
 				D31BC10B1CD534CF00CF6BEB /* hybrid */,
 				D31BC1201CD534CF00CF6BEB /* hybridTests */,
 				D31BC12B1CD534CF00CF6BEB /* hybridUITests */,
@@ -591,7 +598,6 @@
 				8A2449401D6D0ABD00052D92 /* hybrid.entitlements */,
 				8A932BD41D5A61B500FA15F8 /* webview-sw-bridge */,
 				8A8846041D30072100CF9369 /* service-worker */,
-				8AEEDE611D2D90C00032D588 /* migrations */,
 				D38116391CD5AE96004A3CCD /* js-dist */,
 				D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */,
 				D31BC1131CD534CF00CF6BEB /* Assets.xcassets */,
@@ -847,11 +853,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				D381163A1CD5AE96004A3CCD /* js-dist in Resources */,
-				8AACFB521DDA19D500595F58 /* 201611140.sql in Resources */,
-				8AEEDE631D2D90DF0032D588 /* 201606290.sql in Resources */,
-				8AEEDE671D2D93570032D588 /* 201607060.sql in Resources */,
+				8ADE58AF1DF66BD9007E7A4D /* 2016062900000000.sql in Resources */,
+				8ADE58B21DF66BF2007E7A4D /* preload-workers in Resources */,
 				D31BC1171CD534CF00CF6BEB /* LaunchScreen.storyboard in Resources */,
 				D31BC1141CD534CF00CF6BEB /* Assets.xcassets in Resources */,
+				8ADE58B71DF735EF007E7A4D /* 201606290.sql in Resources */,
+				8ADE58AE1DF66BD9007E7A4D /* 2016111400000000.sql in Resources */,
+				8ADE58B01DF66BD9007E7A4D /* 2016070600000000.sql in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -965,7 +973,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "node \"$PROJECT_DIR\"/js-src/preload-workers \"$SRCROOT\"/preload-workers.json";
+			shellScript = "node \"$PROJECT_DIR\"/js-src/preload-workers \"$SRCROOT\"/preload-workers.json \"$SRCROOT\"/preload-workers";
 		};
 		8C4A98E43D1B65285488ADCB /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;

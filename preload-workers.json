@@ -1,8 +1,8 @@
 {
     "debug": [
         {
-            "scope": "${INITIAL_URL}",
-            "src": "${INITIAL_URL}sw.js"
+            "scope": "https://alastairtest.ngrok.io/reader/",
+            "src": "https://alastairtest.ngrok.io/reader/sw.js"
         }
     ],
     "release": [

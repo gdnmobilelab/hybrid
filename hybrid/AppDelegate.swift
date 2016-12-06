@@ -35,9 +35,28 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         do {
             
+            try Db.createMainDatabase()
+
+            
+            let emptyWorkers = NSBundle.mainBundle().objectForInfoDictionaryKey("EMPTY_WORKERS_ON_LOAD") as! String == "1"
+            
+            if emptyWorkers {
+                
+                // Just used for debugging local builds, test out installation, etc.
+                
+                ServiceWorkerManager.clearActiveServiceWorkers()
+                do {
+                    try Db.mainDatabase.inDatabase({ (db) in
+                        db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
+                        db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
+                    })
+                } catch {
+                    log.warning("Failed to clear service workers - DB migrations not run yet perhaps?")
+                }
+            }
+            
             GCDWebServer.setLogLevel(2)
             
-            try Db.createMainDatabase()
             try DbMigrate.migrate()
             
             PushManager.listenForDeviceToken()
@@ -54,18 +73,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             let rootController = HybridNavigationController.create()
             
-            let emptyWorkers = NSBundle.mainBundle().objectForInfoDictionaryKey("EMPTY_WORKERS_ON_LOAD") as! String == "1"
-            
-            if emptyWorkers {
-                
-                // Just used for debugging local builds, test out installation, etc.
-                
-                ServiceWorkerManager.clearActiveServiceWorkers()
-                try Db.mainDatabase.inDatabase({ (db) in
-                    db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
-                    db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
-                })
-            }
+           
             
             let windowOpenActions = PendingWebviewActions.getAll().filter { event in
                 return event.type == WebviewClientEventType.OpenWindow
