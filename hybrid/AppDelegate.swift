@@ -73,7 +73,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             let rootController = HybridNavigationController.create()
             
-           
+            AppDelegate.rootController = rootController
+            
+            AppDelegate.window!.rootViewController = rootController
             
             let windowOpenActions = PendingWebviewActions.getAll().filter { event in
                 return event.type == WebviewClientEventType.OpenWindow
@@ -85,12 +87,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 
                 rootController.pushNewHybridWebViewControllerFor(NSURL(string:initialURL)!)
                 
+            } else {
+                NotificationDelegate.processPendingActions()
             }
             
             
-            AppDelegate.rootController = rootController
-        
-            AppDelegate.window!.rootViewController = rootController
+            
             
             AppDelegate.window!.makeKeyAndVisible();
             

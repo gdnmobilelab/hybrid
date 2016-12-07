@@ -40,25 +40,31 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
 
     }
     
+    static func processPendingActions() {
+        let pendingActions = PendingWebviewActions.getAll()
+        
+        pendingActions.forEach { event in
+            if event.type == WebviewClientEventType.OpenWindow {
+                
+                let urlToOpen = event.options!["urlToOpen"] as! String
+                
+                AppDelegate.rootController!.pushNewHybridWebViewControllerFor(NSURL(string: urlToOpen)!)
+            } else {
+                HybridWebview.processClientEvent(event)
+            }
+        }
+        
+        PendingNotificationActions.reset()
+        PendingWebviewActions.clear()
+    }
+    
     func userNotificationCenter(center: UNUserNotificationCenter, didReceiveNotificationResponse response: UNNotificationResponse, withCompletionHandler completionHandler: () -> Void) {
         
         checkForNotificationClick(response)
         .then { () -> Void in
-            let pendingActions = PendingWebviewActions.getAll()
             
-            pendingActions.forEach { event in
-                if event.type == WebviewClientEventType.OpenWindow {
-                    
-                    let urlToOpen = event.options!["urlToOpen"] as! String
-                    
-                    AppDelegate.rootController!.pushNewHybridWebViewControllerFor(NSURL(string: urlToOpen)!)
-                } else {
-                    HybridWebview.processClientEvent(event)
-                }
-            }
+            NotificationDelegate.processPendingActions()
             
-            PendingNotificationActions.reset()
-            PendingWebviewActions.clear()
             completionHandler()
         }
         

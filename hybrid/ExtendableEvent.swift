@@ -10,6 +10,8 @@ import Foundation
 import JavaScriptCore
 import PromiseKit
 
+class PromiseAlreadyResolvedError : ErrorType {}
+
 @objc protocol ExtendableEventExports: JSExport {
     var type:String {get}
     init(type:String)
@@ -20,6 +22,7 @@ import PromiseKit
     let type: String
     
     var waitUntilPromise:JSValue?
+    var hasResolved = false
 
     required init(type:String) {
         self.type = type
@@ -27,11 +30,17 @@ import PromiseKit
     }
     
     func waitUntil(promise:JSValue) {
+        
+        // JavascriptCore doesn't like functions that throw. Not sure what to do about that.
+        
+//        if self.hasResolved == true {
+//            throw PromiseAlreadyResolvedError()
+//        }
         self.waitUntilPromise = promise
     }
     
     func resolve() -> Promise<Void> {
-        
+        self.hasResolved = true
         if self.waitUntilPromise == nil {
             return Promise<Void>()
         }

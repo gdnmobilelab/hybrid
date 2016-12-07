@@ -300,6 +300,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                 self.activeVideo!.pause()
             }
         }
+       
         
         
         NotificationHandler.processAction(response, userInfo: latestUserInfo!, activeViews: ActiveNotificationViews(video: self.activeVideo, canvas: self.activeCanvas))
