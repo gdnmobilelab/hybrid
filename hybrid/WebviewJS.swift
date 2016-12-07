@@ -64,4 +64,23 @@ class WebviewJS {
                     ] as [String]).joinWithSeparator("")
         }
     }
+    
+    static var reactivateScriptTags:String {
+        get {
+            return [
+                 "var s = document.documentElement.getElementsByTagName('script');",
+                 "for (var i = 0; i < s.length ; i++) {",
+                 "    var node=s[i], parent=node.parentElement, d = document.createElement('script');",
+                 " console.log('tag',s.length,node);",
+                
+                 "    if (node.async) d.async=node.async;",
+                 "    if (node.src) d.src=node.src;",
+                 "    if (node.textContent) d.textContent = node.textContent;",
+                 "    if (node.type) d.type = node.type;",
+                 "    parent.insertBefore(d,node);",
+                 "    parent.removeChild(node);",
+                 "}"
+            ].joinWithSeparator("")
+        }
+    }
 }

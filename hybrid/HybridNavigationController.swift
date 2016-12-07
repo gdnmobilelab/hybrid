@@ -83,7 +83,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     func getNewController() -> HybridWebviewController {
         let inWaitingArea = waitingAreaViewControllers.last
        
-        if inWaitingArea != nil && inWaitingArea!.isReady == true {
+        if inWaitingArea != nil /*&& inWaitingArea!.isReady == true*/ {
             self.removeControllerFromWaitingArray(inWaitingArea!)
             return inWaitingArea!
         }
@@ -137,7 +137,6 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         self.addViewToWaitingArea(controller.webview!)
         
         controller.webview!.loadHTMLString("<html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1,user-scalable=no\" /></head><body></body></html>", baseURL: forDomain)
-
     }
     
     
@@ -145,7 +144,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     ///
     /// - Parameter url: The URL we want to load. Not a localhost URL - it will be mapped automatically.
     /// - Returns: A promise that resolves when the page is loaded and the view is painted and ready.
-    private func prepareWebviewFor(url:NSURL) -> Promise<HybridWebviewController> {
+    private func prepareWebviewFor(url:NSURL, attemptAcceleratedLoading:Bool) -> Promise<HybridWebviewController> {
         let newInstance = self.getNewController()
         
         return Promise<HybridWebviewController> { fulfill, reject in
@@ -161,8 +160,8 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             })
             
             newInstance.events.once("popped", self.addPoppedViewBackToWaitingStack)
-            
-            newInstance.loadURL(url)
+            newInstance.webview!.registerWebviewForServiceWorkerEvents()
+            newInstance.loadURL(url, attemptAcceleratedLoad: attemptAcceleratedLoading)
 
         }
         
@@ -178,16 +177,16 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         // Once this has been pushed off the stack, reset it with
         // the placeholder URL for the new top domain
         
-        let newTop = self.topViewController as? HybridWebviewController
+        var newTop = self.topViewController as? HybridWebviewController
         
-        if newTop != nil {
-            self.addControllerAndViewToWaitingArea(hybrid, forDomain: newTop!.webview!.mappedURL!)
-        } else {
+        if newTop == nil {
             // if we don't have a top view (should never happen!) just
             // use the view's own domain
-            self.addControllerAndViewToWaitingArea(hybrid, forDomain: hybrid.webview!.mappedURL!)
+            newTop = hybrid
         }
-
+        
+        let urlToPreload = WebServerDomainManager.rewriteURLIfInWorkerDomain(newTop!.webview!.URL!)
+        self.addControllerAndViewToWaitingArea(hybrid, forDomain: urlToPreload)
     }
     
     
@@ -197,7 +196,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     /// - Parameter url: The URL to load. Not localhost URL - is mapped automatically.
     func pushNewHybridWebViewControllerFor(url:NSURL, animated:Bool = true) {
         
-        self.prepareWebviewFor(url)
+        self.prepareWebviewFor(url, attemptAcceleratedLoading: true)
         .then { newInstance -> Void in
             
             self.pushViewController(newInstance, animated: animated)
@@ -275,7 +274,10 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         
         if self.waitingAreaViewControllers.count == 0 {
             // Ensure we have a cached view ready to go
-            self.addControllerAndViewToWaitingArea(HybridWebviewController(), forDomain: hybrid.webview!.mappedURL!)
+            
+            let urlToPreload = WebServerDomainManager.rewriteURLIfInWorkerDomain(hybrid.webview!.URL!)
+            
+            self.addControllerAndViewToWaitingArea(HybridWebviewController(), forDomain: urlToPreload)
         }
         
         if self.viewControllers.indexOf(viewController) == 0 && hybrid.currentMetadata?.defaultBackURL != nil {
@@ -289,7 +291,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
                 backURL = WebServerDomainManager.mapServerURLToRequestURL(backURL)
             }
             
-            self.prepareWebviewFor(backURL)
+            self.prepareWebviewFor(backURL, attemptAcceleratedLoading: false)
             .then { controller in
                 self.viewControllers.insert(controller, atIndex: 0)
             }

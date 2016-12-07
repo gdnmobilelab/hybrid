@@ -44,8 +44,6 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         
         self.view = HybridWebview(frame: self.view.frame)
 
-        self.webview!.registerWebviewForServiceWorkerEvents()
-        
         self.webview!.navigationDelegate = self
         
         // Don't show text in back button - it's causing some odd display problems
@@ -66,7 +64,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     /// and also tracks page load time for logging purposes
     ///
     /// - Parameter urlToLoad: The full, remote URL we want to load. Do not pass in a URL already mapped to localhost.
-    func loadURL(urlToLoad:NSURL) {
+    func loadURL(urlToLoad:NSURL, attemptAcceleratedLoad: Bool = false) {
         
         if urlToLoad.host == "localhost" {
             log.error("Should never directly load a localhost URL - should be a server URL")
@@ -91,10 +89,61 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         
         log.info("Loading " + maybeRewrittenURL.absoluteString!)
         
-        // start listening to readystate changes
-        self.webview!.readyStateHandler.onchange = self.checkReadyState
-        self.webview!.loadRequest(NSURLRequest(URL: maybeRewrittenURL))
+        let currentPort = self.webview!.URL
         
+        let isAcceleratedLoadCapable = maybeRewrittenURL.host! == "localhost" && self.webview!.URL?.port == maybeRewrittenURL.port
+        
+        if attemptAcceleratedLoad && isAcceleratedLoadCapable == false {
+            log.warning("Wanted to load accelerated, but cannot")
+        }
+        
+        
+        if attemptAcceleratedLoad == false || (attemptAcceleratedLoad == true && isAcceleratedLoadCapable == false) {
+            // start listening to readystate changes
+            self.webview!.readyStateHandler.onchange = self.checkReadyState
+            self.webview!.loadRequest(NSURLRequest(URL: maybeRewrittenURL))
+        } else {
+            self.injectHTMLDirectly(maybeRewrittenURL)
+        }
+        
+    }
+    
+    func injectHTMLDirectly(urlToLoad:NSURL) {
+        GlobalFetch.fetch(urlToLoad.absoluteString!)
+        .then { response -> Void in
+            
+            // Hate Regex in Swift with the power of a thousand suns. This is mostly copied from:
+            // https://code.tutsplus.com/tutorials/swift-and-regular-expressions-swift--cms-26626
+            
+            let responseAsString = String(data: response.data!, encoding: NSUTF8StringEncoding)!
+            
+            let regex = try NSRegularExpression(pattern: "<html(?:.*?)>([\\s\\S]+)<\\/html>", options: [
+                NSRegularExpressionOptions.CaseInsensitive
+            ])
+            
+            let match = regex.matchesInString(responseAsString, options: [], range: NSRange(location:0, length: responseAsString.characters.count))[0]
+            
+            let range = match.rangeAtIndex(1)
+            
+            let r = responseAsString.startIndex.advancedBy(range.location) ..<
+                responseAsString.startIndex.advancedBy(range.location+range.length)
+            
+            var htmlInner = responseAsString.substringWithRange(r)
+            htmlInner = htmlInner
+                .stringByReplacingOccurrencesOfString("'", withString: "\\'")
+                .stringByReplacingOccurrencesOfString("\n", withString: "\\n")
+            
+            let jsToRun = "history.replaceState({}, '', '" + urlToLoad.absoluteString! + "'); document.documentElement.innerHTML = '" + htmlInner + "';" + WebviewJS.reactivateScriptTags
+            
+            self.webview!.evaluateJavaScript(jsToRun, completionHandler: { (retObj, err) in
+                if err != nil {
+                    NSLog(String(err))
+                }
+                
+                self.fireReadyEvent()
+            })
+
+        }
     }
     
     
@@ -180,24 +229,28 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
 //        }
 //    }
     
+    func fireReadyEvent() {
+        let w:Promise<Void> = when([
+            self.waitForRendered(),
+            self.setMetadata()
+            ])
+        
+        return w.then { () -> Void in
+            self.events.emit("ready", self)
+            }
+            .error { err in
+                log.error(String(err))
+                // even if these fail we should just show the view
+                self.events.emit("ready", self)
+        }
+
+    }
+    
     func checkReadyState(readyState:String) {
         if readyState == "interactive" || readyState == "complete" {
             self.webview!.readyStateHandler.onchange = nil
             
-            let w:Promise<Void> = when([
-                self.waitForRendered(),
-                self.setMetadata()
-                ])
-            
-            return w.then { () -> Void in
-                self.events.emit("ready", self)
-                }
-                .error { err in
-                    log.error(String(err))
-                    // even if these fail we should just show the view
-                    self.events.emit("ready", self)
-            }
-
+            self.fireReadyEvent()
         }
     }
     

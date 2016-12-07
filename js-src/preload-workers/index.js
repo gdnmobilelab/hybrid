@@ -25,8 +25,17 @@ function injectVariablesIntoString(str) {
 // We only want to bundle one worker preload migration with an app release, so we'll clear out
 // any that already exist.
 function removeExistingWorkerPreloads(dir) {
-    let entries = fs.readdirSync(dir);
-    entries.forEach((file) => fs.unlinkSync(path.join(dir,file)));
+    try {
+        let entries = fs.readdirSync(dir);
+        entries.forEach((file) => fs.unlinkSync(path.join(dir,file)));
+    } catch (err) {
+        if (err.code === "ENOENT") {
+            // preload directory doesn't exist. It should.
+            fs.mkdirSync(dir);
+        } else {
+            throw err;
+        }
+    }
 }
 
 const configFile = require(process.argv[2]);
