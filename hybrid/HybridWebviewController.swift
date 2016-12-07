@@ -156,6 +156,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         } else {
             self.hybridNavigationController!.pushNewHybridWebViewControllerFor(intendedURL)
         }
+        self.placeScreenshotOnTopOfView()
         decisionHandler(WKNavigationActionPolicy.Cancel)
     }
     
@@ -235,6 +236,11 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         
         super.viewDidDisappear(animated)
         
+        if self.screenshotView != nil {
+            self.screenshotView!.removeFromSuperview()
+            self.screenshotView = nil
+        }
+        
         if self.navigationController == nil {
             HybridWebview.deregisterWebviewFromServiceWorkerEvents(self.webview!)
             self.events.emit("popped", self)
@@ -257,5 +263,23 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
+    var screenshotView:UIImageView?
     
+    
+    /// When a user has tapped on a link we need to simulate the phone thread being taken up
+    /// , sort of, anyway - if you can continue to scroll it looks weird. So we take a screenshot
+    /// then place it on top of the view. We remove it again when the view is popped.
+    func placeScreenshotOnTopOfView() {
+        UIGraphicsBeginImageContextWithOptions(self.webview!.frame.size, false, 0)
+        
+        let withoutYOffset = CGRect(x:0, y: 0, width:self.webview!.frame.width, height: self.webview!.frame.height)
+        
+        self.webview!.scrollView.drawViewHierarchyInRect(withoutYOffset, afterScreenUpdates: false)
+        
+        let image = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        self.screenshotView = UIImageView(image: image)
+        self.view.addSubview(self.screenshotView!)
+        
+    }
 }

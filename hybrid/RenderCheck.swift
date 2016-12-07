@@ -59,7 +59,7 @@ class RenderCheck {
     /// Check the pixel to see if it's the color we specified in the indicator
     ///
     /// - Returns: True if the pixel matches the color specified in colorToCheckFor. Otherwise, false.
-    private func checkIfRendered() -> Bool {
+    private func checkIfRendered() -> Bool {    
         self.target.scrollView.layer.renderInContext(self.renderCheckContext!)
         
         let startAt = 4 * width * height - 4
