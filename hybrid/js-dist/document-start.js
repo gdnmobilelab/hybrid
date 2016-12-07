@@ -1398,7 +1398,15 @@ window.hybridEvents = {
 //     }
 // }
 
+// The WKWebView load handler includes things like loading images, which we don't
+// want to wait for. So instead, we keep track of the readyState change, and send that
+// back through a message handler.
+var webkit$2 = window.webkit;
+document.addEventListener('readystatechange', function () {
+    console.log("NEW READYSTATE:", document.readyState);
+    webkit$2.messageHandlers.readyStateHandler.postMessage(document.readyState);
+});
+
 window.onerror = function (err) {
     console.error(err);
 };
-// document.body.innerHTML="THIS LOADED"

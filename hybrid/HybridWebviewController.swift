@@ -90,6 +90,9 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         let maybeRewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(urlToLoad)
         
         log.info("Loading " + maybeRewrittenURL.absoluteString!)
+        
+        // start listening to readystate changes
+        self.webview!.readyStateHandler.onchange = self.checkReadyState
         self.webview!.loadRequest(NSURLRequest(URL: maybeRewrittenURL))
         
     }
@@ -159,20 +162,41 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     
     /// When the page has finished loading we grab the metadata and run our render checker to make sure
     /// the page is visible before we push it into our stack.
-    func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
-        
-        let w:Promise<Void> = when([
-            self.waitForRendered(),
-            self.setMetadata()
-        ])
-        
-        return w.then { () -> Void in
-            self.events.emit("ready", self)
-        }
-        .error { err in
-            log.error(String(err))
-            // even if these fail we should just show the view
-            self.events.emit("ready", self)
+//    func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
+//        
+//        let w:Promise<Void> = when([
+//            self.waitForRendered(),
+//            self.setMetadata()
+//        ])
+//        
+//        return w.then { () -> Void in
+//            self.events.emit("ready", self)
+//        }
+//        .error { err in
+//            log.error(String(err))
+//            // even if these fail we should just show the view
+//            self.events.emit("ready", self)
+//        }
+//    }
+    
+    func checkReadyState(readyState:String) {
+        if readyState == "interactive" || readyState == "complete" {
+            self.webview!.readyStateHandler.onchange = nil
+            
+            let w:Promise<Void> = when([
+                self.waitForRendered(),
+                self.setMetadata()
+                ])
+            
+            return w.then { () -> Void in
+                self.events.emit("ready", self)
+                }
+                .error { err in
+                    log.error(String(err))
+                    // even if these fail we should just show the view
+                    self.events.emit("ready", self)
+            }
+
         }
     }
     

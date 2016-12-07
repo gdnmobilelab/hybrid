@@ -1,6 +1,10 @@
 {
     "debug": [
-    
+              {
+              "scope": "${INITIAL_URL}",
+              "src": "${INITIAL_URL}sw.js"
+              }
+
     ],
     "release": [
         {

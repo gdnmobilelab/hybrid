@@ -11,9 +11,6 @@ import WebKit
 import PromiseKit
 import EmitterKit
 
-
-
-
 /// Inherits from WKWebView, adds a few pieces of functionality we need, as well as tracking
 /// of active webviews.
 class HybridWebview : WKWebView, WKNavigationDelegate {
@@ -23,6 +20,8 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     var notificationPermissionHandler:NotificationPermissionHandler?
     var serviceWorkerAPI:ServiceWorkerAPI?
     var eventManager: EventManager?
+    
+    let readyStateHandler = ReadyStateHandler()
     
     
     /// A store for all the active webviews currently in use by the app
@@ -168,6 +167,8 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         self.serviceWorkerAPI = ServiceWorkerAPI(userController: config.userContentController, webView: self)
         self.eventManager = EventManager(userController: config.userContentController, webView: self)
         self.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        
+        config.userContentController.addScriptMessageHandler(self.readyStateHandler, name: ReadyStateHandler.name)
         
         self.allowsLinkPreview = false
     }

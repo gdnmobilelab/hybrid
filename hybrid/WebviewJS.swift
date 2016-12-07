@@ -35,7 +35,7 @@ class WebviewJS {
                 "loadedIndicator.style.height = '" + width + "vw';",
                 "loadedIndicator.style.backgroundColor = '" + RenderCheck.colorToCheckFor.toRGBString() + "';",
                 "loadedIndicator.style.zIndex = '999999';",
-                "document.body.appendChild(loadedIndicator);",
+                "document.body.insertBefore(loadedIndicator, document.body.firstChild);",
                 "window.__loadedIndicator = loadedIndicator;",
                 "true" // have to return true otherwise js evaluate complains about trying to return a DOM node
             ]

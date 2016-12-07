@@ -109,6 +109,7 @@
 		8AACFB531DDA7F7600595F58 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283B41DBAC29700EB0886 /* CanvasView.swift */; };
 		8AB7EF211D9F155800176FAE /* Pods_notification_extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA86B1E9F949C6813A60BAB8 /* Pods_notification_extension.framework */; };
 		8AB7EF271D9F156100176FAE /* SharedResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A933F661D87049500F9DC72 /* SharedResources.swift */; };
+		8AB917E21DF87E6500CD8153 /* ReadyStateHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB917E11DF87E6500CD8153 /* ReadyStateHandler.swift */; };
 		8ACCDCCF1D7A0CD700A137E1 /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ACCDCCE1D7A0CD700A137E1 /* Console.swift */; };
 		8ACCDCD01D7A131900A137E1 /* ServiceWorkerInstance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8846051D30074500CF9369 /* ServiceWorkerInstance.swift */; };
 		8ACCDCD11D7A131900A137E1 /* ServiceWorkerWebSql.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */; };
@@ -288,6 +289,7 @@
 		8AA112951D79E3CD001EC463 /* NotificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewController.swift; sourceTree = "<group>"; };
 		8AA1129A1D79E3CD001EC463 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8AA2CBD21DB943E4004F95C3 /* StoredPushEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoredPushEvent.swift; sourceTree = "<group>"; };
+		8AB917E11DF87E6500CD8153 /* ReadyStateHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadyStateHandler.swift; sourceTree = "<group>"; };
 		8ACCDCCE1D7A0CD700A137E1 /* Console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		8AD2834F1D55070000D2DF07 /* test-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "test-workers"; sourceTree = "<group>"; };
 		8AD283511D55076D00D2DF07 /* TestUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtil.swift; sourceTree = "<group>"; };
@@ -481,6 +483,7 @@
 				8A2475871D623BDA008906FB /* EventManager.swift */,
 				8A2449411D6D0B6E00052D92 /* NotificationPermissionHandler.swift */,
 				8ADDB6A61DDD197400B69AE8 /* HybridWebviewMetadata.swift */,
+				8AB917E11DF87E6500CD8153 /* ReadyStateHandler.swift */,
 			);
 			name = webview;
 			sourceTree = "<group>";
@@ -1183,6 +1186,7 @@
 				8A7786341D5B74E30062E12B /* ConsoleManager.swift in Sources */,
 				8A9D71181DC27DAD00375365 /* BackButtonSymbol.swift in Sources */,
 				8A0970B81DC977A300F16CF4 /* WebServerDomainManager.swift in Sources */,
+				8AB917E21DF87E6500CD8153 /* ReadyStateHandler.swift in Sources */,
 				8A6EA5181D8200E7003FDA00 /* Notification.swift in Sources */,
 				8A2449491D6F676700052D92 /* HybridNavigationController.swift in Sources */,
 				8A1310111DDF9B4F0074944D /* PushMessageData.swift in Sources */,
