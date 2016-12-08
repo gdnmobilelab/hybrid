@@ -145,6 +145,7 @@
 		8AEA3F261D54056C000A7C70 /* server-test-data in Resources */ = {isa = PBXBuildFile; fileRef = 8AEA3F251D54056C000A7C70 /* server-test-data */; };
 		8AEBD0D21D42E6230042A4AB /* WebServerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */; };
 		8AEEDE5C1D26CF450032D588 /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
+		8AF092991DFA087200C2F5DD /* 2016120800000000.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AF092981DFA087200C2F5DD /* 2016120800000000.sql */; };
 		CA84C83AD6F1B9C9CE1C18A7 /* Pods_hybrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 311DE092863FE59F27435153 /* Pods_hybrid.framework */; };
 		D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */; };
 		D31BC1141CD534CF00CF6BEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D31BC1131CD534CF00CF6BEB /* Assets.xcassets */; };
@@ -310,6 +311,7 @@
 		8AEA3F251D54056C000A7C70 /* server-test-data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "server-test-data"; sourceTree = "<group>"; };
 		8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServerSpec.swift; sourceTree = "<group>"; };
 		8AEEDE5B1D26CF450032D588 /* db.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = db.swift; sourceTree = "<group>"; };
+		8AF092981DFA087200C2F5DD /* 2016120800000000.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 2016120800000000.sql; sourceTree = "<group>"; };
 		8E8D71D2823364A4E2EFDFEF /* Pods-notification-extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-notification-extension.debug.xcconfig"; path = "Pods/Target Support Files/Pods-notification-extension/Pods-notification-extension.debug.xcconfig"; sourceTree = "<group>"; };
 		A574A3671639BA500C5F81F0 /* Pods-hybrid-notification-content.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid-notification-content.debug.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid-notification-content/Pods-hybrid-notification-content.debug.xcconfig"; sourceTree = "<group>"; };
 		AAE308DFFF75C7288575B903 /* Pods-hybrid-notification-content.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid-notification-content.release.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid-notification-content/Pods-hybrid-notification-content.release.xcconfig"; sourceTree = "<group>"; };
@@ -545,6 +547,7 @@
 				8ADE58AD1DF66BD9007E7A4D /* 2016070600000000.sql */,
 				8ADE58AB1DF66BD9007E7A4D /* 2016111400000000.sql */,
 				8ADE58B61DF735EF007E7A4D /* 201606290.sql */,
+				8AF092981DFA087200C2F5DD /* 2016120800000000.sql */,
 			);
 			name = migrations;
 			sourceTree = "<group>";
@@ -857,6 +860,7 @@
 			files = (
 				D381163A1CD5AE96004A3CCD /* js-dist in Resources */,
 				8ADE58AF1DF66BD9007E7A4D /* 2016062900000000.sql in Resources */,
+				8AF092991DFA087200C2F5DD /* 2016120800000000.sql in Resources */,
 				8ADE58B21DF66BF2007E7A4D /* preload-workers in Resources */,
 				D31BC1171CD534CF00CF6BEB /* LaunchScreen.storyboard in Resources */,
 				D31BC1141CD534CF00CF6BEB /* Assets.xcassets in Resources */,
@@ -1394,7 +1398,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INITIAL_URL = "https://alastairtest.ngrok.io/reader/";
+				INITIAL_URL = "https://www.gdnmobilelab.com/reader/";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;

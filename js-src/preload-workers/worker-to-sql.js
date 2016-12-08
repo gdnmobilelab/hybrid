@@ -10,6 +10,7 @@ module.exports = function(workerEntry) {
     let workerInsert = knex("service_workers")
         .insert({
             url: workerEntry.src,
+            headers: JSON.stringify(workerEntry.headers),    
             scope: workerEntry.scope,
             last_checked: Math.round(workerEntry.lastChecked / 1000), // Swift stores seconds, not milliseconds
             contents: workerEntry.contents,

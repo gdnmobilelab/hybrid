@@ -113,7 +113,13 @@ class ServiceWorkerAPI: ScriptMessageManager {
             serviceWorkerScope = NSURL(string: scope!, relativeToURL: actualSWPath)!
         }
         
-        return ServiceWorkerManager.update(actualSWPath, scope: serviceWorkerScope)
+        // forceCheck shouldn't actually be true here - it only forces update if the URL has changed.
+        // BUT, it also forces a check on navigation events. For now, we're using this as a shortcut,
+        // as all our worker pages will have a register() call on them.
+        //
+        // TODO: fix this
+        
+        return ServiceWorkerManager.update(actualSWPath, scope: serviceWorkerScope, forceCheck: true)
         .then { response in
             
             return ServiceWorkerInstance.getById(response)

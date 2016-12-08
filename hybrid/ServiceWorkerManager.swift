@@ -144,10 +144,13 @@ class ServiceWorkerManager {
                 return
             }
             
+            let headers = try FetchHeaders.fromJSON(result.stringForColumn("headers"))
+            
             stub = ServiceWorkerStub(
                 instanceId: Int(result.intForColumn("instance_id")),
                 installState: ServiceWorkerInstallState(rawValue: Int(result.intForColumn("install_state")))!,
                 lastChecked: Int(result.intForColumn("last_checked")),
+                lastModified: headers.get("last-modified"),
                 scope: NSURL(string: result.stringForColumn("scope"))!,
                 jsHash: Util.sha256String(String(data: result.dataForColumn("contents"), encoding: NSUTF8StringEncoding)!)
             )
@@ -202,9 +205,31 @@ class ServiceWorkerManager {
                 
             }
      
-            return GlobalFetch.fetch(urlOfServiceWorker.absoluteString!)
+            let request = FetchRequest(url: urlOfServiceWorker.absoluteString!, options: nil)
+            
+            if newest?.lastModified != nil {
+                
+                // If we have one already and a Last-Modified header, then we can return a 304
+                // if the content hasn't actually changed.
+                
+                request.headers.append("If-Modified-Since", value: newest!.lastModified!)
+            }
+            
+            
+            return GlobalFetch.fetchRequest(request)
             .then { response -> Promise<Int> in
                 
+                if response.status == 304 {
+                    // Not modified. Don't try to read the data as it isn't there.
+                    log.info("Checked for update to " + urlOfServiceWorker.absoluteString! + ", received a 304.")
+                    return Promise<Int>(newest!.instanceId)
+                }
+                
+                if response.status < 200 || response.status > 299 {
+                    log.error("Checked for update to " + urlOfServiceWorker.absoluteString! + ", received a non-200 response: " + String(response.status))
+                    return Promise<Int>(newest!.instanceId)
+                }
+            
                 let downloadedJS = String(data: response.data!, encoding: NSUTF8StringEncoding)!
                 let downloadedJSHash = Util.sha256String(downloadedJS)
                 
@@ -228,7 +253,8 @@ class ServiceWorkerManager {
                     urlOfServiceWorker,
                     scope: scopeToUse,
                     lastChecked: rightNow,
-                    js: response.data!
+                    js: response.data!,
+                    headers: response.headers
                 ).then { id in
                     
                     // This happens async, so don't wrap up in the promise
@@ -286,7 +312,7 @@ class ServiceWorkerManager {
     ///   - js: The JavaScript string itself
     ///   - installState: The ServiceWorkerInstallState. Default is "installing" but we can override, e.g. for tests
     /// - Returns: A promise returning the instance ID of the inserted worker.
-    static func insertServiceWorkerIntoDB(serviceWorkerURL:NSURL, scope: NSURL, lastChecked:Int, js:NSData, installState:ServiceWorkerInstallState = ServiceWorkerInstallState.Installing) -> Promise<Int> {
+    static func insertServiceWorkerIntoDB(serviceWorkerURL:NSURL, scope: NSURL, lastChecked:Int, js:NSData, headers: FetchHeaders, installState:ServiceWorkerInstallState = ServiceWorkerInstallState.Installing) -> Promise<Int> {
         
         return Promise<Void>()
         .then {
@@ -299,7 +325,7 @@ class ServiceWorkerManager {
             var newId:Int64 = -1
             
             try Db.mainDatabase.inTransaction({ (db) in
-                try db.executeUpdate("INSERT INTO service_workers (url, scope, last_checked, contents, install_state) VALUES (?,?,?,?,?)", values: [serviceWorkerURL.absoluteString!, scope.absoluteString!, lastChecked, js, installState.rawValue ] as [AnyObject])
+                try db.executeUpdate("INSERT INTO service_workers (url, scope, last_checked, contents, headers, install_state) VALUES (?,?,?,?,?,?)", values: [serviceWorkerURL.absoluteString!, scope.absoluteString!, lastChecked, js, headers.toJSON(), installState.rawValue ] as [AnyObject])
                 
                 newId = db.lastInsertRowId()
             })

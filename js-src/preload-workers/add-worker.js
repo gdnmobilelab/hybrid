@@ -26,32 +26,36 @@ module.exports = function({src, scope}) {
     let checkTime = Date.now();
 
     return fetch(srcInjected)
-    .then((res) => res.text())
-    .then((fileContents) => {
+    .then((res) => {
+        return res.text()
+        .then((fileContents) => {
 
-        let worker = new ServiceWorker({
-            scriptURL: srcInjected,
-            scope: scopeInjected,
-            contents: fileContents
-        });
-
-        let install = new ExtendableEvent("install");
-
-        worker.dispatchEvent(install);
-
-        return install.resolve()
-        .then(() => {
-            return getCacheEntries(worker)
-        })
-        .then((cacheEntries) => {
-
-            return {
-                src: srcInjected,
+            let worker = new ServiceWorker({
+                scriptURL: srcInjected,
                 scope: scopeInjected,
-                contents: fileContents,
-                lastChecked: checkTime,
-                caches: cacheEntries
-            }
+                contents: fileContents
+            });
+
+            let install = new ExtendableEvent("install");
+
+            worker.dispatchEvent(install);
+
+            return install.resolve()
+            .then(() => {
+                return getCacheEntries(worker)
+            })
+            .then((cacheEntries) => {
+
+                return {
+                    src: srcInjected,
+                    headers: res.headers.raw(),
+                    scope: scopeInjected,
+                    contents: fileContents,
+                    lastChecked: checkTime,
+                    caches: cacheEntries
+                }
+            })
         })
     })
+    
 }
