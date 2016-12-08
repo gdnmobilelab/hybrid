@@ -28,7 +28,22 @@ class PromiseToJSPromise<T> {
         return jspromise
     }
     
+    static func pass(promise:Promise<Bool>) -> JSPromise {
+        let jspromise = JSPromise()
+        
+        promise.then { result in
+            jspromise.resolve(result)
+        }
+        .error { err in
+            jspromise.reject(err)
+        }
+        
+        return jspromise
+    }
+    
 }
+
+
 
 extension PromiseToJSPromise where T: AnyObject {
     static func pass(promise:Promise<T>) -> JSPromise {

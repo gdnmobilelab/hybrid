@@ -14,6 +14,7 @@ import PromiseKit
     func open(name:String) -> JSPromise
     func keys() -> JSPromise
     func match(request:JSValue) -> JSPromise
+    func delete(name:String) -> JSPromise
 }
 
 
@@ -135,5 +136,40 @@ import PromiseKit
         
         return PromiseToJSPromise.pass(_match(urlAsNSURL))
 
+    }
+    
+    func _delete(name:String) -> Promise<Bool> {
+        return Promise<Void>()
+        .then { () -> Bool in
+            
+            var cacheExisted:Bool = false
+            
+            try Db.mainDatabase.inTransaction({ db in
+                
+                let queryArguments = [self.worker.url.absoluteString!, name]
+                
+                let numRowsQuery = try db.executeQuery("SELECT COUNT(*) FROM cache WHERE service_worker_url = ? and cache_id = ?", values: queryArguments)
+                
+                numRowsQuery.next()
+               
+                cacheExisted = numRowsQuery.intForColumnIndex(0) > 0
+                
+                numRowsQuery.close()
+                
+                if cacheExisted {
+                    try db.executeUpdate("DELETE FROM cache WHERE service_worker_url = ? AND cache_id = ?", values: queryArguments)
+                    log.info("Deleted cache '" + name + "'")
+                } else {
+                    log.info("Tried to delete cache '" + name + "' but it didn't exist")
+                }
+                
+            })
+            
+            return cacheExisted
+        }
+    }
+    
+    func delete(name:String) -> JSPromise {
+        return PromiseToJSPromise<Bool>.pass(_delete(name))
     }
 }

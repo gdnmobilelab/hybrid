@@ -205,10 +205,10 @@ class ServiceWorkerManager {
             return GlobalFetch.fetch(urlOfServiceWorker.absoluteString!)
             .then { response -> Promise<Int> in
                 
-                let newJS = String(data: response.data!, encoding: NSUTF8StringEncoding)!
-                let newJSHash = Util.sha256String(newJS)
+                let downloadedJS = String(data: response.data!, encoding: NSUTF8StringEncoding)!
+                let downloadedJSHash = Util.sha256String(downloadedJS)
                 
-                if newest?.jsHash == newJSHash {
+                if newest != nil && downloadedJSHash.isEqualToData(newest!.jsHash) {
                     // No new code, so just return the ID of the existing worker.
                     log.info("Checked for update to " + urlOfServiceWorker.absoluteString! + ", but no change.")
                     

@@ -16,7 +16,6 @@ struct ServiceWorkerStub {
     var installState:ServiceWorkerInstallState
     var lastChecked:Int
     var scope:NSURL
-    
     /// a SHA-256 hash of the JS contents - we use the hash just so that we don't hold
     /// a huge text blob in memory for no good reason
     var jsHash:NSData

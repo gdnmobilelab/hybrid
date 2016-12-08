@@ -203,31 +203,13 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
                 log.info("Attempt to open URL: " + intendedURL.absoluteString! + " resulted in:" + String(success))
             })
         } else {
+            self.placeScreenshotOnTopOfView()
             self.hybridNavigationController!.pushNewHybridWebViewControllerFor(intendedURL)
         }
-        self.placeScreenshotOnTopOfView()
+        
         decisionHandler(WKNavigationActionPolicy.Cancel)
     }
     
-    
-    /// When the page has finished loading we grab the metadata and run our render checker to make sure
-    /// the page is visible before we push it into our stack.
-//    func webView(webView: WKWebView, didFinishNavigation navigation: WKNavigation!) {
-//        
-//        let w:Promise<Void> = when([
-//            self.waitForRendered(),
-//            self.setMetadata()
-//        ])
-//        
-//        return w.then { () -> Void in
-//            self.events.emit("ready", self)
-//        }
-//        .error { err in
-//            log.error(String(err))
-//            // even if these fail we should just show the view
-//            self.events.emit("ready", self)
-//        }
-//    }
     
     func fireReadyEvent() {
         let w:Promise<Void> = when([
@@ -261,7 +243,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
     func setMetadata() -> Promise<Void> {
         return self.webview!.getMetadata()
         .then { metadata -> Void in
-
+            self.title = metadata.title
             self.titleTextView.text = metadata.title
             if let color = metadata.color {
                 self.titleTextView.textColor = Util.getColorBrightness(color) < 150 ? UIColor.whiteColor() : UIColor.blackColor()

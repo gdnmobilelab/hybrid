@@ -169,7 +169,8 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         self.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         
         config.userContentController.addScriptMessageHandler(self.readyStateHandler, name: ReadyStateHandler.name)
-        
+        self.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
+
         self.allowsLinkPreview = false
     }
     
