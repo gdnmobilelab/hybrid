@@ -25,6 +25,8 @@ class RenderCheck {
     private var displayLink:CADisplayLink?
     private var onRender:(()->())?
     
+    private var debugView:UIImageView?
+    
     class colorToCheckFor {
         static let red:CGFloat = 0
         static let blue:CGFloat = 255
@@ -40,19 +42,26 @@ class RenderCheck {
         }
     }
     
-    init(target:WKWebView) {
+    init(target:WKWebView, debug:Bool = true) {
         self.target = target
         
         // Since we only need the top row of pixels of the view, we can set our bitmap to be 1px high. Saves
         // on memory.
         
-        self.height = 1
+        self.height = 100
         
         // We put the pixel in the top right of the view, so that there is less chance it will be visible
         // while the animated push occurs. This means, though, that we need to capture the full width of
         // the view (I haven't yet found out how to avoid doing that, anyway)
         
         self.width = Int(target.frame.width)
+        
+        if debug {
+            self.debugView = UIImageView(frame: CGRect(x:0,y:0,width: self.width, height: self.height))
+            self.debugView!.contentMode = UIViewContentMode.ScaleAspectFit
+//            self.debugView!.contentScaleFactor = UIScreen.mainScreen().scale
+            AppDelegate.rootController!.view.addSubview(self.debugView!)
+        }
     }
     
     
@@ -62,8 +71,22 @@ class RenderCheck {
     private func checkIfRendered() -> Bool {    
         self.target.scrollView.layer.renderInContext(self.renderCheckContext!)
         
-        let startAt = 4 * width * height - 4
+//        UIGraphicsPushContext(self.renderCheckContext!)
+//        self.target.scrollView.drawViewHierarchyInRect(CGRect(x: 0, y:0, width: self.target.scrollView.frame.width, height: self.target.scrollView.frame.height), afterScreenUpdates: true)
+//        UIGraphicsPopContext()
         
+        if self.debugView != nil {
+            UIGraphicsPushContext(self.renderCheckContext!)
+            
+            let img = CGBitmapContextCreateImage(self.renderCheckContext!)!
+            
+            UIGraphicsPopContext()
+            
+            let uiImg = UIImage(CGImage: img, scale: UIScreen.mainScreen().scale, orientation: UIImageOrientation.Up)
+            self.debugView!.image = uiImg
+        }
+        
+        let startAt = 4 * width * height - 4
         let red = CGFloat(self.pixel![startAt])
         let green = CGFloat(self.pixel![startAt + 1])
         let blue =  CGFloat(self.pixel![startAt + 2])
@@ -101,6 +124,8 @@ class RenderCheck {
         self.pixel = UnsafeMutablePointer<CUnsignedChar>.alloc(4 * width * height)
         
         self.renderCheckContext = CGBitmapContextCreate(pixel!, width, height, 8, width * 4, colorSpace, bitmapInfo.rawValue)!
+        
+        CGContextScaleCTM(self.renderCheckContext!, UIScreen.mainScreen().scale, UIScreen.mainScreen().scale)
         
         self.target.evaluateJavaScript(WebviewJS.setLoadingIndicator, completionHandler: nil)
 

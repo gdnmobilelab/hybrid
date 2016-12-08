@@ -37,7 +37,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         self.navigationBar.translucent = false
         self.delegate = self
         
-        self.addLaunchViewToController()
+//        self.addLaunchViewToController()
     }
     
     /// Take the launch storyboard and manually add it on top of our existing view stack.
