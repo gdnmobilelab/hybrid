@@ -151,6 +151,7 @@ class ServiceWorkerManager {
                 installState: ServiceWorkerInstallState(rawValue: Int(result.intForColumn("install_state")))!,
                 lastChecked: Int(result.intForColumn("last_checked")),
                 lastModified: headers.get("last-modified"),
+                etag: headers.get("etag"),
                 scope: NSURL(string: result.stringForColumn("scope"))!,
                 jsHash: Util.sha256String(String(data: result.dataForColumn("contents"), encoding: NSUTF8StringEncoding)!)
             )
@@ -213,6 +214,14 @@ class ServiceWorkerManager {
                 // if the content hasn't actually changed.
                 
                 request.headers.append("If-Modified-Since", value: newest!.lastModified!)
+            }
+            
+            if newest?.etag != nil {
+                
+                // Same with ETag
+                
+                request.headers.append("If-None-Match", value: newest!.etag!)
+                
             }
             
             
