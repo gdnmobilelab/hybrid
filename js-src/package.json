@@ -13,11 +13,11 @@
   "license": "ISC",
   "dependencies": {
     "assert": "^1.4.1",
+    "buffer": "^5.0.2",
     "es6-promise": "^3.2.1",
     "eventemitter3": "^1.2.0",
     "events": "^1.1.1",
-    "indexeddbshim": "^2.2.1",
-    "indexeddbshim-node6": "^2.2.2",
+    "indexeddbshim-node6": "^2.2.3",
     "inherits": "^2.0.1",
     "knex": "^0.12.6",
     "mocha": "^2.5.3",

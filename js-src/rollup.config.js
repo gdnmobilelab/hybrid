@@ -21,7 +21,7 @@ const config = {
                 'node_modules/**'
             ],
             exclude: [
-                'node_modules/indexeddbshim/rollup-ready/**'
+                'node_modules/indexeddbshim-node6/rollup-ready/**'
             ],
             extensions: ['.js', '.ts'],
             namedExports: {

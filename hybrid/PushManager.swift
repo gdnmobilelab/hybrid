@@ -19,6 +19,7 @@ import PromiseKit
     func toJSON() -> AnyObject
 }
 
+class CannotEnablePushNotificationsError : ErrorType {}
 
 /// In theory this is an implementation of https://developer.mozilla.org/en-US/docs/Web/API/
 /// PushSubscription, but the keys are totally different, because native notifications are
@@ -98,20 +99,32 @@ import PromiseKit
             
         } else {
             
-            // There is a slight delay in receiving the remote device token. So if we've
-            // called subscribe as opposed to get, we wait for it.
-            
-            // We should be calling UIApplication.sharedApplication().registerForRemoteNotifications()
-            // here, but it's not available in the notification-content context, so we can't.
-            // Instead, we call it when we request notification permission in
-            // NotificationPermissionHandler.swift
+            return Promise<Void>()
+            .then {
+                let isSimulator = NSProcessInfo.processInfo().environment["SIMULATOR_DEVICE_NAME"] != nil
+                
+                if isSimulator {
+                    throw CannotEnablePushNotificationsError()
+                }
+                
+                // There is a slight delay in receiving the remote device token. So if we've
+                // called subscribe as opposed to get, we wait for it.
+                
+                // We should be calling UIApplication.sharedApplication().registerForRemoteNotifications()
+                // here, but it's not available in the notification-content context, so we can't.
+                // Instead, we call it when we request notification permission in
+                // NotificationPermissionHandler.swift
 
+                
+                return Promise<PushSubscription> { fulfill, reject in
+                    ApplicationEvents.once("didRegisterForRemoteNotificationsWithDeviceToken", { _ in
+                        fulfill(self._getSubscription()!)
+                    })
+                }
             
-            return Promise<PushSubscription> { fulfill, reject in
-                ApplicationEvents.once("didRegisterForRemoteNotificationsWithDeviceToken", { _ in
-                    fulfill(self._getSubscription()!)
-                })
             }
+             
+            
         }
     }
     

@@ -1462,6 +1462,7 @@
 				CODE_SIGN_ENTITLEMENTS = hybrid/hybrid.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = 6J2C5AEPEG;
+				EMPTY_WORKERS_ON_LOAD = 1;
 				INFOPLIST_FILE = hybrid/Info.plist;
 				INITIAL_URL = "https://alastairtest.ngrok.io/";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
