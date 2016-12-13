@@ -129,6 +129,8 @@
 		8AD283521D55076D00D2DF07 /* TestUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AD283511D55076D00D2DF07 /* TestUtil.swift */; };
 		8ADBC6971E0090490037263D /* MessagePort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADBC6961E0090490037263D /* MessagePort.swift */; };
 		8ADBC6991E00906F0037263D /* ExtendableMessageEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADBC6981E00906F0037263D /* ExtendableMessageEvent.swift */; };
+		8ADBC69A1E00958B0037263D /* MessagePort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADBC6961E0090490037263D /* MessagePort.swift */; };
+		8ADBC69B1E00958D0037263D /* ExtendableMessageEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADBC6981E00906F0037263D /* ExtendableMessageEvent.swift */; };
 		8ADDB6981DDBA66600B69AE8 /* ServiceWorkerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */; };
 		8ADDB6991DDBA74C00B69AE8 /* ServiceWorkerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */; };
 		8ADDB69B1DDBB4A800B69AE8 /* JSContextError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB69A1DDBB4A800B69AE8 /* JSContextError.swift */; };
@@ -1098,6 +1100,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8ADBC69A1E00958B0037263D /* MessagePort.swift in Sources */,
 				8A1278781DDE720E006EE758 /* ServiceWorkerCacheStorage.swift in Sources */,
 				8A6C4E981DA5616D008429C0 /* NotificationHandler.swift in Sources */,
 				8A5283B51DBAC29700EB0886 /* CanvasView.swift in Sources */,
@@ -1135,6 +1138,7 @@
 				8ACCDCDA1D7A131900A137E1 /* Console.swift in Sources */,
 				8A13101C1DE3CB700074944D /* ArrayBufferJSPromise.swift in Sources */,
 				8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */,
+				8ADBC69B1E00958D0037263D /* ExtendableMessageEvent.swift in Sources */,
 				8A0970C41DCB9C1F00F16CF4 /* DownloadToDisk.swift in Sources */,
 				8A12787C1DDF6B76006EE758 /* JSPromise.swift in Sources */,
 				8A1310161DE216BC0074944D /* ServiceWorkerGlobalScope.swift in Sources */,
