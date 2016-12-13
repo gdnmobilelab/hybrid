@@ -127,6 +127,8 @@
 		8ACCDCE31D7A323800A137E1 /* WebviewClientManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */; };
 		8AD283501D55070000D2DF07 /* test-workers in Resources */ = {isa = PBXBuildFile; fileRef = 8AD2834F1D55070000D2DF07 /* test-workers */; };
 		8AD283521D55076D00D2DF07 /* TestUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AD283511D55076D00D2DF07 /* TestUtil.swift */; };
+		8ADBC6971E0090490037263D /* MessagePort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADBC6961E0090490037263D /* MessagePort.swift */; };
+		8ADBC6991E00906F0037263D /* ExtendableMessageEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADBC6981E00906F0037263D /* ExtendableMessageEvent.swift */; };
 		8ADDB6981DDBA66600B69AE8 /* ServiceWorkerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */; };
 		8ADDB6991DDBA74C00B69AE8 /* ServiceWorkerStub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */; };
 		8ADDB69B1DDBB4A800B69AE8 /* JSContextError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB69A1DDBB4A800B69AE8 /* JSContextError.swift */; };
@@ -294,6 +296,8 @@
 		8ACCDCCE1D7A0CD700A137E1 /* Console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		8AD2834F1D55070000D2DF07 /* test-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "test-workers"; sourceTree = "<group>"; };
 		8AD283511D55076D00D2DF07 /* TestUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtil.swift; sourceTree = "<group>"; };
+		8ADBC6961E0090490037263D /* MessagePort.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessagePort.swift; sourceTree = "<group>"; };
+		8ADBC6981E00906F0037263D /* ExtendableMessageEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExtendableMessageEvent.swift; sourceTree = "<group>"; };
 		8ADDB6951DDBA48D00B69AE8 /* hybrid-notification-content-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "hybrid-notification-content-Bridging-Header.h"; sourceTree = "<group>"; };
 		8ADDB6961DDBA4B000B69AE8 /* hybrid-notification-extension-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "hybrid-notification-extension-Bridging-Header.h"; sourceTree = "<group>"; };
 		8ADDB6971DDBA66600B69AE8 /* ServiceWorkerStub.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerStub.swift; sourceTree = "<group>"; };
@@ -494,6 +498,8 @@
 			isa = PBXGroup;
 			children = (
 				8A4A265E1D5A32930021B0A2 /* MessageChannel.swift */,
+				8ADBC6961E0090490037263D /* MessagePort.swift */,
+				8ADBC6981E00906F0037263D /* ExtendableMessageEvent.swift */,
 			);
 			name = "webview-sw-bridge";
 			sourceTree = "<group>";
@@ -1141,6 +1147,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8A4C47EC1DD658830023B00A /* JSONSerializable.swift in Sources */,
+				8ADBC6971E0090490037263D /* MessagePort.swift in Sources */,
 				8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */,
 				8A12787A1DDF635D006EE758 /* JSPromise.swift in Sources */,
 				8A4C47E91DD59B490023B00A /* ExtendableEvent.swift in Sources */,
@@ -1197,6 +1204,7 @@
 				8A0970C31DCB988900F16CF4 /* DownloadToDisk.swift in Sources */,
 				8A2475881D623BDA008906FB /* EventManager.swift in Sources */,
 				8A0156D21D66402D0091995E /* PromiseBridge.swift in Sources */,
+				8ADBC6991E00906F0037263D /* ExtendableMessageEvent.swift in Sources */,
 				8A13100E1DDF84940074944D /* PromiseToJSPromise.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
