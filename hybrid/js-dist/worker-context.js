@@ -3722,10 +3722,8 @@ var require$$1$2 = Object.freeze({
 });
 
 var index$16 = createCommonjsModule(function (module) {
-var toString = {}.toString;
-
 module.exports = Array.isArray || function (arr) {
-  return toString.call(arr) == '[object Array]';
+  return Object.prototype.toString.call(arr) == '[object Array]';
 };
 });
 
