@@ -47,6 +47,7 @@ class MessageChannelManager: ScriptMessageManager {
     
     var activePorts = [Int: MessagePort]()
     var portListeners = [Int:Listener]()
+    var closeListeners = [Int:Listener]()
     var onMessage: ((String, [MessagePort]) -> Void)? = nil
     
     init(userController:WKUserContentController, webView:HybridWebview) {
@@ -151,21 +152,28 @@ class MessageChannelManager: ScriptMessageManager {
         
         self.portListeners[index] = port.eventEmitter.on("emit", { msg in
             
-            if msg.fromWebView != nil && msg.fromWebView! == self.webview {
+            if msg!.fromWebView != nil && msg!.fromWebView! == self.webview {
                 // If the message originated from this webview we don't want
                 // to echo it straight back again.
                 return
             }
             
-            let portsAsIndexes = msg.ports.map({ port in
+            let portsAsIndexes = msg!.ports.map({ port in
                 return self.manuallyAddPort(port)
             })
             
-            let objToPass = MessagePortMessage(data: msg.data, passedPortIds: portsAsIndexes)
+            let objToPass = MessagePortMessage(data: msg!.data, passedPortIds: portsAsIndexes)
             
             let asString = JSONSerializable.serialize(objToPass.toSerializableObject())
             
             self.webview.evaluateJavaScript("window.__messageChannelBridge.emit('emit'," + String(index) + "," + asString! + ")", completionHandler: nil)
+        })
+        
+        self.closeListeners[index] = port.eventEmitter.on("close", { _ in
+            log.info("Port #" + String(index) + " closed, marking index for reuse")
+            self.activePorts[index] = nil
+            self.portListeners[index] = nil
+            self.closeListeners[index] = nil
         })
         
         return index

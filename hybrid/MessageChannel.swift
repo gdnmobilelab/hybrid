@@ -61,6 +61,7 @@ import JavaScriptCore
 @objc protocol MessagePortExports : JSExport {
     func postMessage(message:AnyObject, ports: [MessagePort]) -> Void
     func postMessage(message:AnyObject) -> Void
+    func close() -> Void
     var onmessage:JSValue? {get set }
     init()
 }
@@ -68,7 +69,7 @@ import JavaScriptCore
 /// An implementation of MessagePort: https://developer.mozilla.org/en-US/docs/Web/API/MessagePort
 @objc public class MessagePort : NSObject, MessagePortExports {
     
-    let eventEmitter = Event<ExtendableMessageEvent>()
+    let eventEmitter = Event<ExtendableMessageEvent?>()
     private var messageListener:Listener?
     
     /// Required for JS compatibility - you can use both addEventListener() and onmessage in JS contexts
@@ -83,13 +84,13 @@ import JavaScriptCore
     /// Attached to the eventEmitter to listen for incoming ExtendableMessageEvents
     ///
     /// - Parameter message: The message we want to pass onto our onmessage handler
-    private func handleMessage(message:ExtendableMessageEvent) {
+    private func handleMessage(message:ExtendableMessageEvent?) {
         
         if self.onmessage == nil {
             return
         }
         
-        onmessage!.callWithArguments([message])
+        onmessage!.callWithArguments([message!])
     }
     
     func postMessage(data: AnyObject) {
@@ -99,8 +100,13 @@ import JavaScriptCore
     func postMessage(data:AnyObject, ports:[MessagePort]) {
         self.postMessage(data, ports: ports, fromWebView: nil)
     }
+    
     func postMessage(data:AnyObject, ports:[MessagePort], fromWebView:WKWebView?) {
         self.eventEmitter.emit("emit", ExtendableMessageEvent(data: data, ports: ports,fromWebView: fromWebView))
+    }
+    
+    func close() {
+        self.eventEmitter.emit("close", nil)
     }
     
 }
@@ -123,12 +129,12 @@ import JavaScriptCore
     
     override required init() {
         super.init()
-        self.listener1 = port1.eventEmitter.on("emit", { (msg: ExtendableMessageEvent) in
-            self.port2.eventEmitter.emit("message", msg)
+        self.listener1 = port1.eventEmitter.on("emit", { (msg: ExtendableMessageEvent?) in
+            self.port2.eventEmitter.emit("message", msg!)
         })
         
-        self.listener2 = port2.eventEmitter.on("emit", { (msg: ExtendableMessageEvent) in
-            self.port1.eventEmitter.emit("message", msg)
+        self.listener2 = port2.eventEmitter.on("emit", { (msg: ExtendableMessageEvent?) in
+            self.port1.eventEmitter.emit("message", msg!)
         })
         
     }
