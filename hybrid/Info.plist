@@ -21,7 +21,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>5</string>
+	<string>6</string>
 	<key>EMPTY_WORKERS_ON_LOAD</key>
 	<string>${EMPTY_WORKERS_ON_LOAD}</string>
 	<key>INITIAL_URL</key>

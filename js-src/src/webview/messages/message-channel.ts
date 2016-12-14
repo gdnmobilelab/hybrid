@@ -41,6 +41,12 @@ function receiveMessage(portIndex:number, message:MessagePortMessage) {
 
 promiseBridge.addListener("emit", receiveMessage);
 
+promiseBridge.addListener("delete", (index:number) => {
+    console.debug("Deleting port store entry at index", index);
+    let port = PortStore.findByNativeIndex(index);
+    PortStore.remove(port);
+})
+
 export class MessagePortWrapper {
 
     open:boolean;
@@ -77,7 +83,7 @@ export class MessagePortWrapper {
 
         // Same for the lack of a 'close' event.
         this.originalJSPortClose = this.jsMessagePort.close;
-        this.jsMessagePort.close = this.close;
+        // this.jsMessagePort.close = this.close;
     }
 
     sendOriginalPostMessage(data: any, ports: MessagePort[]) {
@@ -138,20 +144,20 @@ export class MessagePortWrapper {
         })
     }
 
-    close() {
+    // close() {
 
-        // run the original function we overwrote
-        this.originalJSPortClose.apply(this.jsMessagePort);
+    //     // run the original function we overwrote
+    //     this.originalJSPortClose.apply(this.jsMessagePort);
         
-        // remove from our cache of active ports
-        PortStore.remove(this);
+    //     // remove from our cache of active ports
+    //     PortStore.remove(this);
      
-        // finally, tell the native half to delete this reference.
-        promiseBridge.bridgePromise({
-            operation: "delete",
-            portIndex: this.nativePortIndex
-        })
-    }
+    //     // finally, tell the native half to delete this reference.
+    //     promiseBridge.bridgePromise({
+    //         operation: "delete",
+    //         portIndex: this.nativePortIndex
+    //     })
+    // }
 }
 
 export function postMessage(message:any, ports: [MessagePort]) {

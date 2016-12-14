@@ -837,6 +837,11 @@ function receiveMessage(portIndex, message) {
     }
 }
 promiseBridge.addListener("emit", receiveMessage);
+promiseBridge.addListener("delete", function (index) {
+    console.debug("Deleting port store entry at index", index);
+    var port = PortStore.findByNativeIndex(index);
+    PortStore.remove(port);
+});
 var MessagePortWrapper = (function () {
     function MessagePortWrapper(jsPort) {
         var _this = this;
@@ -863,7 +868,7 @@ var MessagePortWrapper = (function () {
         }
         // Same for the lack of a 'close' event.
         this.originalJSPortClose = this.jsMessagePort.close;
-        this.jsMessagePort.close = this.close;
+        // this.jsMessagePort.close = this.close;
     }
     MessagePortWrapper.prototype.sendOriginalPostMessage = function (data, ports) {
         MessagePort.prototype.postMessage.apply(this.jsMessagePort, [data, ports]);
@@ -914,17 +919,6 @@ var MessagePortWrapper = (function () {
             // only add to our array of active channels when
             // we have a native ID
             PortStore.add(_this);
-        });
-    };
-    MessagePortWrapper.prototype.close = function () {
-        // run the original function we overwrote
-        this.originalJSPortClose.apply(this.jsMessagePort);
-        // remove from our cache of active ports
-        PortStore.remove(this);
-        // finally, tell the native half to delete this reference.
-        promiseBridge.bridgePromise({
-            operation: "delete",
-            portIndex: this.nativePortIndex
         });
     };
     return MessagePortWrapper;

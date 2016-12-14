@@ -25,6 +25,26 @@ import JavaScriptCore
     let eventEmitter = Event<ExtendableMessageEvent?>()
     private var messageListener:Listener?
     
+    private var _pendingJSExecution = false
+    private var _pendingClose = false
+    
+    /// We track whether the port is pending execution inside a webview - this is used to
+    /// stop from emitting close events too early.
+    var pendingJSExecution: Bool {
+        
+        get {
+            return self._pendingJSExecution
+        }
+        
+        set(value) {
+            self._pendingJSExecution = value
+            if value == false && self._pendingClose {
+                self._pendingClose = false
+                self.close()
+            }
+        }
+    }
+    
     /// Required for JS compatibility - you can use both addEventListener() and onmessage in JS contexts
     var onmessage:JSValue?
     
@@ -59,7 +79,11 @@ import JavaScriptCore
     }
     
     func close() {
-        self.eventEmitter.emit("close", nil)
+        if self._pendingJSExecution {
+            self._pendingClose = true
+        } else {
+            self.eventEmitter.emit("close", nil)
+        }
     }
     
 }
