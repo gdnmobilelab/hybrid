@@ -14,8 +14,18 @@ import PromiseKit
 class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
     
     func userNotificationCenter(center: UNUserNotificationCenter, willPresentNotification notification: UNNotification, withCompletionHandler completionHandler: (UNNotificationPresentationOptions) -> Void) {
+        
+        if notification.request.content.userInfo["app_generated_notification"] as? String == "true" {
+            completionHandler(UNNotificationPresentationOptions.Alert)
+        } else {
+            // If it's a remote notification and the app is open, don't show the notification
+            completionHandler(UNNotificationPresentationOptions.Badge)
+        }
+        
         completionHandler(UNNotificationPresentationOptions.Alert)
     }
+    
+    
     
     func checkForNotificationClick(response:UNNotificationResponse) -> Promise<Void> {
         

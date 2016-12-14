@@ -175,8 +175,7 @@ class CustomMigration : NSObject, FMDBMigrating {
     }
     
     func migrateDatabase(database: FMDatabase!) throws {
-        
-        try database.executeStatements(self.sql)
+        database.executeStatements(self.sql)
     }
     
 }

@@ -196,7 +196,7 @@ class PayloadToNotificationContent {
         
         content.userInfo["originalNotificationOptions"] = options
         content.userInfo["serviceWorkerScope"] = serviceWorkerScope
-
+        content.userInfo["app_generated_notification"] = "true"
         
         
         return addAssets(options, content: content, scope: serviceWorkerScope)

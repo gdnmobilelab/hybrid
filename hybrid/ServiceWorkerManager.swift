@@ -609,7 +609,49 @@ class ServiceWorkerManager {
         }
         
         
+    }
+    
+    
+    /// When in the background or when we're woken up, we need to fetch all the push
+    /// events that have occured while the app was inactive and process them.
+    ///
+    /// - Returns: A promise that resolves when all push events have been processed.
+    static func processAllPendingPushEvents() -> Promise<Void> {
+        
+        let pushEvents = PendingPushEventStore.getAll()
+        
+        let workerURLs = pushEvents.map { $0.serviceWorkerURL }
+        
+        let uniqueWorkerURLs = Set(workerURLs)
+
+        let pushPromises = uniqueWorkerURLs.map { workerURL in
+            return ServiceWorkerInstance.getActiveWorkerByURL(NSURL(string: workerURL)!)
+            .then { sw -> Promise<Void> in
+                
+                if sw == nil {
+                    log.error("Received push event for " + workerURL + " but no worker existed to handle it.")
+                    PendingPushEventStore.getByWorkerURL(workerURL).forEach { PendingPushEventStore.remove($0) }
+                    return Promise<Void>()
+                }
+                
+                // processPendingPushEvents() is called in loadServiceWorker() so there's
+                // a good chance this will do nothing, but if the worker is already created
+                // and active in memory we need to manually trigger this.
+                
+                log.info("Processing push events for " + workerURL)
+                
+                return sw!.processPendingPushEvents()
+            }
         }
+        
+        return when(pushPromises)
+        .then { () -> () in
+            let checkAll = PendingPushEventStore.getAll()
+            if checkAll.count > 0 {
+                log.error("There are still pending push events after processing")
+            }
+        }
+    }
         
         
         

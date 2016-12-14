@@ -18,8 +18,7 @@ import JavaScriptCore
     let data: PushMessageData
     
     init(dataAsString:String) {
-        self.data = PushMessageData()
-        self.data.data = dataAsString.dataUsingEncoding(NSUTF8StringEncoding)
+        self.data = PushMessageData(data: dataAsString.dataUsingEncoding(NSUTF8StringEncoding)!)
         super.init(type: "push")
     }
     

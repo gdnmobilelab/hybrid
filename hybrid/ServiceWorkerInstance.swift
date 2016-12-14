@@ -10,6 +10,7 @@ import Foundation
 import JavaScriptCore
 import PromiseKit
 import FMDB
+import UserNotifications
 
 
 
@@ -358,21 +359,46 @@ struct PromiseReturn {
     /// - Returns: An empty promise that will fulfill when all push events have been processed.
     func processPendingPushEvents() -> Promise<Void> {
         
-        let pendingPushes = PushEventStore.getByWorkerScope(self.scope.absoluteString!)
+        let pendingPushes = PendingPushEventStore.getByWorkerURL(self.url.absoluteString!)
         
         let processPromises = pendingPushes.map { push -> Promise<Void> in
-            
+        
             let pushEvent = PushEvent(dataAsString: push.payload)
+            
+            // Since we're acting in response to a push event we don't want to duplicate any
+            // notification that's already been shown. So we store notification data for later
+            // use in the notification content view.
+            //
+            // This is only used in background mode as we can suppress the remote notification
+            // in foreground mode.
+            
+            self.registration!.storeNotificationShowWithID = push.pushID
             
             return self.dispatchExtendableEvent(pushEvent)
             .then {_ in
-                PushEventStore.remove(push)
+                
+                PendingPushEventStore.remove(push)
+                
+                if self.registration!.storeNotificationShowWithID != nil {
+                    
+                    // This will happen if we receive a push event that doesn't try to show
+                    // a notification. That isn't allowed because iOS has already shown a notification
+                    // no matter what. In the future we can use iOS silent notifications, though.
+                    
+                    log.error("ServiceWorkerRegistration did not store notification show data - your push event didn't use showNotification()?")
+                    
+                    self.registration!.storeNotificationShowWithID = nil
+                }
+                
                 return Promise<Void>()
             }
             
         }
         
         return when(processPromises)
+        .recover { err -> Void in
+            log.error("Error encountered when processing push events: " + String(err))
+        }
 
     }
     
@@ -444,7 +470,6 @@ struct PromiseReturn {
     ///   - exception: The error as a JSValue
     private func exceptionHandler(context:JSContext!, exception:JSValue!) {
         self.contextErrorValue = exception
-        let msg = exception.objectForKeyedSubscript("message").toString()
         log.error("JSCONTEXT error: " + exception.toString())
         
     }

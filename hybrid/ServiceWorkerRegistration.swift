@@ -30,6 +30,10 @@ import PromiseKit
     var pushManager:PushManager
     var worker:ServiceWorkerInstance
     
+    var storeNotificationShowWithID:String?
+    static var suppressNotificationShow:Bool = false
+    
+    
     /// For compatibility with the JS API - we need scope to be accessible at the registration level
     var scope:String {
         get {
@@ -86,22 +90,46 @@ import PromiseKit
         
         let promise = JSPromise()
         
-        PayloadToNotificationContent.Convert(payload, serviceWorkerScope: self.scope)
-        .then { content -> Void in
+        if ServiceWorkerRegistration.suppressNotificationShow {
             
-            // We use a UUID because remote notifications can't change their identifier. This means
-            // we have to manually manage replacing notifications with the same tag. Bah.
-            
-            let request = UNNotificationRequest(identifier: NSUUID().UUIDString, content: content, trigger: nil)
-            
-            UNUserNotificationCenter.currentNotificationCenter().addNotificationRequest(request) { (err) in
-                NSLog(String(err))
-                promise.resolve(nil)
+            if let storeID = self.storeNotificationShowWithID {
+                // If this is running in response to a push notification we don't want to actually
+                // run showNotification() as it'll result in two notifications being shown. Instead,
+                // we store the payload to be used if the user opens the notification content view.
+                
+                
+                
+                // We then want to reset it, so that we don't store multiple notifications with this one
+                self.storeNotificationShowWithID = nil
+
+            } else {
+                log.error("Suppressed notification show, but have no ID to store it under!")
             }
-        }
-        .recover  { err -> Void in
-            log.error("Failed to post notification: " + String(err))
-            promise.reject(err)
+            promise.resolve(nil)
+            
+        } else {
+        
+            PayloadToNotificationContent.Convert(payload, serviceWorkerScope: self.scope)
+            .then { content -> Void in
+                
+                // We use a UUID because remote notifications can't change their identifier. This means
+                // we have to manually manage replacing notifications with the same tag. Bah.
+                
+                let request = UNNotificationRequest(identifier: NSUUID().UUIDString, content: content, trigger: nil)
+                
+                UNUserNotificationCenter.currentNotificationCenter().addNotificationRequest(request) { (err) in
+                    if err != nil {
+                        promise.reject(err!)
+                    } else {
+                        promise.resolve(nil)
+                    }
+                    
+                }
+            }
+            .recover  { err -> Void in
+                log.error("Failed to post notification: " + String(err))
+                promise.reject(err)
+            }
         }
         
         return promise

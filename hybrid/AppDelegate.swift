@@ -109,10 +109,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
     }
     
-//    func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject], fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
-//        NSLog("HIT DID RECEIVE THING")
-//        completionHandler(UIBackgroundFetchResult.NewData)
-//    }
+    func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject], fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
+        
+        if UIApplication.sharedApplication().applicationState == UIApplicationState.Background {
+            
+            // If we're in the background we can't suppress the remote notification. So
+            // we let it show, and store our pending notification show data, to be added
+            // if the notification is expanded.
+            
+            ServiceWorkerRegistration.suppressNotificationShow = true
+        }
+        
+        ServiceWorkerManager.processAllPendingPushEvents()
+        .then {
+            completionHandler(UIBackgroundFetchResult.NewData)
+        }
+
+      
+        
+    }
     
     func application(application: UIApplication, continueUserActivity userActivity: NSUserActivity, restorationHandler: ([AnyObject]?) -> Void) -> Bool {
         
@@ -163,17 +178,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidBecomeActive(application: UIApplication) {
         
         
-        let numPendingActions = PendingWebviewActions.getAll().count
+        let pendingActions = PendingWebviewActions.getAll()
         
-        log.info("App became active with " + String(numPendingActions) + " pending actions")
+        log.info("App became active with " + String(pendingActions.count) + " pending actions")
         
         // There's a chance that some push events have arrived while the app has been inactive. So let's make sure
         // all of our active workers are up to date.
         
-        ServiceWorkerManager.currentlyActiveServiceWorkers.forEach { (workerID, worker) in
-            worker.processPendingPushEvents()
-        }
-        
+        ServiceWorkerManager.processAllPendingPushEvents()
     }
     
     func applicationWillTerminate(application: UIApplication) {

@@ -6,7 +6,7 @@
 	<string>development</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:www.gdnmobilelab.com</string>
+		<string>applinks:app.gdnmobilelab.com</string>
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>

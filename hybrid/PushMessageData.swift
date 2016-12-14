@@ -7,19 +7,35 @@
 //
 
 import Foundation
+import JavaScriptCore
 
+@objc protocol PushMessageDataExports : JSExport {
+    func json() -> AnyObject?
+    func text() -> String?
+}
 
 /// Based on https://developer.mozilla.org/en-US/docs/Web/API/PushMessageData, but actually just uses FetchBody
-@objc class PushMessageData : FetchBody {
+@objc class PushMessageData : NSObject, PushMessageDataExports {
     
-    /// As per the docs (https://developer.mozilla.org/en-US/docs/Web/API/PushMessageData), the data in
-    /// PushMessageData can be used over and over again, so we override bodyUsed to always return false.
-    override var bodyUsed: Bool {
-        get {
-            return false
+    let pushData:NSData
+    
+    init(data:NSData) {
+        self.pushData = data
+    }
+    
+    func json() -> AnyObject? {
+        var obj:AnyObject? = nil
+        
+        do {
+            obj = try NSJSONSerialization.JSONObjectWithData(self.pushData, options: [])
+        } catch {
+            log.error("Cannot throw error back to JS Context, but JSON parse of event data failed: " + String(error))
         }
-        set {
-            // disregard
-        }
+
+        return obj
+    }
+    
+    func text() -> String? {
+        return String(data: self.pushData, encoding: NSUTF8StringEncoding)
     }
 }

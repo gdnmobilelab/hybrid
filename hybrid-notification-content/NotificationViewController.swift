@@ -39,13 +39,13 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         
     }
     
-    func fetchURLFromWorker(worker:ServiceWorkerInstance, url:String) -> Promise<NSData?> {
-        let request = FetchRequest(url: url, options: nil)
-        return worker.dispatchFetchEvent(request)
-        .then { response in
-            return response?.data
-        }
-    }
+//    func fetchURLFromWorker(worker:ServiceWorkerInstance, url:String) -> Promise<NSData?> {
+//        let request = FetchRequest(url: url, options: nil)
+//        return worker.dispatchFetchEvent(request)
+//        .then { response in
+//            return response?.data
+//        }
+//    }
     
     func checkForImage(attachments: [UNNotificationAttachment], worker: ServiceWorkerInstance) {
         let image = attachments.filter { attachment in
