@@ -21,6 +21,9 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
     var latestUserInfo:[NSObject: AnyObject]? = nil
     
+    var notificationShowData:PendingNotificationShow?
+    var interactiveViews = ActiveNotificationViews()
+    
     static var webviewEventListener:Listener?
     
     override func viewDidLoad() {
@@ -39,206 +42,50 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         
     }
     
-//    func fetchURLFromWorker(worker:ServiceWorkerInstance, url:String) -> Promise<NSData?> {
-//        let request = FetchRequest(url: url, options: nil)
-//        return worker.dispatchFetchEvent(request)
-//        .then { response in
-//            return response?.data
-//        }
-//    }
-    
-    func checkForImage(attachments: [UNNotificationAttachment], worker: ServiceWorkerInstance) {
-        let image = attachments.filter { attachment in
-            return attachment.identifier == "image"
-            }.first
-        
-        if image != nil && image!.URL.startAccessingSecurityScopedResource() {
-            
-            let imgData = NSData(contentsOfURL: image!.URL)!
-            
-            let img = UIImage(data: imgData)
-            
-            let imageView = UIImageView(image: img)
-            imageView.contentMode = UIViewContentMode.ScaleAspectFit
-            
-            let proportion = img!.size.width / self.view.frame.width
-          
-//            imageView.widthAnchor.constraintEqualToAnchor(self.view.widthAnchor, multiplier: 1)
-//            imageView.heightAnchor.constraintEqualToAnchor(imageView.widthAnchor, multiplier: proportion)
-            self.setFrame(imageView, height: img!.size.height / proportion)
-            self.notificationViews.append(imageView)
-            
-            
-            image!.URL.stopAccessingSecurityScopedResource()
-            
-        }
-
-    }
-    
-    
-    func checkForCanvas(userInfo:AnyObject, worker: ServiceWorkerInstance) {
-        
-        let options = userInfo["originalNotificationOptions"]!!
-        
-        
-        var hasCanvas = false
-        var proportion:Float = 1.0
-
-        
-        if let canvasOptions = options["canvas"]! {
-            hasCanvas = true
-            
-            if let canvasProportion = canvasOptions["proportion"] as? Float {
-                proportion = canvasProportion
-            }
-        }
-        
-        if hasCanvas == false {
-            return
-        }
-        
-        
-        let canvasView = CanvasView(width: Int(self.view.frame.width), ratio: proportion, worker: worker)
-        setFrame(canvasView)
-        self.notificationViews.append(canvasView)
-        self.activeCanvas = canvasView
-    }
-
-    var activeVideo:NotificationVideo?
-    var activeCanvas:CanvasView?
-    
-    func checkForVideo(attachments: [UNNotificationAttachment], options: AnyObject, worker: ServiceWorkerInstance) {
-        
-        let maybeVideoOptions = options["video"]!
-        
-        if maybeVideoOptions == nil {
-            return
-        }
-        
-        let videoOptions = maybeVideoOptions!
-        
-        var videoURLToLoad = NSURL(string: videoOptions["url"] as! String, relativeToURL: worker.scope)!
-        
-        let preload = videoOptions["preload"]!
-
-        
-        if preload == nil || preload as? Bool == true {
-            
-            // If we've preloaded our video, we want to use the local URL for the
-            // attachment rather than the remote one.
-            
-            let video = attachments.filter { attachment in
-                return attachment.identifier == "video"
-                }.first
-            
-            videoURLToLoad = video!.URL
-            
-            video!.URL.startAccessingSecurityScopedResource()
-        }
-        
-        
-        var videoProportion = videoOptions["proportion"] as? CGFloat
-        
-        if videoProportion == nil {
-            videoProportion = 16 / 10
-        }
-        
-       let videoNotification = NotificationVideo(videoURL: videoURLToLoad, options: videoOptions, context: self.extensionContext)
-        
-        videoNotification.playerController.view.autoresizingMask = UIViewAutoresizing.None
-        self.setFrame(videoNotification.playerController.view, height: self.view.frame.width * videoProportion!)
-        self.notificationViews.append(videoNotification.playerController.view)
-        
-        self.activeVideo = videoNotification
-        
-    }
     
     private func setFrame(view:UIView, height:CGFloat? = nil) {
         let left = self.view.frame.minX
         var top = self.view.frame.minY
         
-        if let lastView = self.notificationViews.last {
-            top = lastView.frame.maxY
+        let indexOfThisOne = self.notificationViews.indexOf(view)
+        
+        if indexOfThisOne! > 0 {
+            top = self.notificationViews[indexOfThisOne! - 1].frame.maxY
         }
         
         view.frame = CGRect(x: left, y: top, width: self.view.frame.width, height: height != nil ? height! : view.frame.height)
     }
     
-    func recreateOriginalText(notification: UNNotification, options: AnyObject) -> Promise<Void> {
+    
+    
+    /// Hopefully any pending push events have already been processed by the app. But
+    /// if a user has force quit the app it won't be woken up on push, so we need to
+    /// catch any unprocessed push events before we do anything else.
+    ///
+    /// - Parameter pushID: The identifier of the remote notification
+    /// - Returns: A promise that resolves when push events have been processed
+    func processPendingPushEvents(pushID:String) -> Promise<Void> {
+        let pendingPushEvent = PendingPushEventStore.getByPushID(pushID)
         
-        if let hideText = options["hideText"] as? Bool {
-            if hideText == true {
-                return Promise<Void>()
-            }
+        if pendingPushEvent == nil {
+            return Promise<Void>()
         }
         
-        
-        let textContainer = UIView(frame:CGRect(x:0,y:0,width: self.view.frame.width, height: 0))
-        
-        var targetWidth = textContainer.frame.width - 30
-        
-        let icon = notification.request.content.attachments.filter { attachment in
-            return attachment.identifier == "icon"
-        }.first
-        
-        if icon != nil && icon!.URL.startAccessingSecurityScopedResource() {
-            
-            targetWidth = targetWidth - 90
-            
-            let imgData = NSData(contentsOfURL: icon!.URL)!
-            
-            let img = UIImage(data: imgData)
-            
-            let imgView = UIImageView(image: img)
-            imgView.contentMode = UIViewContentMode.ScaleAspectFit
-            imgView.frame = CGRect(x: textContainer.frame.width - 75, y: 15, width: 60, height: 60)
-            textContainer.addSubview(imgView)
-
-            
-            icon!.URL.stopAccessingSecurityScopedResource()
-
+        return ServiceWorkerInstance.getActiveWorkerByURL(NSURL(string: pendingPushEvent!.serviceWorkerURL)!)
+        .then { sw in
+            // Process all pending events, too complicated otherwise (what if a user opens a later
+            // notification followed by an earlier one?)
+            return sw!.processPendingPushEvents()
         }
-        
-        
-        let title = UILabel()
-        title.text = notification.request.content.title
-        
-        title.frame.size.width = targetWidth
-        title.frame.origin.x = 15
-        title.frame.origin.y = 15
-        title.lineBreakMode = NSLineBreakMode.ByWordWrapping
-        title.numberOfLines = 0
-        
-        let desc = title.font.fontDescriptor().fontDescriptorWithSymbolicTraits(UIFontDescriptorSymbolicTraits.TraitBold)
-        title.font = UIFont(descriptor: desc!, size: UIFont.labelFontSize())
-        title.sizeToFit()
-//        self.setFrame(title)
-//        self.notificationViews.append(title)
-        
-        let body = UILabel()
-        body.text = notification.request.content.body
-        body.frame.size.width = targetWidth
-        body.frame.origin.x = title.frame.origin.x
-        body.lineBreakMode = NSLineBreakMode.ByWordWrapping
-        body.numberOfLines = 0
-        body.textColor = UIColor(hue: 51 / 255, saturation: 51 / 255, brightness: 51 / 255, alpha: 1)
-        body.sizeToFit()
-        body.frame.origin.y = title.frame.height + 15
-        
-//        self.setFrame(body)
-//        self.notificationViews.append(body)
-        
-        textContainer.addSubview(title)
-        textContainer.addSubview(body)
-        textContainer.frame.size.height = body.frame.maxY + 15
-
-        self.setFrame(textContainer)
-        self.notificationViews.append(textContainer)
-        return Promise<Void>()
-        
     }
     
-    
+    func removeAllViews() {
+        self.notificationViews.forEach { view in
+            view.removeFromSuperview()
+        }
+        
+        self.notificationViews.removeAll()
+    }
     
 
     func didReceiveNotification(notification: UNNotification) {
@@ -247,104 +94,178 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         // sequentially. So we need to keep our own record of the latest.
         latestUserInfo = notification.request.content.userInfo
         
-        let scope = notification.request.content.userInfo["serviceWorkerScope"] as! String
-        let options = notification.request.content.userInfo["originalNotificationOptions"]!
+        let attachments = notification.request.content.attachments
         
-        do {
+        Promise<Void>()
+        .then {
             // We don't run inside the app, so we need to make our DB instance
             try Db.createMainDatabase()
             
-            // Clean up any previous stuff
+            // If we're loading on top of an existing notification, clear any
+            // existing views
+            self.removeAllViews()
+            
+            return self.processPendingPushEvents(notification.request.identifier)
+        }
+        .then {
+            self.notificationShowData = PendingNotificationShowStore.getByPushID(notification.request.identifier)
+            
+            if self.notificationShowData == nil {
+                throw ErrorMessage(msg: "No notification show data exists for this notification ID")
+            }
+            
+            return ServiceWorkerInstance.getActiveWorkerByURL(self.notificationShowData!.workerURL)
+            .then { sw -> Void in
+                
+                if sw == nil {
+                    throw ErrorMessage(msg: "No service worker exists for the specified URL")
+                }
+                
+                if let canvasOptions = self.notificationShowData!.options["canvas"] {
+                    
+                    var proportion:CGFloat = 1
+                    if let canvasProportion = canvasOptions["proportion"] as? CGFloat {
+                        proportion = canvasProportion
+                    }
+                    let canvasView = CanvasView(width: self.view.frame.width, ratio: proportion, worker: sw!)
+                    self.interactiveViews.canvas = canvasView
+                    self.notificationViews.append(canvasView)
+                    
+                } else if let videoOptions = self.notificationShowData!.options["video"] {
+                    
+                    let videoView = VideoView(width: self.view.frame.width, options: videoOptions, worker: sw!, context: self.extensionContext!, attachments: attachments)
+                    self.interactiveViews.video = videoView.videoInstance
+                    self.notificationViews.append(videoView)
+                    
+                } else if let imageURL = self.notificationShowData!.options["image"] as? String {
+                    
+                    let imageView = ImageView(width: self.view.frame.width, url: imageURL, worker: sw!, attachments: attachments)
+                    
+                    self.notificationViews.append(imageView)
+                }
+                
+                
+                
+                let bodyText = self.notificationShowData!.options["body"] as! String
+                
+                let textView = NotificationTextView(title: self.notificationShowData!.title, body: bodyText, frame: self.view.frame)
+                
+                
+                self.notificationViews.append(textView)
+
+                
+                // not returning the promise as we don't want to wait for this, just send it
+                NotificationHandler.sendExpand(self.notificationShowData!)
+                
+            }
+            
+            
+        }
+        .recover { err -> Void in
+            log.error("Notification show failed: " + String(err))
+            
+            // If anything failed we fall back to a single text view that uses the title and body
+            // that were hardcoded into the notification request
+            
+            self.removeAllViews()
+            
+            let textView = NotificationTextView(title: notification.request.content.title, body: notification.request.content.body, frame: self.view.frame)
+            
+            self.notificationViews.append(textView)
+            
+        }
+        .then { () -> Void in
             
             self.notificationViews.forEach { view in
-                view.removeFromSuperview()
+                self.setFrame(view)
+                self.view.addSubview(view)
             }
             
-            self.notificationViews.removeAll()
-            
-        
-            ServiceWorkerManager.getServiceWorkerWhoseScopeContainsURL(NSURL(string: scope)!)
-            .then { sw -> Promise<Void> in
-                self.checkForCanvas(notification.request.content.userInfo, worker: sw!)
-                self.checkForImage(notification.request.content.attachments, worker: sw!)
-                self.checkForVideo(notification.request.content.attachments, options: options, worker: sw!)
-                return self.recreateOriginalText(notification, options: options)
+            UIView.animateWithDuration(0.2) {
+                self.preferredContentSize = CGSize(width: 0, height: self.notificationViews.last!.frame.maxY)
             }
-            
-            .then { _ -> Void in
-                
-                self.notificationViews.forEach { view in
-                    self.view.addSubview(view)
-                }
-                
-                if self.notificationViews.count > 0 {
-                    UIView.animateWithDuration(0.2) {
-                        self.preferredContentSize = CGSize(width: 0, height: self.notificationViews.last!.frame.maxY)
-                    }
-                }
-                
-            }
-        } catch {
-            log.error("Notification show failed:" + String(error))
         }
+        
         
     }
     
-    
+    class NotificationResponseFailedError : ErrorType {}
     
     func didReceiveNotificationResponse(response: UNNotificationResponse, completionHandler completion: (UNNotificationContentExtensionResponseOption) -> Void) {
         
-        if response.actionIdentifier == UNNotificationDismissActionIdentifier {
-            if self.activeVideo != nil {
-                // Video somehow keeps playing if we don't do this
-                self.activeVideo!.pause()
+        
+        Promise<Void>()
+        .then { () -> Promise<Void> in
+            if response.actionIdentifier == UNNotificationDismissActionIdentifier {
+                
+                if self.interactiveViews.video != nil {
+                    // Video somehow keeps playing if we don't do this
+                    self.interactiveViews.video!.pause()
+                }
+                
+                
+                // We don't send the close event here because the app handles it internally
+                return Promise<Void>()
             }
-        }
-       
-        
-        
-        NotificationHandler.processAction(response, userInfo: latestUserInfo!, activeViews: ActiveNotificationViews(video: self.activeVideo, canvas: self.activeCanvas))
-        .then { _ -> Void in
             
-            if PendingNotificationActions.closeNotification == true {
-                //PendingNotificationActions.reset()
+            if let clickedActionIndex = Int(response.actionIdentifier) {
                 
-                let allPending = PendingWebviewActions.getAll()
-                let actionsThatBringAppToFront = allPending.filter { event in
-                    return event.type == WebviewClientEventType.OpenWindow || event.type == WebviewClientEventType.Focus
+                let action = self.notificationShowData!.getActions()[clickedActionIndex].identifier
+                
+                return NotificationHandler.sendAction(action, notificationShow: self.notificationShowData!, activeViews: self.interactiveViews)
+                
+            }
+            
+            throw NotificationResponseFailedError()
+        }
+        .recover { error -> Void in
+            log.error("Error occurred when processing notification response: " + String(error))
+            PendingNotificationActions.closeNotification = true
+        }
+        .then { () -> Void in
+            
+            let allPendingActions = PendingWebviewActions.getAll()
+            
+            let actionsThatBringAppToFront = allPendingActions.filter { event in
+                return event.type == WebviewClientEventType.OpenWindow || event.type == WebviewClientEventType.Focus
+            }
+
+            if actionsThatBringAppToFront.count > 0 {
+                
+                // We would use UNNotificationContentExtensionResponseOption.DismissAndForwardAction
+                // to bring the app into focus, but that makes you have to decide between whether a
+                // notification can .Dismiss or .DismissAndForwardAction, but not both. Since our buttons
+                // are dynamic we don't want that. So we use a URL handler instead.
+                
+                var url = NSURL(string: "gdnmobilelab://")!
+                
+                // using first because we sort of have to, also no-one should ever want to open two windows
+                // at once because the browser will only show one
+                
+                let windowOpen = actionsThatBringAppToFront.filter { $0.type == WebviewClientEventType.OpenWindow}.first
+                
+                if windowOpen?.options?["openOptions"]?["external"] as? Bool == true {
+                    
+                    // We have the option to open a link "externally", i.e. force it into Safari.
+                    // if that's enabled we pass the URL directly to the OS, rather than into
+                    // the app and back out again.
+                    
+                    url = NSURL(string: windowOpen!.options!["urlToOpen"] as! String)!
+                 
+                    PendingWebviewActions.removeAtIndex(allPendingActions.indexOf(windowOpen!)!)
                 }
+        
+                self.extensionContext!.openURL(url, completionHandler: nil)
+                completion(UNNotificationContentExtensionResponseOption.Dismiss)
                 
-                
-                
-                if actionsThatBringAppToFront.count > 0 {
-                    
-                    let openOptions = actionsThatBringAppToFront.first!.options?["openOptions"]
-                
-                    if openOptions != nil && openOptions!["external"] as? Bool == true {
-                        
-                        let url = NSURL(string: actionsThatBringAppToFront.first!.options!["urlToOpen"] as! String)!
-                        
-                        self.extensionContext!.openURL(url, completionHandler: { (success) in
-                            PendingWebviewActions.removeAtIndex(allPending.indexOf(actionsThatBringAppToFront.first!)!)
-                        })
-                        completion(UNNotificationContentExtensionResponseOption.Dismiss)
-                    } else {
-                        completion(UNNotificationContentExtensionResponseOption.DismissAndForwardAction)
-                    }
-                    
-                    
-                } else {
-                    completion(UNNotificationContentExtensionResponseOption.Dismiss)
-                }
-                
-                
+            } else if PendingNotificationActions.closeNotification == true {
+                completion(UNNotificationContentExtensionResponseOption.Dismiss)
             } else {
                 completion(UNNotificationContentExtensionResponseOption.DoNotDismiss)
             }
             
+//            PendingWebviewActions.clear()
         }
-        
-        
-//        UNUserNotificationCenter.currentNotificationCenter().removeDeliveredNotificationsWithIdentifiers([response.notification.request.identifier])
+
     }
 }

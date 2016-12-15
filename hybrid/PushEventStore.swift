@@ -22,11 +22,21 @@ class PushEventDefaultStore : UserDefaultStore<PendingPushEvent> {
         })
     }
     
+    func getByPushID(pushID:String) -> PendingPushEvent? {
+        let all = self.getAll()
+        
+        return all.filter { $0.pushID == pushID }.first
+    }
+    
     override func getAll() -> [PendingPushEvent] {
         return super.getAll().sort({ (el1, el2) -> Bool in
             return el1.dateAdded.compare(el2.dateAdded) == NSComparisonResult.OrderedAscending
         })
 
+    }
+    
+    override func equals(lhs: PendingPushEvent, rhs: PendingPushEvent) -> Bool {
+        return lhs.uuid == rhs.uuid
     }
 
 }

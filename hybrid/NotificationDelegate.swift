@@ -10,8 +10,11 @@ import Foundation
 import UserNotifications
 import JavaScriptCore
 import PromiseKit
+import UIKit
 
 class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
+    
+    static var allowedNotificationIDs: [String] = []
     
     func userNotificationCenter(center: UNUserNotificationCenter, willPresentNotification notification: UNNotification, withCompletionHandler completionHandler: (UNNotificationPresentationOptions) -> Void) {
         
@@ -26,42 +29,11 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
     }
     
     
-    
-    func checkForNotificationClick(response:UNNotificationResponse) -> Promise<Void> {
-        
-        if response.actionIdentifier != "com.apple.UNNotificationDefaultActionIdentifier" {
-            return Promise<Void>()
-        }
-        
-        let userInfo = response.notification.request.content.userInfo
-        let workerScope = userInfo["serviceWorkerScope"] as! String
-        let notificationData = userInfo["originalNotificationOptions"]!
-        
-        return ServiceWorkerManager.getServiceWorkerWhoseScopeContainsURL(NSURL(string: workerScope)!)
-        .then { sw in
-            let notification = Notification(title: userInfo["originalTitle"] as! String, notificationData: notificationData)
-            let event = NotificationEvent(type: "notificationclick", notification: notification)
-            
-            return sw!.dispatchExtendableEvent(event)
-            .then {_ in 
-                return Promise<Void>()
-            }
-        }
-
-    }
-    
     static func processPendingActions() {
         let pendingActions = PendingWebviewActions.getAll()
         
         pendingActions.forEach { event in
-            if event.type == WebviewClientEventType.OpenWindow {
-                
-                let urlToOpen = event.options!["urlToOpen"] as! String
-                
-                AppDelegate.rootController!.pushNewHybridWebViewControllerFor(NSURL(string: urlToOpen)!)
-            } else {
-                HybridWebview.processClientEvent(event)
-            }
+            HybridWebview.processClientEvent(event)
         }
         
         PendingNotificationActions.reset()
@@ -70,13 +42,41 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
     
     func userNotificationCenter(center: UNUserNotificationCenter, didReceiveNotificationResponse response: UNNotificationResponse, withCompletionHandler completionHandler: () -> Void) {
         
-        checkForNotificationClick(response)
+        let showData = PendingNotificationShowStore.getByPushID(response.notification.request.identifier)
+        
+        Promise<Void>()
+        .then { () -> Promise<Void> in
+            
+            if showData == nil {
+                throw ErrorMessage(msg: "No pending show data to use in notification event")
+            }
+            
+            if response.actionIdentifier == UNNotificationDismissActionIdentifier {
+                return NotificationHandler.sendClose(showData!)
+                .then {
+                    // It's possible to call openWindow() in a notificationclose event, but we should
+                    // never actually allow that to happen. So just to make sure, we clear any attempts.
+                    PendingWebviewActions.clear()
+                }
+            } else if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
+                return NotificationHandler.sendClick(showData!)
+            } else {
+                // if it's any other action then the actions are already stored in Pending.
+                return Promise<Void>()
+            }
+        }
         .then { () -> Void in
             
             NotificationDelegate.processPendingActions()
             
+            if let showDataExists = showData {
+                PendingNotificationShowStore.remove(showDataExists)
+            }
+            
             completionHandler()
+            
         }
+        
         
     }
     

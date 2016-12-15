@@ -89,6 +89,10 @@
 		8A824FE81E01D4920065E954 /* PushEventStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A824FE41E01D4130065E954 /* PushEventStore.swift */; };
 		8A824FE91E01D4A30065E954 /* UserDefaultStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A824FE21E01D3F00065E954 /* UserDefaultStore.swift */; };
 		8A824FEA1E01D4A30065E954 /* UserDefaultStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A824FE21E01D3F00065E954 /* UserDefaultStore.swift */; };
+		8A824FEC1E01E2650065E954 /* PendingNotificationShow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A824FEB1E01E2650065E954 /* PendingNotificationShow.swift */; };
+		8A824FED1E01E55F0065E954 /* PendingNotificationShow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A824FEB1E01E2650065E954 /* PendingNotificationShow.swift */; };
+		8A824FF01E01E59B0065E954 /* PendingNotificationShowStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A824FEF1E01E59B0065E954 /* PendingNotificationShowStore.swift */; };
+		8A824FF11E01E5BA0065E954 /* PendingNotificationShowStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A824FEF1E01E59B0065E954 /* PendingNotificationShowStore.swift */; };
 		8A878AC61D4A8F7600D31F85 /* ServiceWorkerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A878AC51D4A8F7600D31F85 /* ServiceWorkerCache.swift */; };
 		8A878AC91D4AC95B00D31F85 /* cache-test-data in Resources */ = {isa = PBXBuildFile; fileRef = 8A878AC81D4AC95B00D31F85 /* cache-test-data */; };
 		8A878ACB1D4AC9C700D31F85 /* ServiceWorkerCacheSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A878ACA1D4AC9C700D31F85 /* ServiceWorkerCacheSpec.swift */; };
@@ -156,6 +160,12 @@
 		8AEBD0D21D42E6230042A4AB /* WebServerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */; };
 		8AEEDE5C1D26CF450032D588 /* db.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEEDE5B1D26CF450032D588 /* db.swift */; };
 		8AF092991DFA087200C2F5DD /* 2016120800000000.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AF092981DFA087200C2F5DD /* 2016120800000000.sql */; };
+		8AFA9C3A1E01FBE100368B77 /* NotificationTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AFA9C391E01FBE100368B77 /* NotificationTextView.swift */; };
+		8AFA9C3D1E02F7A200368B77 /* VideoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AFA9C3C1E02F7A200368B77 /* VideoView.swift */; };
+		8AFA9C3F1E0301C800368B77 /* ErrorMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AFA9C3E1E0301C800368B77 /* ErrorMessage.swift */; };
+		8AFA9C401E03023000368B77 /* ErrorMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AFA9C3E1E0301C800368B77 /* ErrorMessage.swift */; };
+		8AFA9C411E03023100368B77 /* ErrorMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AFA9C3E1E0301C800368B77 /* ErrorMessage.swift */; };
+		8AFA9C431E0302B100368B77 /* ImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AFA9C421E0302B100368B77 /* ImageView.swift */; };
 		CA84C83AD6F1B9C9CE1C18A7 /* Pods_hybrid.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 311DE092863FE59F27435153 /* Pods_hybrid.framework */; };
 		D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */; };
 		D31BC1141CD534CF00CF6BEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D31BC1131CD534CF00CF6BEB /* Assets.xcassets */; };
@@ -284,6 +294,8 @@
 		8A7A49F61D91A991004C8253 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8A824FE21E01D3F00065E954 /* UserDefaultStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserDefaultStore.swift; sourceTree = "<group>"; };
 		8A824FE41E01D4130065E954 /* PushEventStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushEventStore.swift; sourceTree = "<group>"; };
+		8A824FEB1E01E2650065E954 /* PendingNotificationShow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PendingNotificationShow.swift; sourceTree = "<group>"; };
+		8A824FEF1E01E59B0065E954 /* PendingNotificationShowStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PendingNotificationShowStore.swift; sourceTree = "<group>"; };
 		8A878AC51D4A8F7600D31F85 /* ServiceWorkerCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerCache.swift; sourceTree = "<group>"; };
 		8A878AC81D4AC95B00D31F85 /* cache-test-data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "cache-test-data"; sourceTree = "<group>"; };
 		8A878ACA1D4AC9C700D31F85 /* ServiceWorkerCacheSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerCacheSpec.swift; sourceTree = "<group>"; };
@@ -326,6 +338,10 @@
 		8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServerSpec.swift; sourceTree = "<group>"; };
 		8AEEDE5B1D26CF450032D588 /* db.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = db.swift; sourceTree = "<group>"; };
 		8AF092981DFA087200C2F5DD /* 2016120800000000.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 2016120800000000.sql; sourceTree = "<group>"; };
+		8AFA9C391E01FBE100368B77 /* NotificationTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationTextView.swift; sourceTree = "<group>"; };
+		8AFA9C3C1E02F7A200368B77 /* VideoView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoView.swift; sourceTree = "<group>"; };
+		8AFA9C3E1E0301C800368B77 /* ErrorMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorMessage.swift; sourceTree = "<group>"; };
+		8AFA9C421E0302B100368B77 /* ImageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageView.swift; sourceTree = "<group>"; };
 		8E8D71D2823364A4E2EFDFEF /* Pods-notification-extension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-notification-extension.debug.xcconfig"; path = "Pods/Target Support Files/Pods-notification-extension/Pods-notification-extension.debug.xcconfig"; sourceTree = "<group>"; };
 		A574A3671639BA500C5F81F0 /* Pods-hybrid-notification-content.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid-notification-content.debug.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid-notification-content/Pods-hybrid-notification-content.debug.xcconfig"; sourceTree = "<group>"; };
 		AAE308DFFF75C7288575B903 /* Pods-hybrid-notification-content.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid-notification-content.release.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid-notification-content/Pods-hybrid-notification-content.release.xcconfig"; sourceTree = "<group>"; };
@@ -530,6 +546,9 @@
 				8AA1129A1D79E3CD001EC463 /* Info.plist */,
 				8A5283B41DBAC29700EB0886 /* CanvasView.swift */,
 				8ADDB6951DDBA48D00B69AE8 /* hybrid-notification-content-Bridging-Header.h */,
+				8AFA9C391E01FBE100368B77 /* NotificationTextView.swift */,
+				8AFA9C3C1E02F7A200368B77 /* VideoView.swift */,
+				8AFA9C421E0302B100368B77 /* ImageView.swift */,
 			);
 			path = "hybrid-notification-content";
 			sourceTree = "<group>";
@@ -547,6 +566,7 @@
 				8A53C9261DEE183500560310 /* JSPromiseToPromise.swift */,
 				8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */,
 				8A5283B61DBE5B6D00EB0886 /* PayloadToNotificationContent.swift */,
+				8A824FEB1E01E2650065E954 /* PendingNotificationShow.swift */,
 				8AA2CBD21DB943E4004F95C3 /* PendingPushEvent.swift */,
 				8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */,
 				8A13100D1DDF84940074944D /* PromiseToJSPromise.swift */,
@@ -554,6 +574,8 @@
 				8A933F661D87049500F9DC72 /* SharedResources.swift */,
 				8A824FE21E01D3F00065E954 /* UserDefaultStore.swift */,
 				8A24494A1D6F760300052D92 /* Util.swift */,
+				8A824FEF1E01E59B0065E954 /* PendingNotificationShowStore.swift */,
+				8AFA9C3E1E0301C800368B77 /* ErrorMessage.swift */,
 			);
 			name = shared;
 			sourceTree = "<group>";
@@ -1098,6 +1120,7 @@
 			files = (
 				8A1310131DDFA1430074944D /* JSPromise.swift in Sources */,
 				8AB7EF271D9F156100176FAE /* SharedResources.swift in Sources */,
+				8AFA9C411E03023100368B77 /* ErrorMessage.swift in Sources */,
 				8A824FE81E01D4920065E954 /* PushEventStore.swift in Sources */,
 				8A7A49F51D91A991004C8253 /* NotificationService.swift in Sources */,
 				8A824FE91E01D4A30065E954 /* UserDefaultStore.swift in Sources */,
@@ -1115,14 +1138,17 @@
 				8ADBC69A1E00958B0037263D /* MessagePort.swift in Sources */,
 				8A1278781DDE720E006EE758 /* ServiceWorkerCacheStorage.swift in Sources */,
 				8A6C4E981DA5616D008429C0 /* NotificationHandler.swift in Sources */,
+				8AFA9C431E0302B100368B77 /* ImageView.swift in Sources */,
 				8A5283B51DBAC29700EB0886 /* CanvasView.swift in Sources */,
 				8A1278711DDE4EF8006EE758 /* OffscreenCanvasRenderingContext2D.swift in Sources */,
 				8A933F651D8214F200F9DC72 /* Notification.swift in Sources */,
 				8A824FE71E01D4910065E954 /* PushEventStore.swift in Sources */,
 				8A13100F1DDF85110074944D /* PromiseToJSPromise.swift in Sources */,
 				8ADDB69C1DDBB4CD00B69AE8 /* JSContextError.swift in Sources */,
+				8A824FF11E01E5BA0065E954 /* PendingNotificationShowStore.swift in Sources */,
 				8A9D71161DC12B9100375365 /* PendingPushEvent.swift in Sources */,
 				8A5283B31DBAB7C400EB0886 /* ImageBitmap.swift in Sources */,
+				8AFA9C3A1E01FBE100368B77 /* NotificationTextView.swift in Sources */,
 				8ACCDCE31D7A323800A137E1 /* WebviewClientManager.swift in Sources */,
 				8ACCDCDF1D7A1A7C00A137E1 /* MessageChannel.swift in Sources */,
 				8ACCDCDC1D7A163700A137E1 /* db.swift in Sources */,
@@ -1139,12 +1165,15 @@
 				8ACCDCD31D7A131900A137E1 /* ServiceWorkerManager.swift in Sources */,
 				8ACCDCD41D7A131900A137E1 /* ServiceWorkerCache.swift in Sources */,
 				8ACCDCD61D7A131900A137E1 /* GlobalFetch.swift in Sources */,
+				8A824FED1E01E55F0065E954 /* PendingNotificationShow.swift in Sources */,
 				8ACCDCD71D7A131900A137E1 /* PromiseBridge.swift in Sources */,
 				8A933F681D87049500F9DC72 /* SharedResources.swift in Sources */,
+				8AFA9C401E03023000368B77 /* ErrorMessage.swift in Sources */,
 				8ACCDCD81D7A131900A137E1 /* ServiceWorkerRegistration.swift in Sources */,
 				8A1278741DDE5064006EE758 /* WindowClient.swift in Sources */,
 				8A824FEA1E01D4A30065E954 /* UserDefaultStore.swift in Sources */,
 				8A4C47EA1DD59E7A0023B00A /* ExtendableEvent.swift in Sources */,
+				8AFA9C3D1E02F7A200368B77 /* VideoView.swift in Sources */,
 				8A5283BB1DBE98B200EB0886 /* PayloadToNotificationContent.swift in Sources */,
 				8ADDB6991DDBA74C00B69AE8 /* ServiceWorkerStub.swift in Sources */,
 				8A1310121DDF9B5B0074944D /* PushMessageData.swift in Sources */,
@@ -1196,6 +1225,7 @@
 				8A88460D1D3504EA00CF9369 /* ServiceWorkerWebSql.swift in Sources */,
 				8AA06FD51DCD233E00DE4F45 /* NotificationVideo.swift in Sources */,
 				8A24494B1D6F760300052D92 /* Util.swift in Sources */,
+				8AFA9C3F1E0301C800368B77 /* ErrorMessage.swift in Sources */,
 				8ADDB6A11DDBCA7100B69AE8 /* PushEvent.swift in Sources */,
 				8A2449471D6F374D00052D92 /* HybridWebviewController.swift in Sources */,
 				8A878AC61D4A8F7600D31F85 /* ServiceWorkerCache.swift in Sources */,
@@ -1215,8 +1245,10 @@
 				8A6C4E971DA560B4008429C0 /* NotificationHandler.swift in Sources */,
 				8A1278731DDE5057006EE758 /* WindowClient.swift in Sources */,
 				8A7786341D5B74E30062E12B /* ConsoleManager.swift in Sources */,
+				8A824FF01E01E59B0065E954 /* PendingNotificationShowStore.swift in Sources */,
 				8A9D71181DC27DAD00375365 /* BackButtonSymbol.swift in Sources */,
 				8A0970B81DC977A300F16CF4 /* WebServerDomainManager.swift in Sources */,
+				8A824FEC1E01E2650065E954 /* PendingNotificationShow.swift in Sources */,
 				8AB917E21DF87E6500CD8153 /* ReadyStateHandler.swift in Sources */,
 				8A6EA5181D8200E7003FDA00 /* Notification.swift in Sources */,
 				8A2449491D6F676700052D92 /* HybridNavigationController.swift in Sources */,
@@ -1490,9 +1522,9 @@
 				CODE_SIGN_ENTITLEMENTS = hybrid/hybrid.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = 6J2C5AEPEG;
-				EMPTY_WORKERS_ON_LOAD = 1;
+				EMPTY_WORKERS_ON_LOAD = 0;
 				INFOPLIST_FILE = hybrid/Info.plist;
-				INITIAL_URL = "https://alastairtest.ngrok.io/";
+				INITIAL_URL = "https://www.gdnmobilelab.com/app-demo/";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = gdnmobilelab.hybrid;

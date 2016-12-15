@@ -71,6 +71,7 @@ import JavaScriptCore
         self.playerController = AVPlayerViewController()
         self.playerController.player = AVPlayer(URL: videoURL)
         self.playerController.showsPlaybackControls = false
+        self.playerController.view.autoresizingMask = UIViewAutoresizing.None
         self.extensionContext = context
 
         

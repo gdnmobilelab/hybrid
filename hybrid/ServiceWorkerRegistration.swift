@@ -83,21 +83,21 @@ import PromiseKit
     ///              with additional options for canvas and video.
     func showNotification(title:String, options: [String:AnyObject]) -> JSPromise {
         
-        let payload = [
-            "title": title,
-            "options": options
-        ]
-        
         let promise = JSPromise()
+        
+        var notificationID = NSUUID().UUIDString
         
         if ServiceWorkerRegistration.suppressNotificationShow {
             
             if let storeID = self.storeNotificationShowWithID {
+                
                 // If this is running in response to a push notification we don't want to actually
                 // run showNotification() as it'll result in two notifications being shown. Instead,
                 // we store the payload to be used if the user opens the notification content view.
                 
+                notificationID = storeID
                 
+                log.info("Storing notification data instead of showing it, with ID " + storeID)
                 
                 // We then want to reset it, so that we don't store multiple notifications with this one
                 self.storeNotificationShowWithID = nil
@@ -105,17 +105,66 @@ import PromiseKit
             } else {
                 log.error("Suppressed notification show, but have no ID to store it under!")
             }
-            promise.resolve(nil)
             
-        } else {
+        }
         
-            PayloadToNotificationContent.Convert(payload, serviceWorkerScope: self.scope)
-            .then { content -> Void in
+        let pending = PendingNotificationShow(title: title, options: options, pushID: notificationID, workerURL: self.worker.scriptURL)
+        
+        PendingNotificationShowStore.add(pending)
+        
+        if ServiceWorkerRegistration.suppressNotificationShow == false {
+            
+            var potentialAttachments: [String] = []
+            
+            if let icon = options["icon"] as? String {
+                potentialAttachments.append(icon)
+            }
+            
+            if let image = options["image"] as? String {
+                potentialAttachments.append(image)
+            }
+            
+            if let video = options["video"] {
+                if video["preload"] as? Bool == false {
+                    log.info("Found video, but with preload set to false, so not downloading")
+                } else {
+                    log.info("Found video to attach to notification")
+                    potentialAttachments.append(video["url"] as! String)
+                }
                 
-                // We use a UUID because remote notifications can't change their identifier. This means
-                // we have to manually manage replacing notifications with the same tag. Bah.
+            }
+            
+            PayloadToNotificationContent.urlsToNotificationAttachments(potentialAttachments, relativeTo: self.worker.url)
+            .then { attachments -> Void in
                 
-                let request = UNNotificationRequest(identifier: NSUUID().UUIDString, content: content, trigger: nil)
+                let content = UNMutableNotificationContent()
+                content.title = title
+                
+                if let body = options["body"] as? String {
+                     content.body = body
+                }
+                
+                content.categoryIdentifier = "extended-content"
+               
+                attachments.forEach { content.attachments.append($0) }
+                
+                var actionLabels: [String] = []
+                
+                let maybeActions = options["actions"] as? [AnyObject]
+                
+                // We save the actions just by numeric index, so all we need for iOS is the title
+                if let actions = maybeActions {
+                    actionLabels = actions.map { $0["title"] as! String }
+                }
+                
+                // Even if we don't have any actions we might need to reset the category to remove them
+                PayloadToNotificationContent.setNotificationCategoryBasedOnActions(actionLabels)
+                
+                // Add this so that it passes the notification delegate filter and shows when
+                // the app is in the foreground
+                content.userInfo["app_generated_notification"] = "true"
+                
+                let request = UNNotificationRequest(identifier: notificationID, content: content, trigger: nil)
                 
                 UNUserNotificationCenter.currentNotificationCenter().addNotificationRequest(request) { (err) in
                     if err != nil {
@@ -125,11 +174,11 @@ import PromiseKit
                     }
                     
                 }
+
             }
-            .recover  { err -> Void in
-                log.error("Failed to post notification: " + String(err))
-                promise.reject(err)
-            }
+            
+        } else {
+            promise.resolve(nil)
         }
         
         return promise

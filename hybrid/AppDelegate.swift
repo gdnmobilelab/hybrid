@@ -129,6 +129,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
     }
     
+    func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
+        
+        NotificationDelegate.processPendingActions()
+        
+        return true
+        
+    }
+    
     func application(application: UIApplication, continueUserActivity userActivity: NSUserActivity, restorationHandler: ([AnyObject]?) -> Void) -> Bool {
         
         if userActivity.activityType != "NSUserActivityTypeBrowsingWeb" {

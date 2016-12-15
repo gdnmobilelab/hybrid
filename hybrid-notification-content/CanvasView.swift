@@ -49,13 +49,13 @@ class CanvasView: UIView {
     private let worker: ServiceWorkerInstance
     private var displayLink:CADisplayLink?
     
-    private static func multiplyByRatio(num:Int) -> Int {
-        return Int(CGFloat(num) * UIScreen.mainScreen().scale)
+    private static func multiplyByRatio(num:CGFloat) -> Int {
+        return Int(num * UIScreen.mainScreen().scale)
     }
     
-    init(width: Int, ratio: Float, worker: ServiceWorkerInstance) {
+    init(width: CGFloat, ratio: CGFloat, worker: ServiceWorkerInstance) {
         
-        let height = Int(Float(width) * ratio)
+        let height = width * ratio
         self.worker = worker
         
         self.canvas = OffscreenCanvas(width: CanvasView.multiplyByRatio(width), height: CanvasView.multiplyByRatio(height))
@@ -63,7 +63,7 @@ class CanvasView: UIView {
         self.canvas.getContext("2d")!.fillRect(0, y: 0, width: CGFloat(canvas.width), height: CGFloat(canvas.height))
 //        self.canvasData = CanvasEvent(canvas: canvas, targetView: self)
         
-        super.init(frame: CGRect(x: 0, y: 0, width: width, height: height))
+        super.init(frame: CGRect(x: 0, y: 0, width: Int(width), height: Int(height)))
         
         let initialEvent = NotificationCanvasEvent(canvas: self.canvas, targetView: self, type: NotificationCanvasEventType.New)
         worker.dispatchExtendableEvent(initialEvent)

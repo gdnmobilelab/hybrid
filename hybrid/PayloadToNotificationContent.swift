@@ -17,6 +17,46 @@ import CoreGraphics
 class PayloadToNotificationContent {
     
     
+    static func urlsToNotificationAttachments(urls:[String], relativeTo: NSURL) -> Promise<[UNNotificationAttachment]> {
+        let promises = urls.map { attachmentURL -> Promise<UNNotificationAttachment> in
+            
+            let fullURL = NSURL(string: attachmentURL, relativeToURL: relativeTo)!
+            
+            return DownloadToTemporaryStorage.start(fullURL)
+                .then { localURL in
+                    return try UNNotificationAttachment(identifier: fullURL.absoluteString!, URL: localURL, options: [
+                        UNNotificationAttachmentOptionsThumbnailHiddenKey: true
+                        ])
+            }
+            
+        }
+        
+        return when(promises)
+    }
+    
+    static func setNotificationCategoryBasedOnActions(actions: [String]?) {
+        
+        var nativeActions: [UNNotificationAction] = []
+
+        if let actionsExist = actions {
+            
+            for (index, action) in actionsExist.enumerate() {
+                let newAction = UNNotificationAction(identifier: String(index), title: action, options: [])
+                
+                nativeActions.append(newAction)
+            }
+            
+        }
+        
+        let category = UNNotificationCategory(identifier: "extended-content", actions: nativeActions, intentIdentifiers: [], options: UNNotificationCategoryOptions([.CustomDismissAction]))
+        
+        UNUserNotificationCenter
+            .currentNotificationCenter()
+            .setNotificationCategories([category])
+        
+    }
+    
+    
     /// Download and attach images and videos to the notification. Note that videos can be skipped by
     /// setting preload: false in the notification options.
     ///

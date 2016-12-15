@@ -59,49 +59,77 @@ struct ActiveNotificationViews {
 /// do things like close the notification, or push another one to replace the current view.
 class NotificationHandler {
     
-    
-    /// This is called by the NotificationViewController when a user interacts with a notification
-    ///
-    /// - Parameters:
-    ///   - response: The response - contains info on whether it was an action tap, a close, or other
-    ///   - userInfo: The original userInfo object created when the notification was posted
-    ///   - activeViews: To be passed into the worker and allow video/canvas control in response to events
-    /// - Returns: A promise that resolves when the event has fired and any waitUntil() calls are complete
-    static func processAction(response:UNNotificationResponse, userInfo:[NSObject: AnyObject], activeViews: ActiveNotificationViews) -> Promise<Void> {
-       
-        let notificationData = userInfo["originalNotificationOptions"]!
+    static private func createNotification(notificationShow: PendingNotificationShow, activeViews:ActiveNotificationViews? = nil) -> Notification {
         
-        let notification = Notification(title: userInfo["originalTitle"] as! String, notificationData: notificationData )
-
-        notification.video = activeViews.video
+        let notification = Notification(title: notificationShow.title, notificationData: notificationShow.options)
         
-        let workerScope = userInfo["serviceWorkerScope"] as! String
-        
-        var action = ""
-        
-        if response.actionIdentifier != UNNotificationDefaultActionIdentifier {
-            action = response.actionIdentifier
+        if let existingActiveViews = activeViews {
+            notification.video = existingActiveViews.video
+            notification.canvas = existingActiveViews.canvas
         }
         
-        return ServiceWorkerManager.getServiceWorkerWhoseScopeContainsURL(NSURL(string:workerScope)!)
+        return notification
+        
+    }
+    
+   
+    /// This isn't a standard event, but we can use it for analytics tracking
+    ///
+    /// - Parameter notificationShow: the cached notification show call
+    /// - Returns: A promise that resolves when the event is complete
+    static func sendExpand(notificationShow: PendingNotificationShow) -> Promise<Void> {
+        return ServiceWorkerInstance.getActiveWorkerByURL(notificationShow.workerURL)
         .then { sw in
             
-            var eventType = "notificationclick"
+            let notification = createNotification(notificationShow)
             
-            if response.actionIdentifier == "com.apple.UNNotificationDismissActionIdentifier" {
-                eventType = "notificationclose"
-            }
-            let notificationEvent = NotificationEvent(type: eventType, notification: notification, action: action)
+            let event = NotificationEvent(type: "notificationexpand", notification: notification)
             
-            return sw!.dispatchExtendableEvent(notificationEvent)
-            .then { _ in
-                // disregard result - we don't need it
-                return Promise<Void>()
-            }
+            return sw!.dispatchExtendableEvent(event)
+                
+        }
+    }
+    
+    static func sendClose(notificationShow: PendingNotificationShow) -> Promise<Void> {
+        return ServiceWorkerInstance.getActiveWorkerByURL(notificationShow.workerURL)
+        .then { sw in
+            
+            let notification = createNotification(notificationShow)
+            
+            let event = NotificationEvent(type: "notificationclose", notification: notification)
+            
+            return sw!.dispatchExtendableEvent(event)
+                
+        }
+    }
+    
+    static func sendClick(notificationShow: PendingNotificationShow) -> Promise<Void> {
+        return ServiceWorkerInstance.getActiveWorkerByURL(notificationShow.workerURL)
+            .then { sw in
+                
+                let notification = createNotification(notificationShow)
+                
+                let event = NotificationEvent(type: "notificationclick", notification: notification)
+                
+                return sw!.dispatchExtendableEvent(event)
+                
+        }
+    }
+    
+    
+    static func sendAction(action:String, notificationShow:PendingNotificationShow, activeViews:ActiveNotificationViews) -> Promise<Void> {
+        
+        return ServiceWorkerInstance.getActiveWorkerByURL(notificationShow.workerURL)
+        .then { sw in
+            
+            let notification = createNotification(notificationShow, activeViews: activeViews)
+            
+            let event = NotificationEvent(type: "notificationclick", notification: notification, action: action)
+            
+            return sw!.dispatchExtendableEvent(event)
             
         }
         
-
-    
     }
+    
 }

@@ -70,7 +70,7 @@ class UserDefaultStore<T where T:NSCoding, T:Equatable> {
         var all = self.getAll()
         
         let indexOfThisOne = all.indexOf { thisObj in
-            return objToRemove == thisObj
+            return self.equals(objToRemove, rhs: thisObj)
         }
         
         all.removeAtIndex(indexOfThisOne!)
@@ -80,6 +80,10 @@ class UserDefaultStore<T where T:NSCoding, T:Equatable> {
     /// Remove all pending push events
     func removeAll() {
         SharedResources.userDefaults.removeObjectForKey(self.storeKey)
+    }
+    
+    func equals(lhs:T, rhs:T) -> Bool {
+        return lhs == rhs
     }
     
 }

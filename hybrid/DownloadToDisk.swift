@@ -8,6 +8,7 @@
 
 import Foundation
 import PromiseKit
+import UserNotifications
 
 
 /// Used when preparing notification attachments. We download the remote assets into temporary storage, before
@@ -67,4 +68,5 @@ class DownloadToTemporaryStorage {
         
         
     }
+    
 }
