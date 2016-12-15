@@ -80,7 +80,7 @@ class PendingNotificationShow: NSObject, NSCoding {
         } catch {
             log.error("Could not deserialize notification options:" + String(error))
         }
-        
+
         self.init(title: title, options: options, pushID: pushID, workerURL: workerURL)
     }
 

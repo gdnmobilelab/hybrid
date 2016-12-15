@@ -116,6 +116,9 @@
 		8AA112961D79E3CD001EC463 /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA112951D79E3CD001EC463 /* NotificationViewController.swift */; };
 		8AA1129D1D79E3CD001EC463 /* hybrid-notification-content.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 8AA1128F1D79E3CD001EC463 /* hybrid-notification-content.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8AA2CBD31DB943E4004F95C3 /* PendingPushEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA2CBD21DB943E4004F95C3 /* PendingPushEvent.swift */; };
+		8AAA5E811E03293300CE62F9 /* ObjC.m in Sources */ = {isa = PBXBuildFile; fileRef = 8AAA5E801E03293300CE62F9 /* ObjC.m */; };
+		8AAA5E821E03293300CE62F9 /* ObjC.m in Sources */ = {isa = PBXBuildFile; fileRef = 8AAA5E801E03293300CE62F9 /* ObjC.m */; };
+		8AAA5E831E03293300CE62F9 /* ObjC.m in Sources */ = {isa = PBXBuildFile; fileRef = 8AAA5E801E03293300CE62F9 /* ObjC.m */; };
 		8AACFB531DDA7F7600595F58 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5283B41DBAC29700EB0886 /* CanvasView.swift */; };
 		8AB7EF211D9F155800176FAE /* Pods_notification_extension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BA86B1E9F949C6813A60BAB8 /* Pods_notification_extension.framework */; };
 		8AB7EF271D9F156100176FAE /* SharedResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A933F661D87049500F9DC72 /* SharedResources.swift */; };
@@ -314,6 +317,8 @@
 		8AA112951D79E3CD001EC463 /* NotificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewController.swift; sourceTree = "<group>"; };
 		8AA1129A1D79E3CD001EC463 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8AA2CBD21DB943E4004F95C3 /* PendingPushEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PendingPushEvent.swift; sourceTree = "<group>"; };
+		8AAA5E7F1E03291600CE62F9 /* ObjC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ObjC.h; path = ../ObjC.h; sourceTree = "<group>"; };
+		8AAA5E801E03293300CE62F9 /* ObjC.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ObjC.m; sourceTree = "<group>"; };
 		8AB917E11DF87E6500CD8153 /* ReadyStateHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadyStateHandler.swift; sourceTree = "<group>"; };
 		8ACCDCCE1D7A0CD700A137E1 /* Console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		8AD2834F1D55070000D2DF07 /* test-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "test-workers"; sourceTree = "<group>"; };
@@ -639,18 +644,20 @@
 		D31BC10B1CD534CF00CF6BEB /* hybrid */ = {
 			isa = PBXGroup;
 			children = (
-				8ACCDCDB1D7A161D00A137E1 /* shared */,
-				8A2449451D6F373D00052D92 /* native */,
-				8A2449401D6D0ABD00052D92 /* hybrid.entitlements */,
-				8A932BD41D5A61B500FA15F8 /* webview-sw-bridge */,
-				8A8846041D30072100CF9369 /* service-worker */,
-				D38116391CD5AE96004A3CCD /* js-dist */,
 				D31BC10C1CD534CF00CF6BEB /* AppDelegate.swift */,
 				D31BC1131CD534CF00CF6BEB /* Assets.xcassets */,
-				D31BC1151CD534CF00CF6BEB /* LaunchScreen.storyboard */,
-				D31BC1181CD534CF00CF6BEB /* Info.plist */,
 				D38116311CD584B6004A3CCD /* hybrid-Bridging-Header.h */,
+				8A2449401D6D0ABD00052D92 /* hybrid.entitlements */,
+				D31BC1181CD534CF00CF6BEB /* Info.plist */,
+				D38116391CD5AE96004A3CCD /* js-dist */,
+				D31BC1151CD534CF00CF6BEB /* LaunchScreen.storyboard */,
+				8A2449451D6F373D00052D92 /* native */,
 				8A2449431D6E118300052D92 /* NotificationDelegate.swift */,
+				8AAA5E7F1E03291600CE62F9 /* ObjC.h */,
+				8AAA5E801E03293300CE62F9 /* ObjC.m */,
+				8A8846041D30072100CF9369 /* service-worker */,
+				8ACCDCDB1D7A161D00A137E1 /* shared */,
+				8A932BD41D5A61B500FA15F8 /* webview-sw-bridge */,
 			);
 			path = hybrid;
 			sourceTree = "<group>";
@@ -1118,6 +1125,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8AAA5E831E03293300CE62F9 /* ObjC.m in Sources */,
 				8A1310131DDFA1430074944D /* JSPromise.swift in Sources */,
 				8AB7EF271D9F156100176FAE /* SharedResources.swift in Sources */,
 				8AFA9C411E03023100368B77 /* ErrorMessage.swift in Sources */,
@@ -1174,6 +1182,7 @@
 				8A824FEA1E01D4A30065E954 /* UserDefaultStore.swift in Sources */,
 				8A4C47EA1DD59E7A0023B00A /* ExtendableEvent.swift in Sources */,
 				8AFA9C3D1E02F7A200368B77 /* VideoView.swift in Sources */,
+				8AAA5E821E03293300CE62F9 /* ObjC.m in Sources */,
 				8A5283BB1DBE98B200EB0886 /* PayloadToNotificationContent.swift in Sources */,
 				8ADDB6991DDBA74C00B69AE8 /* ServiceWorkerStub.swift in Sources */,
 				8A1310121DDF9B5B0074944D /* PushMessageData.swift in Sources */,
@@ -1204,6 +1213,7 @@
 				8A0156D01D65FCAE0091995E /* GlobalFetch.swift in Sources */,
 				8ADDB6A41DDCF08E00B69AE8 /* HexColor.swift in Sources */,
 				8AA2CBD31DB943E4004F95C3 /* PendingPushEvent.swift in Sources */,
+				8AAA5E811E03293300CE62F9 /* ObjC.m in Sources */,
 				8A54109F1D381EF000F44F38 /* HybridWebView.swift in Sources */,
 				8ADDB6981DDBA66600B69AE8 /* ServiceWorkerStub.swift in Sources */,
 				8ADDB69B1DDBB4A800B69AE8 /* JSContextError.swift in Sources */,
@@ -1524,7 +1534,7 @@
 				DEVELOPMENT_TEAM = 6J2C5AEPEG;
 				EMPTY_WORKERS_ON_LOAD = 0;
 				INFOPLIST_FILE = hybrid/Info.plist;
-				INITIAL_URL = "https://www.gdnmobilelab.com/app-demo/";
+				INITIAL_URL = "https://alastairtest.ngrok.io/";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = gdnmobilelab.hybrid;

@@ -82,36 +82,34 @@ import PromiseKit
     ///   - options: Options object as outlined here: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification,
     ///              with additional options for canvas and video.
     func showNotification(title:String, options: [String:AnyObject]) -> JSPromise {
-        
+        log.info("Attempting to show notification")
         let promise = JSPromise()
         
         var notificationID = NSUUID().UUIDString
+        log.info("here?")
         
-        if ServiceWorkerRegistration.suppressNotificationShow {
+        if let storeID = self.storeNotificationShowWithID {
             
-            if let storeID = self.storeNotificationShowWithID {
-                
-                // If this is running in response to a push notification we don't want to actually
-                // run showNotification() as it'll result in two notifications being shown. Instead,
-                // we store the payload to be used if the user opens the notification content view.
-                
-                notificationID = storeID
-                
-                log.info("Storing notification data instead of showing it, with ID " + storeID)
-                
-                // We then want to reset it, so that we don't store multiple notifications with this one
-                self.storeNotificationShowWithID = nil
-
-            } else {
-                log.error("Suppressed notification show, but have no ID to store it under!")
-            }
+            // If this is running in response to a push notification we don't want to actually
+            // run showNotification() as it'll result in two notifications being shown. Instead,
+            // we store the payload to be used if the user opens the notification content view.
             
+            notificationID = storeID
+            
+            log.info("Storing notification data instead of showing it, with ID " + storeID)
+            
+            // We then want to reset it, so that we don't store multiple notifications with this one
+            self.storeNotificationShowWithID = nil
+            
+        } else {
+            log.error("Suppressed notification show, but have no ID to store it under!")
         }
+
         
         let pending = PendingNotificationShow(title: title, options: options, pushID: notificationID, workerURL: self.worker.scriptURL)
-        
+        log.info("here2?")
         PendingNotificationShowStore.add(pending)
-        
+        log.info("here3?")
         if ServiceWorkerRegistration.suppressNotificationShow == false {
             
             var potentialAttachments: [String] = []
@@ -136,7 +134,7 @@ import PromiseKit
             
             PayloadToNotificationContent.urlsToNotificationAttachments(potentialAttachments, relativeTo: self.worker.url)
             .then { attachments -> Void in
-                
+                log.info("Fetched potential attachments")
                 let content = UNMutableNotificationContent()
                 content.title = title
                 

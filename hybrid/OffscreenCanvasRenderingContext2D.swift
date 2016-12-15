@@ -250,6 +250,7 @@ import UIKit
         
         set {
             self.strokeStyleColor = HexColor(hexString: newValue)
+            
             CGContextSetRGBFillColor(self.context, self.strokeStyleColor.red, self.strokeStyleColor.green, self.strokeStyleColor.blue, 1)
         }
         

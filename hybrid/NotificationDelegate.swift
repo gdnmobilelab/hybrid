@@ -22,6 +22,7 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
             completionHandler(UNNotificationPresentationOptions.Alert)
         } else {
             // If it's a remote notification and the app is open, don't show the notification
+            log.info("Blocking a remote notification")
             completionHandler(UNNotificationPresentationOptions.Badge)
         }
         

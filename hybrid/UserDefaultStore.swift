@@ -8,6 +8,7 @@
 
 import Foundation
 
+
 class UserDefaultStore<T where T:NSCoding, T:Equatable> {
     
     private var storeKey:String
@@ -28,14 +29,28 @@ class UserDefaultStore<T where T:NSCoding, T:Equatable> {
     func getAll() -> [T] {
         
         if let storedData = SharedResources.userDefaults.dataForKey(self.storeKey) {
-            let stored = NSKeyedUnarchiver.unarchiveObjectWithData(storedData) as? [T]
             
-            if stored == nil {
-                log.error("Somehow stored object is not in the form we want?")
-                return []
+            var stored:[T] = []
+            
+            if storedData.length == 0 {
+                return stored
             }
             
-            return stored!
+            do {
+                
+//                try ObjC.catchException {
+                    if let existingStore = NSKeyedUnarchiver.unarchiveObjectWithData(storedData) as? [T] {
+                        stored = existingStore
+                    } else {
+                        log.error("Serialized object was not in the form expected")
+                    }
+//                }
+                
+            } catch {
+                log.error("Failed to decode user default store: " + String(error))
+            }
+            
+            return stored
         }
         
         return []
@@ -46,7 +61,8 @@ class UserDefaultStore<T where T:NSCoding, T:Equatable> {
     /// - Parameter events: The new array to store
     private func set(events: [T]) {
         
-        SharedResources.userDefaults.setObject(NSKeyedArchiver.archivedDataWithRootObject(events), forKey: self.storeKey)
+        let archived = NSKeyedArchiver.archivedDataWithRootObject(events)
+        SharedResources.userDefaults.setObject(archived, forKey: self.storeKey)
         
     }
     

@@ -620,6 +620,8 @@ class ServiceWorkerManager {
         
         let pushEvents = PendingPushEventStore.getAll()
         
+        log.info("Processing " + String(pushEvents.count) + " pending push events")
+        
         let workerURLs = pushEvents.map { $0.serviceWorkerURL }
         
         let uniqueWorkerURLs = Set(workerURLs)
