@@ -15,6 +15,8 @@ import UIKit
     func getContext(contextType:String) -> OffscreenCanvasRenderingContext2D?
     var width:Int {get}
     var height:Int {get}
+    static func devicePixelRatio() -> CGFloat
+    init(width:Int, height:Int)
 }
 
 
@@ -26,7 +28,17 @@ import UIKit
     let width:Int
     let height:Int
     
-    init(width: Int, height: Int) {
+    
+    /// There's no reason for this to be a function, but for some reason JSExport exports it as one even if
+    /// if you declare a static var. So we might as well formalise it, just to make sure it doesn't change
+    /// in a future iOS release.
+    ///
+    /// - Returns: the device pixel ratio
+    static func devicePixelRatio() -> CGFloat {
+        return UIScreen.mainScreen().scale
+    }
+    
+    required init(width: Int, height: Int) {
         self.width = width
         self.height = height
         self.twoDContext = OffscreenCanvasRenderingContext2D(width: width, height: height)

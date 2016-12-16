@@ -96,13 +96,11 @@ import PromiseKit
             
             notificationID = storeID
             
-            log.info("Storing notification data instead of showing it, with ID " + storeID)
+            log.info("Storing notification data with ID " + storeID)
             
             // We then want to reset it, so that we don't store multiple notifications with this one
             self.storeNotificationShowWithID = nil
             
-        } else {
-            log.error("Suppressed notification show, but have no ID to store it under!")
         }
 
         
@@ -176,6 +174,7 @@ import PromiseKit
             }
             
         } else {
+            log.info("Suppressing notification show")
             promise.resolve(nil)
         }
         

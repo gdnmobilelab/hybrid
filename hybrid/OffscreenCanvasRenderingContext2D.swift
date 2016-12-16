@@ -13,6 +13,15 @@ import UIKit
 @objc protocol OffscreenCanvasRenderingContext2DExports : JSExport {
     init(width: Int, height: Int)
     
+    @objc(translate::)
+    func translate(x: CGFloat, y: CGFloat)
+    
+    func rotate(angle: CGFloat)
+    
+    func save()
+    
+    func restore()
+    
     @objc(clearRect::::)
     func clearRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat)
     
@@ -50,11 +59,13 @@ import UIKit
     func stroke()
     
     @objc(drawImage:::::::::)
-    func drawImage(bitmap:ImageBitmap, arg1: JSValue, arg2: JSValue, arg3: JSValue, arg4: JSValue, arg5:JSValue, arg6: JSValue, arg7:JSValue, arg8:JSValue)
+    func drawImage(bitmap:JSValue, arg1: JSValue, arg2: JSValue, arg3: JSValue, arg4: JSValue, arg5:JSValue, arg6: JSValue, arg7:JSValue, arg8:JSValue)
     
     var fillStyle:String {get set }
     var strokeStyle:String {get set}
     var lineWidth:Float {get set}
+    
+    func setLineDash(dashes:[CGFloat])
     
 }
 
@@ -70,6 +81,23 @@ import UIKit
     
     init(context:CGContext) {
         self.context = context;
+    }
+    
+    @objc(translate::)
+    func translate(x: CGFloat, y:CGFloat) {
+        CGContextTranslateCTM(self.context, x, y)
+    }
+    
+    func rotate(angle:CGFloat) {
+        CGContextRotateCTM(self.context, angle)
+    }
+    
+    func save() {
+        CGContextSaveGState(self.context)
+    }
+    
+    func restore() {
+        CGContextRestoreGState(self.context)
     }
     
     func toImage() -> CGImage {
@@ -150,6 +178,20 @@ import UIKit
         CGContextStrokePath(self.context)
     }
     
+    func getBitmapFromArgument(arg:JSValue) -> ImageBitmap? {
+        
+        var targetBitmap:ImageBitmap?
+        
+        if arg.isInstanceOf(ImageBitmap.self) {
+            targetBitmap = arg.toObjectOfClass(ImageBitmap.self) as! ImageBitmap
+        } else if arg.isInstanceOf(OffscreenCanvas.self) {
+            let canvas = arg.toObjectOfClass(OffscreenCanvas.self) as! OffscreenCanvas
+            targetBitmap = ImageBitmap(image: canvas.getContext("2d")!.toImage())
+        }
+        
+        return targetBitmap
+    }
+    
     func drawImage(bitmap:ImageBitmap, dx: CGFloat, dy: CGFloat) {
         self.drawImage(bitmap, dx: dx, dy: dy, dWidth: CGFloat(bitmap.width), dHeight: CGFloat(bitmap.height))
     }
@@ -158,15 +200,19 @@ import UIKit
         
         // -dy because of this transform stuff
         
-        let destRect = CGRect(x: dx, y: -dy, width: dWidth, height: dHeight)
+        let destRect = CGRect(x: dx, y: dy, width: dWidth, height: dHeight)
         
         // Have to do this to avoid image drawing upside down
         
         
         CGContextSaveGState(self.context)
         
-        CGContextTranslateCTM(self.context, 0, CGFloat(bitmap.height))
-        CGContextScaleCTM(self.context, 1.0, -1.0)
+        let flipVertical:CGAffineTransform = CGAffineTransformMake(1,0,0,-1,0, CGFloat(CGBitmapContextGetHeight(self.context)))
+        CGContextConcatCTM(context, flipVertical)
+        
+//        CGContextScaleCTM(self.context, 1.0, -1.0)
+//        CGContextTranslateCTM(self.context, 0, CGFloat(bitmap.height))
+//
         
         CGContextDrawImage(self.context, destRect, bitmap.image)
         
@@ -177,13 +223,15 @@ import UIKit
     }
     
     @objc(drawImage:::::::::)
-    func drawImage(bitmap:ImageBitmap, arg1: JSValue, arg2: JSValue, arg3: JSValue, arg4: JSValue, arg5:JSValue, arg6: JSValue, arg7:JSValue, arg8:JSValue) {
+    func drawImage(bitmap:JSValue, arg1: JSValue, arg2: JSValue, arg3: JSValue, arg4: JSValue, arg5:JSValue, arg6: JSValue, arg7:JSValue, arg8:JSValue) {
+        
+        let targetBitmap = getBitmapFromArgument(bitmap)
         
         if arg8.isUndefined == false {
             // it's the 8 arg variant
             
             self.drawImage(
-                bitmap,
+                targetBitmap!,
                 sx: CGFloat(arg1.toDouble()),
                 sy: CGFloat(arg2.toDouble()),
                 sWidth: CGFloat(arg3.toDouble()),
@@ -196,7 +244,7 @@ import UIKit
         } else if arg4.isUndefined == false {
             
             self.drawImage(
-                bitmap,
+                targetBitmap!,
                 dx: CGFloat(arg1.toDouble()),
                 dy: CGFloat(arg2.toDouble()),
                 dWidth: CGFloat(arg3.toDouble()),
@@ -204,7 +252,7 @@ import UIKit
             )
         } else {
             self.drawImage(
-                bitmap,
+                targetBitmap!,
                 dx: CGFloat(arg1.toDouble()),
                 dy: CGFloat(arg2.toDouble())
             )
@@ -251,7 +299,7 @@ import UIKit
         set {
             self.strokeStyleColor = HexColor(hexString: newValue)
             
-            CGContextSetRGBFillColor(self.context, self.strokeStyleColor.red, self.strokeStyleColor.green, self.strokeStyleColor.blue, 1)
+            CGContextSetRGBStrokeColor(self.context, self.strokeStyleColor.red, self.strokeStyleColor.green, self.strokeStyleColor.blue, 1)
         }
         
     }
@@ -268,6 +316,18 @@ import UIKit
             self.currentLineWidth = newValue
             CGContextSetLineWidth(self.context, CGFloat(newValue))
         }
+    }
+    
+    func setLineDash(dashes:[CGFloat]?) {
+        
+        if dashes == nil {
+            CGContextSetLineDash(self.context, 0, nil, 0)
+        } else {
+            CGContextSetLineDash(self.context, 0, dashes!, dashes!.count)
+        }
+        
+        
+        
     }
     
 }
