@@ -64,8 +64,9 @@ import UIKit
     var fillStyle:String {get set }
     var strokeStyle:String {get set}
     var lineWidth:Float {get set}
+    var globalAlpha:CGFloat {get set}
     
-    func setLineDash(dashes:[CGFloat])
+    func setLineDash(dashes:[CGFloat]?)
     
 }
 
@@ -105,16 +106,12 @@ import UIKit
         return imageRef!
     }
     
+    
+    
     @objc(clearRect::::)
     func clearRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
-        //CGContextClearRect(self.context, CGRect(x: x, y: y, width: width, height: height))
+        CGContextClearRect(self.context, CGRect(x: x, y: y, width: width, height: height))
         
-        // don't actually use clear, as it results in black box
-        
-        let fill = self.fillStyle
-        self.fillStyle = "#ffffff"
-        self.fillRect(x, y: y, width: width, height: height)
-        self.fillStyle = fill
     }
     
     @objc(fillRect::::)
@@ -200,14 +197,16 @@ import UIKit
         
         // -dy because of this transform stuff
         
-        let destRect = CGRect(x: dx, y: dy, width: dWidth, height: dHeight)
+        let canvasHeight = CGFloat(CGBitmapContextGetHeight(self.context))
+        
+        let destRect = CGRect(x: dx, y: canvasHeight - dHeight - dy, width: dWidth, height: dHeight)
         
         // Have to do this to avoid image drawing upside down
         
         
         CGContextSaveGState(self.context)
         
-        let flipVertical:CGAffineTransform = CGAffineTransformMake(1,0,0,-1,0, CGFloat(CGBitmapContextGetHeight(self.context)))
+        let flipVertical:CGAffineTransform = CGAffineTransformMake(1,0,0,-1,0, canvasHeight)
         CGContextConcatCTM(context, flipVertical)
         
 //        CGContextScaleCTM(self.context, 1.0, -1.0)
@@ -318,6 +317,18 @@ import UIKit
         }
     }
     
+    private var currentGlobalAlpha:CGFloat = 1.0
+    
+    var globalAlpha:CGFloat {
+        get {
+            return currentGlobalAlpha
+        }
+        set(value) {
+            currentGlobalAlpha = value
+            CGContextSetAlpha(self.context, value)
+        }
+    }
+    
     func setLineDash(dashes:[CGFloat]?) {
         
         if dashes == nil {
@@ -325,9 +336,6 @@ import UIKit
         } else {
             CGContextSetLineDash(self.context, 0, dashes!, dashes!.count)
         }
-        
-        
-        
     }
     
 }

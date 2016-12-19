@@ -48,7 +48,7 @@ class VideoView : UIView {
         
         self.videoInstance = NotificationVideo(videoURL: videoURL, options: options, context: context)
         
-        super.init(frame:CGRect(x: 0,y: 0,width: width, height: width * proportion))
+        super.init(frame:CGRect(x: 0,y: 0,width: width, height: width / proportion))
         videoInstance.playerController.view.frame = self.frame
         self.addSubview(videoInstance.playerController.view)
         

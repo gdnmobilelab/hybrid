@@ -17,6 +17,7 @@ import UIKit
     var height:Int {get}
     static func devicePixelRatio() -> CGFloat
     init(width:Int, height:Int)
+    var requestAnimationFrame: (() -> ())? {get}
 }
 
 
@@ -27,6 +28,9 @@ import UIKit
     private let twoDContext: OffscreenCanvasRenderingContext2D
     let width:Int
     let height:Int
+    
+    // Kind of hacky. We should work out a better way to do this.
+    var requestAnimationFrame: (() -> ())? = nil
     
     
     /// There's no reason for this to be a function, but for some reason JSExport exports it as one even if

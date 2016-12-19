@@ -37,14 +37,13 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
             HybridWebview.processClientEvent(event)
         }
         
-        PendingNotificationActions.reset()
-        PendingWebviewActions.clear()
+        PendingWebviewActions.removeAll()
     }
     
     func userNotificationCenter(center: UNUserNotificationCenter, didReceiveNotificationResponse response: UNNotificationResponse, withCompletionHandler completionHandler: () -> Void) {
         
         let showData = PendingNotificationShowStore.getByPushID(response.notification.request.identifier)
-        
+
         Promise<Void>()
         .then { () -> Promise<Void> in
             
@@ -52,15 +51,24 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
                 throw ErrorMessage(msg: "No pending show data to use in notification event")
             }
             
+            let notification = Notification.fromNotificationShow(showData!)
+            
             if response.actionIdentifier == UNNotificationDismissActionIdentifier {
-                return NotificationHandler.sendClose(showData!)
+                
+                if NotificationHandler.IgnoreNotificationCloseInMainApp == true {
+                    NotificationHandler.IgnoreNotificationCloseInMainApp = false
+                    log.info("Ignoring notification close event as it's already been processed by the notification content extension.")
+                    return Promise<Void>()
+                }
+                
+                return NotificationHandler.sendClose(notification)
                 .then {
                     // It's possible to call openWindow() in a notificationclose event, but we should
                     // never actually allow that to happen. So just to make sure, we clear any attempts.
-                    PendingWebviewActions.clear()
+                    PendingWebviewActions.removeAll()
                 }
             } else if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
-                return NotificationHandler.sendClick(showData!)
+                return NotificationHandler.sendClick(notification)
             } else {
                 // if it's any other action then the actions are already stored in Pending.
                 return Promise<Void>()

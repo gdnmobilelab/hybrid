@@ -48,81 +48,6 @@ import OMGHTTPURLRQ
 }
 
 
-/// The different types of event that can be passed from service worker to the app.
-///
-/// - Claim: Claim a webview for a new service worker install. Replaces any existing worker in navigator.serviceWorker.active
-/// - Focus: Focus on this window. Makes more sense in multi-tab browsers, but in app it will pop the navigation stack to this webview.
-/// - OpenWindow: Open a new webview for the selected URL. If {external:true} is passed in options it'll instead pass the URL to the OS.
-/// - PostMessage: Send a message to this webview. Currently cannot have MessagePorts attached as they don't work cross-process.
-enum WebviewClientEventType: Int32 {
-    case Claim = 0
-    case Focus
-    case OpenWindow
-    case PostMessage
-}
-
-
-/// A serializable/deserializable class for recording events service workers want to send across to webviews. Stored in 
-/// UserDefaults and queried when the app starts, resumes from suspend, etc.
-@objc class WebviewClientEvent: NSObject, NSCoding {
-    var type:WebviewClientEventType
-    var record:WebviewRecord?
-    
-    var options:[String: AnyObject]?
-    
-    init(type:WebviewClientEventType, record: WebviewRecord?) {
-        self.type = type
-        self.record = record
-    }
-    
-    init(type:WebviewClientEventType, record: WebviewRecord?, options: [String:AnyObject]?) {
-        self.type = type
-        self.record = record
-        self.options = options
-    }
-    
-    convenience required init?(coder decoder: NSCoder) {
-        let type = WebviewClientEventType(rawValue: decoder.decodeIntForKey("type"))!
-        let record = decoder.decodeObjectForKey("record") as? WebviewRecord
-        let options = decoder.decodeObjectForKey("options") as? NSData
-        
-        var optionsAsAny:[String : AnyObject]? = nil
-        if options != nil {
-            
-            do {
-                let decoded = try NSJSONSerialization.JSONObjectWithData(options!, options: [])
-                optionsAsAny = decoded as? [String : AnyObject]
-            } catch {
-                log.error("Unable to decode JSON string from storage. " + String(error))
-            }
-
-        }
-        
-        self.init(type: type, record: record, options: optionsAsAny)
-
-    }
-    
-    func encodeWithCoder(coder: NSCoder) {
-        coder.encodeInt(self.type.rawValue, forKey: "type")
-        
-        if let record = self.record {
-            coder.encodeObject(record, forKey: "record")
-        }
-        
-        if let options = self.options {
-            
-            do {
-                let jsonString = try NSJSONSerialization.dataWithJSONObject(options, options: [])
-                coder.encodeObject(jsonString, forKey: "options")
-            } catch {
-                log.error("Unable to serialize event options to JSON. " + String(error))
-            }
-        }
-
-        
-    }
-    
-}
 
 @objc protocol WebviewClientManagerExports : JSExport {
     func claim() -> JSPromise
@@ -143,7 +68,7 @@ enum WebviewClientEventType: Int32 {
     
     /// This event emitter is listened to within HybridWebView.swift in-app, but also in NotificationViewController.swift
     /// in the notification content extension
-    static let clientEvents = Event<WebviewClientEvent>()
+    static let clientEvents = Event<PendingWebviewAction>()
     
     static func resetActiveWebviewRecords() {
         SharedResources.userDefaults.removeObjectForKey(SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
@@ -203,7 +128,7 @@ enum WebviewClientEventType: Int32 {
                 // needs to be able to emit these events, which unfortunately means we need
                 // to store such events for execution later
                 
-                let ev = WebviewClientEvent(type: WebviewClientEventType.Claim, record: record, options: [
+                let ev = PendingWebviewAction(type: PendingWebviewActionType.Claim, record: record, options: [
                     "newServiceWorkerId": self.serviceWorker.instanceId
                 ])
                 
@@ -253,7 +178,7 @@ enum WebviewClientEventType: Int32 {
             optionsToSave["openOptions"] = optionsExists
         }
         
-        let newEvent = WebviewClientEvent(type: WebviewClientEventType.OpenWindow, record: nil, options: optionsToSave)
+        let newEvent = PendingWebviewAction(type: PendingWebviewActionType.OpenWindow, record: nil, options: optionsToSave)
         
         WebviewClientManager.clientEvents.emit(newEvent)
  

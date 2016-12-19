@@ -42,7 +42,7 @@ import JavaScriptCore
         // workerId maybe shouldn't be nil but we don't know it here because we're going to the webview
         // not from
         
-        let newEvent = WebviewClientEvent(type: WebviewClientEventType.PostMessage, record: record, options: [
+        let newEvent = PendingWebviewAction(type: PendingWebviewActionType.PostMessage, record: record, options: [
             "message": message
         ])
         
@@ -58,7 +58,7 @@ import JavaScriptCore
         let record = WebviewRecord(url: NSURL(string: self.url), index: Int(self.id)!, workerId: nil)
         
         // workerId maybe shouldn't be nil but we don't know it here, and the focus event doesn't need it
-        let newEvent = WebviewClientEvent(type: WebviewClientEventType.Focus, record: record)
+        let newEvent = PendingWebviewAction(type: PendingWebviewActionType.Focus, record: record)
         WebviewClientManager.clientEvents.emit(newEvent)
     }
 }

@@ -121,11 +121,11 @@ import PromiseKit
             }
             
             if let video = options["video"] {
-                if video["preload"] as? Bool == false {
-                    log.info("Found video, but with preload set to false, so not downloading")
-                } else {
+                if video["preload"] == nil || video["preload"] as? Bool == true {
                     log.info("Found video to attach to notification")
                     potentialAttachments.append(video["url"] as! String)
+                } else {
+                    log.info("Found video, but with preload set to false, so not downloading")
                 }
                 
             }

@@ -94,8 +94,8 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     /// Covers claim, focus, openWindow and postMessage events.
     ///
     /// - Parameter event: WebviewClientEvent, either applied directly or taken from UserDefaults storage
-    static func processClientEvent(event:WebviewClientEvent) {
-        if event.type == WebviewClientEventType.Claim {
+    static func processClientEvent(event:PendingWebviewAction) {
+        if event.type == PendingWebviewActionType.Claim {
             let webView = HybridWebview.activeWebviews[event.record!.index]
             
             ServiceWorkerInstance.getById(event.options!["newServiceWorkerId"] as! Int)
@@ -104,7 +104,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
                 saveWebViewRecords()
             }
         }
-        else if event.type == WebviewClientEventType.Focus {
+        else if event.type == PendingWebviewActionType.Focus {
             let webView = HybridWebview.activeWebviews[event.record!.index]
             HybridNavigationController.current!.viewControllers.forEach { viewController in
                 let asHybrid = viewController as! HybridWebviewController
@@ -113,13 +113,13 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
                 }
             }
         }
-        else if event.type == WebviewClientEventType.OpenWindow {
+        else if event.type == PendingWebviewActionType.OpenWindow {
             
             let url = NSURL(string: event.options!["urlToOpen"] as! String)
             
             HybridNavigationController.current!.pushNewHybridWebViewControllerFor(url!)
         
-        } else if event.type == WebviewClientEventType.PostMessage {
+        } else if event.type == PendingWebviewActionType.PostMessage {
             
             let webView = HybridWebview.activeWebviews[event.record!.index]
             

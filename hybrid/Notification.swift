@@ -18,7 +18,7 @@ import JavaScriptCore
     var icon: String? {get set}
     var image: AnyObject? {get set}
     var video: NotificationVideo? {get}
-    var canvas: CanvasView? {get}
+    var canvas: OffscreenCanvas? {get}
     
     func close()
     
@@ -33,10 +33,16 @@ import JavaScriptCore
     var image: AnyObject? = nil
     var title:String
     var video: NotificationVideo?
-    var canvas: CanvasView?
+    var canvas: OffscreenCanvas?
     
-    init(title:String, notificationData: AnyObject? = nil) {
+    
+    /// We don't store a reference to the worker itself because it could have been updated
+    /// in the mean time. We always want the latest instance.
+    var belongsToWorkerURL:NSURL
+    
+    init(title:String, notificationData: AnyObject? = nil, belongsToWorkerURL:NSURL) {
         self.title = title
+        self.belongsToWorkerURL = belongsToWorkerURL
         
         if let data = notificationData {
             self.body = data["body"] as? String
@@ -50,8 +56,21 @@ import JavaScriptCore
         
     }
     
+    var closeState = false
+    
     func close() {
-        PendingNotificationActions.closeNotification = true
+        self.closeState = true
+    }
+    
+    static func fromNotificationShow(notificationShow: PendingNotificationShow, canvas:OffscreenCanvas? = nil, videoView:NotificationVideo? = nil) -> Notification {
+        
+        let notification = Notification(title: notificationShow.title, notificationData: notificationShow.options, belongsToWorkerURL: notificationShow.workerURL)
+        
+        notification.video = videoView
+        notification.canvas = canvas
+        
+        return notification
+        
     }
 
 }

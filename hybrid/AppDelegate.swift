@@ -78,7 +78,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             AppDelegate.window!.rootViewController = rootController
             
             let windowOpenActions = PendingWebviewActions.getAll().filter { event in
-                return event.type == WebviewClientEventType.OpenWindow
+                return event.type == PendingWebviewActionType.OpenWindow
             }
             
             if windowOpenActions.count == 0 {

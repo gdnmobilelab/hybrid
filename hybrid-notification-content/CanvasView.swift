@@ -11,71 +11,68 @@ import UIKit
 import JavaScriptCore
 import PromiseKit
 
-enum NotificationCanvasEventType {
-    case New
-    case Frame
-}
+//enum NotificationCanvasEventType {
+//    case New
+//    case Frame
+//}
 
-@objc protocol NotificationCanvasEventExports: JSExport {
-    var canvas: OffscreenCanvas {get}
-    func requestAnimationFrame()
-}
-
-@objc class NotificationCanvasEvent : ExtendableEvent, NotificationCanvasEventExports {
-    
-    let canvas:OffscreenCanvas
-    let targetView:CanvasView
-    
-    init(canvas:OffscreenCanvas, targetView: CanvasView, type:NotificationCanvasEventType) {
-        self.canvas = canvas
-        self.targetView = targetView
-        super.init(type: type == NotificationCanvasEventType.New ? "notificationcanvasshow" : "notificationcanvasframe" )
-    }
-    
-    required init(type: String) {
-        fatalError("init(type:) has not been implemented")
-    }
-    
-    func requestAnimationFrame() {
-        self.targetView.requestAnimationFrame()
-    }
-
-}
+//@objc protocol NotificationCanvasEventExports: JSExport {
+//    var canvas: OffscreenCanvas {get}
+//    var notification: Notification {get}
+//    func requestAnimationFrame()
+//}
+//
+//@objc class NotificationCanvasEvent : ExtendableEvent, NotificationCanvasEventExports {
+//    
+//    let canvas:OffscreenCanvas
+//    let notification:Notification
+//    let targetView:CanvasView
+//    
+//    init(canvas:OffscreenCanvas, notification:Notification, targetView: CanvasView, type:NotificationCanvasEventType) {
+//        self.canvas = canvas
+//        self.targetView = targetView
+//        self.notification = notification
+//        super.init(type: type == NotificationCanvasEventType.New ? "notificationcanvasshow" : "notificationcanvasframe" )
+//    }
+//    
+//    required init(type: String) {
+//        fatalError("init(type:) has not been implemented")
+//    }
+//    
+//    func requestAnimationFrame() {
+//        self.targetView.requestAnimationFrame()
+//    }
+//
+//}
 
 class CanvasView: UIView {
     
 //    private var canvasData: CanvasEvent?
-    private let canvas:OffscreenCanvas
+    let canvas:OffscreenCanvas
     private let worker: ServiceWorkerInstance
     private var displayLink:CADisplayLink?
+    private let notification:Notification
     
     private static func multiplyByRatio(num:CGFloat) -> Int {
         return Int(num * UIScreen.mainScreen().scale)
     }
     
-    init(width: CGFloat, ratio: CGFloat, worker: ServiceWorkerInstance) {
+    init(width: CGFloat, ratio: CGFloat, worker: ServiceWorkerInstance, notification:Notification) {
         
-        let height = width * ratio
+        let height = width / ratio
         self.worker = worker
         
+        
+        
+        self.notification = notification
+        
         self.canvas = OffscreenCanvas(width: CanvasView.multiplyByRatio(width), height: CanvasView.multiplyByRatio(height))
-        self.canvas.getContext("2d")!.fillStyle = "#ffffff"
-        self.canvas.getContext("2d")!.fillRect(0, y: 0, width: CGFloat(canvas.width), height: CGFloat(canvas.height))
-//        self.canvasData = CanvasEvent(canvas: canvas, targetView: self)
         
         super.init(frame: CGRect(x: 0, y: 0, width: Int(width), height: Int(height)))
         
-        let initialEvent = NotificationCanvasEvent(canvas: self.canvas, targetView: self, type: NotificationCanvasEventType.New)
-        worker.dispatchExtendableEvent(initialEvent)
-        .then { _ -> Void in
-            self.pendingRender = true
-            self.setNeedsDisplay()
-        }
-        .error { error in
-            log.error("Error in rendering canvas: " + String(error))
-        }
+        self.canvas.requestAnimationFrame = self.requestAnimationFrame
         
-        self.requestAnimationFrame()
+        self.opaque = false
         
         self.displayLink = CADisplayLink(target: self, selector: #selector(self.runUpdate))
         self.displayLink!.addToRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
@@ -94,7 +91,8 @@ class CanvasView: UIView {
 
         if self.wantsAnimationFrame == true && self.pendingRender == false {
             self.wantsAnimationFrame = false
-            let frameEvent = NotificationCanvasEvent(canvas: self.canvas, targetView: self, type: NotificationCanvasEventType.Frame)
+            let frameEvent = NotificationEvent(type: "notificationcanvasframe", notification: self.notification)
+            
             worker.dispatchExtendableEvent(frameEvent)
             .then { _ -> Void in
                 self.pendingRender = true

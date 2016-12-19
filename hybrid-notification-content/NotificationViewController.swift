@@ -22,7 +22,8 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     var latestUserInfo:[NSObject: AnyObject]? = nil
     
     var notificationShowData:PendingNotificationShow?
-    var interactiveViews = ActiveNotificationViews()
+    var notificationInstance:Notification?
+//    var interactiveViews = ActiveNotificationViews()
     
     static var webviewEventListener:Listener?
     
@@ -37,7 +38,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             NotificationViewController.webviewEventListener = WebviewClientManager.clientEvents.on { event in
                 PendingWebviewActions.add(event)
             }
-            PendingWebviewActions.clear()
+            PendingWebviewActions.removeAll()
         }
         
     }
@@ -114,11 +115,23 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                 throw ErrorMessage(msg: "No notification show data exists for this notification ID")
             }
             
-            return ServiceWorkerInstance.getActiveWorkerByURL(self.notificationShowData!.workerURL)
+            self.notificationInstance = Notification.fromNotificationShow(self.notificationShowData!)
+            
+            return ServiceWorkerInstance.getActiveWorkerByURL(self.notificationInstance!.belongsToWorkerURL)
             .then { sw -> Void in
                 
                 if sw == nil {
                     throw ErrorMessage(msg: "No service worker exists for the specified URL")
+                }
+                
+                let interactiveViewContainer = UIView()
+                
+                if let videoOptions = self.notificationShowData!.options["video"] {
+                    
+                    let videoView = VideoView(width: self.view.frame.width, options: videoOptions, worker: sw!, context: self.extensionContext!, attachments: attachments)
+                    self.notificationInstance!.video = videoView.videoInstance
+                    interactiveViewContainer.addSubview(videoView)
+                    
                 }
                 
                 if let canvasOptions = self.notificationShowData!.options["canvas"] {
@@ -127,23 +140,32 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                     if let canvasProportion = canvasOptions["proportion"] as? CGFloat {
                         proportion = canvasProportion
                     }
-                    let canvasView = CanvasView(width: self.view.frame.width, ratio: proportion, worker: sw!)
-                    self.interactiveViews.canvas = canvasView
-                    self.notificationViews.append(canvasView)
+                    let canvasView = CanvasView(width: self.view.frame.width, ratio: proportion, worker: sw!, notification: self.notificationInstance!)
                     
-                } else if let videoOptions = self.notificationShowData!.options["video"] {
+                    self.notificationInstance!.canvas = canvasView.canvas
+                    interactiveViewContainer.addSubview(canvasView)
                     
-                    let videoView = VideoView(width: self.view.frame.width, options: videoOptions, worker: sw!, context: self.extensionContext!, attachments: attachments)
-                    self.interactiveViews.video = videoView.videoInstance
-                    self.notificationViews.append(videoView)
-                    
-                } else if let imageURL = self.notificationShowData!.options["image"] as? String {
+                }
+                
+                if let imageURL = self.notificationShowData!.options["image"] as? String {
                     
                     let imageView = ImageView(width: self.view.frame.width, url: imageURL, worker: sw!, attachments: attachments)
                     
                     self.notificationViews.append(imageView)
                 }
                 
+                if interactiveViewContainer.subviews.count > 0 {
+                    
+                    // Interactive views have to be the same size as each other otherwise it'll look weird
+                    
+                    let maxFrame = interactiveViewContainer.subviews
+                        .map { $0.frame }
+                        .sort { $0.height > $1.height }
+                        .first!
+                    
+                    interactiveViewContainer.frame = maxFrame
+                    self.notificationViews.append(interactiveViewContainer)
+                }
                 
                 
                 let bodyText = self.notificationShowData!.options["body"] as! String
@@ -155,7 +177,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
 
                 
                 // not returning the promise as we don't want to wait for this, just send it
-                NotificationHandler.sendExpand(self.notificationShowData!)
+                NotificationHandler.sendExpand(self.notificationInstance!)
                 
             }
             
@@ -198,21 +220,22 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         .then { () -> Promise<Void> in
             if response.actionIdentifier == UNNotificationDismissActionIdentifier {
                 
-                if self.interactiveViews.video != nil {
+                if self.notificationInstance!.video != nil {
                     // Video somehow keeps playing if we don't do this
-                    self.interactiveViews.video!.pause()
+                    self.notificationInstance!.video!.pause()
                 }
                 
-                
-                // We don't send the close event here because the app handles it internally
-                return Promise<Void>()
+                // don't want the app to also process this event
+                NotificationHandler.IgnoreNotificationCloseInMainApp = true
+                self.notificationInstance!.closeState = true
+                return NotificationHandler.sendClose(self.notificationInstance!)
             }
             
             if let clickedActionIndex = Int(response.actionIdentifier) {
                 
                 let action = self.notificationShowData!.getActions()[clickedActionIndex].identifier
                 
-                return NotificationHandler.sendAction(action, notificationShow: self.notificationShowData!, activeViews: self.interactiveViews)
+                return NotificationHandler.sendAction(action, notification: self.notificationInstance!)
                 
             }
             
@@ -220,14 +243,14 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         }
         .recover { error -> Void in
             log.error("Error occurred when processing notification response: " + String(error))
-            PendingNotificationActions.closeNotification = true
+            self.notificationInstance!.close()
         }
         .then { () -> Void in
             
             let allPendingActions = PendingWebviewActions.getAll()
             
             let actionsThatBringAppToFront = allPendingActions.filter { event in
-                return event.type == WebviewClientEventType.OpenWindow || event.type == WebviewClientEventType.Focus
+                return event.type == PendingWebviewActionType.OpenWindow || event.type == PendingWebviewActionType.Focus
             }
 
             if actionsThatBringAppToFront.count > 0 {
@@ -242,7 +265,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                 // using first because we sort of have to, also no-one should ever want to open two windows
                 // at once because the browser will only show one
                 
-                let windowOpen = actionsThatBringAppToFront.filter { $0.type == WebviewClientEventType.OpenWindow}.first
+                let windowOpen = actionsThatBringAppToFront.filter { $0.type == PendingWebviewActionType.OpenWindow}.first
                 
                 if windowOpen?.options?["openOptions"]?["external"] as? Bool == true {
                     
@@ -252,17 +275,20 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                     
                     url = NSURL(string: windowOpen!.options!["urlToOpen"] as! String)!
                  
-                    PendingWebviewActions.removeAtIndex(allPendingActions.indexOf(windowOpen!)!)
+                    PendingWebviewActions.remove(windowOpen!)
                 }
         
                 self.extensionContext!.openURL(url, completionHandler: nil)
+                ServiceWorkerManager.clearActiveServiceWorkers()
                 completion(UNNotificationContentExtensionResponseOption.Dismiss)
                 
-            } else if PendingNotificationActions.closeNotification == true {
+            } else if self.notificationInstance!.closeState == true {
+                ServiceWorkerManager.clearActiveServiceWorkers()
                 completion(UNNotificationContentExtensionResponseOption.Dismiss)
             } else {
                 completion(UNNotificationContentExtensionResponseOption.DoNotDismiss)
             }
+            
             
 //            PendingWebviewActions.clear()
         }

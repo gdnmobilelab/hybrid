@@ -13,8 +13,8 @@
 		8A0156D01D65FCAE0091995E /* GlobalFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */; };
 		8A0156D21D66402D0091995E /* PromiseBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156D11D66402D0091995E /* PromiseBridge.swift */; };
 		8A0970B81DC977A300F16CF4 /* WebServerDomainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B71DC977A300F16CF4 /* WebServerDomainManager.swift */; };
-		8A0970BA1DCA692E00F16CF4 /* PendingWebviewActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */; };
-		8A0970BB1DCA693100F16CF4 /* PendingWebviewActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */; };
+		8A0970BA1DCA692E00F16CF4 /* PendingNotificationsActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B91DCA692E00F16CF4 /* PendingNotificationsActions.swift */; };
+		8A0970BB1DCA693100F16CF4 /* PendingNotificationsActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B91DCA692E00F16CF4 /* PendingNotificationsActions.swift */; };
 		8A0970C11DCB8D6700F16CF4 /* AVKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A0970C01DCB8D6700F16CF4 /* AVKit.framework */; };
 		8A0970C31DCB988900F16CF4 /* DownloadToDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */; };
 		8A0970C41DCB9C1F00F16CF4 /* DownloadToDisk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */; };
@@ -71,6 +71,8 @@
 		8A55C6361D626F38004AFD21 /* update-worker-test in Resources */ = {isa = PBXBuildFile; fileRef = 8A55C6351D626F38004AFD21 /* update-worker-test */; };
 		8A55C6381D636B34004AFD21 /* update-worker-skip-waiting in Resources */ = {isa = PBXBuildFile; fileRef = 8A55C6371D636B34004AFD21 /* update-worker-skip-waiting */; };
 		8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */; };
+		8A686F591E0487B20056CBC1 /* PendingNotificationAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A686F581E0487B20056CBC1 /* PendingNotificationAction.swift */; };
+		8A686F5A1E0488210056CBC1 /* PendingNotificationAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A686F581E0487B20056CBC1 /* PendingNotificationAction.swift */; };
 		8A6C4E971DA560B4008429C0 /* NotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */; };
 		8A6C4E981DA5616D008429C0 /* NotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */; };
 		8A6EA5181D8200E7003FDA00 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5171D8200E7003FDA00 /* Notification.swift */; };
@@ -242,7 +244,7 @@
 		8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GlobalFetch.swift; sourceTree = "<group>"; };
 		8A0156D11D66402D0091995E /* PromiseBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PromiseBridge.swift; sourceTree = "<group>"; };
 		8A0970B71DC977A300F16CF4 /* WebServerDomainManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServerDomainManager.swift; sourceTree = "<group>"; };
-		8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PendingWebviewActions.swift; sourceTree = "<group>"; };
+		8A0970B91DCA692E00F16CF4 /* PendingNotificationsActions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PendingNotificationsActions.swift; sourceTree = "<group>"; };
 		8A0970C01DCB8D6700F16CF4 /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
 		8A0970C21DCB988900F16CF4 /* DownloadToDisk.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DownloadToDisk.swift; sourceTree = "<group>"; };
 		8A12786F1DDE4E92006EE758 /* OffscreenCanvasRenderingContext2D.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OffscreenCanvasRenderingContext2D.swift; sourceTree = "<group>"; };
@@ -284,6 +286,7 @@
 		8A55C6371D636B34004AFD21 /* update-worker-skip-waiting */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "update-worker-skip-waiting"; sourceTree = "<group>"; };
 		8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebviewClientManager.swift; sourceTree = "<group>"; };
 		8A61C2718D624655AC9BD4D7 /* Pods-hybrid.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid.release.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid/Pods-hybrid.release.xcconfig"; sourceTree = "<group>"; };
+		8A686F581E0487B20056CBC1 /* PendingNotificationAction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PendingNotificationAction.swift; sourceTree = "<group>"; };
 		8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationHandler.swift; sourceTree = "<group>"; };
 		8A6EA5171D8200E7003FDA00 /* Notification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
 		8A7461D11D9D70140020F74A /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -573,7 +576,7 @@
 				8A5283B61DBE5B6D00EB0886 /* PayloadToNotificationContent.swift */,
 				8A824FEB1E01E2650065E954 /* PendingNotificationShow.swift */,
 				8AA2CBD21DB943E4004F95C3 /* PendingPushEvent.swift */,
-				8A0970B91DCA692E00F16CF4 /* PendingWebviewActions.swift */,
+				8A0970B91DCA692E00F16CF4 /* PendingNotificationsActions.swift */,
 				8A13100D1DDF84940074944D /* PromiseToJSPromise.swift */,
 				8A824FE41E01D4130065E954 /* PushEventStore.swift */,
 				8A933F661D87049500F9DC72 /* SharedResources.swift */,
@@ -581,6 +584,7 @@
 				8A24494A1D6F760300052D92 /* Util.swift */,
 				8A824FEF1E01E59B0065E954 /* PendingNotificationShowStore.swift */,
 				8AFA9C3E1E0301C800368B77 /* ErrorMessage.swift */,
+				8A686F581E0487B20056CBC1 /* PendingNotificationAction.swift */,
 			);
 			name = shared;
 			sourceTree = "<group>";
@@ -1148,6 +1152,7 @@
 				8A6C4E981DA5616D008429C0 /* NotificationHandler.swift in Sources */,
 				8AFA9C431E0302B100368B77 /* ImageView.swift in Sources */,
 				8A5283B51DBAC29700EB0886 /* CanvasView.swift in Sources */,
+				8A686F5A1E0488210056CBC1 /* PendingNotificationAction.swift in Sources */,
 				8A1278711DDE4EF8006EE758 /* OffscreenCanvasRenderingContext2D.swift in Sources */,
 				8A933F651D8214F200F9DC72 /* Notification.swift in Sources */,
 				8A824FE71E01D4910065E954 /* PushEventStore.swift in Sources */,
@@ -1169,7 +1174,7 @@
 				8A53C9281DEE1A2100560310 /* JSPromiseToPromise.swift in Sources */,
 				8ACCDCD11D7A131900A137E1 /* ServiceWorkerWebSql.swift in Sources */,
 				8ACCDCD21D7A131900A137E1 /* TimeoutManager.swift in Sources */,
-				8A0970BB1DCA693100F16CF4 /* PendingWebviewActions.swift in Sources */,
+				8A0970BB1DCA693100F16CF4 /* PendingNotificationsActions.swift in Sources */,
 				8ACCDCD31D7A131900A137E1 /* ServiceWorkerManager.swift in Sources */,
 				8ACCDCD41D7A131900A137E1 /* ServiceWorkerCache.swift in Sources */,
 				8ACCDCD61D7A131900A137E1 /* GlobalFetch.swift in Sources */,
@@ -1229,7 +1234,7 @@
 				8A53C9271DEE183500560310 /* JSPromiseToPromise.swift in Sources */,
 				D31BC10D1CD534CF00CF6BEB /* AppDelegate.swift in Sources */,
 				8A933F671D87049500F9DC72 /* SharedResources.swift in Sources */,
-				8A0970BA1DCA692E00F16CF4 /* PendingWebviewActions.swift in Sources */,
+				8A0970BA1DCA692E00F16CF4 /* PendingNotificationsActions.swift in Sources */,
 				8AA06FD31DCCF95600DE4F45 /* WebviewJS.swift in Sources */,
 				8A1278771DDE6A9F006EE758 /* ServiceWorkerCacheStorage.swift in Sources */,
 				8A88460D1D3504EA00CF9369 /* ServiceWorkerWebSql.swift in Sources */,
@@ -1255,6 +1260,7 @@
 				8A6C4E971DA560B4008429C0 /* NotificationHandler.swift in Sources */,
 				8A1278731DDE5057006EE758 /* WindowClient.swift in Sources */,
 				8A7786341D5B74E30062E12B /* ConsoleManager.swift in Sources */,
+				8A686F591E0487B20056CBC1 /* PendingNotificationAction.swift in Sources */,
 				8A824FF01E01E59B0065E954 /* PendingNotificationShowStore.swift in Sources */,
 				8A9D71181DC27DAD00375365 /* BackButtonSymbol.swift in Sources */,
 				8A0970B81DC977A300F16CF4 /* WebServerDomainManager.swift in Sources */,
@@ -1468,7 +1474,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INITIAL_URL = "https://www.gdnmobilelab.com/reader/";
+				INITIAL_URL = "https://alastairtest.ngrok.io/app-demo/";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1532,9 +1538,9 @@
 				CODE_SIGN_ENTITLEMENTS = hybrid/hybrid.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = 6J2C5AEPEG;
-				EMPTY_WORKERS_ON_LOAD = 0;
+				EMPTY_WORKERS_ON_LOAD = "$(inherited)";
 				INFOPLIST_FILE = hybrid/Info.plist;
-				INITIAL_URL = "https://alastairtest.ngrok.io/";
+				INITIAL_URL = "$(inherited)";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = gdnmobilelab.hybrid;
@@ -1557,8 +1563,9 @@
 				CODE_SIGN_ENTITLEMENTS = hybrid/hybrid.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				DEVELOPMENT_TEAM = 6J2C5AEPEG;
+				EMPTY_WORKERS_ON_LOAD = "$(inherited)";
 				INFOPLIST_FILE = hybrid/Info.plist;
-				INITIAL_URL = "https://app.gdnmobilelab.com/";
+				INITIAL_URL = "$(inherited)";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = gdnmobilelab.hybrid;
