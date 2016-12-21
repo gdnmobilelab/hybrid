@@ -62,6 +62,7 @@ class WebServerDomainManager {
         
         let withoutPath = NSURLComponents(URL: url, resolvingAgainstBaseURL: true)!
         withoutPath.path = "/"
+        withoutPath.query = nil
         
         let domain = withoutPath.URL!.absoluteString!
         
@@ -74,7 +75,9 @@ class WebServerDomainManager {
                 
                 resultSet.next()
                 
-                if resultSet.intForColumn("worker_count") > 0 {
+                let numberOfWorkers = resultSet.intForColumn("worker_count")
+                
+                if numberOfWorkers > 0 {
                     workersExistForThisDomain = true
                 }
                 

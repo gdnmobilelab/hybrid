@@ -819,7 +819,7 @@ var promiseBridge = new PromiseOverWKMessage("messageChannel");
 window.__messageChannelBridge = promiseBridge;
 function receiveMessage(portIndex, message) {
     try {
-        console.debug("Received incoming message from native, to port", portIndex, "with message", message);
+        console.debug("Received incoming message from native, to port", portIndex);
         var thisPort = PortStore.findOrCreateByNativeIndex(portIndex);
         if (!thisPort) {
             throw new Error("Tried to receive message on inactive port");

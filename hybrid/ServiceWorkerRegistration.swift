@@ -82,7 +82,7 @@ import PromiseKit
     ///   - options: Options object as outlined here: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification,
     ///              with additional options for canvas and video.
     func showNotification(title:String, options: [String:AnyObject]) -> JSPromise {
-        log.info("Attempting to show notification")
+        log.info("Attempting to show notification: " + title)
         let promise = JSPromise()
         
         var notificationID = NSUUID().UUIDString
@@ -101,13 +101,15 @@ import PromiseKit
             // We then want to reset it, so that we don't store multiple notifications with this one
             self.storeNotificationShowWithID = nil
             
+        } else if let storeID = options["tag"] as? String {
+            notificationID = storeID
         }
 
         
         let pending = PendingNotificationShow(title: title, options: options, pushID: notificationID, workerURL: self.worker.scriptURL)
-        log.info("here2?")
+
         PendingNotificationShowStore.add(pending)
-        log.info("here3?")
+
         if ServiceWorkerRegistration.suppressNotificationShow == false {
             
             var potentialAttachments: [String] = []
@@ -130,11 +132,17 @@ import PromiseKit
                 
             }
             
+            let content = UNMutableNotificationContent()
+            content.title = title
+
+            
+            if let tag = options["tag"] as? String {
+                content.threadIdentifier = tag
+            }
+            
             PayloadToNotificationContent.urlsToNotificationAttachments(potentialAttachments, relativeTo: self.worker.url)
             .then { attachments -> Void in
                 log.info("Fetched potential attachments")
-                let content = UNMutableNotificationContent()
-                content.title = title
                 
                 if let body = options["body"] as? String {
                      content.body = body
@@ -186,9 +194,9 @@ import PromiseKit
     /// Update the current service worker.
     func update() -> JSPromise {
         return PromiseToJSPromise.pass(ServiceWorkerManager.update(self.worker.url, scope: nil, forceCheck: true).then { i in
-                // Int isn't AnyObject. Swift is weird.
-                return NSNumber(integer: i)
-            })
+            // Int isn't AnyObject. Swift is weird.
+            return NSNumber(integer: i)
+        })
         
     }
 }

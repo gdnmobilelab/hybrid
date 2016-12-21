@@ -18,7 +18,7 @@ interface MessagePortMessage {
 
 function receiveMessage(portIndex:number, message:MessagePortMessage) {
     try {
-        console.debug("Received incoming message from native, to port", portIndex, "with message", message);
+        console.debug("Received incoming message from native, to port", portIndex);
         let thisPort = PortStore.findOrCreateByNativeIndex(portIndex);
 
         if (!thisPort) {

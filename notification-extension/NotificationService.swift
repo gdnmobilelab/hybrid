@@ -34,6 +34,11 @@ class NotificationService: UNNotificationServiceExtension {
         
         let attachments = request.content.userInfo["ios_attachments"] as? String
         let maybeActions = request.content.userInfo["ios_actions"] as? String
+        let maybeCollapse = request.content.userInfo["collapse_id"] as? String
+        
+        if let collapse = maybeCollapse {
+            PayloadToNotificationContent.clearWithTag(collapse)
+        }
         
         if let actions = maybeActions {
             PayloadToNotificationContent.setNotificationCategoryBasedOnActions(actions.componentsSeparatedByString(",,,"))

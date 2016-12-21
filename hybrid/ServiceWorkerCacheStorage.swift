@@ -109,15 +109,25 @@ import PromiseKit
             
             var currentIndex = 0
             
-            return tryIndex(currentIndex)
-            .recover { error -> Promise<FetchResponse> in
-                currentIndex = currentIndex + 1
-                if currentIndex == allKeys.count {
-                    // Nothing left to try
-                    throw error
+            return Promise<Void>()
+            .then {
+    
+                if allKeys.count == 0 {
+                    throw CacheNoMatchError()
                 }
+                
                 return tryIndex(currentIndex)
+                .recover { error -> Promise<FetchResponse> in
+                    currentIndex = currentIndex + 1
+                    if currentIndex == allKeys.count {
+                        // Nothing left to try
+                        throw error
+                    }
+                    return tryIndex(currentIndex)
+                }
             }
+            
+            
             
         }
         

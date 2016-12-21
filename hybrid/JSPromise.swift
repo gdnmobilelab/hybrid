@@ -80,6 +80,11 @@ import JavaScriptCore
     func resolve(withObj: AnyObject?) {
         self.hasResponded = true
         self.resolveValue = withObj
+        
+        if self.jsResolveFunction == nil {
+            log.error("No bound JS reject function to call!")
+        }
+        
         if withObj != nil {
             self.jsResolveFunction?.callWithArguments([withObj!])
         } else {
@@ -95,6 +100,10 @@ import JavaScriptCore
     func reject(withError: ErrorType) {
         self.hasResponded = true
         self.rejectError = withError
+        
+        if self.jsRejectFunction == nil {
+            log.error("No bound JS reject function to call!")
+        }
         
         let err = JSValue(newErrorFromMessage: String(withError), inContext: self.jsRejectFunction!.context)
         

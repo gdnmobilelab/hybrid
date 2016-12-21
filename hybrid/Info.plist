@@ -2,17 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>org.gdnmobilelab.hybrid</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>gdnmobilelab</string>
-			</array>
-		</dict>
-	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -31,8 +20,19 @@
 	<string>1.4</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>org.gdnmobilelab.hybrid</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>gdnmobilelab</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
-	<string>6</string>
+	<string>7</string>
 	<key>EMPTY_WORKERS_ON_LOAD</key>
 	<string>${EMPTY_WORKERS_ON_LOAD}</string>
 	<key>INITIAL_URL</key>

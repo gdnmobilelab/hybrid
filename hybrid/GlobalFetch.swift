@@ -322,6 +322,8 @@ import JavaScriptCore
 /// The part of our FetchResponse object that will be available inside a JSContext
 @objc protocol FetchResponseExports : FetchBodyExports, JSExport {
     init(body:AnyObject?, options: [String:AnyObject]?)
+    var status:Int {get set}
+    var statusText:String {get set}
 }
 
 
@@ -329,8 +331,8 @@ import JavaScriptCore
 @objc class FetchResponse : FetchBody, FetchResponseExports {
     
     let headers:FetchHeaders
-    let status:Int
-    let statusText:String
+    var status:Int
+    var statusText:String
     
     init(body: NSData?, status: Int, statusText:String, headers: FetchHeaders) {
         self.status = status
@@ -488,7 +490,7 @@ class DoNotFollowRedirectSessionDelegate : NSObject, NSURLSessionDelegate {
                     
                     
                     // TODO: Status text
-                    
+
                     let resp = FetchResponse(body: data, status: response.statusCode, statusText: "", headers: fh)
                     
                     fulfill(resp)

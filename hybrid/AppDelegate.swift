@@ -81,7 +81,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 return event.type == PendingWebviewActionType.OpenWindow
             }
             
-            if windowOpenActions.count == 0 {
+            if windowOpenActions.count == 0 && launchOptions?["UIApplicationLaunchOptionsSourceApplicationKey"] == nil {
                 
                 let initialURL = NSBundle.mainBundle().objectForInfoDictionaryKey("INITIAL_URL") as! String
                 
