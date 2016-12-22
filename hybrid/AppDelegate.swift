@@ -33,7 +33,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         log.setup(.Debug, showLogIdentifier: false, showFunctionName: false, showThreadName: true, showLogLevel: true, showFileNames: false, showLineNumbers: false, showDate: false, writeToFile: nil, fileLogLevel: nil)
         
+        //  NSTemporaryDirectory() + "log.txt"
+        
+//        log.info("start")
+//        
+//        let logServer = GCDWebServer()
+//        
+//        var options: [String: AnyObject] = [
+//            GCDWebServerOption_BindToLocalhost: false,
+//            GCDWebServerOption_AutomaticallySuspendInBackground: false,
+//            GCDWebServerOption_Port: 23213
+//        ]
+//        
+//        logServer.addGETHandlerForBasePath("/", directoryPath: NSTemporaryDirectory(), indexFilename: "index.html", cacheAge: 0, allowRangeRequests: false)
+        
+        
         do {
+            
+//            try logServer.startWithOptions(options)
             
             try Db.createMainDatabase()
 
@@ -81,11 +98,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 return event.type == PendingWebviewActionType.OpenWindow
             }
             
-            if windowOpenActions.count == 0 && launchOptions?["UIApplicationLaunchOptionsSourceApplicationKey"] == nil {
-                
-                let initialURL = NSBundle.mainBundle().objectForInfoDictionaryKey("INITIAL_URL") as! String
-                
-                rootController.pushNewHybridWebViewControllerFor(NSURL(string:initialURL)!)
+//            let launchKey = launchOptions?["UIApplicationLaunchOptionsURLKey"]
+//            let launch = launchOptions!
+            
+            if windowOpenActions.count == 0 && launchOptions?["UIApplicationLaunchOptionsURLKey"] == nil {
+                pushDefaultStartURL()
                 
             } else {
                 NotificationDelegate.processPendingActions()
@@ -107,6 +124,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return false;
         }
         
+    }
+    
+    func pushDefaultStartURL() {
+        let initialURL = NSBundle.mainBundle().objectForInfoDictionaryKey("INITIAL_URL") as! String
+        
+        log.info("Loading default homepage:" + initialURL)
+        
+        HybridNavigationController.current!.pushNewHybridWebViewControllerFor(NSURL(string:initialURL)!)
     }
     
     func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject], fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
@@ -140,6 +165,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(application: UIApplication, continueUserActivity userActivity: NSUserActivity, restorationHandler: ([AnyObject]?) -> Void) -> Bool {
         
         if userActivity.activityType != "NSUserActivityTypeBrowsingWeb" {
+            
+            
+            if HybridNavigationController.current!.viewControllers.count == 0 {
+                
+                // if we've just launched but without a URL (e.g. TestFlight) then push the default URL
+                pushDefaultStartURL()
+                return true
+                
+            }
+            
             return false
         }
         

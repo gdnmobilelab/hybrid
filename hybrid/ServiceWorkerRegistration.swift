@@ -86,8 +86,7 @@ import PromiseKit
         let promise = JSPromise()
         
         var notificationID = NSUUID().UUIDString
-        log.info("here?")
-        
+       
         if let storeID = self.storeNotificationShowWithID {
             
             // If this is running in response to a push notification we don't want to actually
@@ -102,7 +101,20 @@ import PromiseKit
             self.storeNotificationShowWithID = nil
             
         } else if let storeID = options["tag"] as? String {
-            notificationID = storeID
+            // This is very gross. But if the notification is inactive, we set the
+            // notification request ID to be the tag, to overwrite an existing notification.
+            // But if the notification has been expanded, that'll actually stop
+            // the notification extension from receiving the event. So we need to detect
+            // and handle both.
+            
+            let l = NSBundle.mainBundle().bundleURL.lastPathComponent!
+            
+            if NSBundle.mainBundle().bundleURL.lastPathComponent! != "hybrid-notification-content.appex" {
+                notificationID = storeID
+            }
+            
+            
+//            notificationID = storeID
         }
 
         

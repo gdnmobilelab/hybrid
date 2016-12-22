@@ -16,7 +16,7 @@ import WebKit
 /// Controller for our HybridWebView, with a number of additional features like swapping out remote URLs for
 /// local ones when within a worker context, as well as consuming page metadata and changing navigation controls
 /// accordingly.
-class HybridWebviewController : UIViewController, WKNavigationDelegate {
+class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDelegate {
     
     var currentMetadata:HybridWebviewMetadata?
     
@@ -45,6 +45,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
         self.view = HybridWebview(frame: self.view.frame)
 
         self.webview!.navigationDelegate = self
+        self.webview!.UIDelegate = self
         
         // Don't show text in back button - it's causing some odd display problems
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
@@ -203,11 +204,28 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
                 log.info("Attempt to open URL: " + intendedURL.absoluteString! + " resulted in:" + String(success))
             })
         } else {
-            self.placeScreenshotOnTopOfView()
+//            self.placeScreenshotOnTopOfView()
+            self.webview!.userInteractionEnabled = false
             self.hybridNavigationController!.pushNewHybridWebViewControllerFor(intendedURL)
         }
         
         decisionHandler(WKNavigationActionPolicy.Cancel)
+    }
+    
+    
+    
+    func webView(webView: WKWebView, createWebViewWithConfiguration configuration: WKWebViewConfiguration, forNavigationAction navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        
+        var intendedURL = navigationAction.request.URL!
+        
+        if WebServerDomainManager.isLocalServerURL(intendedURL) {
+            intendedURL = WebServerDomainManager.mapServerURLToRequestURL(intendedURL)
+        }
+        
+        self.hybridNavigationController!.pushNewHybridWebViewControllerFor(intendedURL, animated: true)
+        
+        return nil
+        
     }
     
     
@@ -275,6 +293,8 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate {
             self.screenshotView!.removeFromSuperview()
             self.screenshotView = nil
         }
+        
+        self.webview!.userInteractionEnabled = true
         
         if self.navigationController == nil {
             HybridWebview.deregisterWebviewFromServiceWorkerEvents(self.webview!)

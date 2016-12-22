@@ -172,9 +172,42 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         self.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
 
         self.allowsLinkPreview = false
+        
+        self.addObserver(self, forKeyPath: "scrollView.contentSize", options: NSKeyValueObservingOptions.New, context: nil)
+
+        // hacky hacky
+        
+        self.pushWebviewListener = self.eventManager!.events.on("pushWebview", { intendedURL in
+            
+            var relativeURL = NSURL(string: intendedURL!, relativeToURL: self.URL!)!
+            
+            if WebServerDomainManager.isLocalServerURL(relativeURL) {
+                relativeURL = WebServerDomainManager.mapServerURLToRequestURL(relativeURL)
+            }
+            
+            HybridNavigationController.current!.pushNewHybridWebViewControllerFor(relativeURL, animated: true)
+            
+        })
     }
     
+    private var pushWebviewListener:Listener?
     
+    override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+        
+        if keyPath != "scrollView.contentSize" {
+            return
+        }
+        
+        // If the content is the same size as the view then disable scrolling
+        
+        if self.scrollView.contentSize.height == self.scrollView.frame.height {
+            self.scrollView.scrollEnabled = false
+        } else {
+            self.scrollView.scrollEnabled = true
+        }
+        
+        
+    }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")

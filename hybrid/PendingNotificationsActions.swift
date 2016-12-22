@@ -16,7 +16,9 @@ class PendingWebviewActionsDefault : UserDefaultStore<PendingWebviewAction> {
         super.init(storeKey: "pending_webview_actions", classNameAsString: "PendingWebviewAction")
     }
     
-    
+    override func equals(lhs: PendingWebviewAction, rhs: PendingWebviewAction) -> Bool {
+        return lhs.uuid == rhs.uuid
+    }
 }
 
 var PendingWebviewActions = PendingWebviewActionsDefault()

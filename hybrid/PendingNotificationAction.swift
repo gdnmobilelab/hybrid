@@ -27,24 +27,32 @@ enum PendingWebviewActionType: Int32 {
 @objc class PendingWebviewAction: NSObject, NSCoding {
     var type:PendingWebviewActionType
     var record:WebviewRecord?
-    
+    var uuid:String
     var options:[String: AnyObject]?
     
-    init(type:PendingWebviewActionType, record: WebviewRecord?) {
-        self.type = type
-        self.record = record
+    convenience init(type:PendingWebviewActionType, record: WebviewRecord?) {
+        self.init(type: type, record: record, options: nil)
     }
     
     init(type:PendingWebviewActionType, record: WebviewRecord?, options: [String:AnyObject]?) {
         self.type = type
         self.record = record
         self.options = options
+        self.uuid = NSUUID().UUIDString
+    }
+    
+    
+    /// Private init to create an instance with our predefined UUID
+    private convenience init(type:PendingWebviewActionType, record: WebviewRecord?, options: [String:AnyObject]?, uuid:String) {
+        self.init(type: type, record: record, options: options)
+        self.uuid = uuid
     }
     
     convenience required init?(coder decoder: NSCoder) {
         let type = PendingWebviewActionType(rawValue: decoder.decodeIntForKey("type"))!
         let record = decoder.decodeObjectForKey("record") as? WebviewRecord
         let options = decoder.decodeObjectForKey("options") as? NSData
+        let uuid = decoder.decodeObjectForKey("uuid") as! String
         
         var optionsAsAny:[String : AnyObject]? = nil
         if options != nil {
@@ -58,12 +66,13 @@ enum PendingWebviewActionType: Int32 {
             
         }
         
-        self.init(type: type, record: record, options: optionsAsAny)
+        self.init(type: type, record: record, options: optionsAsAny, uuid: uuid)
         
     }
     
     func encodeWithCoder(coder: NSCoder) {
         coder.encodeInt(self.type.rawValue, forKey: "type")
+        coder.encodeObject(self.uuid, forKey: "uuid")
         
         if let record = self.record {
             coder.encodeObject(record, forKey: "record")
