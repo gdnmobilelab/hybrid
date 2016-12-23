@@ -48,7 +48,7 @@ class MessageChannelManager: ScriptMessageManager {
     var activePorts = [Int: MessagePort]()
     var portListeners = [Int:Listener]()
     var closeListeners = [Int:Listener]()
-    var onMessage: ((String, [MessagePort]) -> Void)? = nil
+    var onMessage: ((AnyObject, [MessagePort]) -> Void)? = nil
     
     init(userController:WKUserContentController, webView:HybridWebview) {
         super.init(userController: userController, webView: webView, handlerName: "messageChannel")

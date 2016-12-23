@@ -102,6 +102,12 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
             .then { sw -> Void in
                 webView.serviceWorkerAPI!.setNewActiveServiceWorker(sw!)
                 saveWebViewRecords()
+                
+                if let p = event.onImmediateExecution {
+                    // if we're in process then we want to wait for this
+                    // to complete. If not, disregard it.
+                    p()
+                }
             }
         }
         else if event.type == PendingWebviewActionType.Focus {
@@ -127,7 +133,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
             // can't when we're in notification-content, and I don't want to implement inconsistent
             // behaviour.
             
-            webView.serviceWorkerAPI!.handleIncomingPostMessage(event.options!["message"] as! String, ports: [])
+            webView.serviceWorkerAPI!.receivePostMessageFromWorker(event.options!["message"]!)
             
             
         } else {

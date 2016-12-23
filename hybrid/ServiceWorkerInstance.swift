@@ -374,10 +374,14 @@ struct PromiseReturn {
             
             self.registration!.storeNotificationShowWithID = push.pushID
             
+            // We remove the event BEFORE sending it because the event might well call update,
+            // which would mean the new worker would try to process this event as well.
+            PendingPushEventStore.remove(push)
+            
             return self.dispatchExtendableEvent(pushEvent)
             .then {_ in
                 
-                PendingPushEventStore.remove(push)
+                
                 
                 if self.registration!.storeNotificationShowWithID != nil {
                     

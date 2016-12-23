@@ -19,7 +19,7 @@ class NotificationService: UNNotificationServiceExtension {
         
         self.contentHandler = contentHandler
         self.bestAttemptContent = request.content.mutableCopy() as? UNMutableNotificationContent
-
+        
         self.bestAttemptContent!.categoryIdentifier = "extended-content"
                 
         let id = request.identifier

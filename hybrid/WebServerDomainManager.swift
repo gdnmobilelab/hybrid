@@ -174,7 +174,7 @@ class WebServerDomainManager {
         
         let serverBeingUsed = self.domainServerMap
             .filter { (key, server) in
-                return server.port == serverURL.port!
+                return server.chosenPortNumber! == serverURL.port!
             }
             .first!.0
         

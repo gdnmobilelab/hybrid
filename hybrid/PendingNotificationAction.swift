@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import PromiseKit
 
 /// The different types of event that can be passed from service worker to the app.
 ///
@@ -29,6 +30,10 @@ enum PendingWebviewActionType: Int32 {
     var record:WebviewRecord?
     var uuid:String
     var options:[String: AnyObject]?
+    
+    // This is a total hack, but if we're in the same process our events evaluate immediately, and we might
+    // want to wait for that. This adds a lot of uncertainty, though
+    var onImmediateExecution:(() -> ())?
     
     convenience init(type:PendingWebviewActionType, record: WebviewRecord?) {
         self.init(type: type, record: record, options: nil)

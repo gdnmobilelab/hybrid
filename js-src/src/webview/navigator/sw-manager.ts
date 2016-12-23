@@ -82,12 +82,16 @@ class HybridServiceWorker extends EventEmitterToJSEvent implements ServiceWorker
         if (RegistrationInstance.active !== this) {
             throw new Error("Can only postMessage to active service worker");
         }
+        
+        let ports = [];
 
-        if (options.length > 1 || options[0] instanceof MessagePort === false) {
+        if (options.length > 1 || options.length === 1 && options[0] instanceof MessagePort === false) {
             throw new Error("Currently only supports sending one MessagePort");
+        } else if (options.length === 1) {
+            ports.push(options[0] as MessagePort);
         }
 
-        postMessage(message, [options[0] as MessagePort]);
+        postMessage(message, ports as [MessagePort]);
 
     } 
 

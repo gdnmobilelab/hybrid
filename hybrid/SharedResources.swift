@@ -13,6 +13,14 @@ import Foundation
 /// This is a quick utility class to avoid having to type the app group name everywhere.
 class SharedResources {
     
+    enum ExecutionEnvironment {
+        case App
+        case NotificationContentExtension
+        case Unknown
+    }
+    
+    static var currentExecutionEnvironment = ExecutionEnvironment.Unknown
+    
     
     /// Mostly just to avoid typos, some hard-coded keys that we use when storing data.
     class userDefaultKeys {

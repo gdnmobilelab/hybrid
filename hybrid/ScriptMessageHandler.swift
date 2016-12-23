@@ -91,7 +91,11 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     ///   - name: Name of the event to send
     ///   - arguments: An array of JSON strings to send to the JS function. Note: this means strings should be surrounded in ""s, numbers should not.
     func sendEvent(name:String, arguments: [String]) {
-         self.webview.evaluateJavaScript("window.__promiseBridges['" + self.handlerName + "'].emit('" + name + "'," + arguments.joinWithSeparator(",") +  ")", completionHandler: nil)
+        self.webview.evaluateJavaScript("window.__promiseBridges['" + self.handlerName + "'].emit('" + name + "'," + arguments.joinWithSeparator(",") +  ")", completionHandler:  {resp, err in
+            if err != nil {
+                log.error("Failed to send event: " + String(err))
+            }
+        })
     }
     
     

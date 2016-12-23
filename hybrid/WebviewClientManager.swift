@@ -118,11 +118,10 @@ import OMGHTTPURLRQ
     /// Allows a worker to claim any webviews under its scope and become their active worker
     func claim() -> JSPromise {
         
-        WebviewClientManager.currentWebviewRecords.forEach { record in
-            if record.url == nil {
-                return
-            }
-            if record.url!.absoluteString!.hasPrefix(self.serviceWorker.scope.absoluteString!) {
+        let claimPromises = WebviewClientManager.currentWebviewRecords.map { record -> Promise<Void> in
+            if record.url == nil || record.url!.absoluteString!.hasPrefix(self.serviceWorker.scope.absoluteString!) == false {
+                return Promise<Void>()
+            } else {
                 
                 // We put this in an event bridge because out notificiation content extension
                 // needs to be able to emit these events, which unfortunately means we need
@@ -132,11 +131,30 @@ import OMGHTTPURLRQ
                     "newServiceWorkerId": self.serviceWorker.instanceId
                 ])
                 
-                WebviewClientManager.clientEvents.emit(ev)
+                if SharedResources.currentExecutionEnvironment == SharedResources.ExecutionEnvironment.App {
+                    // We're in the app, so we want to wait for immediate execution
+                    
+                    return Promise<Void> { fulfill, reject in
+                        ev.onImmediateExecution = fulfill
+                        WebviewClientManager.clientEvents.emit(ev)
+                    }
+                    
+                } else {
+                    WebviewClientManager.clientEvents.emit(ev)
+                    return Promise<Void>()
+                }
+                
             }
         }
         
-        return JSPromise.resolve(nil)
+        let jsP = JSPromise()
+        
+        when(claimPromises)
+        .then {
+            jsP.resolve(nil)
+        }
+        
+        return jsP
         
     }
     

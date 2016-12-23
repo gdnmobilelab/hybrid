@@ -28,7 +28,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
         
         self.swChangeListener = ServiceWorkerManager.events.on(ServiceWorkerManager.STATUS_CHANGE_EVENT, self.serviceWorkerChange)
         
-        self.webview.messageChannelManager!.onMessage = self.handleIncomingPostMessage
+        self.webview.messageChannelManager!.onMessage = self.sendPostMessageToWorker
     }
     
     
@@ -37,9 +37,10 @@ class ServiceWorkerAPI: ScriptMessageManager {
     /// - Parameters:
     ///   - message: The message, usually a JSON-encoded string
     ///   - ports: Ports to pass onwards to the worker to be used to send replies back
-    func handleIncomingPostMessage(message:String, ports:[MessagePort]) {
+    func sendPostMessageToWorker(message:AnyObject, ports:[MessagePort]) {
         
         do {
+            
             let parsed = try NSJSONSerialization.JSONObjectWithData(message.dataUsingEncoding(NSUTF8StringEncoding)!, options: [])
             let ev = ExtendableMessageEvent(data: parsed, ports: ports)
             self.currentActiveServiceWorker?.dispatchExtendableEvent(ev)
@@ -48,6 +49,31 @@ class ServiceWorkerAPI: ScriptMessageManager {
         }
 
 
+    }
+    
+    func receivePostMessageFromWorker(message:AnyObject) {
+        // TODO: ports, ports, ports
+        
+        var jsonString = ""
+        
+        do {
+            
+            // if it worked like JSON.stringify it would stringify a string. But it doesn't, so it won't.
+            
+            if let messageIsString = message as? String {
+                jsonString = "\"" + messageIsString + "\""
+            } else {
+                let json = try NSJSONSerialization.dataWithJSONObject(message, options: NSJSONWritingOptions())
+                jsonString = String(data: json, encoding: NSUTF8StringEncoding)!
+            }
+            
+            
+        } catch {
+            log.error("Could not serialize incoming message: " + String(error))
+        }
+        log.debug("Sending message into webview from worker... " + jsonString)
+        self.sendEvent("postMessage", arguments: [jsonString, "0"])
+        
     }
     
     

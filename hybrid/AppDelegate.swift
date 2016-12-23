@@ -31,21 +31,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         
+        SharedResources.currentExecutionEnvironment = SharedResources.ExecutionEnvironment.App
+        
         log.setup(.Debug, showLogIdentifier: false, showFunctionName: false, showThreadName: true, showLogLevel: true, showFileNames: false, showLineNumbers: false, showDate: false, writeToFile: nil, fileLogLevel: nil)
         
-        //  NSTemporaryDirectory() + "log.txt"
-        
-//        log.info("start")
-//        
-//        let logServer = GCDWebServer()
-//        
-//        var options: [String: AnyObject] = [
-//            GCDWebServerOption_BindToLocalhost: false,
-//            GCDWebServerOption_AutomaticallySuspendInBackground: false,
-//            GCDWebServerOption_Port: 23213
-//        ]
-//        
-//        logServer.addGETHandlerForBasePath("/", directoryPath: NSTemporaryDirectory(), indexFilename: "index.html", cacheAge: 0, allowRangeRequests: false)
         
         
         do {

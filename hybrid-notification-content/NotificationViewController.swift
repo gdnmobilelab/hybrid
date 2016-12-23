@@ -27,7 +27,9 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
     static var webviewEventListener:Listener?
     
+    
     override func viewDidLoad() {
+        SharedResources.currentExecutionEnvironment = SharedResources.ExecutionEnvironment.NotificationContentExtension
         super.viewDidLoad()
         
         if NotificationViewController.webviewEventListener == nil {
