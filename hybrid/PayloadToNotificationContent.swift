@@ -141,19 +141,25 @@ class PayloadToNotificationContent {
     /// call
     ///
     /// - Parameter tag: The tag to clear
-    static func clearWithTag(tag:String) {
-        UNUserNotificationCenter.currentNotificationCenter().getDeliveredNotificationsWithCompletionHandler { notifications in
-            let identifiers = notifications
-                .filter { notification in
-                    return notification.request.content.threadIdentifier == tag
+    static func clearWithTag(tag:String) -> Promise<Int> {
+        
+        return Promise<Int> { fulfill, reject in
+            UNUserNotificationCenter.currentNotificationCenter().getDeliveredNotificationsWithCompletionHandler { notifications in
+                let identifiers = notifications
+                    .filter { notification in
+                        return notification.request.content.threadIdentifier == tag
+                    }
+                    .map { notification in
+                        return notification.request.identifier
                 }
-                .map { notification in
-                    return notification.request.identifier
-                }
+                
+                
+                UNUserNotificationCenter.currentNotificationCenter().removeDeliveredNotificationsWithIdentifiers(identifiers)
+                fulfill(identifiers.count)
+            }
             
-            
-            UNUserNotificationCenter.currentNotificationCenter().removeDeliveredNotificationsWithIdentifiers(identifiers)
         }
+        
     }
     
     

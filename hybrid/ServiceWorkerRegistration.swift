@@ -146,6 +146,8 @@ import PromiseKit
             
             let content = UNMutableNotificationContent()
             content.title = title
+            
+            content.sound = UNNotificationSound.defaultSound()
 
             
             if let tag = options["tag"] as? String {
