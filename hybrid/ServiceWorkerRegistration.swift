@@ -107,14 +107,10 @@ import PromiseKit
             // the notification extension from receiving the event. So we need to detect
             // and handle both.
             
-            let l = NSBundle.mainBundle().bundleURL.lastPathComponent!
-            
             if NSBundle.mainBundle().bundleURL.lastPathComponent! != "hybrid-notification-content.appex" {
                 notificationID = storeID
             }
-            
-            
-//            notificationID = storeID
+
         }
 
         
