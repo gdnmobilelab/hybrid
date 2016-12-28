@@ -25,47 +25,47 @@ import JavaScriptCore
        
         super.init()
         
-        let newConsole = JSValue(newObjectInContext: context)
-        context.setObject(newConsole, forKeyedSubscript: "console")
+        let newConsole = JSValue(newObjectIn: context)
+        context.setObject(newConsole, forKeyedSubscript: "console" as (NSCopying & NSObjectProtocol)!)
         
         // make our log function accessible from JS
         let logAsConvention: @convention(block) (String, NSArray) -> Void = self.logFromJS
-        let logAsAnObject = unsafeBitCast(logAsConvention, AnyObject.self)
+        let logAsAnObject = unsafeBitCast(logAsConvention, to: AnyObject.self)
         
         // This is a bit weird. But if we want to log all the arguments passed to a function
         // without knowing how many there are, we rely on the JS "arguments" object every
         // function has. Make a function that wraps our native log function with the log level,
         // then pass the arguments array back to our native logger.
         let logFuncCreator = context.objectForKeyedSubscript("Function")
-            .constructWithArguments(["level", "func", "return function() {func(level,arguments);}"])
+            .construct(withArguments: ["level", "func", "return function() {func(level,arguments);}"])
         
         let levels = ["info", "log", "error", "warn"]
         
         for level in levels {
-            let logJS = logFuncCreator.callWithArguments([level, logAsAnObject])
-            newConsole.setObject(logJS, forKeyedSubscript: level)
+            let logJS = logFuncCreator?.call(withArguments: [level, logAsAnObject])
+            newConsole?.setObject(logJS, forKeyedSubscript: level as (NSCopying & NSObjectProtocol)!)
         }
         
         
     }
     
-    func logFromJS(level:String, arguments:NSArray) {
+    func logFromJS(_ level:String, arguments:NSArray) {
         
         if self.originalConsole.isUndefined == false {
             self.originalConsole
                 .objectForKeyedSubscript(level)
-                .callWithArguments(arguments as [AnyObject])
+                .call(withArguments: arguments as [AnyObject])
         }
         
         var argsTextArray = [String]()
         
         for arg in arguments {
             
-            argsTextArray.append(String(arg))
+            argsTextArray.append(String(describing: arg))
         }
         
         
-        let argsText = argsTextArray.joinWithSeparator(" ")
+        let argsText = argsTextArray.joined(separator: " ")
         
         if level == "info" || level == "log" {
             log.info(argsText)

@@ -14,7 +14,7 @@ class PushEventDefaultStore : UserDefaultStore<PendingPushEvent> {
         super.init(storeKey: "pending_push_events", classNameAsString: "PendingPushEvent")
     }
     
-    func getByWorkerURL(workerURL:String) -> [PendingPushEvent] {
+    func getByWorkerURL(_ workerURL:String) -> [PendingPushEvent] {
         let all = self.getAll()
 
         return all.filter({ (pushEvent) -> Bool in
@@ -22,20 +22,20 @@ class PushEventDefaultStore : UserDefaultStore<PendingPushEvent> {
         })
     }
     
-    func getByPushID(pushID:String) -> PendingPushEvent? {
+    func getByPushID(_ pushID:String) -> PendingPushEvent? {
         let all = self.getAll()
         
         return all.filter { $0.pushID == pushID }.first
     }
     
     override func getAll() -> [PendingPushEvent] {
-        return super.getAll().sort({ (el1, el2) -> Bool in
-            return el1.dateAdded.compare(el2.dateAdded) == NSComparisonResult.OrderedAscending
+        return super.getAll().sorted(by: { (el1, el2) -> Bool in
+            return el1.dateAdded.compare(el2.dateAdded as Date) == ComparisonResult.orderedAscending
         })
 
     }
     
-    override func equals(lhs: PendingPushEvent, rhs: PendingPushEvent) -> Bool {
+    override func equals(_ lhs: PendingPushEvent, rhs: PendingPushEvent) -> Bool {
         return lhs.uuid == rhs.uuid
     }
 

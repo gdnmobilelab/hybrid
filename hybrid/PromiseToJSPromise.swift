@@ -15,7 +15,7 @@ import PromiseKit
 /// any type, and converts it into a JSPromise
 class PromiseToJSPromise<T> {
     
-    static func pass(promise:Promise<Void>) -> JSPromise {
+    static func pass(_ promise:Promise<Void>) -> JSPromise {
         let jspromise = JSPromise()
         
         promise.then {
@@ -28,7 +28,7 @@ class PromiseToJSPromise<T> {
         return jspromise
     }
     
-    static func pass(promise:Promise<Bool>) -> JSPromise {
+    static func pass(_ promise:Promise<Bool>) -> JSPromise {
         let jspromise = JSPromise()
         
         promise.then { result in
@@ -46,7 +46,7 @@ class PromiseToJSPromise<T> {
 
 
 extension PromiseToJSPromise where T: AnyObject {
-    static func pass(promise:Promise<T>) -> JSPromise {
+    static func pass(_ promise:Promise<T>) -> JSPromise {
         let jspromise = JSPromise()
         
         promise
@@ -60,7 +60,7 @@ extension PromiseToJSPromise where T: AnyObject {
         return jspromise
     }
     
-    static func pass(promiseArray:Promise<[T]>) -> JSPromise {
+    static func pass(_ promiseArray:Promise<[T]>) -> JSPromise {
         let jspromise = JSPromise()
         
         promiseArray

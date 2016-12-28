@@ -29,10 +29,10 @@ import JavaScriptCore
         self.skipWaitingStatus = true
     }
     
-    private var skipWaitingAnyObject:AnyObject {
+    fileprivate var skipWaitingAnyObject:AnyObject {
         get {
             let convention: @convention(block) () -> Void = self.skipWaiting
-            return unsafeBitCast(convention, AnyObject.self)
+            return unsafeBitCast(convention, to: AnyObject.self)
         }
     }
     
@@ -41,8 +41,8 @@ import JavaScriptCore
     /// global scope of the worker. Using Object.keys() feels like of hacky, but it works.
     func applySelfToGlobal() {
         
-        self.jsContext.setObject(ServiceWorkerGlobalScope.self, forKeyedSubscript: "ServiceWorkerGlobalScope")
-        self.jsContext.setObject(self, forKeyedSubscript: "self")
+        self.jsContext.setObject(ServiceWorkerGlobalScope.self, forKeyedSubscript: "ServiceWorkerGlobalScope" as (NSCopying & NSObjectProtocol)!)
+        self.jsContext.setObject(self, forKeyedSubscript: "self" as (NSCopying & NSObjectProtocol)!)
         
         // Slightly confusing, but we now grab the JSValue version of this class, so that we can apply
         // custom keys to it.
@@ -66,8 +66,8 @@ import JavaScriptCore
         ]
         
         for (key, val) in toApply {
-            self.jsContext.setObject(val, forKeyedSubscript: key)
-            jsSelf.setObject(val, forKeyedSubscript: key)
+            self.jsContext.setObject(val, forKeyedSubscript: key as (NSCopying & NSObjectProtocol)!)
+            jsSelf?.setObject(val, forKeyedSubscript: key as (NSCopying & NSObjectProtocol)!)
         }
         
     }

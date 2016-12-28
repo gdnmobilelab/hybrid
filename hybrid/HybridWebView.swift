@@ -25,7 +25,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     
     
     /// A store for all the active webviews currently in use by the app
-    private static var activeWebviews = [HybridWebview]()
+    fileprivate static var activeWebviews = [HybridWebview]()
     
     /// The WebviewClientManager and the HybridWebview can't be directly connected because the former exists
     /// in the notification extension, while the latter doesn't. So we use this listener to connect the two,
@@ -59,7 +59,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         
         // We need to save this somewhere that out-of-app code can still access it
         
-        WebviewClientManager.currentWebviewRecords = HybridWebview.activeWebviews.enumerate().map { (idx, wv) in
+        WebviewClientManager.currentWebviewRecords = HybridWebview.activeWebviews.enumerated().map { (idx, wv) in
             return WebviewRecord(
                 url: wv.mappedURL,
                 index: idx,
@@ -74,7 +74,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     ///
     /// - Parameter index: index of webview to fetch
     /// - Returns: The hybrid webview at that index
-    static func getActiveWebviewAtIndex(index:Int) -> HybridWebview {
+    static func getActiveWebviewAtIndex(_ index:Int) -> HybridWebview {
         return self.activeWebviews[index]
     }
     
@@ -83,9 +83,9 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     /// we want to stop it from receiving any worker events.
     ///
     /// - Parameter hw: HybridWebview to remove
-    static func deregisterWebviewFromServiceWorkerEvents(hw: HybridWebview) {
-        let idx = HybridWebview.activeWebviews.indexOf(hw)
-        HybridWebview.activeWebviews.removeAtIndex(idx!)
+    static func deregisterWebviewFromServiceWorkerEvents(_ hw: HybridWebview) {
+        let idx = HybridWebview.activeWebviews.index(of: hw)
+        HybridWebview.activeWebviews.remove(at: idx!)
         saveWebViewRecords()
     }
     
@@ -94,8 +94,8 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     /// Covers claim, focus, openWindow and postMessage events.
     ///
     /// - Parameter event: WebviewClientEvent, either applied directly or taken from UserDefaults storage
-    static func processClientEvent(event:PendingWebviewAction) {
-        if event.type == PendingWebviewActionType.Claim {
+    static func processClientEvent(_ event:PendingWebviewAction) {
+        if event.type == PendingWebviewActionType.claim {
             let webView = HybridWebview.activeWebviews[event.record!.index]
             
             ServiceWorkerInstance.getById(event.options!["newServiceWorkerId"] as! Int)
@@ -110,7 +110,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
                 }
             }
         }
-        else if event.type == PendingWebviewActionType.Focus {
+        else if event.type == PendingWebviewActionType.focus {
             let webView = HybridWebview.activeWebviews[event.record!.index]
             HybridNavigationController.current!.viewControllers.forEach { viewController in
                 let asHybrid = viewController as! HybridWebviewController
@@ -119,13 +119,13 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
                 }
             }
         }
-        else if event.type == PendingWebviewActionType.OpenWindow {
+        else if event.type == PendingWebviewActionType.openWindow {
             
-            let url = NSURL(string: event.options!["urlToOpen"] as! String)
+            let url = URL(string: event.options!["urlToOpen"] as! String)
             
             HybridNavigationController.current!.pushNewHybridWebViewControllerFor(url!)
         
-        } else if event.type == PendingWebviewActionType.PostMessage {
+        } else if event.type == PendingWebviewActionType.postMessage {
             
             let webView = HybridWebview.activeWebviews[event.record!.index]
             
@@ -174,12 +174,12 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         self.eventManager = EventManager(userController: config.userContentController, webView: self)
         self.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         
-        config.userContentController.addScriptMessageHandler(self.readyStateHandler, name: ReadyStateHandler.name)
+        config.userContentController.add(self.readyStateHandler, name: ReadyStateHandler.name)
         self.scrollView.decelerationRate = UIScrollViewDecelerationRateNormal
 
         self.allowsLinkPreview = false
         
-        self.addObserver(self, forKeyPath: "scrollView.contentSize", options: NSKeyValueObservingOptions.New, context: nil)
+        self.addObserver(self, forKeyPath: "scrollView.contentSize", options: NSKeyValueObservingOptions.new, context: nil)
 
         // hacky hacky
         
@@ -196,9 +196,9 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         })
     }
     
-    private var pushWebviewListener:Listener?
+    fileprivate var pushWebviewListener:Listener?
     
-    override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         
         if keyPath != "scrollView.contentSize" {
             return
@@ -207,9 +207,9 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         // If the content is the same size as the view then disable scrolling
         
         if self.scrollView.contentSize.height == self.scrollView.frame.height {
-            self.scrollView.scrollEnabled = false
+            self.scrollView.isScrollEnabled = false
         } else {
-            self.scrollView.scrollEnabled = true
+            self.scrollView.isScrollEnabled = true
         }
         
         
@@ -224,11 +224,11 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     ///
     /// - Parameter userController: userController to inject into
     /// - Throws: If the JS file cannot be read
-    private func injectJS(userController: WKUserContentController) throws {
-        let docStartPath = Util.appBundle().pathForResource("document-start", ofType: "js", inDirectory: "js-dist")!;
-        let documentStartJS = try NSString(contentsOfFile: docStartPath, encoding: NSUTF8StringEncoding) as String;
+    fileprivate func injectJS(_ userController: WKUserContentController) throws {
+        let docStartPath = Util.appBundle().path(forResource: "document-start", ofType: "js", inDirectory: "js-dist")!;
+        let documentStartJS = try NSString(contentsOfFile: docStartPath, encoding: String.Encoding.utf8) as String;
      
-        let userScript = WKUserScript(source: documentStartJS, injectionTime: .AtDocumentStart, forMainFrameOnly: true);
+        let userScript = WKUserScript(source: documentStartJS, injectionTime: .atDocumentStart, forMainFrameOnly: true);
         userController.addUserScript(userScript)
     }
     
@@ -287,9 +287,9 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     
     
     /// Transform the raw URL into a remote URL, if it happens to be running on localhost. If not, just return the current URL
-    var mappedURL:NSURL? {
+    var mappedURL:URL? {
         get {
-            let currentURL = self.URL
+            let currentURL = self.url
             if currentURL == nil {
                 return nil
             }
@@ -300,7 +300,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
             // If it's a local URL for a service worker, map it
             
             if WebServerDomainManager.isLocalServerURL(currentURL!) {
-                if currentURL?.path! == "/__placeholder" {
+                if currentURL?.path == "/__placeholder" {
                     return nil
                 }
                 return WebServerDomainManager.mapServerURLToRequestURL(currentURL!)

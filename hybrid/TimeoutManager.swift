@@ -27,20 +27,20 @@ struct Interval {
     /// corresponding JS function.
     var cancelledTimeouts = Set<Int>()
     
-    func hookFunctions(jsContext:JSContext) {
+    func hookFunctions(_ jsContext:JSContext) {
         
         let setTimeoutConvention: @convention(block) (JSValue, JSValue) -> Int = self.setTimeout
         let setIntervalConvention: @convention(block) (JSValue, JSValue) -> Int = self.setInterval
         let clearTimeoutConvention: @convention(block) (Int) -> Void = self.clearTimeout
         let clearIntervalConvention: @convention(block) (Int) -> Void = self.clearInterval
         
-        jsContext.setObject(unsafeBitCast(setTimeoutConvention, AnyObject.self), forKeyedSubscript: "setTimeout")
-        jsContext.setObject(unsafeBitCast(setIntervalConvention, AnyObject.self), forKeyedSubscript: "setInterval")
-        jsContext.setObject(unsafeBitCast(clearTimeoutConvention, AnyObject.self), forKeyedSubscript: "clearTimeout")
-        jsContext.setObject(unsafeBitCast(clearIntervalConvention, AnyObject.self), forKeyedSubscript: "clearInterval")
+        jsContext.setObject(unsafeBitCast(setTimeoutConvention, to: AnyObject.self), forKeyedSubscript: "setTimeout" as (NSCopying & NSObjectProtocol)!)
+        jsContext.setObject(unsafeBitCast(setIntervalConvention, to: AnyObject.self), forKeyedSubscript: "setInterval" as (NSCopying & NSObjectProtocol)!)
+        jsContext.setObject(unsafeBitCast(clearTimeoutConvention, to: AnyObject.self), forKeyedSubscript: "clearTimeout" as (NSCopying & NSObjectProtocol)!)
+        jsContext.setObject(unsafeBitCast(clearIntervalConvention, to: AnyObject.self), forKeyedSubscript: "clearInterval" as (NSCopying & NSObjectProtocol)!)
     }
     
-    func setInterval(callback:JSValue, interval: JSValue) -> Int {
+    func setInterval(_ callback:JSValue, interval: JSValue) -> Int {
         
         lastTimeoutIndex += 1
         
@@ -54,20 +54,16 @@ struct Interval {
         
     }
     
-    private func fireInterval(interval: Interval) {
+    fileprivate func fireInterval(_ interval: Interval) {
         
-        dispatch_after(
-            dispatch_time(
-                DISPATCH_TIME_NOW,
-                Int64((interval.timeout / 1000) * Double(NSEC_PER_SEC))
-            ),
-            dispatch_get_main_queue(), {
+        DispatchQueue.main.asyncAfter(
+            deadline: DispatchTime.now() + Double(Int64((interval.timeout / 1000) * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC), execute: {
                 
                 if self.cancelledTimeouts.contains(interval.timeoutIndex) == true {
                     self.cancelledTimeouts.remove(interval.timeoutIndex)
                     return
                 } else {
-                    interval.function.callWithArguments(nil)
+                    interval.function.call(withArguments: nil)
                     self.fireInterval(interval)
                 }
                 
@@ -75,11 +71,11 @@ struct Interval {
 
     }
     
-    func clearInterval(index:Int) {
+    func clearInterval(_ index:Int) {
         self.clearTimeout(index)
     }
     
-    private func jsValueMaybeNullToDouble(val:JSValue) -> Double {
+    fileprivate func jsValueMaybeNullToDouble(_ val:JSValue) -> Double {
         
         var timeout:Double = 0
         
@@ -90,7 +86,7 @@ struct Interval {
         return timeout
     }
     
-    func setTimeout(callback:JSValue, timeout: JSValue) -> Int {
+    func setTimeout(_ callback:JSValue, timeout: JSValue) -> Int {
         
         lastTimeoutIndex += 1
         
@@ -100,18 +96,14 @@ struct Interval {
         // immediately. So we need to handle that.
         
      
-        dispatch_after(
-            dispatch_time(
-                DISPATCH_TIME_NOW,
-                Int64((self.jsValueMaybeNullToDouble(timeout) / 1000) * Double(NSEC_PER_SEC))
-            ),
-            dispatch_get_main_queue(), {
+        DispatchQueue.main.asyncAfter(
+            deadline: DispatchTime.now() + Double(Int64((self.jsValueMaybeNullToDouble(timeout) / 1000) * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC), execute: {
                 
                 if self.cancelledTimeouts.contains(thisTimeoutIndex) == true {
                     self.cancelledTimeouts.remove(thisTimeoutIndex)
                     return
                 } else {
-                    callback.callWithArguments(nil)
+                    callback.call(withArguments: nil)
                 }
                 
         })
@@ -120,7 +112,7 @@ struct Interval {
         
     }
     
-    func clearTimeout(index:Int) {
+    func clearTimeout(_ index:Int) {
         self.cancelledTimeouts.insert(index)
     }
 }

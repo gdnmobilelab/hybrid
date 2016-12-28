@@ -11,7 +11,7 @@ import JavaScriptCore
 import PromiseKit
 
 class JSPromiseToPromise<T> {
-    static func pass(jsPromise:JSValue) -> Promise<Void> {
+    static func pass(_ jsPromise:JSValue) -> Promise<Void> {
        return Promise<Void> { fulfill, reject in
             
             let rejectConverter = { (err:JSValue) in

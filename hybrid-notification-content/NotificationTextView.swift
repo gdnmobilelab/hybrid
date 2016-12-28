@@ -23,18 +23,18 @@ class NotificationTextView : UIView {
         titleView.frame.size.width = targetWidth
         titleView.frame.origin.x = 15
         titleView.frame.origin.y = 15
-        titleView.lineBreakMode = NSLineBreakMode.ByWordWrapping
+        titleView.lineBreakMode = NSLineBreakMode.byWordWrapping
         titleView.numberOfLines = 0
         
-        let desc = titleView.font.fontDescriptor().fontDescriptorWithSymbolicTraits(UIFontDescriptorSymbolicTraits.TraitBold)
-        titleView.font = UIFont(descriptor: desc!, size: UIFont.labelFontSize())
+        let desc = titleView.font.fontDescriptor.withSymbolicTraits(UIFontDescriptorSymbolicTraits.traitBold)
+        titleView.font = UIFont(descriptor: desc!, size: UIFont.labelFontSize)
         titleView.sizeToFit()
         
         let bodyView = UILabel()
         bodyView.text = body
         bodyView.frame.size.width = targetWidth
         bodyView.frame.origin.x = titleView.frame.origin.x
-        bodyView.lineBreakMode = NSLineBreakMode.ByWordWrapping
+        bodyView.lineBreakMode = NSLineBreakMode.byWordWrapping
         bodyView.numberOfLines = 0
         bodyView.textColor = UIColor(hue: 51 / 255, saturation: 51 / 255, brightness: 51 / 255, alpha: 1)
         bodyView.sizeToFit()

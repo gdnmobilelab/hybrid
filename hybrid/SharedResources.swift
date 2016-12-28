@@ -14,12 +14,12 @@ import Foundation
 class SharedResources {
     
     enum ExecutionEnvironment {
-        case App
-        case NotificationContentExtension
-        case Unknown
+        case app
+        case notificationContentExtension
+        case unknown
     }
     
-    static var currentExecutionEnvironment = ExecutionEnvironment.Unknown
+    static var currentExecutionEnvironment = ExecutionEnvironment.unknown
     
     
     /// Mostly just to avoid typos, some hard-coded keys that we use when storing data.
@@ -30,9 +30,9 @@ class SharedResources {
     
     
     /// The shared UserDefaults storage that we store things like pending notifications actions in.
-    static let userDefaults = NSUserDefaults(suiteName: "group.gdnmobilelab.hybrid")!
+    static let userDefaults = UserDefaults(suiteName: "group.gdnmobilelab.hybrid")!
     
     
     /// The shared directory where we store our database files.
-    static let fileSystemURL = NSFileManager.defaultManager().containerURLForSecurityApplicationGroupIdentifier("group.gdnmobilelab.hybrid")!
+    static let fileSystemURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.gdnmobilelab.hybrid")!
 }

@@ -11,29 +11,29 @@ import PromiseKit
 import JavaScriptCore
 
 @objc protocol JSPromiseBridgeExports: JSExport {
-    func jsSuccess(success: JSValue) -> Void
-    func jsFailure(failure: JSValue) -> Void
+    func jsSuccess(_ success: JSValue) -> Void
+    func jsFailure(_ failure: JSValue) -> Void
     
 }
 
 
 /// A wrapper around JavaScript promises that allows us to hook into success and failure
 /// when they are executed.
-@objc public class JSPromiseBridge: NSObject, JSPromiseBridgeExports {
+@objc open class JSPromiseBridge: NSObject, JSPromiseBridgeExports {
     
     typealias CompleteFunc = (JSValue?, JSValue?) -> Void
    
     let completeFunc:CompleteFunc
     
-    init(completeChunk: CompleteFunc) {
+    init(completeChunk: @escaping CompleteFunc) {
         self.completeFunc = completeChunk
     }
     
-    public func jsSuccess(success: JSValue) {
+    open func jsSuccess(_ success: JSValue) {
         self.completeFunc(success, nil)
     }
     
-    public func jsFailure(failure: JSValue) {
+    open func jsFailure(_ failure: JSValue) {
         self.completeFunc(nil, failure)
     }
 }

@@ -19,7 +19,7 @@ import PromiseKit
     var installing:ServiceWorkerInstance? {get}
     
     @objc(showNotification::)
-    func showNotification(title:String, options: [String:AnyObject]) -> JSPromise
+    func showNotification(_ title:String, options: [String:AnyObject]) -> JSPromise
     
     func update() -> JSPromise
 }
@@ -50,21 +50,21 @@ import PromiseKit
     /// Return the current service worker if it is in an Activated state.
     var active:ServiceWorkerInstance? {
         get {
-            return self.worker.installState == ServiceWorkerInstallState.Activated ? self.worker : nil
+            return self.worker.installState == ServiceWorkerInstallState.activated ? self.worker : nil
         }
     }
     
     /// Return the current service worker if it is in an Installed state
     var waiting:ServiceWorkerInstance? {
         get {
-            return self.worker.installState == ServiceWorkerInstallState.Installed ? self.worker : nil
+            return self.worker.installState == ServiceWorkerInstallState.installed ? self.worker : nil
         }
     }
     
     /// Return the current service worker if it is in an Installing state
     var installing:ServiceWorkerInstance? {
         get {
-            return self.worker.installState == ServiceWorkerInstallState.Installing ? self.worker : nil
+            return self.worker.installState == ServiceWorkerInstallState.installing ? self.worker : nil
         }
     }
 
@@ -81,11 +81,11 @@ import PromiseKit
     ///   - title: The text for the notification title
     ///   - options: Options object as outlined here: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/showNotification,
     ///              with additional options for canvas and video.
-    func showNotification(title:String, options: [String:AnyObject]) -> JSPromise {
+    func showNotification(_ title:String, options: [String:AnyObject]) -> JSPromise {
         log.info("Attempting to show notification: " + title)
         let promise = JSPromise()
         
-        var notificationID = NSUUID().UUIDString
+        var notificationID = UUID().uuidString
        
         if let storeID = self.storeNotificationShowWithID {
             
@@ -107,7 +107,7 @@ import PromiseKit
             // the notification extension from receiving the event. So we need to detect
             // and handle both.
             
-            if NSBundle.mainBundle().bundleURL.lastPathComponent! != "hybrid-notification-content.appex" {
+            if Bundle.main.bundleURL.lastPathComponent != "hybrid-notification-content.appex" {
                 notificationID = storeID
             }
 
@@ -143,7 +143,7 @@ import PromiseKit
             let content = UNMutableNotificationContent()
             content.title = title
             
-            content.sound = UNNotificationSound.defaultSound()
+            content.sound = UNNotificationSound.default()
 
             
             if let tag = options["tag"] as? String {

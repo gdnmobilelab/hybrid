@@ -24,7 +24,7 @@ class WebviewJS {
             // might not actually be 1px wide. Multiply by the width below to make it as small
             // as possible - should be able to use 100, but the scaling seems to anti-alias or something
             // and the colour doesn't look right.
-            let width = String(200 / UIScreen.mainScreen().bounds.width)
+            let width = String(describing: 200 / UIScreen.main.bounds.width)
             
             let js:[String] = [
                 "var loadedIndicator = document.createElement('div');",
@@ -40,7 +40,7 @@ class WebviewJS {
                 "true" // have to return true otherwise js evaluate complains about trying to return a DOM node
             ]
             
-            return js.joinWithSeparator("")
+            return js.joined(separator: "")
         }
     }
     
@@ -61,7 +61,7 @@ class WebviewJS {
                     "   return t ? t.getAttribute('content') : null;",
                     "};",
                     "[getMeta('theme-color'), document.title, getMeta('default-back-url')]"
-                    ] as [String]).joinWithSeparator("")
+                    ] as [String]).joined(separator: "")
         }
     }
     
@@ -80,7 +80,7 @@ class WebviewJS {
                  "    parent.insertBefore(d,node);",
                  "    parent.removeChild(node);",
                  "}"
-            ].joinWithSeparator("")
+            ].joined(separator: "")
         }
     }
 }

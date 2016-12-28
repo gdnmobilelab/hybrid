@@ -17,9 +17,9 @@ import JavaScriptCore
 /// Based on https://developer.mozilla.org/en-US/docs/Web/API/PushMessageData, but actually just uses FetchBody
 @objc class PushMessageData : NSObject, PushMessageDataExports {
     
-    let pushData:NSData
+    let pushData:Data
     
-    init(data:NSData) {
+    init(data:Data) {
         self.pushData = data
     }
     
@@ -27,7 +27,7 @@ import JavaScriptCore
         var obj:AnyObject? = nil
         
         do {
-            obj = try NSJSONSerialization.JSONObjectWithData(self.pushData, options: [])
+            obj = try JSONSerialization.jsonObject(with: self.pushData, options: [])
         } catch {
             log.error("Cannot throw error back to JS Context, but JSON parse of event data failed: " + String(error))
         }
@@ -36,6 +36,6 @@ import JavaScriptCore
     }
     
     func text() -> String? {
-        return String(data: self.pushData, encoding: NSUTF8StringEncoding)
+        return String(data: self.pushData, encoding: String.Encoding.utf8)
     }
 }

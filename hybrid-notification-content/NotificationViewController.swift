@@ -19,7 +19,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
 
     var notificationViews = [UIView]()
     
-    var latestUserInfo:[NSObject: AnyObject]? = nil
+    var latestUserInfo:[AnyHashable: Any]? = nil
     
     var notificationShowData:PendingNotificationShow?
     var notificationInstance:Notification?
@@ -29,7 +29,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
     
     override func viewDidLoad() {
-        SharedResources.currentExecutionEnvironment = SharedResources.ExecutionEnvironment.NotificationContentExtension
+        SharedResources.currentExecutionEnvironment = SharedResources.ExecutionEnvironment.notificationContentExtension
         super.viewDidLoad()
         
         if NotificationViewController.webviewEventListener == nil {
@@ -46,11 +46,11 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     }
     
     
-    private func setFrame(view:UIView, height:CGFloat? = nil) {
+    fileprivate func setFrame(_ view:UIView, height:CGFloat? = nil) {
         let left = self.view.frame.minX
         var top = self.view.frame.minY
         
-        let indexOfThisOne = self.notificationViews.indexOf(view)
+        let indexOfThisOne = self.notificationViews.index(of: view)
         
         if indexOfThisOne! > 0 {
             top = self.notificationViews[indexOfThisOne! - 1].frame.maxY
@@ -67,7 +67,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     ///
     /// - Parameter pushID: The identifier of the remote notification
     /// - Returns: A promise that resolves when push events have been processed
-    func processPendingPushEvents(pushID:String) -> Promise<Void> {
+    func processPendingPushEvents(_ pushID:String) -> Promise<Void> {
         let pendingPushEvent = PendingPushEventStore.getByPushID(pushID)
         
         if pendingPushEvent == nil {
@@ -91,7 +91,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     }
     
 
-    func didReceiveNotification(notification: UNNotification) {
+    func didReceive(_ notification: UNNotification) {
         
         // iOS doesn't update userInfo when we push more than one notification
         // sequentially. So we need to keep our own record of the latest.
@@ -213,9 +213,9 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         
     }
     
-    class NotificationResponseFailedError : ErrorType {}
+    class NotificationResponseFailedError : Error {}
     
-    func didReceiveNotificationResponse(response: UNNotificationResponse, completionHandler completion: (UNNotificationContentExtensionResponseOption) -> Void) {
+    func didReceive(_ response: UNNotificationResponse, completionHandler completion: @escaping (UNNotificationContentExtensionResponseOption) -> Void) {
         
         
         Promise<Void>()

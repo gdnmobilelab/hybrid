@@ -43,11 +43,11 @@ import JavaScriptCore
         }
     }
     
-    private var videoURL:NSURL
+    fileprivate var videoURL:URL
     
     var url:String {
         get {
-            return self.videoURL.absoluteString!
+            return self.videoURL.absoluteString
         }
     }
     
@@ -62,16 +62,16 @@ import JavaScriptCore
             return CMTimeGetSeconds(self.playerController.player!.currentItem!.currentTime())
         }
         set (value) {
-            return self.playerController.player!.seekToTime(CMTime(seconds: value, preferredTimescale: 1))
+            return self.playerController.player!.seek(to: CMTime(seconds: value, preferredTimescale: 1))
         }
     }
     
-    init(videoURL:NSURL, options:AnyObject = [], context:NSExtensionContext?) {
+    init(videoURL:URL, options:AnyObject = [], context:NSExtensionContext?) {
         self.videoURL = videoURL
         self.playerController = AVPlayerViewController()
-        self.playerController.player = AVPlayer(URL: videoURL)
+        self.playerController.player = AVPlayer(url: videoURL)
         self.playerController.showsPlaybackControls = false
-        self.playerController.view.autoresizingMask = UIViewAutoresizing.None
+        self.playerController.view.autoresizingMask = UIViewAutoresizing()
         self.extensionContext = context
 
         
@@ -100,12 +100,12 @@ import JavaScriptCore
         
         log.info("Trying to play video at: " + videoURL.absoluteString!)
         
-        NSNotificationCenter.defaultCenter().addObserverForName(AVPlayerItemDidPlayToEndTimeNotification, object: nil, queue: nil, usingBlock: self.loopIfNeeded)
+        NotificationCenter.default.addObserver(forName: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil, queue: nil, using: self.loopIfNeeded)
         
         self.playerController.player!.currentItem!.addObserver(self, forKeyPath: "status", options: [], context: nil)
     }
     
-    override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<Void>) {
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         
         let asItem = object as? AVPlayerItem
         
@@ -123,9 +123,9 @@ import JavaScriptCore
         
     }
     
-    func loopIfNeeded(notification: NSNotification) {
+    func loopIfNeeded(_ notification: Foundation.Notification) {
         if self.loop == true {
-            self.playerController.player!.seekToTime(kCMTimeZero)
+            self.playerController.player!.seek(to: kCMTimeZero)
             self.playerController.player!.play()
         } else {
             self.isPlaying = false

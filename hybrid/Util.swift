@@ -11,14 +11,14 @@ import UIKit
 import XCGLogger
 import EmitterKit
 
-let log = XCGLogger.defaultInstance()
+let log = XCGLogger.default
 let ApplicationEvents = Event<AnyObject>()
 
 
 /// A dumping ground for some quick utility functions we've used across the app
 class Util {
     
-    static func getColorBrightness(color:UIColor) -> CGFloat {
+    static func getColorBrightness(_ color:UIColor) -> CGFloat {
         var brightness:CGFloat = 0
         color.getHue(nil, saturation: nil, brightness: &brightness, alpha: nil)
         
@@ -29,12 +29,12 @@ class Util {
     ///
     /// - Parameter httpDate: contents of the Date header as a string
     /// - Returns: a matching NSDate
-    static func HTTPDateToNSDate(httpDate:String) -> NSDate? {
-        let dateFormat = NSDateFormatter()
+    static func HTTPDateToNSDate(_ httpDate:String) -> Date? {
+        let dateFormat = DateFormatter()
         dateFormat.dateFormat = "EEE, dd MMM yyyy HH:mm:ss z"
-        dateFormat.locale = NSLocale(localeIdentifier: "en_US_POSIX")
+        dateFormat.locale = Locale(identifier: "en_US_POSIX")
         
-        let date = dateFormat.dateFromString(httpDate)
+        let date = dateFormat.date(from: httpDate)
         return date
         
     }
@@ -44,10 +44,10 @@ class Util {
     ///
     /// - Parameter data: the data to hash
     /// - Returns: the hash, in the form of NSData
-    static func sha256(data:NSData) -> NSData {
-        var hash = [UInt8](count: Int(CC_SHA256_DIGEST_LENGTH), repeatedValue: 0)
-        CC_SHA256(data.bytes, CC_LONG(data.length), &hash)
-        let res = NSData(bytes: hash, length: Int(CC_SHA256_DIGEST_LENGTH))
+    static func sha256(_ data:Data) -> Data {
+        var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
+        CC_SHA256((data as NSData).bytes, CC_LONG(data.count), &hash)
+        let res = Data(bytes: UnsafePointer<UInt8>(hash), count: Int(CC_SHA256_DIGEST_LENGTH))
         return res
     }
     
@@ -57,8 +57,8 @@ class Util {
     ///
     /// - Parameter str: string to hash
     /// - Returns: hash as NSData
-    static func sha256String(str:String) -> NSData {
-        let asData = str.dataUsingEncoding(NSUTF8StringEncoding)
+    static func sha256String(_ str:String) -> Data {
+        let asData = str.data(using: String.Encoding.utf8)
         return sha256(asData!)
     }
     
@@ -68,11 +68,11 @@ class Util {
     /// sure that we are always receiving the app bundle.
     ///
     /// - Returns: An NSBundle for the main hybrid app
-    static func appBundle() -> NSBundle {
-        var bundle = NSBundle.mainBundle()
+    static func appBundle() -> Bundle {
+        var bundle = Bundle.main
         if bundle.bundleURL.pathExtension == "appex" {
             // Peel off two directory levels - MY_APP.app/PlugIns/MY_APP_EXTENSION.appex
-            bundle = NSBundle(URL: bundle.bundleURL.URLByDeletingLastPathComponent!.URLByDeletingLastPathComponent!)!
+            bundle = Bundle(url: (bundle.bundleURL as NSURL).deletingLastPathComponent!.deletingLastPathComponent())!
         }
         return bundle
     }

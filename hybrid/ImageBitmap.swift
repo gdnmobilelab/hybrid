@@ -19,14 +19,14 @@ import JavaScriptCore
     
     let image:CGImage
     
-    static let createImageBitmap = unsafeBitCast((ImageBitmap.createImageBitmapFunc) as @convention(block) (NSData) -> JSPromise, AnyObject.self)
+    static let createImageBitmap = unsafeBitCast((ImageBitmap.createImageBitmapFunc) as @convention(block) (Data) -> JSPromise, to: AnyObject.self)
     
 //    context.setObject(unsafeBitCast(fetchAsConvention, AnyObject.self), forKeyedSubscript: "fetch")
     
-    init(data:NSData) {
-        let dataPtr = CFDataCreate(kCFAllocatorDefault, UnsafePointer<UInt8>(data.bytes), data.length)
-        let dataProvider = CGDataProviderCreateWithCFData(dataPtr)!
-        image = CGImageCreateWithPNGDataProvider(dataProvider, nil, true, CGColorRenderingIntent.RenderingIntentDefault)!
+    init(data:Data) {
+        let dataPtr = CFDataCreate(kCFAllocatorDefault, (data as NSData).bytes.bindMemory(to: UInt8.self, capacity: data.count), data.count)
+        let dataProvider = CGDataProvider(data: dataPtr!)!
+        image = CGImage(pngDataProviderSource: dataProvider, decode: nil, shouldInterpolate: true, intent: CGColorRenderingIntent.defaultIntent)!
     }
     
     init(image:CGImage) {
@@ -35,17 +35,17 @@ import JavaScriptCore
     
     var width:Int {
         get {
-            return CGImageGetWidth(self.image)
+            return self.image.width
         }
     }
     
     var height:Int {
         get {
-            return CGImageGetHeight(self.image)
+            return self.image.height
         }
     }
     
-    private static func createImageBitmapFunc(data:NSData) -> JSPromise {
+    fileprivate static func createImageBitmapFunc(_ data:Data) -> JSPromise {
         let ib = ImageBitmap(data: data)
         return JSPromise.resolve(ib)
     }

@@ -13,15 +13,15 @@ import JavaScriptCore
 
 
 /// If a URL to be cached returns a non-200 status code, we throw an error.
-class CacheAddRequestFailedError : ErrorType {}
+class CacheAddRequestFailedError : Error {}
 
 /// When Cache.match() fails it throws an error rather than return a null response.
-class CacheNoMatchError : ErrorType {}
+class CacheNoMatchError : Error {}
 
 @objc protocol ServiceWorkerCacheExports : JSExport {
-    func addAll(urls:[String]) -> JSPromise
-    func add(url:String) -> JSPromise
-    func match(url: JSValue) -> JSPromise
+    func addAll(_ urls:[String]) -> JSPromise
+    func add(_ url:String) -> JSPromise
+    func match(_ url: JSValue) -> JSPromise
 }
 
 struct RequestAndResponse {
@@ -33,12 +33,12 @@ struct RequestAndResponse {
 /// An implementation of the Cache API: https://developer.mozilla.org/en-US/docs/Web/API/Cache
 @objc class ServiceWorkerCache: NSObject, ServiceWorkerCacheExports {
     
-    let serviceWorkerURL:NSURL
-    let serviceWorkerScope:NSURL
+    let serviceWorkerURL:URL
+    let serviceWorkerScope:URL
     let name:String
     
     
-    init(swURL:NSURL, swScope:NSURL, name:String) {
+    init(swURL:URL, swScope:URL, name:String) {
         self.serviceWorkerURL = swURL
         self.serviceWorkerScope = swScope
         self.name = name
@@ -47,7 +47,7 @@ struct RequestAndResponse {
     
     /// Since the only difference between add and addAll is that addAll takes an array,
     /// we just immediately pass this to addAll with a single value array.
-    func add(url:String) -> JSPromise {
+    func add(_ url:String) -> JSPromise {
         return self.addAll([url])
     }
     
@@ -56,7 +56,7 @@ struct RequestAndResponse {
     ///
     /// - Parameters:
     ///   - urls: An array of URLs as strings
-    func addAll(urls:[String]) -> JSPromise {
+    func addAll(_ urls:[String]) -> JSPromise {
         return PromiseToJSPromise<Void>.pass(self._addAll(urls))
     }
     
@@ -65,12 +65,12 @@ struct RequestAndResponse {
     ///
     /// - Parameter urls: An array of URLs, in string form. Resolved to service worker scope if they are relative URLs.
     /// - Returns: A Promise that resolves when the operation has completed (or throws if it doesn't work)
-    private func _addAll(urls: [String]) -> Promise<Void> {
+    fileprivate func _addAll(_ urls: [String]) -> Promise<Void> {
         
         // TODO: what about URLs that redirect?
         
-        let urlsAsNSURLs = urls.map { (url:String) -> NSURL in
-            return NSURL(string: url, relativeToURL: self.serviceWorkerScope)!
+        let urlsAsNSURLs = urls.map { (url:String) -> URL in
+            return URL(string: url, relativeToURL: self.serviceWorkerScope)!
         }
         
         return Promise<Void>()
@@ -126,17 +126,17 @@ struct RequestAndResponse {
     ///
     /// - Parameters:
     ///   - request: Either an instance of FetchRequest or a string URL.
-    func match(request: JSValue) -> JSPromise {
+    func match(_ request: JSValue) -> JSPromise {
         
         var url = ""
 
         if request.isObject {
-            url = (request.toObjectOfClass(FetchRequest) as! FetchRequest).url
+            url = (request.toObjectOf(FetchRequest) as! FetchRequest).url
         } else {
             url = request.toString()
         }
         
-        return PromiseToJSPromise.pass(self._match(NSURL(string: url, relativeToURL: self.serviceWorkerScope)!))
+        return PromiseToJSPromise.pass(self._match(URL(string: url, relativeToURL: self.serviceWorkerScope)!))
        
     }
     
@@ -145,7 +145,7 @@ struct RequestAndResponse {
     ///
     /// - Parameter url: The URL to try to match
     /// - Returns: A promise that resolves to a FetchResponse, or throws an error if one is not found
-    func _match(url: NSURL) -> Promise<FetchResponse> {
+    func _match(_ url: NSURL) -> Promise<FetchResponse> {
         
         return Promise<Void>()
         .then {

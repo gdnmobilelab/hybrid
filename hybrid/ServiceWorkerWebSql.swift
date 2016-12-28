@@ -12,7 +12,7 @@ import FMDB
 import JavaScriptCore
 
 @objc protocol WebSQLDatabaseCreatorExports : JSExport {
-    func createDB(name:String) -> [AnyObject]
+    func createDB(_ name:String) -> [AnyObject]
 }
 
 
@@ -38,18 +38,18 @@ import JavaScriptCore
         var regex:NSRegularExpression?
         
         do {
-            regex = try NSRegularExpression(pattern: "([^A-Za-z0-9]*)", options: .CaseInsensitive)
+            regex = try NSRegularExpression(pattern: "([^A-Za-z0-9]*)", options: .caseInsensitive)
         } catch {
             log.error("Regex could not be created. This should never happen.")
         }
         
-        regex!.replaceMatchesInString(sanitisedOrigin, options: [], range: NSRange(0..<origin.utf16.count), withTemplate: "")
+        regex!.replaceMatches(in: sanitisedOrigin, options: [], range: NSRange(0..<origin.utf16.count), withTemplate: "")
         
         self.sanitisedOrigin = sanitisedOrigin as String
         
         super.init()
         
-        self.context.setObject(self, forKeyedSubscript: "__WebSQLDatabaseCreator")
+        self.context.setObject(self, forKeyedSubscript: "__WebSQLDatabaseCreator" as (NSCopying & NSObjectProtocol)!)
     }
     
     
@@ -57,7 +57,7 @@ import JavaScriptCore
     ///
     /// - Parameter name: Name of the database. Is used as the DB filename
     /// - Returns: An two-item array. First item is an error, if it exists. Second is the DB instance, if there is no error.
-    func createDB(name:String) -> [AnyObject] {
+    func createDB(_ name:String) -> [AnyObject] {
         
         // JSExport doesn't like functions that throw, so we're passing back an array
         // of the error and DB
@@ -65,9 +65,9 @@ import JavaScriptCore
         do {
             let dbPath = try Db.getFullPathForDB(name, inDirectory: self.sanitisedOrigin)
             let db = WebSQLDatabase(dbPath: dbPath.path!, context: self.context)
-            return [JSValue(nullInContext:self.context), db]
+            return [JSValue(nullIn:self.context), db]
         } catch {
-            return [JSValue(newErrorFromMessage: String(error), inContext: self.context)]
+            return [JSValue(newErrorFromMessage: String(describing: error), in: self.context)]
         }
     }
 }
@@ -90,7 +90,7 @@ import JavaScriptCore
 }
 
 @objc protocol WebSQLDatabaseExports: JSExport {
-    func exec(queries: [[String:AnyObject]], readOnly: Bool, callback: JSValue)
+    func exec(_ queries: [[String:AnyObject]], readOnly: Bool, callback: JSValue)
 }
 
 
@@ -108,7 +108,7 @@ import JavaScriptCore
     
     
     
-    private func runQuery(query:String, args: [AnyObject]?) -> WebSQLResultSet {
+    fileprivate func runQuery(_ query:String, args: [AnyObject]?) -> WebSQLResultSet {
         NSLog(query)
         let resultSet = WebSQLResultSet()
         
@@ -126,7 +126,7 @@ import JavaScriptCore
                 var columnIndex:Int32 = 0
                 
                 while columnIndex < fmResultSet.columnCount() {
-                    columns.append(fmResultSet.columnNameForIndex(columnIndex))
+                    columns.append(fmResultSet.columnName(for: columnIndex))
                     columnIndex = columnIndex + 1
                 }
                 
@@ -135,18 +135,18 @@ import JavaScriptCore
                     var row = [String : AnyObject]()
                     
                     for column in columns {
-                        row[column] = fmResultSet.objectForColumnName(column)
+                        row[column] = fmResultSet.object(forColumnName: column) as AnyObject?
                     }
                     
                     resultSet.rows.append(row)
                 }
             } else {
                 try self.db.executeUpdate(query, values: args)
-                resultSet.insertId = NSNumber(longLong: self.db.lastInsertRowId())
-                resultSet.rowsAffected = NSNumber(int: self.db.changes())
+                resultSet.insertId = NSNumber(value: self.db.lastInsertRowId() as Int64)
+                resultSet.rowsAffected = NSNumber(value: self.db.changes() as Int32)
             }
         } catch {
-            resultSet.error = JSValue(newErrorFromMessage: String(error), inContext: self.context)
+            resultSet.error = JSValue(newErrorFromMessage: String(describing: error), in: self.context)
         }
         
         return resultSet
@@ -158,7 +158,7 @@ import JavaScriptCore
     ///   - query: The text SQL query
     ///   - args: The values to pass into the query (substituting ? values)
     /// - Returns: A result set for the completed query, with the error property set if an error occurred.
-    func exec(queries: [[String : AnyObject]], readOnly: Bool, callback: JSValue) {
+    func exec(_ queries: [[String : AnyObject]], readOnly: Bool, callback: JSValue) {
         
         var resultSets = [WebSQLResultSet]()
         
@@ -175,9 +175,9 @@ import JavaScriptCore
         }
         
         if resultSetsWithErrors.count > 0 {
-            callback.callWithArguments([resultSetsWithErrors[0]])
+            callback.call(withArguments: [resultSetsWithErrors[0]])
         } else {
-            callback.callWithArguments([JSValue(undefinedInContext: self.context), resultSets])
+            callback.call(withArguments: [JSValue(undefinedIn: self.context), resultSets])
         }
     }
 

@@ -45,16 +45,16 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
         self.view = HybridWebview(frame: self.view.frame)
 
         self.webview!.navigationDelegate = self
-        self.webview!.UIDelegate = self
+        self.webview!.uiDelegate = self
         
         // Don't show text in back button - it's causing some odd display problems
-        self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
+        self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
-        self.titleTextView.font = UIFont.preferredFontForTextStyle(UIFontTextStyleHeadline)
-        self.titleTextView.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
-        self.titleTextView.textAlignment = .Center
+        self.titleTextView.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
+        self.titleTextView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        self.titleTextView.textAlignment = .center
 //        self.titleTextView.adjustsFontSizeToFitWidth = true
-        self.titleTextView.lineBreakMode = NSLineBreakMode.ByTruncatingTail
+        self.titleTextView.lineBreakMode = NSLineBreakMode.byTruncatingTail
 //        self.titleTextView.backgroundColor = UIColor.redColor()
         
         self.navigationItem.titleView = self.titleTextView
@@ -65,7 +65,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
     /// and also tracks page load time for logging purposes
     ///
     /// - Parameter urlToLoad: The full, remote URL we want to load. Do not pass in a URL already mapped to localhost.
-    func loadURL(urlToLoad:NSURL, attemptAcceleratedLoad: Bool = false) {
+    func loadURL(_ urlToLoad:URL, attemptAcceleratedLoad: Bool = false) {
         
         if urlToLoad.host == "localhost" {
             log.error("Should never directly load a localhost URL - should be a server URL")
@@ -73,7 +73,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
         
         self.isReady = false
         
-        let startRequestTime = NSDate().timeIntervalSince1970
+        let startRequestTime = Date().timeIntervalSince1970
         
         self.events.once("ready", { _ in
             self.isReady = true
@@ -90,7 +90,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
         
         log.info("Loading " + maybeRewrittenURL.absoluteString!)
         
-        let isAcceleratedLoadCapable = maybeRewrittenURL.host! == "localhost" && self.webview!.URL?.port == maybeRewrittenURL.port
+        let isAcceleratedLoadCapable = maybeRewrittenURL.host! == "localhost" && (self.webview!.url as NSURL?)?.port == (maybeRewrittenURL as NSURL).port
         
         if attemptAcceleratedLoad && isAcceleratedLoadCapable == false {
             log.warning("Wanted to load accelerated, but cannot")
@@ -100,14 +100,14 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
         if attemptAcceleratedLoad == false || (attemptAcceleratedLoad == true && isAcceleratedLoadCapable == false) {
             // start listening to readystate changes
             self.webview!.readyStateHandler.onchange = self.checkReadyState
-            self.webview!.loadRequest(NSURLRequest(URL: maybeRewrittenURL))
+            self.webview!.load(URLRequest(url: maybeRewrittenURL))
         } else {
             self.injectHTMLDirectly(maybeRewrittenURL)
         }
         
     }
     
-    func injectHTMLDirectly(urlToLoad:NSURL) {
+    func injectHTMLDirectly(_ urlToLoad:URL) {
         GlobalFetch.fetch(urlToLoad.absoluteString!)
         .then { response -> Void in
             
@@ -149,7 +149,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
     /// Right now there is a flash of the back button when we manually add a view behind the current one.
     /// There's code here for adding a back button manually, but it stops back swiping from working, so it's
     /// commented out for now.
-    func prepareHeaderControls(alreadyHasBackControl:Bool) {
+    func prepareHeaderControls(_ alreadyHasBackControl:Bool) {
         
         // We've included the ability for webviews to specify a default "back" URL, but if
         // we already have a back control then we don't need to use it.
@@ -167,7 +167,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
     }
     
     func popThisView() {
-        self.hybridNavigationController!.popViewControllerAnimated(true)
+        self.hybridNavigationController!.popViewController(animated: true)
     }
     
 //    func fiddleContentInsets() {
@@ -182,14 +182,14 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
     /// Intercepts attempts to link to a new URL. If it's not a link navigation we allow it, otherwise we
     /// cancel. If it's a link with the target=_blank then we pass out to the URL (assuming it's an offsite
     /// link), otherwise we push a new navigation controller for the URL into our view stack.
-    func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         
-        if navigationAction.navigationType != WKNavigationType.LinkActivated {
-            decisionHandler(WKNavigationActionPolicy.Allow)
+        if navigationAction.navigationType != WKNavigationType.linkActivated {
+            decisionHandler(WKNavigationActionPolicy.allow)
             return
         }
         
-        var intendedURL = navigationAction.request.URL!
+        var intendedURL = navigationAction.request.url!
         
         
         if WebServerDomainManager.isLocalServerURL(intendedURL) {
@@ -203,18 +203,18 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
             })
         } else {
 //            self.placeScreenshotOnTopOfView()
-            self.webview!.userInteractionEnabled = false
+            self.webview!.isUserInteractionEnabled = false
             self.hybridNavigationController!.pushNewHybridWebViewControllerFor(intendedURL)
         }
         
-        decisionHandler(WKNavigationActionPolicy.Cancel)
+        decisionHandler(WKNavigationActionPolicy.cancel)
     }
     
     
     
-    func webView(webView: WKWebView, createWebViewWithConfiguration configuration: WKWebViewConfiguration, forNavigationAction navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         
-        var intendedURL = navigationAction.request.URL!
+        var intendedURL = navigationAction.request.url!
         
         if WebServerDomainManager.isLocalServerURL(intendedURL) {
             intendedURL = WebServerDomainManager.mapServerURLToRequestURL(intendedURL)
@@ -244,7 +244,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
 
     }
     
-    func checkReadyState(readyState:String) {
+    func checkReadyState(_ readyState:String) {
         if readyState == "interactive" || readyState == "complete" {
             self.webview!.readyStateHandler.onchange = nil
             
@@ -275,15 +275,15 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
     
     /// Preferred status bar style is lightcontent, but at some point need to add the
     /// ability to flip to dark if the navigation bar has a light background.
-    override func preferredStatusBarStyle() -> UIStatusBarStyle {
-        return UIStatusBarStyle.LightContent
+    override var preferredStatusBarStyle : UIStatusBarStyle {
+        return UIStatusBarStyle.lightContent
     }
     
     
     /// If disappearing because we've been popped from the navigation controller, then
     /// unregister from service worker events, and emit a "popped" event, allowing this
     /// view to be reinserted into the waiting area.
-    override func viewDidDisappear(animated: Bool) {
+    override func viewDidDisappear(_ animated: Bool) {
         
         super.viewDidDisappear(animated)
         
@@ -292,7 +292,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
             self.screenshotView = nil
         }
         
-        self.webview!.userInteractionEnabled = true
+        self.webview!.isUserInteractionEnabled = true
         
         if self.navigationController == nil {
             HybridWebview.deregisterWebviewFromServiceWorkerEvents(self.webview!)
@@ -327,7 +327,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
         
         let withoutYOffset = CGRect(x:0, y: 0, width:self.webview!.frame.width, height: self.webview!.frame.height)
         
-        self.webview!.scrollView.drawViewHierarchyInRect(withoutYOffset, afterScreenUpdates: false)
+        self.webview!.scrollView.drawHierarchy(in: withoutYOffset, afterScreenUpdates: false)
         
         let image = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()

@@ -14,7 +14,7 @@ import JavaScriptCore
     var id:String {get}
     
     @objc(postMessage::)
-    func postMessage(message:AnyObject, ports: [MessagePort])
+    func postMessage(_ message:AnyObject, ports: [MessagePort])
     
     func focus()
 }
@@ -35,14 +35,14 @@ import JavaScriptCore
     /// - Parameters:
     ///   - message: A serializable object - must consist of objects, arrays, numbers or strings.
     ///   - ports: MessagePorts to pass on to the webview. Are currently *not* passed, because we need to work out cross-process communication.
-    func postMessage(message: AnyObject, ports: [MessagePort]) {
+    func postMessage(_ message: AnyObject, ports: [MessagePort]) {
         
-        let record = WebviewRecord(url: NSURL(string: self.url), index: Int(self.id)!, workerId: nil)
+        let record = WebviewRecord(url: URL(string: self.url), index: Int(self.id)!, workerId: nil)
         
         // workerId maybe shouldn't be nil but we don't know it here because we're going to the webview
         // not from
         
-        let newEvent = PendingWebviewAction(type: PendingWebviewActionType.PostMessage, record: record, options: [
+        let newEvent = PendingWebviewAction(type: PendingWebviewActionType.postMessage, record: record, options: [
             "message": message
         ])
         
@@ -55,10 +55,10 @@ import JavaScriptCore
     /// This will pop the navigation controller to the specified view.
     func focus() {
         
-        let record = WebviewRecord(url: NSURL(string: self.url), index: Int(self.id)!, workerId: nil)
+        let record = WebviewRecord(url: URL(string: self.url), index: Int(self.id)!, workerId: nil)
         
         // workerId maybe shouldn't be nil but we don't know it here, and the focus event doesn't need it
-        let newEvent = PendingWebviewAction(type: PendingWebviewActionType.Focus, record: record)
+        let newEvent = PendingWebviewAction(type: PendingWebviewActionType.focus, record: record)
         WebviewClientManager.clientEvents.emit(newEvent)
     }
 }

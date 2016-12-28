@@ -8,7 +8,7 @@
 
 import Foundation
 
-class ErrorMessage : ErrorType {
+class ErrorMessage : Error {
     
     let message:String
     

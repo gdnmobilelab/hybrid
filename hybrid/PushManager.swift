@@ -19,7 +19,7 @@ import PromiseKit
     func toJSON() -> AnyObject
 }
 
-class CannotEnablePushNotificationsError : ErrorType {}
+class CannotEnablePushNotificationsError : Error {}
 
 /// In theory this is an implementation of https://developer.mozilla.org/en-US/docs/Web/API/
 /// PushSubscription, but the keys are totally different, because native notifications are
@@ -61,8 +61,8 @@ class CannotEnablePushNotificationsError : ErrorType {}
 /// that functions are wrapped in callbacks. They're then wrapped in JS promises in js-src
 @objc class PushManager : NSObject, PushManagerExports {
     
-    private static var deviceTokenListener:Listener?
-    private static var deviceToken:String?
+    fileprivate static var deviceTokenListener:Listener?
+    fileprivate static var deviceToken:String?
     
     static func listenForDeviceToken() {
         self.deviceTokenListener = ApplicationEvents.on("didRegisterForRemoteNotificationsWithDeviceToken", { token in

@@ -20,7 +20,7 @@ class EventManager: ScriptMessageManager {
         super.init(userController: userController, webView: webView, handlerName: "events")
     }
     
-    override func handleMessage(message:AnyObject) -> Promise<String>? {
+    override func handleMessage(_ message:AnyObject) -> Promise<String>? {
         let eventName = message["name"] as! String
         let eventData = message["data"] as? String
         self.events.emit(eventName, eventData)

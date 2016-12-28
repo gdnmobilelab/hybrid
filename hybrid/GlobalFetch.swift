@@ -16,14 +16,14 @@ import JavaScriptCore
 @objc protocol FetchHeadersExports : JSExport {
     
     @objc(set::)
-    func set(name: String, value:String)
+    func set(_ name: String, value:String)
     
-    func get(name: String) -> String?
-    func delete(name:String)
-    func getAll(name:String) -> [String]?
+    func get(_ name: String) -> String?
+    func delete(_ name:String)
+    func getAll(_ name:String) -> [String]?
     
     @objc(append::)
-    func append(name:String, value:String)
+    func append(_ name:String, value:String)
     
     func keys() -> [String]
     init()
@@ -31,25 +31,25 @@ import JavaScriptCore
 
 
 /// Replicating the Fetch APIs Headers object: https://developer.mozilla.org/en-US/docs/Web/API/Headers
-@objc public class FetchHeaders : NSObject, FetchHeadersExports {
+@objc open class FetchHeaders : NSObject, FetchHeadersExports {
     
-    private var values = [String: [String]]()
+    fileprivate var values = [String: [String]]()
     
     @objc(set::)
-    func set(name: String, value: String) {
-        values[name.lowercaseString] = [value]
+    func set(_ name: String, value: String) {
+        values[name.lowercased()] = [value]
     }
     
-    func delete(name:String) {
-        values.removeValueForKey(name.lowercaseString)
+    func delete(_ name:String) {
+        values.removeValue(forKey: name.lowercased())
     }
     
     @objc(append::)
-    func append(name: String, value: String) {
-        if var val = values[name.lowercaseString] {
+    func append(_ name: String, value: String) {
+        if var val = values[name.lowercased()] {
             val.append(value)
         } else {
-            values[name.lowercaseString] = [value]
+            values[name.lowercased()] = [value]
         }
     }
     
@@ -61,12 +61,12 @@ import JavaScriptCore
         return arr
     }
     
-    func get(name:String) -> String? {
-        return values[name.lowercaseString]?.first
+    func get(_ name:String) -> String? {
+        return values[name.lowercased()]?.first
     }
 
-    func getAll(name:String) -> [String]? {
-        return values[name.lowercaseString]
+    func getAll(_ name:String) -> [String]? {
+        return values[name.lowercased()]
     }
     
     override public required init() {
@@ -105,9 +105,9 @@ import JavaScriptCore
     /// - Parameter json: The JSON string to parse
     /// - Returns: A complete FetchHeaders object with the headers provided in the JSON
     /// - Throws: If the JSON cannot be parsed successfully.
-    static func fromJSON(json:String) throws -> FetchHeaders {
-        let jsonAsData = json.dataUsingEncoding(NSUTF8StringEncoding)!
-        let headersObj = try NSJSONSerialization.JSONObjectWithData(jsonAsData, options: NSJSONReadingOptions())
+    static func fromJSON(_ json:String) throws -> FetchHeaders {
+        let jsonAsData = json.data(using: String.Encoding.utf8)!
+        let headersObj = try JSONSerialization.jsonObject(with: jsonAsData, options: JSONSerialization.ReadingOptions())
         let fh = FetchHeaders()
         
         for (key, values) in headersObj as! [String: [String]] {
@@ -133,9 +133,9 @@ import JavaScriptCore
             }
         }
         
-        let jsonData = try NSJSONSerialization.dataWithJSONObject(dict, options: NSJSONWritingOptions())
+        let jsonData = try JSONSerialization.data(withJSONObject: dict, options: JSONSerialization.WritingOptions())
         
-        return String(data: jsonData, encoding: NSUTF8StringEncoding)!
+        return String(data: jsonData, encoding: String.Encoding.utf8)!
     }
     
 }
@@ -157,7 +157,7 @@ import JavaScriptCore
     /// Boolean to indicate whether the body of this request/response has already been consumed
     var bodyUsed:Bool = false
     
-    var data:NSData?
+    var data:Data?
     
     /// Parse the body as JSON
     ///
@@ -166,7 +166,7 @@ import JavaScriptCore
         
         let promise = JSPromise()
         do {
-            let obj = try NSJSONSerialization.JSONObjectWithData(self.data!, options: NSJSONReadingOptions())
+            let obj = try JSONSerialization.jsonObject(with: self.data!, options: JSONSerialization.ReadingOptions())
             self.bodyUsed = true
             promise.resolve(obj)
         } catch {
@@ -177,7 +177,7 @@ import JavaScriptCore
         
     }
     
-    class DataTransformError : ErrorType {}
+    class DataTransformError : Error {}
     
     /// Parse the body as plaintext
     ///
@@ -187,10 +187,10 @@ import JavaScriptCore
         let promise = JSPromise()
         
         do {
-            let str = String(data: self.data!, encoding: NSUTF8StringEncoding)
+            let str = String(data: self.data!, encoding: String.Encoding.utf8)
             
             if str == nil {
-                throw DataTransformError()
+                throw DataTransformError() as Error
             }
             
             self.bodyUsed = true
@@ -254,7 +254,7 @@ import JavaScriptCore
     required init(url:String, options: [String: AnyObject]?)  {
         self.url = url
         
-        var data:NSData? = nil
+        var data:Data? = nil
         
         if let opts = options {
             if let method = opts["method"] as? String {
@@ -274,7 +274,7 @@ import JavaScriptCore
             }
             
             if let body = opts["body"] as? String {
-                data = body.dataUsingEncoding(NSUTF8StringEncoding)
+                data = body.data(using: String.Encoding.utf8)
             }
             
             
@@ -300,22 +300,22 @@ import JavaScriptCore
     /// us to actually run the fetch operation
     ///
     /// - Returns: an NSURLRequest object populated with the info contained in this FetchRequest
-    func toNSURLRequest() -> NSURLRequest {
+    func toNSURLRequest() -> URLRequest {
 
-        let request = NSMutableURLRequest(URL: NSURL(string: self.url)!)
-        request.HTTPMethod = self.method
+        let request = NSMutableURLRequest(url: URL(string: self.url)!)
+        request.httpMethod = self.method
         
         for key in self.headers.keys() {
-            let allValsJoined = self.headers.getAll(key)?.joinWithSeparator(",")
+            let allValsJoined = self.headers.getAll(key)?.joined(separator: ",")
             request.setValue(allValsJoined, forHTTPHeaderField: key)
         }
         
         if self.data != nil {
-            request.HTTPBody = self.data
+            request.httpBody = self.data
         }
         
         
-        return request
+        return request as URLRequest
     }
 }
 
@@ -334,7 +334,7 @@ import JavaScriptCore
     var status:Int
     var statusText:String
     
-    init(body: NSData?, status: Int, statusText:String, headers: FetchHeaders) {
+    init(body: Data?, status: Int, statusText:String, headers: FetchHeaders) {
         self.status = status
         self.headers = headers
         self.statusText = statusText
@@ -380,8 +380,8 @@ import JavaScriptCore
         if body != nil {
             
             if let bodyText = body as? String {
-                self.data = bodyText.dataUsingEncoding(NSUTF8StringEncoding)
-            } else if let bodyData = body as? NSData {
+                self.data = bodyText.data(using: String.Encoding.utf8)
+            } else if let bodyData = body as? Data {
                 self.data = bodyData
             } else {
                 log.error("Body provided is not a recognised type.")
@@ -397,17 +397,17 @@ import JavaScriptCore
 /// What our GlobalFetch class exports in JSContexts - i.e., just a single fetch function that matches the JS API.
 @objc protocol GlobalFetchExports: JSExport {
     @objc(fetch::)
-    func fetch(url:JSValue, options:JSValue) -> JSPromise
+    func fetch(_ url:JSValue, options:JSValue) -> JSPromise
 }
 
-class NoErrorButNoResponseError : ErrorType {}
+class NoErrorButNoResponseError : Error {}
 
 
 /// By default the Fetch API follows redirects: https://fetch.spec.whatwg.org/#concept-request-redirect-mode
 /// But if we want to disable this, we need to use this delegate
-class DoNotFollowRedirectSessionDelegate : NSObject, NSURLSessionDelegate {
+class DoNotFollowRedirectSessionDelegate : NSObject, URLSessionDelegate {
     
-    func URLSession(session: NSURLSession, task: NSURLSessionTask, willPerformHTTPRedirection response: NSHTTPURLResponse, newRequest request: NSURLRequest, completionHandler: (NSURLRequest?) -> Void) {
+    func URLSession(_ session: Foundation.URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: (URLRequest?) -> Void) {
         // Do not follow redirects
         completionHandler(nil)
     }
@@ -419,9 +419,9 @@ class DoNotFollowRedirectSessionDelegate : NSObject, NSURLSessionDelegate {
 /// be used in Swift contexts too.
 @objc class GlobalFetch: NSObject, GlobalFetchExports {
     
-    let scope:NSURL
+    let scope:URL
     
-    init(workerScope: NSURL) {
+    init(workerScope: URL) {
         self.scope = workerScope
     }
     
@@ -432,12 +432,12 @@ class DoNotFollowRedirectSessionDelegate : NSObject, NSURLSessionDelegate {
     ///   - request: the FetchRequest or string unknown variable
     ///   - options: options passed in with the fetch function call
     /// - Returns: A FetchRequest with all options combined.
-    private static func getRequest(request: JSValue, options:JSValue) -> FetchRequest {
+    fileprivate static func getRequest(_ request: JSValue, options:JSValue) -> FetchRequest {
         // This parameter can be either a URL string or an instance of a
         // FetchRequest class.
         
-        if request.isInstanceOf(FetchRequest) {
-            return request.toObjectOfClass(FetchRequest) as! FetchRequest
+        if request.isInstance(of: FetchRequest) {
+            return request.toObjectOf(FetchRequest) as! FetchRequest
         }
         
         return FetchRequest(url: request.toString(), options: options.toObject() as? [String : AnyObject])
@@ -450,7 +450,7 @@ class DoNotFollowRedirectSessionDelegate : NSObject, NSURLSessionDelegate {
     ///   - request: The FetchRequest to process
     ///   - options: The options for this request, as outlined in the 'init' object here: https://developer.mozilla.org/en-US/docs/Web/API/GlobalFetch/fetch
     /// - Returns: A promise that will resolve with a FetchResponse when the operation succeeds.
-    static func fetchRequest(request: FetchRequest, options:[String:AnyObject] = [:]) -> Promise<FetchResponse> {
+    static func fetchRequest(_ request: FetchRequest, options:[String:AnyObject] = [:]) -> Promise<FetchResponse> {
         
         let urlRequest = request.toNSURLRequest()
         
@@ -512,7 +512,7 @@ class DoNotFollowRedirectSessionDelegate : NSObject, NSURLSessionDelegate {
     ///
     /// - Parameter url: The string URL to download
     /// - Returns: a promise that evaluates to a FetchResponse.
-    static func fetch(url:String) -> Promise<FetchResponse> {
+    static func fetch(_ url:String) -> Promise<FetchResponse> {
         return fetchRequest(FetchRequest(url: url, options: nil))
     }
     
@@ -523,12 +523,12 @@ class DoNotFollowRedirectSessionDelegate : NSObject, NSURLSessionDelegate {
     ///   - requestVal: Either a string or an instance of a FetchRequest class.
     ///   - options: The options for this request, as outlined in the 'init' object here: https://developer.mozilla.org/en-US/docs/Web/API/GlobalFetch/fetch
     /// - Returns: a JS promise that evaluates to a FetchResponse or throws in the case of error
-    func fetch(requestVal: JSValue, options:JSValue) -> JSPromise {
+    func fetch(_ requestVal: JSValue, options:JSValue) -> JSPromise {
         
         let request = GlobalFetch.getRequest(requestVal, options: options)
         
         // It's possible to request relative to scope. So we need to make sure we handle that.
-        request.url = NSURL(string: request.url, relativeToURL: self.scope)!.absoluteString!
+        request.url = URL(string: request.url, relativeTo: self.scope)!.absoluteString
         
         return PromiseToJSPromise.pass(GlobalFetch.fetchRequest(request))
 
@@ -538,16 +538,16 @@ class DoNotFollowRedirectSessionDelegate : NSObject, NSURLSessionDelegate {
     /// Add Request, Response, Headers and Body to a JSContext's global scope.
     ///
     /// - Parameter context: The JSContext to add to.
-    func addToJSContext(context:JSContext) {
-        context.setObject(FetchRequest.self, forKeyedSubscript: "Request")
-        context.setObject(FetchResponse.self, forKeyedSubscript: "Response")
-        context.setObject(FetchHeaders.self, forKeyedSubscript: "Headers")
-        context.setObject(FetchBody.self, forKeyedSubscript: "Body")
-        context.setObject(GlobalFetch.self, forKeyedSubscript: "GlobalFetch")
+    func addToJSContext(_ context:JSContext) {
+        context.setObject(FetchRequest.self, forKeyedSubscript: "Request" as (NSCopying & NSObjectProtocol)!)
+        context.setObject(FetchResponse.self, forKeyedSubscript: "Response" as (NSCopying & NSObjectProtocol)!)
+        context.setObject(FetchHeaders.self, forKeyedSubscript: "Headers" as (NSCopying & NSObjectProtocol)!)
+        context.setObject(FetchBody.self, forKeyedSubscript: "Body" as (NSCopying & NSObjectProtocol)!)
+        context.setObject(GlobalFetch.self, forKeyedSubscript: "GlobalFetch" as (NSCopying & NSObjectProtocol)!)
         
         let fetchAsConvention: @convention(block) (JSValue, JSValue) -> JSPromise = self.fetch
         
-        context.setObject(unsafeBitCast(fetchAsConvention, AnyObject.self), forKeyedSubscript: "fetch")
+        context.setObject(unsafeBitCast(fetchAsConvention, to: AnyObject.self), forKeyedSubscript: "fetch" as (NSCopying & NSObjectProtocol)!)
         
     }
 }

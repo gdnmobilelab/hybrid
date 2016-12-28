@@ -16,10 +16,10 @@ import PromiseKit
 /// - OpenWindow: Open a new webview for the selected URL. If {external:true} is passed in options it'll instead pass the URL to the OS.
 /// - PostMessage: Send a message to this webview. Currently cannot have MessagePorts attached as they don't work cross-process.
 enum PendingWebviewActionType: Int32 {
-    case Claim = 0
-    case Focus
-    case OpenWindow
-    case PostMessage
+    case claim = 0
+    case focus
+    case openWindow
+    case postMessage
 }
 
 
@@ -43,27 +43,27 @@ enum PendingWebviewActionType: Int32 {
         self.type = type
         self.record = record
         self.options = options
-        self.uuid = NSUUID().UUIDString
+        self.uuid = UUID().uuidString
     }
     
     
     /// Private init to create an instance with our predefined UUID
-    private convenience init(type:PendingWebviewActionType, record: WebviewRecord?, options: [String:AnyObject]?, uuid:String) {
+    fileprivate convenience init(type:PendingWebviewActionType, record: WebviewRecord?, options: [String:AnyObject]?, uuid:String) {
         self.init(type: type, record: record, options: options)
         self.uuid = uuid
     }
     
     convenience required init?(coder decoder: NSCoder) {
-        let type = PendingWebviewActionType(rawValue: decoder.decodeIntForKey("type"))!
-        let record = decoder.decodeObjectForKey("record") as? WebviewRecord
-        let options = decoder.decodeObjectForKey("options") as? NSData
-        let uuid = decoder.decodeObjectForKey("uuid") as! String
+        let type = PendingWebviewActionType(rawValue: decoder.decodeCInt(forKey: "type"))!
+        let record = decoder.decodeObject(forKey: "record") as? WebviewRecord
+        let options = decoder.decodeObject(forKey: "options") as? Data
+        let uuid = decoder.decodeObject(forKey: "uuid") as! String
         
         var optionsAsAny:[String : AnyObject]? = nil
         if options != nil {
             
             do {
-                let decoded = try NSJSONSerialization.JSONObjectWithData(options!, options: [])
+                let decoded = try JSONSerialization.jsonObject(with: options!, options: [])
                 optionsAsAny = decoded as? [String : AnyObject]
             } catch {
                 log.error("Unable to decode JSON string from storage. " + String(error))
@@ -75,19 +75,19 @@ enum PendingWebviewActionType: Int32 {
         
     }
     
-    func encodeWithCoder(coder: NSCoder) {
-        coder.encodeInt(self.type.rawValue, forKey: "type")
-        coder.encodeObject(self.uuid, forKey: "uuid")
+    func encode(with coder: NSCoder) {
+        coder.encodeCInt(self.type.rawValue, forKey: "type")
+        coder.encode(self.uuid, forKey: "uuid")
         
         if let record = self.record {
-            coder.encodeObject(record, forKey: "record")
+            coder.encode(record, forKey: "record")
         }
         
         if let options = self.options {
             
             do {
-                let jsonString = try NSJSONSerialization.dataWithJSONObject(options, options: [])
-                coder.encodeObject(jsonString, forKey: "options")
+                let jsonString = try JSONSerialization.data(withJSONObject: options, options: [])
+                coder.encode(jsonString, forKey: "options")
             } catch {
                 log.error("Unable to serialize event options to JSON. " + String(error))
             }

@@ -17,7 +17,7 @@ import CoreGraphics
 class PayloadToNotificationContent {
     
     
-    static func urlsToNotificationAttachments(urls:[String], relativeTo: NSURL) -> Promise<[UNNotificationAttachment]> {
+    static func urlsToNotificationAttachments(_ urls:[String], relativeTo: NSURL) -> Promise<[UNNotificationAttachment]> {
         let promises = urls.map { attachmentURL -> Promise<UNNotificationAttachment> in
             
             let fullURL = NSURL(string: attachmentURL, relativeToURL: relativeTo)!
@@ -34,13 +34,13 @@ class PayloadToNotificationContent {
         return when(promises)
     }
     
-    static func setNotificationCategoryBasedOnActions(actions: [String]?) {
+    static func setNotificationCategoryBasedOnActions(_ actions: [String]?) {
         
         var nativeActions: [UNNotificationAction] = []
 
         if let actionsExist = actions {
             
-            for (index, action) in actionsExist.enumerate() {
+            for (index, action) in actionsExist.enumerated() {
                 let newAction = UNNotificationAction(identifier: String(index), title: action, options: [])
                 
                 nativeActions.append(newAction)
@@ -48,10 +48,10 @@ class PayloadToNotificationContent {
             
         }
         
-        let category = UNNotificationCategory(identifier: "extended-content", actions: nativeActions, intentIdentifiers: [], options: UNNotificationCategoryOptions([.CustomDismissAction]))
+        let category = UNNotificationCategory(identifier: "extended-content", actions: nativeActions, intentIdentifiers: [], options: UNNotificationCategoryOptions([.customDismissAction]))
         
         UNUserNotificationCenter
-            .currentNotificationCenter()
+            .current()
             .setNotificationCategories([category])
         
     }
@@ -141,7 +141,7 @@ class PayloadToNotificationContent {
     /// call
     ///
     /// - Parameter tag: The tag to clear
-    static func clearWithTag(tag:String) -> Promise<Int> {
+    static func clearWithTag(_ tag:String) -> Promise<Int> {
         
         return Promise<Int> { fulfill, reject in
             UNUserNotificationCenter.currentNotificationCenter().getDeliveredNotificationsWithCompletionHandler { notifications in

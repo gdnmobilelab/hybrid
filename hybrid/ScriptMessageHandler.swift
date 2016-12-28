@@ -19,7 +19,7 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     
     
     /// If a derived class doesn't implement handleMessage() this error will be thrown.
-    class HandleMessageNotImplementedError : ErrorType {}
+    class HandleMessageNotImplementedError : Error {}
     
     let webview:HybridWebview
     let userController:WKUserContentController
@@ -33,7 +33,7 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     /// Just for sanity's sake, a struct to store the fulfill and reject halves of a promise
     struct PromiseStore {
         var fulfill: (AnyObject) -> ()
-        var reject: (ErrorType) -> ()
+        var reject: (Error) -> ()
     }
     
     /// We use this to store callbacks to be run in the webview and await responses
@@ -47,7 +47,7 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     ///   - name: The event name to fire
     ///   - arguments: An array of JSON strings to send to the JS function. Note: this means strings should be surrounded in ""s, numbers should not.
     /// - Returns: A promise that resolves with whatever object is passed back by the webview
-    func sendEventAwaitResponse(name: String, arguments: [String]) -> Promise<AnyObject> {
+    func sendEventAwaitResponse(_ name: String, arguments: [String]) -> Promise<AnyObject> {
         return Promise<AnyObject> { fulfill, reject in
             
             // Find an available index
@@ -68,7 +68,7 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
         self.userController = userController
         self.handlerName = handlerName
         super.init()
-        self.userController.addScriptMessageHandler(self, name: handlerName)
+        self.userController.add(self, name: handlerName)
     }
     
     
@@ -76,7 +76,7 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     ///
     /// - Parameter message: The message to send
     /// - Returns: If not overridden, will throw a HandleMessageNotImplementedError
-    func handleMessage(message:AnyObject) -> Promise<String>? {
+    func handleMessage(_ message:AnyObject) -> Promise<String>? {
         return Promise<String?>(nil)
             .then { _ in
                 throw HandleMessageNotImplementedError()
@@ -90,8 +90,8 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     /// - Parameters:
     ///   - name: Name of the event to send
     ///   - arguments: An array of JSON strings to send to the JS function. Note: this means strings should be surrounded in ""s, numbers should not.
-    func sendEvent(name:String, arguments: [String]) {
-        self.webview.evaluateJavaScript("window.__promiseBridges['" + self.handlerName + "'].emit('" + name + "'," + arguments.joinWithSeparator(",") +  ")", completionHandler:  {resp, err in
+    func sendEvent(_ name:String, arguments: [String]) {
+        self.webview.evaluateJavaScript("window.__promiseBridges['" + self.handlerName + "'].emit('" + name + "'," + arguments.joined(separator: ",") +  ")", completionHandler:  {resp, err in
             if err != nil {
                 log.error("Failed to send event: " + String(err))
             }
@@ -100,7 +100,7 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     
     
     /// Function that processes responses coming from inside the webview.
-    @objc func userContentController(userContentController: WKUserContentController, didReceiveScriptMessage message: WKScriptMessage) {
+    @objc func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         
         let messageContents = message.body["message"] as! [String: AnyObject]
         
@@ -119,7 +119,7 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
                 pendingPromise.fulfill(messageContents["fulfillValue"]!)
             }
             
-            self.pendingPromises.removeValueForKey(callbackResponseIndex)
+            self.pendingPromises.removeValue(forKey: callbackResponseIndex)
             return
         }
         

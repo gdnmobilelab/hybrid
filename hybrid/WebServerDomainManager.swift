@@ -44,7 +44,7 @@ func ==(one:URLHostAndPort, two: URLHostAndPort) -> Bool {
 /// seamlessly map domains from their real address to localhost:<random port number>. These port numbers do not
 /// persist though, which means things like LocalStorage disappear between app loads. Which isn't ideal.
 class WebServerDomainManager {
-    private static var domainServerMap = [URLHostAndPort:WebServer]()
+    fileprivate static var domainServerMap = [URLHostAndPort:WebServer]()
     
     
     /// If the provided URL is within a domain used by a service worker, return a mapped version of the URL
@@ -53,29 +53,29 @@ class WebServerDomainManager {
     ///
     /// - Parameter url: The URL to check
     /// - Returns: If the URL is not in a service worker domain, it will return the same URL. Otherwise, a localhost-mapped one.
-    static func rewriteURLIfInWorkerDomain(url:NSURL) -> NSURL {
+    static func rewriteURLIfInWorkerDomain(_ url:URL) -> URL {
         
         if url.host == "localhost" {
             // Is already a mapped URL
             return url
         }
         
-        let withoutPath = NSURLComponents(URL: url, resolvingAgainstBaseURL: true)!
+        var withoutPath = URLComponents(url: url, resolvingAgainstBaseURL: true)!
         withoutPath.path = "/"
         withoutPath.query = nil
         
-        let domain = withoutPath.URL!.absoluteString!
+        let domain = withoutPath.url!.absoluteString
         
         var workersExistForThisDomain = false
         
         do {
             try Db.mainDatabase.inDatabase { db in
                 
-                let resultSet = try db.executeQuery("SELECT COUNT(*) as worker_count FROM service_workers WHERE url LIKE (? || '%') AND NOT install_state = ?", values: [domain, ServiceWorkerInstallState.Redundant.rawValue])
+                let resultSet = try db.executeQuery("SELECT COUNT(*) as worker_count FROM service_workers WHERE url LIKE (? || '%') AND NOT install_state = ?", values: [domain, ServiceWorkerInstallState.redundant.rawValue])
                 
                 resultSet.next()
                 
-                let numberOfWorkers = resultSet.intForColumn("worker_count")
+                let numberOfWorkers = resultSet.int(forColumn: "worker_count")
                 
                 if numberOfWorkers > 0 {
                     workersExistForThisDomain = true
@@ -127,9 +127,9 @@ class WebServerDomainManager {
     /// - Parameter domain: An NSURL containing the domain you want the web server for
     /// - Returns: The web server for this domain. If one does not exist, it starts one
     /// - Throws: If a new web server could not be started
-    private static func getForDomain(domain:NSURL) throws -> WebServer {
+    fileprivate static func getForDomain(_ domain:URL) throws -> WebServer {
         
-        let key = URLHostAndPort(scheme: domain.scheme!, host: domain.host!, port: domain.port)
+        let key = URLHostAndPort(scheme: domain.scheme!, host: domain.host!, port: (domain as NSURL).port)
         
         if let existingServer = domainServerMap[key] {
             return existingServer
@@ -145,9 +145,9 @@ class WebServerDomainManager {
     
     /// Convert a normal URL, for example: http://www.theguardian.co.uk/test.html to:
     /// http://localhost:23423/test.html
-    static private func mapRequestURLToServerURL(requestURL:NSURL) throws -> NSURL {
+    static fileprivate func mapRequestURLToServerURL(_ requestURL:URL) throws -> URL {
         
-        let components = NSURLComponents(URL: requestURL, resolvingAgainstBaseURL: true)!
+        var components = URLComponents(url: requestURL, resolvingAgainstBaseURL: true)!
         
         let server = try getForDomain(requestURL)
         
@@ -157,7 +157,7 @@ class WebServerDomainManager {
         // using localhost so we can't serve over HTTPS
         components.scheme = "http"
         
-        return components.URL!
+        return components.url!
         
     }
     
@@ -166,15 +166,15 @@ class WebServerDomainManager {
     ///
     /// - Parameter serverURL: The http://localhost URL you want to convert
     /// - Returns: A URL with the original domain set, and existing path, search etc carried over.
-    static func mapServerURLToRequestURL(serverURL:NSURL) -> NSURL {
+    static func mapServerURLToRequestURL(_ serverURL:URL) -> URL {
         
         // And do the reverse.
         
-        let components = NSURLComponents(URL:serverURL, resolvingAgainstBaseURL: true)!
+        let components = URLComponents(url:serverURL, resolvingAgainstBaseURL: true)!
         
         let serverBeingUsed = self.domainServerMap
             .filter { (key, server) in
-                return server.chosenPortNumber! == serverURL.port!
+                return server.chosenPortNumber! == (serverURL as NSURL).port!
             }
             .first!.0
         
@@ -182,13 +182,13 @@ class WebServerDomainManager {
         components.port = serverBeingUsed.port
         components.scheme = serverBeingUsed.scheme
         
-        return components.URL!
+        return components.url!
         
     }
     
     
     /// Simple check to see if the URL provided is a localhost service worker URL or not.
-    static func isLocalServerURL(maybeServerURL:NSURL) -> Bool {
+    static func isLocalServerURL(_ maybeServerURL:URL) -> Bool {
         return maybeServerURL.host == "localhost"
     }
 }

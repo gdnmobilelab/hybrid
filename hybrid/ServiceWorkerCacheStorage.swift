@@ -11,10 +11,10 @@ import JavaScriptCore
 import PromiseKit
 
 @objc protocol ServiceWorkerCacheStorageExports: JSExport {
-    func open(name:String) -> JSPromise
+    func open(_ name:String) -> JSPromise
     func keys() -> JSPromise
-    func match(request:JSValue) -> JSPromise
-    func delete(name:String) -> JSPromise
+    func match(_ request:JSValue) -> JSPromise
+    func delete(_ name:String) -> JSPromise
 }
 
 
@@ -32,14 +32,14 @@ import PromiseKit
         super.init()
         
         // Set the global caches object
-        self.worker.jsContext.setObject(self, forKeyedSubscript: "caches")
-        "".uppercaseString
+        self.worker.jsContext.setObject(self, forKeyedSubscript: "caches" as (NSCopying & NSObjectProtocol)!)
+    
         // And set the class variable
-        self.worker.jsContext.setObject(ServiceWorkerCache.self, forKeyedSubscript: "Cache")
+        self.worker.jsContext.setObject(ServiceWorkerCache.self, forKeyedSubscript: "Cache" as (NSCopying & NSObjectProtocol)!)
         
     }
     
-    func _open(name:String) -> ServiceWorkerCache {
+    func _open(_ name:String) -> ServiceWorkerCache {
         return ServiceWorkerCache(swURL: self.worker.url, swScope: self.worker.scope, name: name)
     }
     
@@ -48,7 +48,7 @@ import PromiseKit
     ///
     /// - Parameters:
     ///   - name: The name to use
-    func open(name: String) -> JSPromise {
+    func open(_ name: String) -> JSPromise {
         return JSPromise.resolve(_open(name))
     }
     
@@ -58,7 +58,7 @@ import PromiseKit
             do {
                 try Db.mainDatabase.inTransaction({ (db) in
                     
-                    let resultSet = try db.executeQuery("SELECT DISTINCT cache_id FROM cache WHERE service_worker_url = ?", values: [self.worker.url.absoluteString!])
+                    let resultSet = try db.executeQuery("SELECT DISTINCT cache_id FROM cache WHERE service_worker_url = ?", values: [self.worker.url.absoluteString])
                     
                     var ids: [String] = []
                     
@@ -94,7 +94,7 @@ import PromiseKit
 
     }
     
-    func _match(url: NSURL) -> Promise<FetchResponse> {
+    func _match(_ url: NSURL) -> Promise<FetchResponse> {
         // Can't find anything in the spec to decide what order we do this in. So we'll just do it in whatever order they come.
 
         return _keys()
@@ -109,7 +109,7 @@ import PromiseKit
             
             var currentIndex = 0
             
-            return Promise<Void>()
+            return Promise<Void>(value: nil)
             .then {
     
                 if allKeys.count == 0 {
@@ -133,22 +133,22 @@ import PromiseKit
         
     }
     
-    func match(request:JSValue) -> JSPromise {
+    func match(_ request:JSValue) -> JSPromise {
         var url = ""
         
         if request.isObject {
-            url = (request.toObjectOfClass(FetchRequest) as! FetchRequest).url
+            url = (request.toObjectOf(FetchRequest) as! FetchRequest).url
         } else {
             url = request.toString()
         }
         
-        let urlAsNSURL = NSURL(string: url, relativeToURL: self.worker.scope)!
+        let urlAsNSURL = URL(string: url, relativeTo: self.worker.scope as URL?)!
         
         return PromiseToJSPromise.pass(_match(urlAsNSURL))
 
     }
     
-    func _delete(name:String) -> Promise<Bool> {
+    func _delete(_ name:String) -> Promise<Bool> {
         return Promise<Void>()
         .then { () -> Bool in
             
@@ -179,7 +179,7 @@ import PromiseKit
         }
     }
     
-    func delete(name:String) -> JSPromise {
+    func delete(_ name:String) -> JSPromise {
         return PromiseToJSPromise<Bool>.pass(_delete(name))
     }
 }

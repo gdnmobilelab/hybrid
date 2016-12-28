@@ -12,21 +12,21 @@ import WebKit
 import JavaScriptCore
 
 @objc protocol MessagePortExports : JSExport {
-    func postMessage(message:AnyObject, ports: [MessagePort]) -> Void
-    func postMessage(message:AnyObject) -> Void
+    func postMessage(_ message:AnyObject, ports: [MessagePort]) -> Void
+    func postMessage(_ message:AnyObject) -> Void
     func close() -> Void
     var onmessage:JSValue? {get set }
     init()
 }
 
 /// An implementation of MessagePort: https://developer.mozilla.org/en-US/docs/Web/API/MessagePort
-@objc public class MessagePort : NSObject, MessagePortExports {
+@objc open class MessagePort : NSObject, MessagePortExports {
     
     let eventEmitter = Event<ExtendableMessageEvent?>()
-    private var messageListener:Listener?
+    fileprivate var messageListener:Listener?
     
-    private var _pendingJSExecution = false
-    private var _pendingClose = false
+    fileprivate var _pendingJSExecution = false
+    fileprivate var _pendingClose = false
     
     /// We track whether the port is pending execution inside a webview - this is used to
     /// stop from emitting close events too early.
@@ -57,24 +57,24 @@ import JavaScriptCore
     /// Attached to the eventEmitter to listen for incoming ExtendableMessageEvents
     ///
     /// - Parameter message: The message we want to pass onto our onmessage handler
-    private func handleMessage(message:ExtendableMessageEvent?) {
+    fileprivate func handleMessage(_ message:ExtendableMessageEvent?) {
         
         if self.onmessage == nil {
             return
         }
         
-        onmessage!.callWithArguments([message!])
+        onmessage!.call(withArguments: [message!])
     }
     
-    func postMessage(data: AnyObject) {
+    func postMessage(_ data: AnyObject) {
         self.postMessage(data, ports: [], fromWebView: nil)
     }
     
-    func postMessage(data:AnyObject, ports:[MessagePort]) {
+    func postMessage(_ data:AnyObject, ports:[MessagePort]) {
         self.postMessage(data, ports: ports, fromWebView: nil)
     }
     
-    func postMessage(data:AnyObject, ports:[MessagePort], fromWebView:WKWebView?) {
+    func postMessage(_ data:AnyObject, ports:[MessagePort], fromWebView:WKWebView?) {
         self.eventEmitter.emit("emit", ExtendableMessageEvent(data: data, ports: ports,fromWebView: fromWebView))
     }
     

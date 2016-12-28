@@ -23,11 +23,11 @@ class PendingNotificationShow: NSObject, NSCoding {
     let title:String
     let options:[String:AnyObject]
     let pushID:String
-    private let _workerURL:String
+    fileprivate let _workerURL:String
     
-    var workerURL:NSURL {
+    var workerURL:URL {
         get {
-            return NSURL(string: self._workerURL)!
+            return URL(string: self._workerURL)!
         }
     }
     
@@ -52,15 +52,15 @@ class PendingNotificationShow: NSObject, NSCoding {
         self._workerURL = workerURL
     }
     
-    func encodeWithCoder(aCoder: NSCoder) {
+    func encode(with aCoder: NSCoder) {
         
-        aCoder.encodeObject(self.title, forKey: "title")
-        aCoder.encodeObject(self.pushID, forKey: "pushID")
-        aCoder.encodeObject(self._workerURL, forKey: "workerURL")
+        aCoder.encode(self.title, forKey: "title")
+        aCoder.encode(self.pushID, forKey: "pushID")
+        aCoder.encode(self._workerURL, forKey: "workerURL")
         
         do {
-            let toJSON = try NSJSONSerialization.dataWithJSONObject(self.options, options: [])
-            aCoder.encodeObject(toJSON, forKey: "options")
+            let toJSON = try JSONSerialization.data(withJSONObject: self.options, options: [])
+            aCoder.encode(toJSON, forKey: "options")
         } catch {
             log.error("Could not serialize notification options: " + String(error))
         }
@@ -68,15 +68,15 @@ class PendingNotificationShow: NSObject, NSCoding {
     }
 
     required convenience init(coder decoder: NSCoder) {
-        let title = decoder.decodeObjectForKey("title") as! String
-        let pushID = decoder.decodeObjectForKey("pushID") as! String
-        let optionsAsData = decoder.decodeObjectForKey("options") as! NSData
-        let workerURL = decoder.decodeObjectForKey("workerURL") as! String
+        let title = decoder.decodeObject(forKey: "title") as! String
+        let pushID = decoder.decodeObject(forKey: "pushID") as! String
+        let optionsAsData = decoder.decodeObject(forKey: "options") as! Data
+        let workerURL = decoder.decodeObject(forKey: "workerURL") as! String
         
         var options: [String:AnyObject] = [:]
         
         do {
-            options = try NSJSONSerialization.JSONObjectWithData(optionsAsData, options: []) as! [String:AnyObject]
+            options = try JSONSerialization.jsonObject(with: optionsAsData, options: []) as! [String:AnyObject]
         } catch {
             log.error("Could not deserialize notification options:" + String(error))
         }

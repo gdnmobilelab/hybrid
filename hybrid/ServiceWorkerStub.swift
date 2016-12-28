@@ -17,8 +17,8 @@ struct ServiceWorkerStub {
     var lastChecked: Int
     var lastModified: String?
     var etag:String?
-    var scope:NSURL
+    var scope:URL
     /// a SHA-256 hash of the JS contents - we use the hash just so that we don't hold
     /// a huge text blob in memory for no good reason
-    var jsHash:NSData
+    var jsHash:Data
 }

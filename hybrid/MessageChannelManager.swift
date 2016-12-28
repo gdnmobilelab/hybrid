@@ -19,7 +19,7 @@ class MessagePortMessage {
     func toSerializableObject() -> [String: AnyObject] {
         return [
             "data": self.data != nil ? self.data! : NSNull(),
-            "passedPortIds": self.passedPortIds
+            "passedPortIds": self.passedPortIds as AnyObject
         ]
     }
     
@@ -59,7 +59,7 @@ class MessageChannelManager: ScriptMessageManager {
     ///
     /// - Parameter message: Message object. Must have key named "operation" with value of create, delete, sendToPort or postMessage
     /// - Returns: nil, unless the operation is "create", in which case it returns the new ID as a string
-    override func handleMessage(message:AnyObject) -> Promise<String>? {
+    override func handleMessage(_ message:AnyObject) -> Promise<String>? {
         log.info("AN OPERATION!")
         let operation = message["operation"] as! String
         if (operation == "create") {
@@ -103,7 +103,7 @@ class MessageChannelManager: ScriptMessageManager {
     ///   - portIndex: The index of the port to send to
     ///   - data: The data to send - a string, usually a JSON string, but not necessarily
     ///   - additionalPortIndexes: The additional ports to attach to postMessage() as a secondary argument
-    func sendToPort(portIndex:Int, jsonString:String, additionalPortIndexes:[Int]) {
+    func sendToPort(_ portIndex:Int, jsonString:String, additionalPortIndexes:[Int]) {
         let port = self.activePorts[portIndex]
         
         if port == nil {
@@ -117,7 +117,7 @@ class MessageChannelManager: ScriptMessageManager {
         }
         log.info("ports!")
         do {
-            let data = try NSJSONSerialization.JSONObjectWithData(jsonString.dataUsingEncoding(NSUTF8StringEncoding)!, options: [])
+            let data = try JSONSerialization.jsonObject(with: jsonString.data(using: String.Encoding.utf8)!, options: [])
             port!.postMessage(data, ports: portsFromIndexes, fromWebView: self.webview)
         } catch {
             log.error("Could not post JSON string: " + String(error))
@@ -132,7 +132,7 @@ class MessageChannelManager: ScriptMessageManager {
     ///
     /// - Parameter port: The port to add to our port collection
     /// - Returns: The new index for the port we've added
-    func manuallyAddPort(port:MessagePort) -> Int {
+    func manuallyAddPort(_ port:MessagePort) -> Int {
         // only really called directly during testing
         
         for (index, iteratePort) in self.activePorts {
@@ -193,10 +193,10 @@ class MessageChannelManager: ScriptMessageManager {
     /// Remove a port from the store
     ///
     /// - Parameter index: The index of the port to remove
-    func deletePort(index:Int) {
+    func deletePort(_ index:Int) {
         log.info("Deleting port #" + String(index))
         
-        self.activePorts.removeValueForKey(index)
+        self.activePorts.removeValue(forKey: index)
         self.portListeners.removeValueForKey(index)
         self.closeListeners.removeValueForKey(index)
         

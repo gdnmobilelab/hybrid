@@ -22,7 +22,7 @@ class VideoView : UIView {
            proportion = proportionOption
         }
         
-        var videoURL = NSURL(string: options["url"] as! String, relativeToURL: worker.url)!
+        var videoURL = URL(string: options["url"] as! String, relativeTo: worker.url as URL?)!
         
         
         if options["preload"] as? Bool == true {
@@ -30,12 +30,12 @@ class VideoView : UIView {
             // If we've preloaded our video, we want to use the local URL for the
             // attachment rather than the remote one.
 
-            let video = attachments.filter { $0.identifier == videoURL.absoluteString! }.first
+            let video = attachments.filter { $0.identifier == videoURL.absoluteString }.first
             
-            if video != nil && video!.URL.startAccessingSecurityScopedResource() {
+            if video != nil && video!.url.startAccessingSecurityScopedResource() {
                 
                 // Could still be nil if downloading failed
-                videoURL = video!.URL
+                videoURL = video!.url
                 
             }
             

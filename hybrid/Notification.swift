@@ -38,9 +38,9 @@ import JavaScriptCore
     
     /// We don't store a reference to the worker itself because it could have been updated
     /// in the mean time. We always want the latest instance.
-    var belongsToWorkerURL:NSURL
+    var belongsToWorkerURL:URL
     
-    init(title:String, notificationData: AnyObject? = nil, belongsToWorkerURL:NSURL) {
+    init(title:String, notificationData: AnyObject? = nil, belongsToWorkerURL:URL) {
         self.title = title
         self.belongsToWorkerURL = belongsToWorkerURL
         
@@ -62,9 +62,9 @@ import JavaScriptCore
         self.closeState = true
     }
     
-    static func fromNotificationShow(notificationShow: PendingNotificationShow, canvas:OffscreenCanvas? = nil, videoView:NotificationVideo? = nil) -> Notification {
+    static func fromNotificationShow(_ notificationShow: PendingNotificationShow, canvas:OffscreenCanvas? = nil, videoView:NotificationVideo? = nil) -> Notification {
         
-        let notification = Notification(title: notificationShow.title, notificationData: notificationShow.options, belongsToWorkerURL: notificationShow.workerURL)
+        let notification = Notification(title: notificationShow.title, notificationData: notificationShow.options as AnyObject?, belongsToWorkerURL: notificationShow.workerURL as URL)
         
         notification.video = videoView
         notification.canvas = canvas

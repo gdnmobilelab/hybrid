@@ -14,59 +14,59 @@ import UIKit
     init(width: Int, height: Int)
     
     @objc(translate::)
-    func translate(x: CGFloat, y: CGFloat)
+    func translate(_ x: CGFloat, y: CGFloat)
     
-    func rotate(angle: CGFloat)
+    func rotate(_ angle: CGFloat)
     
     func save()
     
     func restore()
     
     @objc(clearRect::::)
-    func clearRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat)
+    func clearRect(_ x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat)
     
     @objc(fillRect::::)
-    func fillRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat)
+    func fillRect(_ x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat)
     
     @objc(strokeRect::::)
-    func strokeRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat)
+    func strokeRect(_ x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat)
     
     func beginPath()
     func closePath()
     
     @objc(moveTo::)
-    func moveTo(x:CGFloat, y:CGFloat)
+    func moveTo(_ x:CGFloat, y:CGFloat)
     
     @objc(lineTo::)
-    func lineTo(x:CGFloat, y:CGFloat)
+    func lineTo(_ x:CGFloat, y:CGFloat)
     
     @objc(bezierCurveTo::::::)
-    func bezierCurveTo(cp1x:CGFloat, cp1y:CGFloat, cp2x: CGFloat, cp2y:CGFloat, x:CGFloat, y:CGFloat)
+    func bezierCurveTo(_ cp1x:CGFloat, cp1y:CGFloat, cp2x: CGFloat, cp2y:CGFloat, x:CGFloat, y:CGFloat)
     
     @objc(quadraticCurveTo::::)
-    func quadraticCurveTo(cpx:CGFloat, cpy:CGFloat, x:CGFloat, y:CGFloat)
+    func quadraticCurveTo(_ cpx:CGFloat, cpy:CGFloat, x:CGFloat, y:CGFloat)
     
     @objc(rect::::)
-    func rect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat)
+    func rect(_ x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat)
     
     @objc(arc::::::)
-    func arc(x:CGFloat, y: CGFloat, radius:CGFloat, startAngle: CGFloat, endAngle:CGFloat, antiClockwise:Bool)
+    func arc(_ x:CGFloat, y: CGFloat, radius:CGFloat, startAngle: CGFloat, endAngle:CGFloat, antiClockwise:Bool)
     
     @objc(arcTo:::::)
-    func arcTo(x1:CGFloat, y1: CGFloat, x2: CGFloat, y2:CGFloat, radius: CGFloat)
+    func arcTo(_ x1:CGFloat, y1: CGFloat, x2: CGFloat, y2:CGFloat, radius: CGFloat)
     
     func fill()
     func stroke()
     
     @objc(drawImage:::::::::)
-    func drawImage(bitmap:JSValue, arg1: JSValue, arg2: JSValue, arg3: JSValue, arg4: JSValue, arg5:JSValue, arg6: JSValue, arg7:JSValue, arg8:JSValue)
+    func drawImage(_ bitmap:JSValue, arg1: JSValue, arg2: JSValue, arg3: JSValue, arg4: JSValue, arg5:JSValue, arg6: JSValue, arg7:JSValue, arg8:JSValue)
     
     var fillStyle:String {get set }
     var strokeStyle:String {get set}
     var lineWidth:Float {get set}
     var globalAlpha:CGFloat {get set}
     
-    func setLineDash(dashes:[CGFloat]?)
+    func setLineDash(_ dashes:[CGFloat]?)
     
 }
 
@@ -76,7 +76,7 @@ import UIKit
     
     required init(width: Int, height: Int) {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
-        self.context = CGBitmapContextCreate(nil, width, height, 8, 0, colorSpace, CGBitmapInfo(rawValue: CGImageAlphaInfo.PremultipliedLast.rawValue).rawValue)!
+        self.context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0, space: colorSpace, bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue).rawValue)!
     }
     
     
@@ -85,144 +85,144 @@ import UIKit
     }
     
     @objc(translate::)
-    func translate(x: CGFloat, y:CGFloat) {
-        CGContextTranslateCTM(self.context, x, y)
+    func translate(_ x: CGFloat, y:CGFloat) {
+        self.context.translateBy(x: x, y: y)
     }
     
-    func rotate(angle:CGFloat) {
-        CGContextRotateCTM(self.context, angle)
+    func rotate(_ angle:CGFloat) {
+        self.context.rotate(by: angle)
     }
     
     func save() {
-        CGContextSaveGState(self.context)
+        self.context.saveGState()
     }
     
     func restore() {
-        CGContextRestoreGState(self.context)
+        self.context.restoreGState()
     }
     
     func toImage() -> CGImage {
-        let imageRef = CGBitmapContextCreateImage(self.context)
+        let imageRef = self.context.makeImage()
         return imageRef!
     }
     
     
     
     @objc(clearRect::::)
-    func clearRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
-        CGContextClearRect(self.context, CGRect(x: x, y: y, width: width, height: height))
+    func clearRect(_ x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
+        self.context.clear(CGRect(x: x, y: y, width: width, height: height))
         
     }
     
     @objc(fillRect::::)
-    func fillRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
-        CGContextFillRect(self.context, CGRect(x: x, y: y, width: width, height: height))
+    func fillRect(_ x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
+        self.context.fill(CGRect(x: x, y: y, width: width, height: height))
     }
     
     @objc(strokeRect::::)
-    func strokeRect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
-        CGContextStrokeRect(self.context, CGRect(x: x, y: y, width: width, height: height))
+    func strokeRect(_ x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
+        self.context.stroke(CGRect(x: x, y: y, width: width, height: height))
     }
     
     func beginPath() {
-        CGContextBeginPath(self.context)
+        self.context.beginPath()
     }
     
     func closePath() {
-        CGContextClosePath(self.context)
+        self.context.closePath()
     }
     
     @objc(moveTo::)
-    func moveTo(x:CGFloat, y:CGFloat) {
-        CGContextMoveToPoint(self.context, x, y)
+    func moveTo(_ x:CGFloat, y:CGFloat) {
+        self.context.move(to: CGPoint(x: x, y: y))
     }
     
     @objc(lineTo::)
-    func lineTo(x:CGFloat, y:CGFloat) {
-        CGContextAddLineToPoint(self.context, x, y)
+    func lineTo(_ x:CGFloat, y:CGFloat) {
+        self.context.addLine(to: CGPoint(x: x, y: y))
     }
     
     @objc(bezierCurveTo::::::)
-    func bezierCurveTo(cp1x:CGFloat, cp1y:CGFloat, cp2x: CGFloat, cp2y:CGFloat, x:CGFloat, y:CGFloat) {
-        CGContextAddCurveToPoint(self.context, cp1x, cp1y, cp2x, cp2y, x, y)
+    func bezierCurveTo(_ cp1x:CGFloat, cp1y:CGFloat, cp2x: CGFloat, cp2y:CGFloat, x:CGFloat, y:CGFloat) {
+        self.context.addCurve(to: CGPoint(x: x, y: y), control1: CGPoint(x: cp1x, y: cp1y), control2: CGPoint(x: cp2x, y: cp2y))
     }
     
     @objc(quadraticCurveTo::::)
-    func quadraticCurveTo(cpx:CGFloat, cpy:CGFloat, x:CGFloat, y:CGFloat) {
-        CGContextAddQuadCurveToPoint(self.context, cpx, cpy, x, y)
+    func quadraticCurveTo(_ cpx:CGFloat, cpy:CGFloat, x:CGFloat, y:CGFloat) {
+        self.context.addQuadCurve(to: CGPoint(x:x, y:y), control: CGPoint(x: cpx, y:cpy))
     }
     
     @objc(rect::::)
-    func rect(x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
-        CGContextAddRect(self.context, CGRect(x: x, y: y, width: width, height: height))
+    func rect(_ x: CGFloat, y: CGFloat, width: CGFloat, height: CGFloat) {
+        self.context.addRect(CGRect(x: x, y: y, width: width, height: height))
     }
     
     @objc(arc::::::)
-    func arc(x:CGFloat, y: CGFloat, radius:CGFloat, startAngle: CGFloat, endAngle:CGFloat, antiClockwise:Bool) {
-        CGContextAddArc(self.context, x, y, radius, startAngle, endAngle, antiClockwise ? 1 : 0)
+    func arc(_ x:CGFloat, y: CGFloat, radius:CGFloat, startAngle: CGFloat, endAngle:CGFloat, antiClockwise:Bool) {
+        self.context.addArc(center: CGPoint(x: x, y: y), radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: !antiClockwise)
     }
     
     @objc(arcTo:::::)
-    func arcTo(x1:CGFloat, y1: CGFloat, x2: CGFloat, y2:CGFloat, radius: CGFloat) {
-        CGContextAddArcToPoint(self.context, x1, y1, x2, y2, radius)
+    func arcTo(_ x1:CGFloat, y1: CGFloat, x2: CGFloat, y2:CGFloat, radius: CGFloat) {
+        self.context.addArc(tangent1End: CGPoint(x: x1, y:y1), tangent2End: CGPoint(x: x2, y: y2), radius: radius)
     }
     
     func fill() {
-        CGContextFillPath(self.context)
+        self.context.fillPath()
     }
     
     func stroke() {
-        CGContextStrokePath(self.context)
+        self.context.strokePath()
     }
     
-    func getBitmapFromArgument(arg:JSValue) -> ImageBitmap? {
+    func getBitmapFromArgument(_ arg:JSValue) -> ImageBitmap? {
         
         var targetBitmap:ImageBitmap?
         
-        if arg.isInstanceOf(ImageBitmap.self) {
-            targetBitmap = arg.toObjectOfClass(ImageBitmap.self) as? ImageBitmap
-        } else if arg.isInstanceOf(OffscreenCanvas.self) {
-            let canvas = arg.toObjectOfClass(OffscreenCanvas.self) as! OffscreenCanvas
+        if arg.isInstance(of: ImageBitmap.self) {
+            targetBitmap = arg.toObjectOf(ImageBitmap.self) as? ImageBitmap
+        } else if arg.isInstance(of: OffscreenCanvas.self) {
+            let canvas = arg.toObjectOf(OffscreenCanvas.self) as! OffscreenCanvas
             targetBitmap = ImageBitmap(image: canvas.getContext("2d")!.toImage())
         }
         
         return targetBitmap
     }
     
-    func drawImage(bitmap:ImageBitmap, dx: CGFloat, dy: CGFloat) {
+    func drawImage(_ bitmap:ImageBitmap, dx: CGFloat, dy: CGFloat) {
         self.drawImage(bitmap, dx: dx, dy: dy, dWidth: CGFloat(bitmap.width), dHeight: CGFloat(bitmap.height))
     }
     
-    func drawImage(bitmap:ImageBitmap, dx: CGFloat, dy: CGFloat, dWidth:CGFloat, dHeight: CGFloat) {
+    func drawImage(_ bitmap:ImageBitmap, dx: CGFloat, dy: CGFloat, dWidth:CGFloat, dHeight: CGFloat) {
         
         // -dy because of this transform stuff
         
-        let canvasHeight = CGFloat(CGBitmapContextGetHeight(self.context))
+        let canvasHeight = CGFloat(self.context.height)
         
         let destRect = CGRect(x: dx, y: canvasHeight - dHeight - dy, width: dWidth, height: dHeight)
         
         // Have to do this to avoid image drawing upside down
         
         
-        CGContextSaveGState(self.context)
+        self.context.saveGState()
         
-        let flipVertical:CGAffineTransform = CGAffineTransformMake(1,0,0,-1,0, canvasHeight)
-        CGContextConcatCTM(context, flipVertical)
+        let flipVertical:CGAffineTransform = CGAffineTransform(a: 1,b: 0,c: 0,d: -1,tx: 0, ty: canvasHeight)
+        context.concatenate(flipVertical)
         
 //        CGContextScaleCTM(self.context, 1.0, -1.0)
 //        CGContextTranslateCTM(self.context, 0, CGFloat(bitmap.height))
 //
         
-        CGContextDrawImage(self.context, destRect, bitmap.image)
+        self.context.draw(bitmap.image, in: destRect)
         
-        CGContextRestoreGState(self.context)
+        self.context.restoreGState()
         //
         //        CGContextScaleCTM(self.context, -1.0, 1.0)
         //        CGContextTranslateCTM(self.context, 0, CGFloat(-bitmap.height))
     }
     
     @objc(drawImage:::::::::)
-    func drawImage(bitmap:JSValue, arg1: JSValue, arg2: JSValue, arg3: JSValue, arg4: JSValue, arg5:JSValue, arg6: JSValue, arg7:JSValue, arg8:JSValue) {
+    func drawImage(_ bitmap:JSValue, arg1: JSValue, arg2: JSValue, arg3: JSValue, arg4: JSValue, arg5:JSValue, arg6: JSValue, arg7:JSValue, arg8:JSValue) {
         
         let targetBitmap = getBitmapFromArgument(bitmap)
         
@@ -260,11 +260,11 @@ import UIKit
         
     }
     
-    func drawImage(bitmap:ImageBitmap, sx: CGFloat, sy: CGFloat, sWidth: CGFloat, sHeight: CGFloat, dx:CGFloat, dy: CGFloat, dWidth:CGFloat, dHeight:CGFloat) {
+    func drawImage(_ bitmap:ImageBitmap, sx: CGFloat, sy: CGFloat, sWidth: CGFloat, sHeight: CGFloat, dx:CGFloat, dy: CGFloat, dWidth:CGFloat, dHeight:CGFloat) {
         
         let sourceRect = CGRect(x: sx, y: sy, width: sWidth, height: sHeight)
         
-        let imgCrop = CGImageCreateWithImageInRect(bitmap.image, sourceRect)!
+        let imgCrop = bitmap.image.cropping(to: sourceRect)!
         
         let bitmapCrop = ImageBitmap(image: imgCrop)
         
@@ -272,7 +272,7 @@ import UIKit
     }
     
     
-    private var fillStyleColor = HexColor(hexString: "#000000")
+    fileprivate var fillStyleColor = HexColor(hexString: "#000000")
     
     var fillStyle:String {
         
@@ -282,12 +282,12 @@ import UIKit
         
         set {
             self.fillStyleColor = HexColor(hexString: newValue)
-            CGContextSetRGBFillColor(self.context, self.fillStyleColor.red, self.fillStyleColor.green, self.fillStyleColor.blue, 1)
+            self.context.setFillColor(red: self.fillStyleColor.red, green: self.fillStyleColor.green, blue: self.fillStyleColor.blue, alpha: 1)
         }
         
     }
     
-    private var strokeStyleColor = HexColor(hexString: "#000000")
+    fileprivate var strokeStyleColor = HexColor(hexString: "#000000")
     
     var strokeStyle:String {
         
@@ -298,13 +298,13 @@ import UIKit
         set {
             self.strokeStyleColor = HexColor(hexString: newValue)
             
-            CGContextSetRGBStrokeColor(self.context, self.strokeStyleColor.red, self.strokeStyleColor.green, self.strokeStyleColor.blue, 1)
+            self.context.setStrokeColor(red: self.strokeStyleColor.red, green: self.strokeStyleColor.green, blue: self.strokeStyleColor.blue, alpha: 1)
         }
         
     }
     
     // We can't get line width back out of CGContext, so we store a reference here too
-    private var currentLineWidth:Float = 1.0
+    fileprivate var currentLineWidth:Float = 1.0
     
     var lineWidth:Float {
         get {
@@ -313,11 +313,11 @@ import UIKit
         
         set {
             self.currentLineWidth = newValue
-            CGContextSetLineWidth(self.context, CGFloat(newValue))
+            self.context.setLineWidth(CGFloat(newValue))
         }
     }
     
-    private var currentGlobalAlpha:CGFloat = 1.0
+    fileprivate var currentGlobalAlpha:CGFloat = 1.0
     
     var globalAlpha:CGFloat {
         get {
@@ -325,16 +325,17 @@ import UIKit
         }
         set(value) {
             currentGlobalAlpha = value
-            CGContextSetAlpha(self.context, value)
+            self.context.setAlpha(value)
         }
     }
     
-    func setLineDash(dashes:[CGFloat]?) {
+    func setLineDash(_ dashes:[CGFloat]?) {
         
         if dashes == nil {
-            CGContextSetLineDash(self.context, 0, nil, 0)
+            
+            self.context.setLineDash(phase: 0, lengths: [])
         } else {
-            CGContextSetLineDash(self.context, 0, dashes!, dashes!.count)
+            self.context.setLineDash(phase: 0, lengths: dashes!)
         }
     }
     

@@ -21,7 +21,7 @@ class NotificationHandler {
     ///
     /// - Parameter notificationShow: the cached notification show call
     /// - Returns: A promise that resolves when the event is complete
-    static func sendExpand(notification: Notification) -> Promise<Void> {
+    static func sendExpand(_ notification: Notification) -> Promise<Void> {
         return ServiceWorkerInstance.getActiveWorkerByURL(notification.belongsToWorkerURL)
         .then { sw in
             
@@ -32,7 +32,7 @@ class NotificationHandler {
         }
     }
     
-    static func sendClose(notification: Notification) -> Promise<Void> {
+    static func sendClose(_ notification: Notification) -> Promise<Void> {
         return ServiceWorkerInstance.getActiveWorkerByURL(notification.belongsToWorkerURL)
         .then { sw in
             
@@ -43,7 +43,7 @@ class NotificationHandler {
         }
     }
     
-    static func sendClick(notification: Notification) -> Promise<Void> {
+    static func sendClick(_ notification: Notification) -> Promise<Void> {
         return ServiceWorkerInstance.getActiveWorkerByURL(notification.belongsToWorkerURL)
             .then { sw in
                 
@@ -55,7 +55,7 @@ class NotificationHandler {
     }
     
     
-    static func sendAction(action:String, notification:Notification) -> Promise<Void> {
+    static func sendAction(_ action:String, notification:Notification) -> Promise<Void> {
         
         return ServiceWorkerInstance.getActiveWorkerByURL(notification.belongsToWorkerURL)
         .then { sw in
@@ -75,13 +75,13 @@ class NotificationHandler {
     /// ignore it. However, it will still process a close event on a notification that was never expanded.
     static var IgnoreNotificationCloseInMainApp: Bool {
         get {
-            return SharedResources.userDefaults.objectForKey("should_ignore_notification_close") as? Bool == true
+            return SharedResources.userDefaults.object(forKey: "should_ignore_notification_close") as? Bool == true
         }
         set(value) {
             if value == false {
-                SharedResources.userDefaults.removeObjectForKey("should_ignore_notification_close")
+                SharedResources.userDefaults.removeObject(forKey: "should_ignore_notification_close")
             } else {
-                SharedResources.userDefaults.setBool(true, forKey: "should_ignore_notification_close")
+                SharedResources.userDefaults.set(true, forKey: "should_ignore_notification_close")
             }
         }
     }

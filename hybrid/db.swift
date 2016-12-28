@@ -15,20 +15,20 @@ import PromiseKit
 
 /// An error that is thrown when we complete an inDatabase or inTransaction call without closing the result
 /// sets we create in that call. We need to ensure we do so to avoid leaks etc.
-class ResultSetsStillOpenError : ErrorType {}
+class ResultSetsStillOpenError : Error {}
 
 
 /// Handler class for all of our database operations. A wrapper around FMDB: https://github.com/ccgus/fmdb
 class Db {
     
     /// FMDB recommends using a database queue to ensure thread safety.
-    private let dbQueue:FMDatabaseQueue!
+    fileprivate let dbQueue:FMDatabaseQueue!
     
     
     /// The base URL for our database storage - a directory named Databases in our shared file system.
-    private static var databasesURL:NSURL {
+    fileprivate static var databasesURL:URL {
         get {
-            return SharedResources.fileSystemURL.URLByAppendingPathComponent("Databases", isDirectory: true)!
+            return SharedResources.fileSystemURL.appendingPathComponent("Databases", isDirectory: true)!
         }
     }
     
@@ -37,20 +37,20 @@ class Db {
     ///
     /// - Parameter dbFilename: The basename of the database - without any directory or file extension info
     /// - Returns: Full file URL for database path
-    static func getFullPathForDB(dbFilename:String, inDirectory:String? = nil) throws -> NSURL {
+    static func getFullPathForDB(_ dbFilename:String, inDirectory:String? = nil) throws -> URL {
         var url = Db.databasesURL
         
         if inDirectory != nil {
-            url = url.URLByAppendingPathComponent(inDirectory!, isDirectory: true)!
+            url = url.appendingPathComponent(inDirectory!, isDirectory: true)
             
-            if NSFileManager.defaultManager().fileExistsAtPath(url.path!) == false {
-                try NSFileManager.defaultManager().createDirectoryAtPath(url.path!, withIntermediateDirectories: true, attributes: nil)
+            if FileManager.default.fileExists(atPath: url.path) == false {
+                try FileManager.default.createDirectory(atPath: url.path, withIntermediateDirectories: true, attributes: nil)
             }
             
         }
             
-        return url.URLByAppendingPathComponent(dbFilename)!
-            .URLByAppendingPathExtension("sqlite")!
+        return url.appendingPathComponent(dbFilename)
+            .appendingPathExtension("sqlite")
     }
     
     
@@ -61,9 +61,9 @@ class Db {
     /// - Throws: If for some reason we were not able to create the Database directory, this will fail.
     init(dbFilename:String) throws {
         
-        let fm = NSFileManager.defaultManager()
-        if fm.fileExistsAtPath(Db.databasesURL.path!) == false {
-            try fm.createDirectoryAtPath(Db.databasesURL.path!, withIntermediateDirectories: true, attributes: nil)
+        let fm = FileManager.default
+        if fm.fileExists(atPath: Db.databasesURL.path) == false {
+            try fm.createDirectory(atPath: Db.databasesURL.path, withIntermediateDirectories: true, attributes: nil)
         }
         
         
@@ -71,7 +71,7 @@ class Db {
     
         log.debug("Creating database queue for: " + dbURL.path!)
         
-        self.dbQueue = FMDatabaseQueue(path: dbURL.path!)!
+        self.dbQueue = FMDatabaseQueue(path: dbURL.path)!
         
     }
     
@@ -86,20 +86,20 @@ class Db {
     ///
     /// - Parameter toRun: A function using the FMDatabase instance passed to it
     /// - Throws: If any operation inside the function fails, or if the transaction commit fails, it will throw
-    func inTransaction(toRun: (_:FMDatabase) throws -> Void) throws {
+    func inTransaction(_ toRun: @escaping (_:FMDatabase) throws -> Void) throws {
         
-        var err:ErrorType? = nil
+        var err:Error? = nil
         
         dbQueue.inTransaction() {
             db, rollback in
             
             do {
                 try toRun(db!)
-                if db.hasOpenResultSets() {
-                    throw ResultSetsStillOpenError()
+                if (db?.hasOpenResultSets())! {
+                    throw ResultSetsStillOpenError() as Error
                 }
             } catch {
-                rollback.memory = true
+                rollback?.pointee = true
                 err = error
             }
         }
@@ -116,17 +116,17 @@ class Db {
     ///
     /// - Parameter toRun: A function using the FMDatabase instance passed to it
     /// - Throws: If any operation inside the function fails, it will throw
-    func inDatabase(toRun: (_:FMDatabase) throws -> Void) throws {
+    func inDatabase(_ toRun: @escaping (_:FMDatabase) throws -> Void) throws {
         
-        var err:ErrorType? = nil
+        var err:Error? = nil
         
         dbQueue.inDatabase() {
             db in
             
             do {
                 try toRun(db!)
-                if db.hasOpenResultSets() {
-                    throw ResultSetsStillOpenError()
+                if (db?.hasOpenResultSets())! {
+                    throw ResultSetsStillOpenError() as Error
                 }
             } catch {
                 
@@ -140,7 +140,7 @@ class Db {
         
     }
 
-    private static var mainDB:Db?
+    fileprivate static var mainDB:Db?
     
     
     /// Called in the AppDelegate to ensure the mainDatabase is available to all code from app startup
@@ -174,7 +174,7 @@ class CustomMigration : NSObject, FMDBMigrating {
         super.init()
     }
     
-    func migrateDatabase(database: FMDatabase!) throws {
+    func migrateDatabase(_ database: FMDatabase!) throws {
         database.executeStatements(self.sql)
     }
     
@@ -185,9 +185,9 @@ class CustomMigration : NSObject, FMDBMigrating {
 /// SQLite databases are at the latest migration on app startup
 class DbMigrate {
     
-    private static func addPreloadedWorkers(manager:FMDBMigrationManager, db:FMDatabase) throws {
+    fileprivate static func addPreloadedWorkers(_ manager:FMDBMigrationManager, db:FMDatabase) throws {
         
-        let plistPath = Util.appBundle().pathForResource("workers", ofType: "plist", inDirectory: "preload-workers")
+        let plistPath = Util.appBundle().path(forResource: "workers", ofType: "plist", inDirectory: "preload-workers")
         
         if plistPath == nil {
             // no workers to preload
@@ -202,20 +202,20 @@ class DbMigrate {
         
         if manager.currentVersion >= 201606290 {
             
-            let existingWorkers = try db.executeQuery("SELECT DISTINCT url, scope FROM service_workers WHERE install_state < ?", values: [ServiceWorkerInstallState.Redundant.rawValue])
+            let existingWorkers = try db.executeQuery("SELECT DISTINCT url, scope FROM service_workers WHERE install_state < ?", values: [ServiceWorkerInstallState.redundant.rawValue])
             
             while existingWorkers.next() {
-                let workerURL = existingWorkers.stringForColumn("url")
-                let workerScope = existingWorkers.stringForColumn("scope")
+                let workerURL = existingWorkers.string(forColumn: "url")
+                let workerScope = existingWorkers.string(forColumn: "scope")
                 
-                let indexOfPreloadWorker = entries.indexOf { obj in
+                let indexOfPreloadWorker = entries.index { obj in
                     return obj["url"] as! String == workerURL && obj["scope"] as! String == workerScope
                 }
                 
                 if indexOfPreloadWorker != nil {
                     // We already have this worker installed and potentially more
                     // up to date than the bundled one. So remove it.
-                    entries.removeAtIndex(indexOfPreloadWorker!)
+                    entries.remove(at: indexOfPreloadWorker!)
                 }
                 
             }
@@ -228,7 +228,7 @@ class DbMigrate {
             
             let file = entry["file"] as! String
             
-            let sqlPath = Util.appBundle().pathForResource("worker_" + file, ofType: "sql", inDirectory: "preload-workers")!
+            let sqlPath = Util.appBundle().path(forResource: "worker_" + file, ofType: "sql", inDirectory: "preload-workers")!
             
             let sql = try String(contentsOfFile: sqlPath)
 
@@ -261,7 +261,7 @@ class DbMigrate {
             
             if migrateManager.pendingVersions.count > 0 {
             
-                try migrateManager.migrateDatabaseToVersion(UInt64.max, progress: nil)
+                try migrateManager.migrateDatabase(toVersion: UInt64.max, progress: nil)
                 
                 log.debug("Migrated. Database now at version " + String(migrateManager.currentVersion))
             }

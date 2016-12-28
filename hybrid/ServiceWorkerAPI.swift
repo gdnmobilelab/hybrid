@@ -17,7 +17,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
     
     
     /// Event listener that receives every service worker change event and runs self.serviceWorkerChange()
-    private var swChangeListener:Listener?
+    fileprivate var swChangeListener:Listener?
     
     
     /// The current, active service worker for this webview
@@ -37,11 +37,11 @@ class ServiceWorkerAPI: ScriptMessageManager {
     /// - Parameters:
     ///   - message: The message, usually a JSON-encoded string
     ///   - ports: Ports to pass onwards to the worker to be used to send replies back
-    func sendPostMessageToWorker(message:AnyObject, ports:[MessagePort]) {
+    func sendPostMessageToWorker(_ message:AnyObject, ports:[MessagePort]) {
         
         do {
             
-            let parsed = try NSJSONSerialization.JSONObjectWithData(message.dataUsingEncoding(NSUTF8StringEncoding)!, options: [])
+            let parsed = try JSONSerialization.jsonObject(with: message.data(using: String.Encoding.utf8)!, options: [])
             let ev = ExtendableMessageEvent(data: parsed, ports: ports)
             self.currentActiveServiceWorker?.dispatchExtendableEvent(ev)
         } catch {
@@ -51,7 +51,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
 
     }
     
-    func receivePostMessageFromWorker(message:AnyObject) {
+    func receivePostMessageFromWorker(_ message:AnyObject) {
         // TODO: ports, ports, ports
         
         var jsonString = ""
@@ -63,8 +63,8 @@ class ServiceWorkerAPI: ScriptMessageManager {
             if let messageIsString = message as? String {
                 jsonString = "\"" + messageIsString + "\""
             } else {
-                let json = try NSJSONSerialization.dataWithJSONObject(message, options: NSJSONWritingOptions())
-                jsonString = String(data: json, encoding: NSUTF8StringEncoding)!
+                let json = try JSONSerialization.data(withJSONObject: message, options: JSONSerialization.WritingOptions())
+                jsonString = String(data: json, encoding: String.Encoding.utf8)!
             }
             
             
@@ -81,7 +81,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
     /// this function does is filter out any events not applicable to the current worker or scope. Candidate for refactoring.
     ///
     /// - Parameter match: The ServiceWorkerMatch that has changed - contains relevant worker metadata
-    func serviceWorkerChange(match:ServiceWorkerMatch) {
+    func serviceWorkerChange(_ match:ServiceWorkerMatch) {
         
         if self.webview.mappedURL == nil {
             // often because it's a test webview that has a URL of about:blank
@@ -101,7 +101,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
     /// Receive a new service worker to replace any active worker attached to the webview
     ///
     /// - Parameter newWorker: The new service worker to set as active
-    func setNewActiveServiceWorker(newWorker:ServiceWorkerInstance) {
+    func setNewActiveServiceWorker(_ newWorker:ServiceWorkerInstance) {
         self.currentActiveServiceWorker = newWorker
         
         let match = ServiceWorkerMatch(instanceId: newWorker.instanceId, url: newWorker.url, installState: newWorker.installState, scope: newWorker.scope)
@@ -122,7 +122,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
     ///   - swPath: Path to the JS file containing the service worker
     ///   - scope: The scope to register the worker under
     /// - Returns: A JSON string for a ServiceWorkerMatch. Is converted to a ServiceWorkerRegistration on the JS side.
-    func register(swPath:NSURL, scope:String?) -> Promise<String> {
+    func register(_ swPath:NSURL, scope:String?) -> Promise<String> {
         
         var actualSWPath = swPath
         
@@ -134,9 +134,9 @@ class ServiceWorkerAPI: ScriptMessageManager {
             actualSWPath = WebServerDomainManager.mapServerURLToRequestURL(actualSWPath)
         }
         
-        var serviceWorkerScope:NSURL = actualSWPath.URLByDeletingLastPathComponent!
+        var serviceWorkerScope:URL = actualSWPath.URLByDeletingLastPathComponent!
         if scope != nil {
-            serviceWorkerScope = NSURL(string: scope!, relativeToURL: actualSWPath)!
+            serviceWorkerScope = URL(string: scope!, relativeToURL: actualSWPath)!
         }
         
         // forceCheck shouldn't actually be true here - it only forces update if the URL has changed.
@@ -164,7 +164,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
     ///
     /// - Parameter swURL: URL of the service worker to update
     /// - Returns: A string containing "null" - the update function receives no updates on update progress
-    func update(swURL:NSURL) -> Promise<String> {
+    func update(_ swURL:NSURL) -> Promise<String> {
         return ServiceWorkerManager.update(swURL, scope: nil, forceCheck: true)
         .then { newId in
             // Promise doesn't return any info, but catches update errors
@@ -184,7 +184,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
     ///
     /// - Parameter webviewURL: The URL of the webview
     /// - Returns: A JSON-encoded array of ServiceWorkerMatch objects
-    func getAllWorkers(webviewURL:NSURL) -> Promise<String> {
+    func getAllWorkers(_ webviewURL:NSURL) -> Promise<String> {
         return ServiceWorkerManager.getAllServiceWorkersWithScopeContainingURL(webviewURL)
         .then { matches -> String in
             
@@ -216,10 +216,10 @@ class ServiceWorkerAPI: ScriptMessageManager {
     ///
     /// - Parameter message: Object with required key "operation", which must be register, update or getAll
     /// - Returns: Depends on operation called
-    override func handleMessage(message:AnyObject) -> Promise<String>? {
+    override func handleMessage(_ message:AnyObject) -> Promise<String>? {
         let operation = message["operation"] as! String
         
-        var webviewURL = self.webview.URL!
+        var webviewURL = self.webview.url!
         
         if WebServerDomainManager.isLocalServerURL(webviewURL) {
             webviewURL = WebServerDomainManager.mapServerURLToRequestURL(webviewURL)

@@ -16,7 +16,7 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
     
     static var allowedNotificationIDs: [String] = []
     
-    func userNotificationCenter(center: UNUserNotificationCenter, willPresentNotification notification: UNNotification, withCompletionHandler completionHandler: (UNNotificationPresentationOptions) -> Void) {
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         
         // Not sure about the background state thing here. But something seems to be holding notifications back from displaying
         // when the app is in background mode, I'm just not sure what. Annoyingly, it doesn't seem to happen when I'm testing
@@ -24,13 +24,13 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
         
         if /*UIApplication.sharedApplication().applicationState == UIApplicationState.Background ||*/ notification.request.content.userInfo["app_generated_notification"] as? String == "true" {
             log.info("Showing notification")
-            completionHandler(UNNotificationPresentationOptions.Alert)
+            completionHandler(UNNotificationPresentationOptions.alert)
         } else {
             // If it's a remote notification and the app is open, don't show the notification
             
             // Wanted to put this after the promise, so we can catch when the notification show failed
             // but if appears to ignore any completion handler that is run async.
-            completionHandler(UNNotificationPresentationOptions.Badge)
+            completionHandler(UNNotificationPresentationOptions.badge)
             
             
             // I thought pending pushes would always be handled in the app delegate. But it appears that is not the case,
@@ -58,7 +58,7 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
         PendingWebviewActions.removeAll()
     }
     
-    func userNotificationCenter(center: UNUserNotificationCenter, didReceiveNotificationResponse response: UNNotificationResponse, withCompletionHandler completionHandler: () -> Void) {
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         
         let showData = PendingNotificationShowStore.getByPushID(response.notification.request.identifier)
 

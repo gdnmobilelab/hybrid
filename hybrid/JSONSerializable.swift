@@ -12,10 +12,10 @@ import Foundation
 /// just this, so can probably be refactored away at some point.
 class JSONSerializable : NSObject {
     
-    static func serialize(obj:AnyObject) -> String? {
+    static func serialize(_ obj:AnyObject) -> String? {
         do {
-            let data = try NSJSONSerialization.dataWithJSONObject(obj, options: [])
-            return String(data: data, encoding: NSUTF8StringEncoding)!
+            let data = try JSONSerialization.data(withJSONObject: obj, options: [])
+            return String(data: data, encoding: String.Encoding.utf8)!
         } catch {
             log.error("Could not serialize JSON: " + String(error))
             return nil

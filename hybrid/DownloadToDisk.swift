@@ -15,7 +15,7 @@ import UserNotifications
 /// attaching them to the notification.
 class DownloadToTemporaryStorage {
     
-    static func start(fromURL:NSURL) -> Promise<NSURL> {
+    static func start(_ fromURL:NSURL) -> Promise<NSURL> {
         
         return Promise<NSURL> { fulfill, reject in
             

@@ -25,8 +25,8 @@ import JavaScriptCore
     dynamic var port1 = MessagePort()
     dynamic var port2 = MessagePort()
     
-    private var listener1:Listener?
-    private var listener2:Listener?
+    fileprivate var listener1:Listener?
+    fileprivate var listener2:Listener?
     
     override required init() {
         super.init()

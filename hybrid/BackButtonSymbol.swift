@@ -17,18 +17,18 @@ class BackButtonSymbol: UIButton {
     
     var onTap:(() -> ())?
     
-    convenience init(onTap:() -> ()) {
+    convenience init(onTap:@escaping () -> ()) {
         self.init()
         self.onTap = onTap
     }
     
     init() {
         super.init(frame: CGRect())
-        self.addTarget(self, action: #selector(self.tapped), forControlEvents: .TouchUpInside)
-        self.backgroundColor = UIColor.greenColor()
+        self.addTarget(self, action: #selector(self.tapped), for: .touchUpInside)
+        self.backgroundColor = UIColor.green
     }
     
-    func tapped(sender: UIButton!) {
+    func tapped(_ sender: UIButton!) {
         if let tap = self.onTap {
             tap()
         }
@@ -38,18 +38,18 @@ class BackButtonSymbol: UIButton {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override var highlighted: Bool {
+    override var isHighlighted: Bool {
         get {
-            return super.highlighted
+            return super.isHighlighted
         }
         
         set (value) {
-            super.highlighted = value
+            super.isHighlighted = value
             self.setNeedsDisplay()
         }
     }
     
-    override func drawRect(rect: CGRect) {
+    override func draw(_ rect: CGRect) {
         let height = rect.size.height * 0.65
         let width = height * 0.6
         
@@ -57,20 +57,20 @@ class BackButtonSymbol: UIButton {
         
         let context = UIGraphicsGetCurrentContext()!
         
-        CGContextTranslateCTM(context, 0, heightTranslate)
+        context.translateBy(x: 0, y: heightTranslate)
         
-        CGContextBeginPath(context)
-        CGContextMoveToPoint(context, width * 5.0/6.0, height * 0.0/10.0)
-        CGContextAddLineToPoint(context, width * 0.0/6.0, height * 5.0/10.0)
-        CGContextAddLineToPoint(context, width * 5.0/6.0, height * 10.0/10.0)
-        CGContextAddLineToPoint(context, width * 6.0/6.0, height * 9.0/10.0)
-        CGContextAddLineToPoint(context, width * 2.0/6.0, height * 5.0/10.0)
-        CGContextAddLineToPoint(context, width * 6.0/6.0, height * 1.0/10.0)
-        CGContextClosePath(context)
+        context.beginPath()
+        context.move(to: CGPoint(x: width * 5.0/6.0, y: height * 0.0/10.0))
+        context.addLine(to: CGPoint(x: width * 0.0/6.0, y: height * 5.0/10.0))
+        context.addLine(to: CGPoint(x: width * 5.0/6.0, y: height * 10.0/10.0))
+        context.addLine(to: CGPoint(x: width * 6.0/6.0, y: height * 9.0/10.0))
+        context.addLine(to: CGPoint(x: width * 2.0/6.0, y: height * 5.0/10.0))
+        context.addLine(to: CGPoint(x: width * 6.0/6.0, y: height * 1.0/10.0))
+        context.closePath()
         
-        let c = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: self.state == UIControlState.Highlighted ? 0.15 : 1)
+        let c = UIColor(red: 1.0, green: 1.0, blue: 1.0, alpha: self.state == UIControlState.highlighted ? 0.15 : 1)
         
-        CGContextSetFillColorWithColor(context, c.CGColor)
-        CGContextFillPath(context)
+        context.setFillColor(c.cgColor)
+        context.fillPath()
     }
 }

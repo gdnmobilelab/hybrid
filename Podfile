@@ -4,11 +4,11 @@ platform :ios, '10.0'
 use_frameworks!
 
 
-pod 'XCGLogger'
+pod 'XCGLogger', '~> 4.0.0'
 pod 'FMDB'
 pod 'FMDBMigrationManager'
-pod 'PromiseKit', '~> 3.2.1'
-pod 'EmitterKit'
+pod 'PromiseKit', '~> 4'
+pod 'EmitterKit', '~> 5'
 
 
 target 'hybrid' do

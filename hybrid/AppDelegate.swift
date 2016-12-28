@@ -18,8 +18,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     static var window: UIWindow?
     static var rootController:HybridNavigationController?
     
-    func application(application: UIApplication, willFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
-        UNUserNotificationCenter.currentNotificationCenter().delegate = NotificationDelegateInstance
+    func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        UNUserNotificationCenter.current().delegate = NotificationDelegateInstance
         return true
     }
     
@@ -29,9 +29,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
     
-    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
-        SharedResources.currentExecutionEnvironment = SharedResources.ExecutionEnvironment.App
+        SharedResources.currentExecutionEnvironment = SharedResources.ExecutionEnvironment.app
         
         log.setup(.Debug, showLogIdentifier: false, showFunctionName: false, showThreadName: true, showLogLevel: true, showFileNames: false, showLineNumbers: false, showDate: false, writeToFile: nil, fileLogLevel: nil)
         
@@ -44,7 +44,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             try Db.createMainDatabase()
 
             
-            let emptyWorkers = NSBundle.mainBundle().objectForInfoDictionaryKey("EMPTY_WORKERS_ON_LOAD") as! String == "1"
+            let emptyWorkers = Bundle.main.object(forInfoDictionaryKey: "EMPTY_WORKERS_ON_LOAD") as! String == "1"
             
             if emptyWorkers {
                 
@@ -53,8 +53,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 ServiceWorkerManager.clearActiveServiceWorkers()
                 do {
                     try Db.mainDatabase.inDatabase({ (db) in
-                        db.executeUpdate("DELETE FROM service_workers", withArgumentsInArray: nil)
-                        db.executeUpdate("DELETE FROM cache", withArgumentsInArray: nil)
+                        db.executeUpdate("DELETE FROM service_workers", withArgumentsIn: nil)
+                        db.executeUpdate("DELETE FROM cache", withArgumentsIn: nil)
                     })
                 } catch {
                     log.warning("Failed to clear service workers - DB migrations not run yet perhaps?")
@@ -75,7 +75,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             application.registerForRemoteNotifications()
             
 
-            AppDelegate.window = UIWindow(frame: UIScreen.mainScreen().bounds)
+            AppDelegate.window = UIWindow(frame: UIScreen.main.bounds)
             
             let rootController = HybridNavigationController.create()
             
@@ -84,7 +84,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             AppDelegate.window!.rootViewController = rootController
             
             let windowOpenActions = PendingWebviewActions.getAll().filter { event in
-                return event.type == PendingWebviewActionType.OpenWindow
+                return event.type == PendingWebviewActionType.openWindow
             }
             
 //            let launchKey = launchOptions?["UIApplicationLaunchOptionsURLKey"]
@@ -116,16 +116,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func pushDefaultStartURL() {
-        let initialURL = NSBundle.mainBundle().objectForInfoDictionaryKey("INITIAL_URL") as! String
+        let initialURL = Bundle.main.object(forInfoDictionaryKey: "INITIAL_URL") as! String
         
         log.info("Loading default homepage:" + initialURL)
         
-        HybridNavigationController.current!.pushNewHybridWebViewControllerFor(NSURL(string:initialURL)!)
+        HybridNavigationController.current!.pushNewHybridWebViewControllerFor(URL(string:initialURL)!)
     }
     
-    func application(application: UIApplication, didReceiveRemoteNotification userInfo: [NSObject : AnyObject], fetchCompletionHandler completionHandler: (UIBackgroundFetchResult) -> Void) {
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
         
-        if UIApplication.sharedApplication().applicationState == UIApplicationState.Background {
+        if UIApplication.shared.applicationState == UIApplicationState.background {
             
             // If we're in the background we can't suppress the remote notification. So
             // we let it show, and store our pending notification show data, to be added
@@ -146,7 +146,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
     }
     
-    func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
+    func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
         
         NotificationDelegate.processPendingActions()
         
@@ -154,7 +154,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
     }
     
-    func application(application: UIApplication, continueUserActivity userActivity: NSUserActivity, restorationHandler: ([AnyObject]?) -> Void) -> Bool {
+    func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([Any]?) -> Void) -> Bool {
         
         if userActivity.activityType != "NSUserActivityTypeBrowsingWeb" {
             
@@ -176,29 +176,29 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
 
-    func application(application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: NSData) {
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         ApplicationEvents.emit("didRegisterForRemoteNotificationsWithDeviceToken", deviceToken)
     }
     
-    func application(application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: NSError) {
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
         ApplicationEvents.emit("didFailToRegisterForRemoteNotificationsWithError", error)
     }
     
-    func applicationWillResignActive(application: UIApplication) {
+    func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
     }
     
     
     
-    func applicationDidEnterBackground(application: UIApplication) {
+    func applicationDidEnterBackground(_ application: UIApplication) {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
         log.info("App is entering background mode")
         WebServerDomainManager.stopAll()
     }
     
-    func applicationWillEnterForeground(application: UIApplication) {
+    func applicationWillEnterForeground(_ application: UIApplication) {
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
         log.info("App is being reactivated into foreground mode.")
         
@@ -210,7 +210,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
     
-    func applicationDidBecomeActive(application: UIApplication) {
+    func applicationDidBecomeActive(_ application: UIApplication) {
         
         
         let pendingActions = PendingWebviewActions.getAll()
@@ -223,7 +223,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         ServiceWorkerManager.processAllPendingPushEvents()
     }
     
-    func applicationWillTerminate(application: UIApplication) {
+    func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 //        WebServer.current!.stop()
         NSLog("Did Terminate")

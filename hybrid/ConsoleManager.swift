@@ -23,7 +23,7 @@ class ConsoleManager: ScriptMessageManager {
     ///
     /// - Parameter message: An object with a "level" string and an "args" array of items to log
     /// - Returns: nil
-    override func handleMessage(message:AnyObject) -> Promise<String>? {
+    override func handleMessage(_ message:AnyObject) -> Promise<String>? {
         
         let level = message["level"] as! String
         let arguments = message["args"] as? [String]

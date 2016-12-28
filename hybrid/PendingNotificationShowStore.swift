@@ -14,13 +14,13 @@ class PendingNotificationDefaultStore : UserDefaultStore<PendingNotificationShow
         super.init(storeKey: "pending_notification_show", classNameAsString: "PendingNotificationShow")
     }
     
-    func getByPushID(pushID:String) -> PendingNotificationShow? {
+    func getByPushID(_ pushID:String) -> PendingNotificationShow? {
         let all = self.getAll()
         
         return all.filter { $0.pushID == pushID }.first
     }
     
-    override func equals(lhs: PendingNotificationShow, rhs: PendingNotificationShow) -> Bool {
+    override func equals(_ lhs: PendingNotificationShow, rhs: PendingNotificationShow) -> Bool {
         return lhs.pushID == rhs.pushID
     }
 }

@@ -12,7 +12,7 @@ import UIKit
 
 
 @objc protocol OffscreenCanvasExports : JSExport {
-    func getContext(contextType:String) -> OffscreenCanvasRenderingContext2D?
+    func getContext(_ contextType:String) -> OffscreenCanvasRenderingContext2D?
     var width:Int {get}
     var height:Int {get}
     static func devicePixelRatio() -> CGFloat
@@ -25,7 +25,7 @@ import UIKit
 /// Closely mirrors the HTML Canvas API: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API
 @objc class OffscreenCanvas : NSObject, OffscreenCanvasExports {
     
-    private let twoDContext: OffscreenCanvasRenderingContext2D
+    fileprivate let twoDContext: OffscreenCanvasRenderingContext2D
     let width:Int
     let height:Int
     
@@ -39,7 +39,7 @@ import UIKit
     ///
     /// - Returns: the device pixel ratio
     static func devicePixelRatio() -> CGFloat {
-        return UIScreen.mainScreen().scale
+        return UIScreen.main.scale
     }
     
     required init(width: Int, height: Int) {
@@ -49,8 +49,8 @@ import UIKit
     }
     
     init(existingContext: CGContext) {
-        self.width = CGBitmapContextGetWidth(existingContext)
-        self.height = CGBitmapContextGetHeight(existingContext)
+        self.width = existingContext.width
+        self.height = existingContext.height
         self.twoDContext = OffscreenCanvasRenderingContext2D(context: existingContext)
     }
     
@@ -59,9 +59,9 @@ import UIKit
     ///
     /// - Parameter contextType: Must be "2d" or "2D"
     /// - Returns: An instance of OffscreenCanvasRenderingContext2D
-    func getContext(contextType:String) -> OffscreenCanvasRenderingContext2D? {
+    func getContext(_ contextType:String) -> OffscreenCanvasRenderingContext2D? {
     
-        if contextType.lowercaseString != "2d" {
+        if contextType.lowercased() != "2d" {
             return nil
         }
         

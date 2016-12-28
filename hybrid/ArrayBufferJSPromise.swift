@@ -14,27 +14,27 @@ import JavaScriptCore
 /// We need a reference to a context to go forward, so we have to wrap it in a promise.
 class ArrayBufferJSPromise : JSPromise {
     
-    let data:NSData
+    let data:Data
     
-    init(data:NSData) {
+    init(data:Data) {
         self.data = data
     }
     
-    func convertToArrayBuffer(context:JSContext) {
-        let count = self.data.length / sizeof(UInt32)
-        var array = [UInt32](count: count, repeatedValue: 0)
-        self.data.getBytes(&array, length:count * sizeof(UInt32))
+    func convertToArrayBuffer(_ context:JSContext) {
+        let count = self.data.count / MemoryLayout<UInt32>.size
+        var array = [UInt32](repeating: 0, count: count)
+        (self.data as NSData).getBytes(&array, length:count * MemoryLayout<UInt32>.size)
         
         let arrayBuffer = context.objectForKeyedSubscript("ArrayBuffer")
-            .constructWithArguments([self.data.length])
+            .construct(withArguments: [self.data.count])
         
         let uIntArray = context.objectForKeyedSubscript("Uint32Array")
-            .constructWithArguments([arrayBuffer])
+            .construct(withArguments: [arrayBuffer])
         
         var idx = 0
         while idx < array.count {
-            let jv = JSValue(UInt32: array[idx], inContext: context)
-            uIntArray.setObject(jv, atIndexedSubscript: idx)
+            let jv = JSValue(uInt32: array[idx], in: context)
+            uIntArray?.setObject(jv, atIndexedSubscript: idx)
             idx = idx + 1
         }
         
@@ -43,7 +43,7 @@ class ArrayBufferJSPromise : JSPromise {
         
     }
     
-    override func then(resolve: JSValue, reject: JSValue?) -> JSValue {
+    override func then(_ resolve: JSValue, reject: JSValue?) -> JSValue {
         self.convertToArrayBuffer(resolve.context)
         return super.then(resolve, reject: reject)
     }

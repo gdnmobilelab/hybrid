@@ -10,7 +10,7 @@ import Foundation
 import JavaScriptCore
 
 /// A wrapper that attempts to turn JSValue errors into Swift errors. Needs work.
-class JSContextError : ErrorType {
+class JSContextError : Error {
     let message:String
     let stack:String?
     
@@ -34,7 +34,7 @@ class JSContextError : ErrorType {
 //                }
 //                self.message = msg
                 for (key, val) in dict {
-                    NSLog("key? " + key + ": " + String(val))
+                    NSLog("key? " + key + ": " + String(describing: val))
                 }
                 self.message = jsValue.toString()
                 self.stack = nil

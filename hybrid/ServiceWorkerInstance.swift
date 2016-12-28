@@ -18,7 +18,7 @@ import UserNotifications
 /// purpose as a tuple, just simpler to read in code.
 struct PromiseReturn {
     let fulfill:(JSValue) -> Void
-    let reject:(ErrorType) -> Void
+    let reject:(Error) -> Void
 }
 
 
@@ -31,7 +31,7 @@ struct PromiseReturn {
 
 /// The core of our service worker functionality. This class wraps a JSContext with a series of helper functions
 /// that add our SW helper library, as well as provide hooks for things like setTimeout and event execution
-@objc public class ServiceWorkerInstance : NSObject, ServiceWorkerInstanceExports {
+@objc open class ServiceWorkerInstance : NSObject, ServiceWorkerInstanceExports {
     
     
     /// The actual JavascriptCore context in which our worker lives and runs.
@@ -43,15 +43,15 @@ struct PromiseReturn {
     /// Errors encountered in the JSContext are passed to exceptionHandler() rather than
     /// immediately returning. So, we store the error in this variable and pluck it back
     /// out so that we can keep it in our Promise chain.
-    private var contextErrorValue:JSValue?
+    fileprivate var contextErrorValue:JSValue?
     
     
     /// The remote URL this service worker was downloaded from.
-    let url:NSURL!
+    let url:URL!
     
     
     /// The scope for this service worker
-    let scope:NSURL!
+    let scope:URL!
     
     let timeoutManager = ServiceWorkerTimeoutManager()
     var registration: ServiceWorkerRegistration?
@@ -75,7 +75,7 @@ struct PromiseReturn {
     /// this in the JSContext. Matches the Service Worker spec's scriptURL property.
     var scriptURL:String {
         get {
-            return self.url.absoluteString!
+            return self.url.absoluteString
         }
     }
     
@@ -86,19 +86,19 @@ struct PromiseReturn {
     /// a string.
     var state:String {
         get {
-            if self.installState == ServiceWorkerInstallState.Activated {
+            if self.installState == ServiceWorkerInstallState.activated {
                 return "activated"
             }
-            if self.installState == ServiceWorkerInstallState.Activating {
+            if self.installState == ServiceWorkerInstallState.activating {
                 return "activating"
             }
-            if self.installState == ServiceWorkerInstallState.Installed {
+            if self.installState == ServiceWorkerInstallState.installed {
                 return "installed"
             }
-            if self.installState == ServiceWorkerInstallState.Installing {
+            if self.installState == ServiceWorkerInstallState.installing {
                 return "installing"
             }
-            if self.installState == ServiceWorkerInstallState.Redundant {
+            if self.installState == ServiceWorkerInstallState.redundant {
                 return "redundant"
             }
             return ""
@@ -108,13 +108,13 @@ struct PromiseReturn {
     var globalScope:ServiceWorkerGlobalScope
     
     
-    init(url:NSURL, scope: NSURL?, instanceId:Int, installState: ServiceWorkerInstallState) {
+    init(url:URL, scope: URL?, instanceId:Int, installState: ServiceWorkerInstallState) {
         
         self.url = url
         if (scope != nil) {
             self.scope = scope
         } else {
-            self.scope = url.URLByDeletingLastPathComponent
+            self.scope = url.deletingLastPathComponent()
         }
         
         self.installState = installState
@@ -122,11 +122,11 @@ struct PromiseReturn {
         
         self.globalFetch = GlobalFetch(workerScope: self.scope)
         
-        let urlComponents = NSURLComponents(URL: url, resolvingAgainstBaseURL: false)!
+        var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)!
         urlComponents.path = nil
         self.jsContext = JSContext()
         self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext)
-        self.webSQL = WebSQLDatabaseCreator(context: self.jsContext, origin: urlComponents.URL!.absoluteString!)
+        self.webSQL = WebSQLDatabaseCreator(context: self.jsContext, origin: urlComponents.url!.absoluteString)
         
         self.console = Console(context: self.jsContext)
         
@@ -134,7 +134,7 @@ struct PromiseReturn {
         
     
         self.jsContext.exceptionHandler = self.exceptionHandler
-        self.jsContext.name = "SW — " + url.absoluteString!
+        self.jsContext.name = "SW — " + url.absoluteString
         self.cache = ServiceWorkerCacheStorage(serviceWorker: self)
         self.globalFetch.addToJSContext(self.jsContext)
         
@@ -152,7 +152,7 @@ struct PromiseReturn {
     ///
     /// - Parameter url: The URL this service worker was downloaded from
     /// - Returns: A promise that returns a ServiceWorkerInstance if it exists locally, if not, nil
-    static func getActiveWorkerByURL(url:NSURL) -> Promise<ServiceWorkerInstance?> {
+    static func getActiveWorkerByURL(_ url:URL) -> Promise<ServiceWorkerInstance?> {
         
         log.info("Request for service worker at URL: " + url.absoluteString!)
         
@@ -210,7 +210,7 @@ struct PromiseReturn {
     ///
     /// - Parameter id: The service worker ID, as created by the database primary key
     /// - Returns: A promise returning either a ServiceWorkerInstance if it exists, or nil if not
-    static func getById(id:Int) -> Promise<ServiceWorkerInstance?> {
+    static func getById(_ id:Int) -> Promise<ServiceWorkerInstance?> {
         
         log.debug("Request for service worker with ID " + String(id))
         return Promise<Void>()
@@ -269,14 +269,14 @@ struct PromiseReturn {
     ///
     /// - Parameter url: The URL to check
     /// - Returns: true if within scope, otherwise false
-    func scopeContainsURL(url:NSURL) -> Bool {
-        return url.absoluteString!.hasPrefix(self.scope.absoluteString!)
+    func scopeContainsURL(_ url:URL) -> Bool {
+        return url.absoluteString.hasPrefix(self.scope.absoluteString)
     }
     
     
     /// Add various classes and objects to the global scope of the service worker. To be broken out
     /// into a ServiceWorkerGlobalScope class at some point, possibly.
-    private func hookFunctions() {
+    fileprivate func hookFunctions() {
         
         self.timeoutManager.hookFunctions(self.jsContext)
         
@@ -288,8 +288,8 @@ struct PromiseReturn {
         ]
         
         for (key, val) in toBind {
-            selfObj.setObject(val, forKeyedSubscript: key)
-            self.jsContext.setObject(val, forKeyedSubscript: key)
+            selfObj?.setObject(val, forKeyedSubscript: key as (NSCopying & NSObjectProtocol)!)
+            self.jsContext.setObject(val, forKeyedSubscript: key as (NSCopying & NSObjectProtocol)!)
         }
         
     }
@@ -301,7 +301,7 @@ struct PromiseReturn {
     ///
     /// - Parameter ev: The ExtendableEvent to dispatch. We have a few subclasses like NotificationEvent.
     /// - Returns: A promise that waits until any waitUntil() call has completed. Right now it returns a value from that, it should not.
-    func dispatchExtendableEvent(ev:ExtendableEvent) -> Promise<Void> {
+    func dispatchExtendableEvent(_ ev:ExtendableEvent) -> Promise<Void> {
         
         let funcToRun = self.jsContext.objectForKeyedSubscript("self")
             .objectForKeyedSubscript("dispatchEvent")
@@ -326,7 +326,7 @@ struct PromiseReturn {
     ///
     /// - Parameter fetch: A FetchRequest to process.
     /// - Returns: The FetchResponse returned by processing the fetch event
-    func dispatchFetchEvent(fetch: FetchRequest) -> Promise<FetchResponse?> {
+    func dispatchFetchEvent(_ fetch: FetchRequest) -> Promise<FetchResponse?> {
         
         let dispatch = self.jsContext.objectForKeyedSubscript("hybrid")
             .objectForKeyedSubscript("dispatchFetchEvent")
@@ -342,7 +342,7 @@ struct PromiseReturn {
     ///
     /// - Parameter workerJS: The JS to run
     /// - Returns: A promise when execution is complete and any pending push events have fired.
-    func loadServiceWorker(workerJS:String) -> Promise<Void> {
+    func loadServiceWorker(_ workerJS:String) -> Promise<Void> {
         return self.loadContextScript()
         .then {_ in
             return self.runScript(workerJS)
@@ -411,7 +411,7 @@ struct PromiseReturn {
     /// service worker environment.
     ///
     /// - Returns: An empty promise that fulfills immediately (the operation is synchonous). Promise is used to catch errors.
-    private func loadContextScript() -> Promise<Void> {
+    fileprivate func loadContextScript() -> Promise<Void> {
         
         return Promise<String> {fulfill, reject in
             
@@ -430,18 +430,18 @@ struct PromiseReturn {
     
     /// JSContext doesn't have a 'global' variable so instead we make our own,
     /// then go through and manually declare global variables.
-    private func applyGlobalVariables() {
+    fileprivate func applyGlobalVariables() {
         
         let global = self.jsContext.objectForKeyedSubscript("global")
         
         let globalKeys = self.jsContext
             .objectForKeyedSubscript("Object")
             .objectForKeyedSubscript("keys")
-            .callWithArguments([global])
+            .call(withArguments: [global])
             .toArray() as! [String]
         
         for key in globalKeys {
-            self.jsContext.setObject(global.objectForKeyedSubscript(key), forKeyedSubscript: key)
+            self.jsContext.setObject(global!.objectForKeyedSubscript(key), forKeyedSubscript: key as (NSCopying & NSObjectProtocol)!)
         }
 
     }
@@ -452,7 +452,7 @@ struct PromiseReturn {
     ///
     /// - Parameter js: the JavaScript to execute
     /// - Returns: Empty promise upon execution completion
-    private func runScript(js: String) -> Promise<JSValue> {
+    fileprivate func runScript(_ js: String) -> Promise<JSValue> {
         self.contextErrorValue = nil
         return Promise<JSValue> { fulfill, reject in
             let result = self.jsContext.evaluateScript(js)
@@ -472,7 +472,7 @@ struct PromiseReturn {
     /// - Parameters:
     ///   - context: the worker's JSContext
     ///   - exception: The error as a JSValue
-    private func exceptionHandler(context:JSContext!, exception:JSValue!) {
+    fileprivate func exceptionHandler(_ context:JSContext!, exception:JSValue!) {
         self.contextErrorValue = exception
         log.error("JSCONTEXT error: " + exception.toString())
         

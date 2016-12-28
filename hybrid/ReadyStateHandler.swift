@@ -15,7 +15,7 @@ class ReadyStateHandler: NSObject, WKScriptMessageHandler {
     
     var onchange: ((String) -> ())?
     
-    @objc func userContentController(userContentController: WKUserContentController, didReceiveScriptMessage message: WKScriptMessage) {
+    @objc func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         
         if self.onchange != nil {
             self.onchange!(message.body as! String)

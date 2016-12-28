@@ -37,11 +37,11 @@ class NotificationPermissionHandler: ScriptMessageManager {
     ///
     /// - Parameter status: The UNAuthorizationStatus
     /// - Returns: A string derived from the status
-    func authStatusToBrowserString(status:UNAuthorizationStatus) -> String {
-        if status == UNAuthorizationStatus.Authorized {
+    func authStatusToBrowserString(_ status:UNAuthorizationStatus) -> String {
+        if status == UNAuthorizationStatus.authorized {
             return "granted"
         }
-        if status == UNAuthorizationStatus.Denied {
+        if status == UNAuthorizationStatus.denied {
             return "denied"
         }
         
@@ -53,7 +53,7 @@ class NotificationPermissionHandler: ScriptMessageManager {
     ///
     /// - Parameter str: "test"
     /// - Returns: "\"test\""
-    private func makeJSONSafe(str:String) -> String {
+    fileprivate func makeJSONSafe(_ str:String) -> String {
         return "\"" + str + "\""
     }
     
@@ -61,7 +61,7 @@ class NotificationPermissionHandler: ScriptMessageManager {
     /// The actual request function. Sends request out to OS and waits for response
     ///
     /// - Returns: A promise that resolves with the browser-friendly string based on the user preference
-    private func requestPermission() -> Promise<String> {
+    fileprivate func requestPermission() -> Promise<String> {
         return self.getAuthStatus()
         .then { authStatus -> Promise<String> in
             if authStatus != UNAuthorizationStatus.NotDetermined {
@@ -107,7 +107,7 @@ class NotificationPermissionHandler: ScriptMessageManager {
     ///
     /// - Parameter message: Message is an object with a key "operation", which must equal getStatus or requestPermission
     /// - Returns: In both cases it will return a string with the current permission in it
-    override func handleMessage(message:AnyObject) -> Promise<String>? {
+    override func handleMessage(_ message:AnyObject) -> Promise<String>? {
         
         let operation = message["operation"] as! String
         

@@ -49,12 +49,12 @@ class CanvasView: UIView {
     
 //    private var canvasData: CanvasEvent?
     let canvas:OffscreenCanvas
-    private let worker: ServiceWorkerInstance
-    private var displayLink:CADisplayLink?
-    private let notification:Notification
+    fileprivate let worker: ServiceWorkerInstance
+    fileprivate var displayLink:CADisplayLink?
+    fileprivate let notification:Notification
     
-    private static func multiplyByRatio(num:CGFloat) -> Int {
-        return Int(num * UIScreen.mainScreen().scale)
+    fileprivate static func multiplyByRatio(_ num:CGFloat) -> Int {
+        return Int(num * UIScreen.main.scale)
     }
     
     init(width: CGFloat, ratio: CGFloat, worker: ServiceWorkerInstance, notification:Notification) {
@@ -72,16 +72,16 @@ class CanvasView: UIView {
         
         self.canvas.requestAnimationFrame = self.requestAnimationFrame
         
-        self.opaque = false
+        self.isOpaque = false
         
         self.displayLink = CADisplayLink(target: self, selector: #selector(self.runUpdate))
-        self.displayLink!.addToRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+        self.displayLink!.add(to: RunLoop.main, forMode: RunLoopMode.defaultRunLoopMode)
         
     }
     
     override func removeFromSuperview() {
         super.removeFromSuperview()
-        self.displayLink!.removeFromRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+        self.displayLink!.remove(from: RunLoop.main, forMode: RunLoopMode.defaultRunLoopMode)
     }
     
     var wantsAnimationFrame:Bool = false
@@ -114,17 +114,17 @@ class CanvasView: UIView {
     }
     
     
-    override func drawRect(rect: CGRect) {
+    override func draw(_ rect: CGRect) {
         
         let ctx = self.canvas.getContext("2d")!.context
         
         UIGraphicsPushContext(ctx)
         
-        let img = CGBitmapContextCreateImage(ctx)!
+        let img = ctx.makeImage()!
         
         UIGraphicsPopContext()
         
-        CGContextDrawImage(UIGraphicsGetCurrentContext()!, rect, img)
+        UIGraphicsGetCurrentContext()!.draw(img, in: rect)
         
         self.pendingRender = false
     }

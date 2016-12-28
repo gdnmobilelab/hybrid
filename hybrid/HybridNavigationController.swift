@@ -34,7 +34,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         // We render this in the same size as the original controller, but off-screen
         self.waitingArea.frame = CGRect(origin: CGPoint(x: self.view.frame.width + 1, y:0), size: self.view.frame.size)
         self.view.addSubview(self.waitingArea)
-        self.navigationBar.translucent = false
+        self.navigationBar.isTranslucent = false
         self.delegate = self
         
         self.addLaunchViewToController()
@@ -54,12 +54,12 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     
     /// Different HybridWebviewControllers can have different background colors, so we
     /// want to make sure we set the bar to the color of the new top view when we pop.
-    override func popViewControllerAnimated(animated: Bool) -> UIViewController? {
+    override func popViewController(animated: Bool) -> UIViewController? {
         
         // We want to restore the color/styles of the last viewcontroller.
         // So, let's check if it has metadata, and if so, apply it.
         
-        let poppedController = super.popViewControllerAnimated(animated)
+        let poppedController = super.popViewController(animated: animated)
         let top = self.topViewController as? HybridWebviewController
         
         if top != nil && top?.currentMetadata != nil {
@@ -99,9 +99,9 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     /// to another view.
     ///
     /// - Parameter controller: The controller to remove from the array
-    private func removeControllerFromWaitingArray(controller:HybridWebviewController) {
-        let idx = self.waitingAreaViewControllers.indexOf(controller)
-        self.waitingAreaViewControllers.removeAtIndex(idx!)
+    fileprivate func removeControllerFromWaitingArray(_ controller:HybridWebviewController) {
+        let idx = self.waitingAreaViewControllers.index(of: controller)
+        self.waitingAreaViewControllers.remove(at: idx!)
     }
     
     
@@ -110,9 +110,9 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     /// for that.
     ///
     /// - Parameter controller: The controller to add
-    private func addControllerToWaitingArray(controller:HybridWebviewController) {
+    fileprivate func addControllerToWaitingArray(_ controller:HybridWebviewController) {
         self.waitingArea.addSubview(controller.webview!)
-        self.waitingAreaViewControllers.insert(controller, atIndex: 0)
+        self.waitingAreaViewControllers.insert(controller, at: 0)
     }
     
     
@@ -120,7 +120,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     /// waiting controllers array - use addControllerToWaitingArray() for that.
     ///
     /// - Parameter view: The HybridWebview to add to the waiting area view.
-    private func addViewToWaitingArea(view:HybridWebview) {
+    fileprivate func addViewToWaitingArea(_ view:HybridWebview) {
         self.waitingArea.addSubview(view)
     }
     
@@ -131,7 +131,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     /// - Parameters:
     ///   - controller: The controller to add and reset
     ///   - forDomain: Currently not used, but might be reactivated to improve load times by using direct HTML injection in the future
-    func addControllerAndViewToWaitingArea(controller: HybridWebviewController, forDomain: NSURL) {
+    func addControllerAndViewToWaitingArea(_ controller: HybridWebviewController, forDomain: URL) {
         
         self.addControllerToWaitingArray(controller)
         self.addViewToWaitingArea(controller.webview!)
@@ -144,7 +144,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     ///
     /// - Parameter url: The URL we want to load. Not a localhost URL - it will be mapped automatically.
     /// - Returns: A promise that resolves when the page is loaded and the view is painted and ready.
-    private func prepareWebviewFor(url:NSURL, attemptAcceleratedLoading:Bool) -> Promise<HybridWebviewController> {
+    fileprivate func prepareWebviewFor(_ url:NSURL, attemptAcceleratedLoading:Bool) -> Promise<HybridWebviewController> {
         let newInstance = self.getNewController()
         
         return Promise<HybridWebviewController> { fulfill, reject in
@@ -173,7 +173,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     /// view stack.
     ///
     /// - Parameter hybrid: The controller that has been popped.
-    func addPoppedViewBackToWaitingStack(hybrid:HybridWebviewController) {
+    func addPoppedViewBackToWaitingStack(_ hybrid:HybridWebviewController) {
         // Once this has been pushed off the stack, reset it with
         // the placeholder URL for the new top domain
         
@@ -185,7 +185,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             newTop = hybrid
         }
         
-        let urlToPreload = WebServerDomainManager.rewriteURLIfInWorkerDomain(newTop!.webview!.URL!)
+        let urlToPreload = WebServerDomainManager.rewriteURLIfInWorkerDomain(newTop!.webview!.url!)
         self.addControllerAndViewToWaitingArea(hybrid, forDomain: urlToPreload)
     }
     
@@ -194,7 +194,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     /// when it is ready.
     ///
     /// - Parameter url: The URL to load. Not localhost URL - is mapped automatically.
-    func pushNewHybridWebViewControllerFor(url:NSURL, animated:Bool = true) {
+    func pushNewHybridWebViewControllerFor(_ url:URL, animated:Bool = true) {
         
         self.prepareWebviewFor(url, attemptAcceleratedLoading: true)
         .then { newInstance -> Void in
@@ -216,8 +216,8 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         let viewController = self.launchViewController!
         self.launchViewController = nil
         
-        UIView.animateWithDuration(0.2, animations: {
-            viewController.view.transform = CGAffineTransformMakeScale(4, 4)
+        UIView.animate(withDuration: 0.2, animations: {
+            viewController.view.transform = CGAffineTransform(scaleX: 4, y: 4)
             viewController.view.alpha = 0
             }, completion: { finished in
                 viewController.view.removeFromSuperview()
@@ -230,7 +230,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     /// what that color is. This needs a lot of work.
     ///
     /// - Parameter metadata: the controller metadata to apply
-    func applyMetadata(metadata:HybridWebviewMetadata) {
+    func applyMetadata(_ metadata:HybridWebviewMetadata) {
         
         
         var isBright = true
@@ -242,21 +242,21 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             isBright = brightness * 255 > 150
             self.navigationBar.barTintColor = color
         } else {
-            self.navigationBar.barTintColor = UIColor.whiteColor()
+            self.navigationBar.barTintColor = UIColor.white
         }
         
         if isBright == false {
-            self.navigationBar.tintColor = UIColor.whiteColor()
-            self.statusBarStyle = UIStatusBarStyle.LightContent
+            self.navigationBar.tintColor = UIColor.white
+            self.statusBarStyle = UIStatusBarStyle.lightContent
             self.navigationBar.titleTextAttributes = [
-                NSForegroundColorAttributeName: UIColor.whiteColor()
+                NSForegroundColorAttributeName: UIColor.white
             ]
             
         } else {
-            self.navigationBar.tintColor = UIColor.blackColor()
-            self.statusBarStyle = UIStatusBarStyle.Default
+            self.navigationBar.tintColor = UIColor.black
+            self.statusBarStyle = UIStatusBarStyle.default
             self.navigationBar.titleTextAttributes = [
-                NSForegroundColorAttributeName: UIColor.blackColor()
+                NSForegroundColorAttributeName: UIColor.black
             ]
         }
         
@@ -268,24 +268,24 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     /// When a controller show is complete, we check to see if there is a controller in the waiting area - if not, create one.
     /// Then check to see if our new controller has a default back URL. If it does, and we don't have a parent view, create
     /// it and put it in the stack.
-    func navigationController(navigationController: UINavigationController, didShowViewController viewController: UIViewController, animated: Bool) {
+    func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
         
         let hybrid = viewController as! HybridWebviewController
         
         if self.waitingAreaViewControllers.count == 0 {
             // Ensure we have a cached view ready to go
             
-            let urlToPreload = WebServerDomainManager.rewriteURLIfInWorkerDomain(hybrid.webview!.URL!)
+            let urlToPreload = WebServerDomainManager.rewriteURLIfInWorkerDomain(hybrid.webview!.url!)
             
             self.addControllerAndViewToWaitingArea(HybridWebviewController(), forDomain: urlToPreload)
         }
         
-        if self.viewControllers.indexOf(viewController) == 0 && hybrid.currentMetadata?.defaultBackURL != nil {
+        if self.viewControllers.index(of: viewController) == 0 && hybrid.currentMetadata?.defaultBackURL != nil {
             
             // If this isn't the furthest back view then we already have a navigation path,
             // we don't need to restore the default one.
             
-            var backURL = NSURL(string:hybrid.currentMetadata!.defaultBackURL!, relativeToURL: hybrid.webview!.URL!)!
+            var backURL = URL(string:hybrid.currentMetadata!.defaultBackURL!, relativeTo: hybrid.webview!.url!)!
             
             if WebServerDomainManager.isLocalServerURL(backURL) {
                 backURL = WebServerDomainManager.mapServerURLToRequestURL(backURL)
@@ -303,9 +303,9 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     
     /// In theory this is set during setMetadata(). Haven't experimented extensively with light-colored navigation bars
     /// though, so this needs more work.
-    private var statusBarStyle = UIStatusBarStyle.Default
+    fileprivate var statusBarStyle = UIStatusBarStyle.default
     
-    override func preferredStatusBarStyle() -> UIStatusBarStyle {
+    override var preferredStatusBarStyle : UIStatusBarStyle {
         return statusBarStyle
     }
     

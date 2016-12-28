@@ -17,13 +17,13 @@ import WebKit
 /// (*not* WebView) to see if that pixel has painted or not. Then repeat until it has been.
 class RenderCheck {
     
-    private let target:WKWebView
-    private var renderCheckContext:CGContext?
-    private var pixel:UnsafeMutablePointer<CUnsignedChar>?
-    private let width: Int
-    private let height: Int
-    private var displayLink:CADisplayLink?
-    private var onRender:(()->())?
+    fileprivate let target:WKWebView
+    fileprivate var renderCheckContext:CGContext?
+    fileprivate var pixel:UnsafeMutablePointer<CUnsignedChar>?
+    fileprivate let width: Int
+    fileprivate let height: Int
+    fileprivate var displayLink:CADisplayLink?
+    fileprivate var onRender:(()->())?
     
     class colorToCheckFor {
         static let red:CGFloat = 0
@@ -34,7 +34,7 @@ class RenderCheck {
             
             let asString = [red,green,blue].map { i in
                 return String(Int(i))
-            }.joinWithSeparator(",")
+            }.joined(separator: ",")
             
             return "rgb(" + asString + ")"
         }
@@ -59,8 +59,8 @@ class RenderCheck {
     /// Check the pixel to see if it's the color we specified in the indicator
     ///
     /// - Returns: True if the pixel matches the color specified in colorToCheckFor. Otherwise, false.
-    private func checkIfRendered() -> Bool {    
-        self.target.scrollView.layer.renderInContext(self.renderCheckContext!)
+    fileprivate func checkIfRendered() -> Bool {    
+        self.target.scrollView.layer.render(in: self.renderCheckContext!)
         
         let startAt = 4 * width * height - 4
         
@@ -73,11 +73,11 @@ class RenderCheck {
     
     
     /// Used in the CADisplayLink callback to fire the actual pixel check, then fire onRender if successful
-    @objc private func checkForRender() {
+    @objc fileprivate func checkForRender() {
         if self.checkIfRendered() == true {
             log.debug("Checked if webview was ready, it WAS")
-            self.pixel!.destroy()
-            self.displayLink!.removeFromRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+            self.pixel!.deinitialize()
+            self.displayLink!.remove(from: RunLoop.main, forMode: RunLoopMode.defaultRunLoopMode)
             self.target.evaluateJavaScript(WebviewJS.removeLoadingIndicator, completionHandler: nil)
             self.onRender!()
         } else {
@@ -91,21 +91,21 @@ class RenderCheck {
     /// Start the  loop that checks whether the view has rendered or not.
     ///
     /// - Parameter onRender: The function to run when the render was successful.
-    func waitForRender(onRender: () -> ()) {
+    func waitForRender(_ onRender: @escaping () -> ()) {
         self.onRender = onRender
         
         let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.PremultipliedLast.rawValue)
+        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
         
         // 4 * because we need to store the red, green, blue and alpha of each pixel
-        self.pixel = UnsafeMutablePointer<CUnsignedChar>.alloc(4 * width * height)
+        self.pixel = UnsafeMutablePointer<CUnsignedChar>.allocate(capacity: 4 * width * height)
         
-        self.renderCheckContext = CGBitmapContextCreate(pixel!, width, height, 8, width * 4, colorSpace, bitmapInfo.rawValue)!
+        self.renderCheckContext = CGContext(data: pixel!, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4, space: colorSpace, bitmapInfo: bitmapInfo.rawValue)!
         
         self.target.evaluateJavaScript(WebviewJS.setLoadingIndicator, completionHandler: nil)
 
         self.displayLink = CADisplayLink(target: self, selector: #selector(self.checkForRender))
-        self.displayLink!.addToRunLoop(NSRunLoop.mainRunLoop(), forMode: NSDefaultRunLoopMode)
+        self.displayLink!.add(to: RunLoop.main, forMode: RunLoopMode.defaultRunLoopMode)
 
     }
 }

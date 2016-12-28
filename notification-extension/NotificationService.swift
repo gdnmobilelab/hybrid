@@ -15,7 +15,7 @@ class NotificationService: UNNotificationServiceExtension {
     var bestAttemptContent: UNMutableNotificationContent?
     var contentHandler: ((UNNotificationContent) -> Void)?
    
-    override func didReceiveNotificationRequest(request: UNNotificationRequest, withContentHandler contentHandler: (UNNotificationContent) -> Void) {
+    override func didReceive(_ request: UNNotificationRequest, withContentHandler contentHandler: @escaping (UNNotificationContent) -> Void) {
         
         self.contentHandler = contentHandler
         self.bestAttemptContent = request.content.mutableCopy() as? UNMutableNotificationContent
@@ -26,7 +26,7 @@ class NotificationService: UNNotificationServiceExtension {
         let workerURL = request.content.userInfo["service_worker_url"] as! String
         let payload = request.content.userInfo["payload"] as! String
         let dateSent = request.content.userInfo["send_time"] as! String
-        let dateSentAsDate = NSDate(timeIntervalSince1970: Double(dateSent)! / 1000)
+        let dateSentAsDate = Date(timeIntervalSince1970: Double(dateSent)! / 1000)
         
         // Store the push event so that we can refer to it the next time the app or notification content
         // extension is launched. If the app is active in the background it'll pick this up immediately.
@@ -42,13 +42,13 @@ class NotificationService: UNNotificationServiceExtension {
         if maybeSilent == "true" {
             self.bestAttemptContent!.sound = nil
         } else {
-            self.bestAttemptContent!.sound = UNNotificationSound.defaultSound()
+            self.bestAttemptContent!.sound = UNNotificationSound.default()
         }
         
         
         
         if let actions = maybeActions {
-            PayloadToNotificationContent.setNotificationCategoryBasedOnActions(actions.componentsSeparatedByString(",,,"))
+            PayloadToNotificationContent.setNotificationCategoryBasedOnActions(actions.components(separatedBy: ",,,"))
         }
         
         Promise<Void>()

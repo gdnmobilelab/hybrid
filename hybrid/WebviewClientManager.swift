@@ -10,21 +10,20 @@ import Foundation
 import JavaScriptCore
 import EmitterKit
 import PromiseKit
-import OMGHTTPURLRQ
 
 @objc protocol WebviewRecordExports : JSExport {
-    var url:NSURL? {get}
+    var url:URL? {get}
 }
 
 
 /// We use this class to record what webviews we currently have open in the app. It's used for cross-process
 /// stuff, like when a service worker inside the notification content calls Clients.matchAll().
 @objc class WebviewRecord : NSObject, NSCoding, WebviewRecordExports {
-    var url:NSURL?
+    var url:URL?
     var index:Int
     var workerId: Int?
     
-    init(url: NSURL?, index: Int, workerId:Int?) {
+    init(url: URL?, index: Int, workerId:Int?) {
         self.url = url
         self.index = index
         self.workerId = workerId
@@ -33,16 +32,16 @@ import OMGHTTPURLRQ
     // Use NSCoding to allow us to store this in UserDefaults
     
     convenience required init?(coder decoder: NSCoder) {
-        let url = decoder.decodeObjectForKey("url") as? NSURL
-        let index = decoder.decodeObjectForKey("index") as! Int
-        let workerId = decoder.decodeObjectForKey("workerId") as? Int
+        let url = decoder.decodeObject(forKey: "url") as? URL
+        let index = decoder.decodeObject(forKey: "index") as! Int
+        let workerId = decoder.decodeObject(forKey: "workerId") as? Int
         self.init(url: url, index: index, workerId: workerId)
     }
     
-    func encodeWithCoder(coder: NSCoder) {
-        coder.encodeObject(self.url, forKey: "url")
-        coder.encodeObject(self.index, forKey: "index")
-        coder.encodeObject(self.workerId, forKey: "workerId")
+    func encode(with coder: NSCoder) {
+        coder.encode(self.url, forKey: "url")
+        coder.encode(self.index, forKey: "index")
+        coder.encode(self.workerId, forKey: "workerId")
     }
     
 }
@@ -51,10 +50,10 @@ import OMGHTTPURLRQ
 
 @objc protocol WebviewClientManagerExports : JSExport {
     func claim() -> JSPromise
-    func matchAll(options:JSValue) -> JSPromise
+    func matchAll(_ options:JSValue) -> JSPromise
     
     @objc(openWindow::)
-    func openWindow(url:String, options:AnyObject?) -> JSPromise
+    func openWindow(_ url:String, options:AnyObject?) -> JSPromise
 }
 
 
@@ -71,7 +70,7 @@ import OMGHTTPURLRQ
     static let clientEvents = Event<PendingWebviewAction>()
     
     static func resetActiveWebviewRecords() {
-        SharedResources.userDefaults.removeObjectForKey(SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
+        SharedResources.userDefaults.removeObject(forKey: SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
     }
     
     
@@ -79,7 +78,7 @@ import OMGHTTPURLRQ
     static var currentWebviewRecords: [WebviewRecord] {
         
         get {
-            let recordsAsData = SharedResources.userDefaults.dataForKey(SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
+            let recordsAsData = SharedResources.userDefaults.data(forKey: SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
             
             if recordsAsData == nil {
                 // No store, so no active web view records
@@ -91,7 +90,7 @@ import OMGHTTPURLRQ
             
             NSKeyedUnarchiver.setClass(WebviewRecord.self, forClassName: "WebviewRecord")
             
-            let records = NSKeyedUnarchiver.unarchiveObjectWithData(recordsAsData!) as! [WebviewRecord]
+            let records = NSKeyedUnarchiver.unarchiveObject(with: recordsAsData!) as! [WebviewRecord]
             
             return records
 
@@ -100,14 +99,14 @@ import OMGHTTPURLRQ
         set(value) {
             
             if value.count == 0 {
-                SharedResources.userDefaults.removeObjectForKey(SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
+                SharedResources.userDefaults.removeObject(forKey: SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
                 return
             }
             
-            NSKeyedArchiver.setClassName("WebviewRecord", forClass: WebviewRecord.self)
+            NSKeyedArchiver.setClassName("WebviewRecord", for: WebviewRecord.self)
             
-            let data = NSKeyedArchiver.archivedDataWithRootObject(value)
-            SharedResources.userDefaults.setObject(data, forKey: SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
+            let data = NSKeyedArchiver.archivedData(withRootObject: value)
+            SharedResources.userDefaults.set(data, forKey: SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
             
         }
         
@@ -119,19 +118,19 @@ import OMGHTTPURLRQ
     func claim() -> JSPromise {
         
         let claimPromises = WebviewClientManager.currentWebviewRecords.map { record -> Promise<Void> in
-            if record.url == nil || record.url!.absoluteString!.hasPrefix(self.serviceWorker.scope.absoluteString!) == false {
-                return Promise<Void>()
+            if record.url == nil || record.url!.absoluteString.hasPrefix(self.serviceWorker.scope.absoluteString) == false {
+                return Promise<Void>(value: nil)
             } else {
                 
                 // We put this in an event bridge because out notificiation content extension
                 // needs to be able to emit these events, which unfortunately means we need
                 // to store such events for execution later
                 
-                let ev = PendingWebviewAction(type: PendingWebviewActionType.Claim, record: record, options: [
-                    "newServiceWorkerId": self.serviceWorker.instanceId
+                let ev = PendingWebviewAction(type: PendingWebviewActionType.claim, record: record, options: [
+                    "newServiceWorkerId": self.serviceWorker.instanceId as AnyObject
                 ])
                 
-                if SharedResources.currentExecutionEnvironment == SharedResources.ExecutionEnvironment.App {
+                if SharedResources.currentExecutionEnvironment == SharedResources.ExecutionEnvironment.app {
                     // We're in the app, so we want to wait for immediate execution
                     
                     return Promise<Void> { fulfill, reject in
@@ -141,7 +140,7 @@ import OMGHTTPURLRQ
                     
                 } else {
                     WebviewClientManager.clientEvents.emit(ev)
-                    return Promise<Void>()
+                    return Promise<Void>(value: nil)
                 }
                 
             }
@@ -149,7 +148,7 @@ import OMGHTTPURLRQ
         
         let jsP = JSPromise()
         
-        when(claimPromises)
+        when(resolved: claimPromises)
         .then {
             jsP.resolve(nil)
         }
@@ -160,7 +159,7 @@ import OMGHTTPURLRQ
     
     
     /// Find all webviews that fall under the current worker scope
-    func matchAll(options: JSValue) -> JSPromise {
+    func matchAll(_ options: JSValue) -> JSPromise {
 
         let matchingRecords = WebviewClientManager.currentWebviewRecords.filter { record in
             
@@ -171,7 +170,7 @@ import OMGHTTPURLRQ
         }
         
         let matchesToClients = matchingRecords.map {record in
-            return WindowClient(url: record.url!.absoluteString!, uniqueId: String(record.index))
+            return WindowClient(url: record.url!.absoluteString, uniqueId: String(record.index))
         }
         
         return JSPromise.resolve(matchesToClients)
@@ -184,19 +183,19 @@ import OMGHTTPURLRQ
     /// - Parameters:
     ///   - url: The URL to open
     ///   - options: An object, currently the 'external' attribute is the only one supported.
-    func openWindow(url:String, options:AnyObject?) -> JSPromise {
+    func openWindow(_ url:String, options:AnyObject?) -> JSPromise {
         
-        let urlToOpen = NSURL(string: url,relativeToURL: self.serviceWorker.scope)!
+        let urlToOpen = URL(string: url,relativeTo: self.serviceWorker.scope as URL?)!
         
         var optionsToSave: [String:AnyObject] = [
-            "urlToOpen": urlToOpen.absoluteString!
+            "urlToOpen": urlToOpen.absoluteString as AnyObject
         ]
         
         if let optionsExists = options {
             optionsToSave["openOptions"] = optionsExists
         }
         
-        let newEvent = PendingWebviewAction(type: PendingWebviewActionType.OpenWindow, record: nil, options: optionsToSave)
+        let newEvent = PendingWebviewAction(type: PendingWebviewActionType.openWindow, record: nil, options: optionsToSave)
         
         WebviewClientManager.clientEvents.emit(newEvent)
  

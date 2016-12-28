@@ -15,7 +15,7 @@ import PromiseKit
 /// we have a service worker running on. We use this server to pipe HTTP requests through worker fetch events when applicable.
 class WebServer {
     
-    private var server = GCDWebServer()
+    fileprivate var server = GCDWebServer()
     
     
     /// We store the port number that GCDWebServer decides on when it first starts up, so that when the app suspends and resumes
@@ -24,9 +24,9 @@ class WebServer {
     
     init() throws {
         
-        self.server.addDefaultHandlerForMethod("POST", requestClass: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleServiceWorkerRequest)
-        self.server.addDefaultHandlerForMethod("GET", requestClass: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleServiceWorkerRequest)
-        self.server.addDefaultHandlerForMethod("HEAD", requestClass: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleServiceWorkerRequest)
+        self.server?.addDefaultHandler(forMethod: "POST", request: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleServiceWorkerRequest)
+        self.server?.addDefaultHandler(forMethod: "GET", request: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleServiceWorkerRequest)
+        self.server?.addDefaultHandler(forMethod: "HEAD", request: GCDWebServerDataRequest.self, asyncProcessBlock:self.handleServiceWorkerRequest)
         
         try self.start()
         
@@ -41,24 +41,24 @@ class WebServer {
     func start() throws {
         
         var options: [String: AnyObject] = [
-            GCDWebServerOption_BindToLocalhost: true,
-            GCDWebServerOption_AutomaticallySuspendInBackground: false
+            GCDWebServerOption_BindToLocalhost: true as AnyObject,
+            GCDWebServerOption_AutomaticallySuspendInBackground: false as AnyObject
         ]
         
         if self.chosenPortNumber != nil {
-            options[GCDWebServerOption_Port] = self.chosenPortNumber!
+            options[GCDWebServerOption_Port] = self.chosenPortNumber! as AnyObject?
         }
         
-        try server.startWithOptions(options);
+        try server?.start(options: options);
         
-        self.chosenPortNumber = Int(server.port)
+        self.chosenPortNumber = Int((server?.port)!)
 
     }
     
     
     /// Shut down the server
     func stop() {
-        self.server.stop()
+        self.server?.stop()
     }
     
     
@@ -68,9 +68,9 @@ class WebServer {
     /// - Parameters:
     ///   - request: The request being sent
     ///   - completionBlock: The GCD async execution block that allows us to send a response back
-    func handleServiceWorkerRequest(request:GCDWebServerRequest?, completionBlock: GCDWebServerCompletionBlock?) {
+    func handleServiceWorkerRequest(_ request:GCDWebServerRequest?, completionBlock: GCDWebServerCompletionBlock?) {
         
-        let mappedURL = WebServerDomainManager.mapServerURLToRequestURL(request!.URL)
+        let mappedURL = WebServerDomainManager.mapServerURLToRequestURL(request!.url)
         log.info("Request for " + mappedURL.absoluteString!)
         ServiceWorkerManager.getServiceWorkerWhoseScopeContainsURL(mappedURL)
         .then { (sw) -> Promise<Void> in
@@ -148,9 +148,9 @@ class WebServer {
     /// - Parameters:
     ///   - request: The request we've detected to be outside of worker scope
     ///   - completionBlock: The async block that lets us return content
-    func passRequestThroughToNetwork(request: GCDWebServerRequest, completionBlock: GCDWebServerCompletionBlock) {
+    func passRequestThroughToNetwork(_ request: GCDWebServerRequest, completionBlock: @escaping GCDWebServerCompletionBlock) {
         
-        let urlToActuallyFetch = WebServerDomainManager.mapServerURLToRequestURL(request.URL)
+        let urlToActuallyFetch = WebServerDomainManager.mapServerURLToRequestURL(request.url)
         
         log.info("Going to network to fetch: " + urlToActuallyFetch.absoluteString!)
         
@@ -160,7 +160,7 @@ class WebServer {
         
         for (key,val) in request.headers {
             
-            if (key as! String).lowercaseString == "host" {
+            if (key as! String).lowercased() == "host" {
                 // We need to rewrite the host header, as it's currently localhost
                 fetchRequest.headers.append(key as! String, value: urlToActuallyFetch.host!)
             } else {
@@ -210,7 +210,7 @@ class WebServer {
     
     var port:Int {
         get {
-            return Int(server.port)
+            return Int(server!.port)
         }
     }
     

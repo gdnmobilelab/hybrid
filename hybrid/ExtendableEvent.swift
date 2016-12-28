@@ -10,12 +10,12 @@ import Foundation
 import JavaScriptCore
 import PromiseKit
 
-class PromiseAlreadyResolvedError : ErrorType {}
+class PromiseAlreadyResolvedError : Error {}
 
 @objc protocol ExtendableEventExports: JSExport {
     var type:String {get}
     init(type:String)
-    func waitUntil(promise:JSValue)
+    func waitUntil(_ promise:JSValue)
 }
 
 @objc class ExtendableEvent : NSObject, ExtendableEventExports {
@@ -29,7 +29,7 @@ class PromiseAlreadyResolvedError : ErrorType {}
         super.init()
     }
     
-    func waitUntil(promise:JSValue) {
+    func waitUntil(_ promise:JSValue) {
         
         // JavascriptCore doesn't like functions that throw. Not sure what to do about that.
         
