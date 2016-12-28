@@ -180,7 +180,7 @@ import UIKit
         var targetBitmap:ImageBitmap?
         
         if arg.isInstanceOf(ImageBitmap.self) {
-            targetBitmap = arg.toObjectOfClass(ImageBitmap.self) as! ImageBitmap
+            targetBitmap = arg.toObjectOfClass(ImageBitmap.self) as? ImageBitmap
         } else if arg.isInstanceOf(OffscreenCanvas.self) {
             let canvas = arg.toObjectOfClass(OffscreenCanvas.self) as! OffscreenCanvas
             targetBitmap = ImageBitmap(image: canvas.getContext("2d")!.toImage())

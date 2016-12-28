@@ -90,8 +90,6 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
         
         log.info("Loading " + maybeRewrittenURL.absoluteString!)
         
-        let currentPort = self.webview!.URL
-        
         let isAcceleratedLoadCapable = maybeRewrittenURL.host! == "localhost" && self.webview!.URL?.port == maybeRewrittenURL.port
         
         if attemptAcceleratedLoad && isAcceleratedLoadCapable == false {

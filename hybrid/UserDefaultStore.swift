@@ -38,13 +38,13 @@ class UserDefaultStore<T where T:NSCoding, T:Equatable> {
             
             do {
                 
-//                try ObjC.catchException {
+                try ObjC.catchException {
                     if let existingStore = NSKeyedUnarchiver.unarchiveObjectWithData(storedData) as? [T] {
                         stored = existingStore
                     } else {
                         log.error("Serialized object was not in the form expected")
                     }
-//                }
+                }
                 
             } catch {
                 log.error("Failed to decode user default store: " + String(error))

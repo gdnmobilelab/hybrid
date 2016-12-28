@@ -15,7 +15,7 @@ class NotificationTextView : UIView {
         
         super.init(frame: CGRect(x:0,y:0,width: frame.width, height: 0))
         
-        var targetWidth = self.frame.width - 30
+        let targetWidth = self.frame.width - 30
         
         let titleView = UILabel()
         titleView.text = title
