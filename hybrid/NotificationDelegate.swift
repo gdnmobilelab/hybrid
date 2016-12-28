@@ -18,15 +18,33 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
     
     func userNotificationCenter(center: UNUserNotificationCenter, willPresentNotification notification: UNNotification, withCompletionHandler completionHandler: (UNNotificationPresentationOptions) -> Void) {
         
-        if notification.request.content.userInfo["app_generated_notification"] as? String == "true" {
+        // Not sure about the background state thing here. But something seems to be holding notifications back from displaying
+        // when the app is in background mode, I'm just not sure what. Annoyingly, it doesn't seem to happen when I'm testing
+        // locally.
+        
+        if /*UIApplication.sharedApplication().applicationState == UIApplicationState.Background ||*/ notification.request.content.userInfo["app_generated_notification"] as? String == "true" {
+            log.info("Showing notification")
             completionHandler(UNNotificationPresentationOptions.Alert)
         } else {
             // If it's a remote notification and the app is open, don't show the notification
-            log.info("Blocking a remote notification")
+            
+            // Wanted to put this after the promise, so we can catch when the notification show failed
+            // but if appears to ignore any completion handler that is run async.
             completionHandler(UNNotificationPresentationOptions.Badge)
+            
+            
+            // I thought pending pushes would always be handled in the app delegate. But it appears that is not the case,
+            // so we check here too.
+            ServiceWorkerManager.processAllPendingPushEvents()
+            .then { () -> Void in
+                log.info("Blocking a remote notification")
+            }
+            .error { err in
+                log.error("Error in processing push events: " + String(err))
+            }
+            
+            
         }
-        
-        completionHandler(UNNotificationPresentationOptions.Alert)
     }
     
     

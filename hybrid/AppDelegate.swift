@@ -138,6 +138,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         .then {
             completionHandler(UIBackgroundFetchResult.NewData)
         }
+        .error { err in
+            log.error("Error encountered when processing push events: " + String(err))
+        }
 
       
         

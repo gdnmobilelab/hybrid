@@ -395,7 +395,12 @@ class ServiceWorkerManager {
         
         
         if self.currentlyActiveServiceWorkers[id] != nil {
-            self.currentlyActiveServiceWorkers[id]!.installState = state
+            if state == ServiceWorkerInstallState.Redundant {
+                log.info("Removing redundant manager from currently active list")
+                self.currentlyActiveServiceWorkers.removeValueForKey(id)
+            } else {
+                self.currentlyActiveServiceWorkers[id]!.installState = state
+            }
         }
         
         let matchToDispatch = ServiceWorkerMatch(instanceId: id, url: url!, installState: state, scope: scope!)
