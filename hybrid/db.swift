@@ -28,7 +28,7 @@ class Db {
     /// The base URL for our database storage - a directory named Databases in our shared file system.
     fileprivate static var databasesURL:URL {
         get {
-            return SharedResources.fileSystemURL.appendingPathComponent("Databases", isDirectory: true)!
+            return SharedResources.fileSystemURL.appendingPathComponent("Databases", isDirectory: true)
         }
     }
     
@@ -69,7 +69,7 @@ class Db {
         
         let dbURL = try Db.getFullPathForDB(dbFilename)
     
-        log.debug("Creating database queue for: " + dbURL.path!)
+        log.debug("Creating database queue for: " + dbURL.path)
         
         self.dbQueue = FMDatabaseQueue(path: dbURL.path)!
         

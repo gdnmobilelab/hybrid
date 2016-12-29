@@ -70,54 +70,54 @@ struct RequestAndResponse {
         // TODO: what about URLs that redirect?
         
         let urlsAsNSURLs = urls.map { (url:String) -> URL in
-            return URL(string: url, relativeToURL: self.serviceWorkerScope)!
+            return URL(string: url, relativeTo: self.serviceWorkerScope)!
         }
         
-        return Promise<Void>()
-        .then({
+        return Promise(value: ())
+        .then {
             
-            let downloadAndStoreTasks = urlsAsNSURLs.map { (url: NSURL) -> Promise<RequestAndResponse> in
+            let downloadAndStoreTasks = urlsAsNSURLs.map { (url: URL) -> Promise<RequestAndResponse> in
                 
-                let fetchRequest = FetchRequest(url: url.absoluteString!, options: nil)
+                let fetchRequest = FetchRequest(url: url.absoluteString, options: nil)
                 
                 return GlobalFetch.fetchRequest(fetchRequest)
                 .then { response in
                     
                     if response.status < 200 || response.status > 299 {
-                        log.error("Failed to cache: " + url.absoluteString!)
+                        log.error("Failed to cache: " + url.absoluteString)
                         throw CacheAddRequestFailedError()
                     }
                     
-                    return Promise<RequestAndResponse>(RequestAndResponse(request: fetchRequest, response: response))
+                    return Promise(value: RequestAndResponse(request: fetchRequest, response: response))
                     
                 }
             }
             
-            return when(downloadAndStoreTasks)
-                .then { reqResponsePairs in
-                    
+            return when(fulfilled: downloadAndStoreTasks)
+            .then { reqResponsePairs in
+                
 
-                    try Db.mainDatabase.inTransaction({ (db) in
-                        
-                        for r in reqResponsePairs {
-                            
-                            
-                            let headersAsJSON = try r.response.headers.toJSON()
-                            
-                            // It's valid to overwrite an existing cache entry. So, let's make sure we've deleted any existing ones
-                            
-                            try db.executeUpdate("DELETE FROM cache WHERE service_worker_url = ? AND cache_id = ? AND resource_url = ?", values: [self.serviceWorkerURL.absoluteString!, self.name, r.request.url])
-                            
-                            try db.executeUpdate("INSERT INTO cache (service_worker_url, cache_id, resource_url, contents, headers, status) VALUES (?,?,?,?,?,?)", values: [self.serviceWorkerURL.absoluteString!, self.name, r.request.url, r.response.data!, headersAsJSON, r.response.status] as [AnyObject])
-                        }
-    
-                    })
+                try Db.mainDatabase.inTransaction({ (db) in
                     
-                    log.info("Successfully cached: " + urls.joinWithSeparator(", "))
-                    return Promise<Void>()
+                    for r in reqResponsePairs {
+                        
+                        
+                        let headersAsJSON = try r.response.headers.toJSON()
+                        
+                        // It's valid to overwrite an existing cache entry. So, let's make sure we've deleted any existing ones
+                        
+                        try db.executeUpdate("DELETE FROM cache WHERE service_worker_url = ? AND cache_id = ? AND resource_url = ?", values: [self.serviceWorkerURL.absoluteString, self.name, r.request.url])
+                        
+                        try db.executeUpdate("INSERT INTO cache (service_worker_url, cache_id, resource_url, contents, headers, status) VALUES (?,?,?,?,?,?)", values: [self.serviceWorkerURL.absoluteString, self.name, r.request.url, r.response.data!, headersAsJSON, r.response.status])
+                    }
+
+                })
+                
+                log.info("Successfully cached: " + urls.joined(separator: ", "))
+                return Promise(value: ())
             }
 
-        })
+        }
         
     }
     
@@ -131,12 +131,12 @@ struct RequestAndResponse {
         var url = ""
 
         if request.isObject {
-            url = (request.toObjectOf(FetchRequest) as! FetchRequest).url
+            url = (request.toObjectOf(FetchRequest.self) as! FetchRequest).url
         } else {
             url = request.toString()
         }
         
-        return PromiseToJSPromise.pass(self._match(URL(string: url, relativeToURL: self.serviceWorkerScope)!))
+        return PromiseToJSPromise.pass(self._match(URL(string: url, relativeTo: self.serviceWorkerScope)!))
        
     }
     
@@ -145,34 +145,34 @@ struct RequestAndResponse {
     ///
     /// - Parameter url: The URL to try to match
     /// - Returns: A promise that resolves to a FetchResponse, or throws an error if one is not found
-    func _match(_ url: NSURL) -> Promise<FetchResponse> {
+    func _match(_ url: URL) -> Promise<FetchResponse> {
         
-        return Promise<Void>()
+        return Promise(value: ())
         .then {
             
             var response:FetchResponse? = nil
             
             try Db.mainDatabase.inDatabase { (db) in
-                let resultSet = try db.executeQuery("SELECT * FROM cache WHERE resource_url = ? AND service_worker_url = ? AND cache_id = ?", values: [url.absoluteString!, self.serviceWorkerURL.absoluteString!, self.name])
+                let resultSet = try db.executeQuery("SELECT * FROM cache WHERE resource_url = ? AND service_worker_url = ? AND cache_id = ?", values: [url.absoluteString, self.serviceWorkerURL.absoluteString, self.name])
                 
                 if resultSet.next() == false {
-                    log.info("Could not find cache match for: " + url.absoluteString!)
+                    log.info("Could not find cache match for: " + url.absoluteString)
                     return resultSet.close()
                 }
                 
                 
-                let fh = try FetchHeaders.fromJSON(resultSet.stringForColumn("headers"))
+                let fh = try FetchHeaders.fromJSON(resultSet.string(forColumn: "headers"))
                 
-                let opts: [String: AnyObject] = [
-                    "status": Int(resultSet.intForColumn("status")),
+                let opts: [String: Any] = [
+                    "status": Int(resultSet.int(forColumn: "status")),
                     "headers": fh
                 ]
                 
                 
-                response = FetchResponse(body: resultSet.dataForColumn(("contents")), options: opts)
+                response = FetchResponse(body: resultSet.data(forColumn: ("contents")), options: opts)
                 
                 
-                log.debug("Found cache match for: " + url.absoluteString!)
+                log.debug("Found cache match for: " + url.absoluteString)
                 
                 resultSet.close()
             }
@@ -181,7 +181,7 @@ struct RequestAndResponse {
                 throw CacheNoMatchError()
             }
             
-            return Promise<FetchResponse>(response!)
+            return Promise(value: response!)
         }
        
     }

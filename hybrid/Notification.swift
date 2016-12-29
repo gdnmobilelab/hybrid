@@ -44,7 +44,7 @@ import JavaScriptCore
         self.title = title
         self.belongsToWorkerURL = belongsToWorkerURL
         
-        if let data = notificationData {
+        if let data = notificationData as? [String: AnyObject] {
             self.body = data["body"] as? String
             self.tag = data["tag"] as? String
             self.actions = data["actions"] as? [AnyObject]

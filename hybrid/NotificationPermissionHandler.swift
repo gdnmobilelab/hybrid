@@ -25,7 +25,7 @@ class NotificationPermissionHandler: ScriptMessageManager {
     /// - Returns: A promise that resolves with the current status
     func getAuthStatus() -> Promise<UNAuthorizationStatus> {
         return Promise<UNAuthorizationStatus> { fulfill, reject in
-            UNUserNotificationCenter.currentNotificationCenter().getNotificationSettingsWithCompletionHandler { (settings:UNNotificationSettings) in
+            UNUserNotificationCenter.current().getNotificationSettings { (settings:UNNotificationSettings) in
                 fulfill(settings.authorizationStatus)
             }
         }
@@ -64,8 +64,8 @@ class NotificationPermissionHandler: ScriptMessageManager {
     fileprivate func requestPermission() -> Promise<String> {
         return self.getAuthStatus()
         .then { authStatus -> Promise<String> in
-            if authStatus != UNAuthorizationStatus.NotDetermined {
-                return Promise<String>(self.makeJSONSafe(self.authStatusToBrowserString(authStatus)))
+            if authStatus != UNAuthorizationStatus.notDetermined {
+                return Promise(value: self.makeJSONSafe(self.authStatusToBrowserString(authStatus)))
             }
             
             return Promise<Bool> {fulfill, reject in
@@ -75,8 +75,8 @@ class NotificationPermissionHandler: ScriptMessageManager {
                 // have access to sharedApplication(). So we grab the remote token earlier
                 // than we necessarily need to.
                 
-                UIApplication.sharedApplication().registerForRemoteNotifications()
-                UNUserNotificationCenter.currentNotificationCenter().requestAuthorizationWithOptions([.Alert, .Sound, .Badge], completionHandler: { (result:Bool, err:NSError?) in
+                UIApplication.shared.registerForRemoteNotifications()
+                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge], completionHandler: { (result:Bool, err:Error?) in
                     
                     if err != nil {
                         reject(err!)
@@ -107,7 +107,7 @@ class NotificationPermissionHandler: ScriptMessageManager {
     ///
     /// - Parameter message: Message is an object with a key "operation", which must equal getStatus or requestPermission
     /// - Returns: In both cases it will return a string with the current permission in it
-    override func handleMessage(_ message:AnyObject) -> Promise<String>? {
+    override func handleMessage(_ message: [String: Any]) -> Promise<String>? {
         
         let operation = message["operation"] as! String
         
@@ -132,6 +132,6 @@ class NotificationPermissionHandler: ScriptMessageManager {
         }
         
         log.error("Unknown notification operation: " + operation)
-        return Promise<String>("null")
+        return Promise<String>(value: "null")
     }
 }

@@ -8,19 +8,20 @@
 
 import Foundation
 import WebKit
-import EmitterKit
 import PromiseKit
 
 /// Only really used for tests - actual code should be in defined handlers
 class EventManager: ScriptMessageManager {
     
-    var events = Event<String?>()
+    var events = EventEmitter<String?>()
     
     init(userController:WKUserContentController, webView:HybridWebview) {
         super.init(userController: userController, webView: webView, handlerName: "events")
     }
     
-    override func handleMessage(_ message:AnyObject) -> Promise<String>? {
+    override func handleMessage(_ message:[String:Any]) -> Promise<String>? {
+        
+        
         let eventName = message["name"] as! String
         let eventData = message["data"] as? String
         self.events.emit(eventName, eventData)

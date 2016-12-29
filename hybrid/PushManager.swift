@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import EmitterKit
 import JavaScriptCore
 import PromiseKit
 
@@ -16,7 +15,7 @@ import PromiseKit
     var bundle_name:String {get}
     var device_id:String {get}
     var sandbox:Bool {get}
-    func toJSON() -> AnyObject
+    func toJSON() -> Any
 }
 
 class CannotEnablePushNotificationsError : Error {}
@@ -40,7 +39,7 @@ class CannotEnablePushNotificationsError : Error {}
     /// Seems somewhat redundant, but it's in the spec, so we'll recreate it
     ///
     /// - Returns: an object with all the keys of the PushSubscription
-    func toJSON() -> AnyObject {
+    func toJSON() -> Any {
         return [
             "platform": self.platform,
             "device_id": self.device_id,
@@ -61,23 +60,21 @@ class CannotEnablePushNotificationsError : Error {}
 /// that functions are wrapped in callbacks. They're then wrapped in JS promises in js-src
 @objc class PushManager : NSObject, PushManagerExports {
     
-    fileprivate static var deviceTokenListener:Listener?
+    fileprivate static var deviceTokenListener:Listener<Any>?
     fileprivate static var deviceToken:String?
     
     static func listenForDeviceToken() {
         self.deviceTokenListener = ApplicationEvents.on("didRegisterForRemoteNotificationsWithDeviceToken", { token in
-            let deviceToken = token as! NSData
+            let deviceToken = token as! Data
             
             // From http://stackoverflow.com/a/24979958/470339
             
-            let tokenChars = UnsafePointer<CChar>(deviceToken.bytes)
-            var tokenString = ""
-            
-            for i in 0..<deviceToken.length {
-                tokenString += String(format: "%02.2hhx", arguments: [tokenChars[i]])
+            var token: String = ""
+            for i in 0..<deviceToken.count {
+                token += String(format: "%02.2hhx", deviceToken[i] as CVarArg)
             }
 
-            self.deviceToken = tokenString
+            self.deviceToken = token
         })
     }
     
@@ -95,13 +92,13 @@ class CannotEnablePushNotificationsError : Error {}
         
         if sub != nil {
             
-            return Promise<PushSubscription>(sub!)
+            return Promise(value: sub!)
             
         } else {
             
-            return Promise<Void>()
+            return Promise(value: ())
             .then {
-                let isSimulator = NSProcessInfo.processInfo().environment["SIMULATOR_DEVICE_NAME"] != nil
+                let isSimulator = ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != nil
                 
                 if isSimulator {
                     throw CannotEnablePushNotificationsError()

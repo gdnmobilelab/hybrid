@@ -12,7 +12,7 @@ class ErrorMessage : Error {
     
     let message:String
     
-    init(msg:String) {
+    init(_ msg:String) {
         self.message = msg
     }
 }

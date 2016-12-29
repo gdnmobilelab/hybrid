@@ -132,11 +132,11 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     ///   - controller: The controller to add and reset
     ///   - forDomain: Currently not used, but might be reactivated to improve load times by using direct HTML injection in the future
     func addControllerAndViewToWaitingArea(_ controller: HybridWebviewController, forDomain: URL) {
-        
+        controller.webview!.isActive = false
         self.addControllerToWaitingArray(controller)
         self.addViewToWaitingArea(controller.webview!)
         
-        controller.webview!.loadHTMLString("<html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1,user-scalable=no\" /></head><body></body></html>", baseURL: forDomain)
+        controller.webview!.loadHTMLString("<html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1,user-scalable=no\" /></head><body><script></script></body></html>", baseURL: forDomain)
     }
     
     
@@ -144,7 +144,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
     ///
     /// - Parameter url: The URL we want to load. Not a localhost URL - it will be mapped automatically.
     /// - Returns: A promise that resolves when the page is loaded and the view is painted and ready.
-    fileprivate func prepareWebviewFor(_ url:NSURL, attemptAcceleratedLoading:Bool) -> Promise<HybridWebviewController> {
+    fileprivate func prepareWebviewFor(_ url:URL, attemptAcceleratedLoading:Bool) -> Promise<HybridWebviewController> {
         let newInstance = self.getNewController()
         
         return Promise<HybridWebviewController> { fulfill, reject in
@@ -293,7 +293,7 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             
             self.prepareWebviewFor(backURL, attemptAcceleratedLoading: false)
             .then { controller in
-                self.viewControllers.insert(controller, atIndex: 0)
+                self.viewControllers.insert(controller, at: 0)
             }
 
         }

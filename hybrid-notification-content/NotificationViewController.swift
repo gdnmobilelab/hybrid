@@ -10,7 +10,6 @@ import UIKit
 import UserNotifications
 import UserNotificationsUI
 import PromiseKit
-import EmitterKit
 import AVKit
 import AVFoundation
 
@@ -25,7 +24,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     var notificationInstance:Notification?
 //    var interactiveViews = ActiveNotificationViews()
     
-    static var webviewEventListener:Listener?
+    static var webviewEventListener:Listener<PendingWebviewAction>?
     
     
     override func viewDidLoad() {
@@ -37,9 +36,9 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             // Add our listener that will save pending webview events to be processed by the
             // app once we've handed off
             
-            NotificationViewController.webviewEventListener = WebviewClientManager.clientEvents.on { event in
-                PendingWebviewActions.add(event)
-            }
+            NotificationViewController.webviewEventListener = WebviewClientManager.clientEvents.on("*", {
+                PendingWebviewActions.add($0)
+            })
             PendingWebviewActions.removeAll()
         }
         
@@ -71,10 +70,10 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         let pendingPushEvent = PendingPushEventStore.getByPushID(pushID)
         
         if pendingPushEvent == nil {
-            return Promise<Void>()
+            return Promise(value: ())
         }
         
-        return ServiceWorkerInstance.getActiveWorkerByURL(NSURL(string: pendingPushEvent!.serviceWorkerURL)!)
+        return ServiceWorkerInstance.getActiveWorkerByURL(URL(string: pendingPushEvent!.serviceWorkerURL)!)
         .then { sw in
             // Process all pending events, too complicated otherwise (what if a user opens a later
             // notification followed by an earlier one?)
@@ -99,7 +98,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         
         let attachments = notification.request.content.attachments
         
-        Promise<Void>()
+        Promise(value: ())
         .then {
             // We don't run inside the app, so we need to make our DB instance
             try Db.createMainDatabase()
@@ -114,7 +113,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             self.notificationShowData = PendingNotificationShowStore.getByPushID(notification.request.identifier)
             
             if self.notificationShowData == nil {
-                throw ErrorMessage(msg: "No notification show data exists for this notification ID")
+                throw ErrorMessage("No notification show data exists for this notification ID")
             }
             
             self.notificationInstance = Notification.fromNotificationShow(self.notificationShowData!)
@@ -123,12 +122,12 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             .then { sw -> Void in
                 
                 if sw == nil {
-                    throw ErrorMessage(msg: "No service worker exists for the specified URL")
+                    throw ErrorMessage("No service worker exists for the specified URL")
                 }
                 
                 let interactiveViewContainer = UIView()
                 
-                if let videoOptions = self.notificationShowData!.options["video"] {
+                if let videoOptions = self.notificationShowData!.options["video"] as? [String:Any] {
                     
                     let videoView = VideoView(width: self.view.frame.width, options: videoOptions, worker: sw!, context: self.extensionContext!, attachments: attachments)
                     self.notificationInstance!.video = videoView.videoInstance
@@ -162,7 +161,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                     
                     let maxFrame = interactiveViewContainer.subviews
                         .map { $0.frame }
-                        .sort { $0.height > $1.height }
+                        .sorted { $0.height > $1.height }
                         .first!
                     
                     interactiveViewContainer.frame = maxFrame
@@ -186,7 +185,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             
         }
         .recover { err -> Void in
-            log.error("Notification show failed: " + String(err))
+            log.error("Notification show failed: " + String(describing: err))
             
             // If anything failed we fall back to a single text view that uses the title and body
             // that were hardcoded into the notification request
@@ -205,7 +204,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                 self.view.addSubview(view)
             }
             
-            UIView.animateWithDuration(0.2) {
+            UIView.animate(withDuration: 0.2) {
                 self.preferredContentSize = CGSize(width: 0, height: self.notificationViews.last!.frame.maxY)
             }
         }
@@ -218,7 +217,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     func didReceive(_ response: UNNotificationResponse, completionHandler completion: @escaping (UNNotificationContentExtensionResponseOption) -> Void) {
         
         
-        Promise<Void>()
+        Promise(value: ())
         .then { () -> Promise<Void> in
             if response.actionIdentifier == UNNotificationDismissActionIdentifier {
                 
@@ -244,7 +243,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             throw NotificationResponseFailedError()
         }
         .recover { error -> Void in
-            log.error("Error occurred when processing notification response: " + String(error))
+            log.error("Error occurred when processing notification response: " + String(describing: error))
             self.notificationInstance!.close()
         }
         .then { () -> Void in
@@ -252,7 +251,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             let allPendingActions = PendingWebviewActions.getAll()
             
             let actionsThatBringAppToFront = allPendingActions.filter { event in
-                return event.type == PendingWebviewActionType.OpenWindow || event.type == PendingWebviewActionType.Focus
+                return event.type == PendingWebviewActionType.openWindow || event.type == PendingWebviewActionType.focus
             }
 
             if actionsThatBringAppToFront.count > 0 {
@@ -262,33 +261,37 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                 // notification can .Dismiss or .DismissAndForwardAction, but not both. Since our buttons
                 // are dynamic we don't want that. So we use a URL handler instead.
                 
-                var url = NSURL(string: "gdnmobilelab://")!
+                var url = URL(string: "gdnmobilelab://")!
                 
                 // using first because we sort of have to, also no-one should ever want to open two windows
                 // at once because the browser will only show one
                 
-                let windowOpen = actionsThatBringAppToFront.filter { $0.type == PendingWebviewActionType.OpenWindow}.first
+                let windowOpen = actionsThatBringAppToFront.filter { $0.type == PendingWebviewActionType.openWindow}.first
                 
-                if windowOpen?.options?["openOptions"]?["external"] as? Bool == true {
+                let openOptions = windowOpen?.options?["openOptions"] as? [String: Any]
+                
+                if openOptions?["external"] as? Bool == true {
                     
                     // We have the option to open a link "externally", i.e. force it into Safari.
                     // if that's enabled we pass the URL directly to the OS, rather than into
                     // the app and back out again.
                     
-                    url = NSURL(string: windowOpen!.options!["urlToOpen"] as! String)!
+                    
+                    
+                    url = URL(string: windowOpen!.options!["urlToOpen"] as! String)!
                  
                     PendingWebviewActions.remove(windowOpen!)
                 }
         
-                self.extensionContext!.openURL(url, completionHandler: nil)
+                self.extensionContext!.open(url, completionHandler: nil)
                 ServiceWorkerManager.clearActiveServiceWorkers()
-                completion(UNNotificationContentExtensionResponseOption.Dismiss)
+                completion(UNNotificationContentExtensionResponseOption.dismiss)
                 
             } else if self.notificationInstance!.closeState == true {
                 ServiceWorkerManager.clearActiveServiceWorkers()
-                completion(UNNotificationContentExtensionResponseOption.Dismiss)
+                completion(UNNotificationContentExtensionResponseOption.dismiss)
             } else {
-                completion(UNNotificationContentExtensionResponseOption.DoNotDismiss)
+                completion(UNNotificationContentExtensionResponseOption.doNotDismiss)
             }
             
             

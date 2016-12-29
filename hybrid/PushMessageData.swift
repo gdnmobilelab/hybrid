@@ -10,7 +10,7 @@ import Foundation
 import JavaScriptCore
 
 @objc protocol PushMessageDataExports : JSExport {
-    func json() -> AnyObject?
+    func json() -> Any?
     func text() -> String?
 }
 
@@ -23,13 +23,13 @@ import JavaScriptCore
         self.pushData = data
     }
     
-    func json() -> AnyObject? {
-        var obj:AnyObject? = nil
+    func json() -> Any? {
+        var obj:Any? = nil
         
         do {
             obj = try JSONSerialization.jsonObject(with: self.pushData, options: [])
         } catch {
-            log.error("Cannot throw error back to JS Context, but JSON parse of event data failed: " + String(error))
+            log.error("Cannot throw error back to JS Context, but JSON parse of event data failed: " + String(describing: error))
         }
 
         return obj

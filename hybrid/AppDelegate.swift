@@ -8,7 +8,6 @@
 
 import UIKit
 import PromiseKit
-import EmitterKit
 import UserNotifications
 import GCDWebServer
 
@@ -33,7 +32,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         SharedResources.currentExecutionEnvironment = SharedResources.ExecutionEnvironment.app
         
-        log.setup(.Debug, showLogIdentifier: false, showFunctionName: false, showThreadName: true, showLogLevel: true, showFileNames: false, showLineNumbers: false, showDate: false, writeToFile: nil, fileLogLevel: nil)
+        log.setup(level: .debug, showLogIdentifier: false, showFunctionName: false, showThreadName: true, showLevel: true, showFileNames: false, showLineNumbers: false, showDate: false, writeToFile: nil, fileLevel: nil)
         
         
         
@@ -90,7 +89,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //            let launchKey = launchOptions?["UIApplicationLaunchOptionsURLKey"]
 //            let launch = launchOptions!
             
-            if windowOpenActions.count == 0 && launchOptions?["UIApplicationLaunchOptionsURLKey"] == nil {
+            
+            
+            if windowOpenActions.count == 0 && launchOptions?[UIApplicationLaunchOptionsKey.url] == nil {
                 pushDefaultStartURL()
                 
             } else {
@@ -136,10 +137,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         ServiceWorkerManager.processAllPendingPushEvents()
         .then {
-            completionHandler(UIBackgroundFetchResult.NewData)
+            completionHandler(UIBackgroundFetchResult.newData)
         }
-        .error { err in
-            log.error("Error encountered when processing push events: " + String(err))
+        .catch { err in
+            log.error("Error encountered when processing push events: " + String(describing: err))
         }
 
       
@@ -206,7 +207,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             try WebServerDomainManager.startAll()
         }
         catch {
-            log.error("Could not restart servers:" + String(error))
+            log.error("Could not restart servers:" + String(describing: error))
         }
     }
     

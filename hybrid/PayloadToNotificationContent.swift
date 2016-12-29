@@ -17,21 +17,21 @@ import CoreGraphics
 class PayloadToNotificationContent {
     
     
-    static func urlsToNotificationAttachments(_ urls:[String], relativeTo: NSURL) -> Promise<[UNNotificationAttachment]> {
+    static func urlsToNotificationAttachments(_ urls:[String], relativeTo: URL) -> Promise<[UNNotificationAttachment]> {
         let promises = urls.map { attachmentURL -> Promise<UNNotificationAttachment> in
             
-            let fullURL = NSURL(string: attachmentURL, relativeToURL: relativeTo)!
+            let fullURL = URL(string: attachmentURL, relativeTo: relativeTo)!
             
             return DownloadToTemporaryStorage.start(fullURL)
-                .then { localURL in
-                    return try UNNotificationAttachment(identifier: fullURL.absoluteString!, URL: localURL, options: [
-                        UNNotificationAttachmentOptionsThumbnailHiddenKey: true
-                        ])
+            .then { localURL in
+                return try UNNotificationAttachment(identifier: fullURL.absoluteString, url: localURL, options: [
+                    UNNotificationAttachmentOptionsThumbnailHiddenKey: true
+                    ])
             }
             
         }
         
-        return when(promises)
+        return when(fulfilled: promises)
     }
     
     static func setNotificationCategoryBasedOnActions(_ actions: [String]?) {
@@ -144,7 +144,7 @@ class PayloadToNotificationContent {
     static func clearWithTag(_ tag:String) -> Promise<Int> {
         
         return Promise<Int> { fulfill, reject in
-            UNUserNotificationCenter.currentNotificationCenter().getDeliveredNotificationsWithCompletionHandler { notifications in
+            UNUserNotificationCenter.current().getDeliveredNotifications { notifications in
                 let identifiers = notifications
                     .filter { notification in
                         return notification.request.content.threadIdentifier == tag
@@ -154,7 +154,7 @@ class PayloadToNotificationContent {
                 }
                 
                 
-                UNUserNotificationCenter.currentNotificationCenter().removeDeliveredNotificationsWithIdentifiers(identifiers)
+                UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: identifiers)
                 fulfill(identifiers.count)
             }
             

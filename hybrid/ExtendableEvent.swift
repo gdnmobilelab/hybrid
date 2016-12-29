@@ -42,7 +42,7 @@ class PromiseAlreadyResolvedError : Error {}
     func resolve() -> Promise<Void> {
         self.hasResolved = true
         if self.waitUntilPromise == nil {
-            return Promise<Void>()
+            return Promise(value: ())
         }
         
         return JSPromiseToPromise<Void>.pass(self.waitUntilPromise!)

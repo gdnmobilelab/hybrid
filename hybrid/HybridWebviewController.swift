@@ -8,7 +8,6 @@
 
 import Foundation
 import UIKit
-import EmitterKit
 import PromiseKit
 import WebKit
 
@@ -20,7 +19,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
     
     var currentMetadata:HybridWebviewMetadata?
     
-    let events = Event<HybridWebviewController>()
+    let events = EventEmitter<HybridWebviewController>()
     
     var webview:HybridWebview? {
         get {
@@ -33,8 +32,6 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
             return self.navigationController as? HybridNavigationController
         }
     }
-    
-    var isReady = false
 
     let titleTextView:UILabel
     
@@ -71,12 +68,9 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
             log.error("Should never directly load a localhost URL - should be a server URL")
         }
         
-        self.isReady = false
-        
         let startRequestTime = Date().timeIntervalSince1970
         
         self.events.once("ready", { _ in
-            self.isReady = true
             
             let readyTime = NSDate().timeIntervalSince1970
             
@@ -88,7 +82,7 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
         
         let maybeRewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(urlToLoad)
         
-        log.info("Loading " + maybeRewrittenURL.absoluteString!)
+        log.info("Loading " + maybeRewrittenURL.absoluteString)
         
         let isAcceleratedLoadCapable = maybeRewrittenURL.host! == "localhost" && (self.webview!.url as NSURL?)?.port == (maybeRewrittenURL as NSURL).port
         
@@ -108,40 +102,70 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
     }
     
     func injectHTMLDirectly(_ urlToLoad:URL) {
-        GlobalFetch.fetch(urlToLoad.absoluteString!)
-        .then { response -> Void in
+        GlobalFetch.fetch(urlToLoad.absoluteString)
+        .then { response in
             
             // Hate Regex in Swift with the power of a thousand suns. This is mostly copied from:
             // https://code.tutsplus.com/tutorials/swift-and-regular-expressions-swift--cms-26626
             
-            let responseAsString = String(data: response.data!, encoding: NSUTF8StringEncoding)!
+            let responseAsString = String(data: response.data!, encoding: String.Encoding.utf8)!
             
             let regex = try NSRegularExpression(pattern: "<html(?:.*?)>([\\s\\S]+)<\\/html>", options: [
-                NSRegularExpressionOptions.CaseInsensitive
+                NSRegularExpression.Options.caseInsensitive
             ])
             
-            let match = regex.matchesInString(responseAsString, options: [], range: NSRange(location:0, length: responseAsString.characters.count))[0]
+            let matches = regex.matches(in: responseAsString, options: [], range: NSRange(location:0, length: responseAsString.characters.count))
             
-            let range = match.rangeAtIndex(1)
+            if matches.count == 0 {
+                throw ErrorMessage("Regex on page HTML failed.")
+            }
             
-            let r = responseAsString.startIndex.advancedBy(range.location) ..<
-                responseAsString.startIndex.advancedBy(range.location+range.length)
+            let match = matches[0]
             
-            var htmlInner = responseAsString.substringWithRange(r)
+            let range = match.rangeAt(1)
+            
+            let r = responseAsString.characters.index(responseAsString.startIndex, offsetBy: range.location) ..< responseAsString.characters.index(responseAsString.startIndex, offsetBy: range.location+range.length)
+            
+//            let r = responseAsString.startIndex.advancedBy(range.location) ..<
+//                responseAsString.startIndex.advancedBy(range.location+range.length)
+            
+            var htmlInner = responseAsString.substring(with: r)
             htmlInner = htmlInner
-                .stringByReplacingOccurrencesOfString("'", withString: "\\'")
-                .stringByReplacingOccurrencesOfString("\n", withString: "\\n")
+                .replacingOccurrences(of: "'", with: "\\'")
+                .replacingOccurrences(of: "\n", with: "\\n'")
             
-            let jsToRun = "history.replaceState({}, '', '" + urlToLoad.absoluteString! + "'); document.documentElement.innerHTML = '" + htmlInner + "';" + WebviewJS.reactivateScriptTags
+            // We need to check if we have a new active worker for our new URL
             
-            self.webview!.evaluateJavaScript(jsToRun, completionHandler: { (retObj, err) in
-                if err != nil {
-                    NSLog(String(err))
+            return ServiceWorkerManager.getServiceWorkerWhoseScopeContainsURL(urlToLoad)
+            .then { sw in
+                
+                if sw != nil {
+                    self.webview!.serviceWorkerAPI?.setNewActiveServiceWorker(sw!)
                 }
                 
-                self.fireReadyEvent()
-            })
+                return Promise<Void> { fulfill, reject in
+                    let jsToRun = "history.replaceState({}, '', '" + urlToLoad.absoluteString + "'); document.documentElement.innerHTML = '" + htmlInner + "';" + WebviewJS.reactivateScriptTags + "; true;"
+                    
+                    self.webview!.evaluateJavaScript(jsToRun, completionHandler: { (retObj, err) in
+                        if err != nil {
+                            reject(err!)
+                        }
+                        fulfill()
+                        
+                    })
+                }
 
+            }
+            
+            
+        }
+        .then {
+            self.fireReadyEvent()
+        }
+        .catch { err in
+            log.error("Encountered error trying to inject HTML directly, reverting to normal load. " + String(describing: err))
+            self.webview!.readyStateHandler.onchange = self.checkReadyState
+            self.webview!.load(URLRequest(url: urlToLoad))
         }
     }
     
@@ -198,8 +222,10 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
         
         if navigationAction.targetFrame == nil {
             // been called with _blank
-            UIApplication.sharedApplication().openURL(intendedURL, options: [:], completionHandler: { (success) in
-                log.info("Attempt to open URL: " + intendedURL.absoluteString! + " resulted in:" + String(success))
+            
+            
+            UIApplication.shared.open(intendedURL, options: [:], completionHandler: { (success) in
+                log.info("Attempt to open URL: " + intendedURL.absoluteString + " resulted in:" + String(success))
             })
         } else {
 //            self.placeScreenshotOnTopOfView()
@@ -228,18 +254,20 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
     
     
     func fireReadyEvent() {
-        let w:Promise<Void> = when([
+        let w:Promise<Void> = when(fulfilled: [
             self.waitForRendered(),
             self.setMetadata()
             ])
         
-        return w.then { () -> Void in
+        w.then { () -> Void in
+            self.webview!.isActive = true
             self.events.emit("ready", self)
-            }
-            .error { err in
-                log.error(String(err))
-                // even if these fail we should just show the view
-                self.events.emit("ready", self)
+        }
+        .catch { err -> Void in
+            log.error(String(describing: err))
+            // even if these fail we should just show the view
+            self.events.emit("ready", self)
+            
         }
 
     }
@@ -262,9 +290,9 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
             self.title = metadata.title
             self.titleTextView.text = metadata.title
             if let color = metadata.color {
-                self.titleTextView.textColor = Util.getColorBrightness(color) < 150 ? UIColor.whiteColor() : UIColor.blackColor()
+                self.titleTextView.textColor = Util.getColorBrightness(color) < 150 ? UIColor.white : UIColor.black
             } else {
-                self.titleTextView.textColor = UIColor.blackColor()
+                self.titleTextView.textColor = UIColor.black
             }
             
             self.currentMetadata = metadata

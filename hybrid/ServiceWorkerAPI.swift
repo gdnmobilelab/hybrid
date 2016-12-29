@@ -9,7 +9,6 @@
 import Foundation
 import WebKit
 import PromiseKit
-import EmitterKit
 
 
 /// Emulates the navigator.serviceWorker object in a webview. Extensive bridging in the webview JS library.
@@ -17,7 +16,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
     
     
     /// Event listener that receives every service worker change event and runs self.serviceWorkerChange()
-    fileprivate var swChangeListener:Listener?
+    fileprivate var swChangeListener:Listener<ServiceWorkerMatch>?
     
     
     /// The current, active service worker for this webview
@@ -25,7 +24,6 @@ class ServiceWorkerAPI: ScriptMessageManager {
     
     init(userController:WKUserContentController, webView:HybridWebview) {
         super.init(userController: userController, webView: webView, handlerName: "serviceWorker")
-        
         self.swChangeListener = ServiceWorkerManager.events.on(ServiceWorkerManager.STATUS_CHANGE_EVENT, self.serviceWorkerChange)
         
         self.webview.messageChannelManager!.onMessage = self.sendPostMessageToWorker
@@ -37,21 +35,25 @@ class ServiceWorkerAPI: ScriptMessageManager {
     /// - Parameters:
     ///   - message: The message, usually a JSON-encoded string
     ///   - ports: Ports to pass onwards to the worker to be used to send replies back
-    func sendPostMessageToWorker(_ message:AnyObject, ports:[MessagePort]) {
+    func sendPostMessageToWorker(_ message:Any, ports:[MessagePort]) {
         
-        do {
-            
-            let parsed = try JSONSerialization.jsonObject(with: message.data(using: String.Encoding.utf8)!, options: [])
-            let ev = ExtendableMessageEvent(data: parsed, ports: ports)
-            self.currentActiveServiceWorker?.dispatchExtendableEvent(ev)
-        } catch {
-            log.error("Could not parse JSON for incoming postMessage. " + String(error))
-        }
+        let ev = ExtendableMessageEvent(data: message, ports: ports)
+        self.currentActiveServiceWorker!.dispatchExtendableEvent(ev)
+        
+//        do {
+//            
+//            let parsed = try JSONSerialization.jsonObject(with: message.data(using: String.Encoding.utf8)!, options: [])
+//            
+//            let ev = ExtendableMessageEvent(data: parsed, ports: ports)
+//            self.currentActiveServiceWorker?.dispatchExtendableEvent(ev)
+//        } catch {
+//            log.error("Could not parse JSON for incoming postMessage. " + String(error))
+//        }
 
 
     }
     
-    func receivePostMessageFromWorker(_ message:AnyObject) {
+    func receivePostMessageFromWorker(_ message:Any) {
         // TODO: ports, ports, ports
         
         var jsonString = ""
@@ -69,7 +71,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
             
             
         } catch {
-            log.error("Could not serialize incoming message: " + String(error))
+            log.error("Could not serialize incoming message: " + String(describing: error))
         }
         log.debug("Sending message into webview from worker... " + jsonString)
         self.sendEvent("postMessage", arguments: [jsonString, "0"])
@@ -83,11 +85,11 @@ class ServiceWorkerAPI: ScriptMessageManager {
     /// - Parameter match: The ServiceWorkerMatch that has changed - contains relevant worker metadata
     func serviceWorkerChange(_ match:ServiceWorkerMatch) {
         
-        if self.webview.mappedURL == nil {
+        if self.webview.isActive == false || self.webview.mappedURL == nil {
             // often because it's a test webview that has a URL of about:blank
             return
         }
-        if self.webview.mappedURL!.absoluteString!.hasPrefix(match.scope.absoluteString!) == false {
+        if self.webview.mappedURL!.absoluteString.hasPrefix(match.scope.absoluteString) == false {
             // Is not in this scope, so ignore it
             return
         }
@@ -122,7 +124,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
     ///   - swPath: Path to the JS file containing the service worker
     ///   - scope: The scope to register the worker under
     /// - Returns: A JSON string for a ServiceWorkerMatch. Is converted to a ServiceWorkerRegistration on the JS side.
-    func register(_ swPath:NSURL, scope:String?) -> Promise<String> {
+    func register(_ swPath:URL, scope:String?) -> Promise<String> {
         
         var actualSWPath = swPath
         
@@ -134,9 +136,9 @@ class ServiceWorkerAPI: ScriptMessageManager {
             actualSWPath = WebServerDomainManager.mapServerURLToRequestURL(actualSWPath)
         }
         
-        var serviceWorkerScope:URL = actualSWPath.URLByDeletingLastPathComponent!
+        var serviceWorkerScope:URL = actualSWPath.deletingLastPathComponent()
         if scope != nil {
-            serviceWorkerScope = URL(string: scope!, relativeToURL: actualSWPath)!
+            serviceWorkerScope = URL(string: scope!, relativeTo: actualSWPath)!
         }
         
         // forceCheck shouldn't actually be true here - it only forces update if the URL has changed.
@@ -155,7 +157,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
                 
                 let matchJSON = JSONSerializable.serialize(match.toSerializableObject())
                 
-                return Promise<String>(matchJSON!)
+                return Promise(value: matchJSON!)
             }
         }
     }
@@ -164,7 +166,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
     ///
     /// - Parameter swURL: URL of the service worker to update
     /// - Returns: A string containing "null" - the update function receives no updates on update progress
-    func update(_ swURL:NSURL) -> Promise<String> {
+    func update(_ swURL:URL) -> Promise<String> {
         return ServiceWorkerManager.update(swURL, scope: nil, forceCheck: true)
         .then { newId in
             // Promise doesn't return any info, but catches update errors
@@ -173,7 +175,7 @@ class ServiceWorkerAPI: ScriptMessageManager {
                 
                 let match = ServiceWorkerMatch(instanceId: newId, url: sw!.url, installState: sw!.installState, scope: sw!.scope)
                 self.serviceWorkerChange(match)
-                return Promise<String>("null")
+                return Promise(value: "null")
             }
             
         }
@@ -184,12 +186,12 @@ class ServiceWorkerAPI: ScriptMessageManager {
     ///
     /// - Parameter webviewURL: The URL of the webview
     /// - Returns: A JSON-encoded array of ServiceWorkerMatch objects
-    func getAllWorkers(_ webviewURL:NSURL) -> Promise<String> {
+    func getAllWorkers(_ webviewURL:URL) -> Promise<String> {
         return ServiceWorkerManager.getAllServiceWorkersWithScopeContainingURL(webviewURL)
         .then { matches -> String in
             
             let activeWorkers = matches.filter({ match in
-                return match.installState == ServiceWorkerInstallState.Activated
+                return match.installState == ServiceWorkerInstallState.activated
             })
             
             if activeWorkers.count > 0 {
@@ -216,7 +218,8 @@ class ServiceWorkerAPI: ScriptMessageManager {
     ///
     /// - Parameter message: Object with required key "operation", which must be register, update or getAll
     /// - Returns: Depends on operation called
-    override func handleMessage(_ message:AnyObject) -> Promise<String>? {
+    override func handleMessage(_ message: [String: Any]) -> Promise<String>? {
+        
         let operation = message["operation"] as! String
         
         var webviewURL = self.webview.url!
@@ -233,12 +236,12 @@ class ServiceWorkerAPI: ScriptMessageManager {
             let swPath = message["swPath"] as! String
             let scope = message["scope"] as? String
             
-            return self.register(NSURL(string:swPath)!, scope: scope)
+            return self.register(URL(string:swPath)!, scope: scope)
         }
         
         if operation == "update" {
             let swURL = message["url"] as! String
-            return self.update(NSURL(string:swURL)!)
+            return self.update(URL(string:swURL)!)
         }
         
         if operation == "getAll" {

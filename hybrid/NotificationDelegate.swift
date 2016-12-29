@@ -39,8 +39,8 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
             .then { () -> Void in
                 log.info("Blocking a remote notification")
             }
-            .error { err in
-                log.error("Error in processing push events: " + String(err))
+            .catch { err in
+                log.error("Error in processing push events: " + String(describing: err))
             }
             
             
@@ -62,11 +62,11 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
         
         let showData = PendingNotificationShowStore.getByPushID(response.notification.request.identifier)
 
-        Promise<Void>()
+        Promise(value: ())
         .then { () -> Promise<Void> in
             
             if showData == nil {
-                throw ErrorMessage(msg: "No pending show data to use in notification event")
+                throw ErrorMessage("No pending show data to use in notification event")
             }
             
             let notification = Notification.fromNotificationShow(showData!)
@@ -76,7 +76,7 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
                 if NotificationHandler.IgnoreNotificationCloseInMainApp == true {
                     NotificationHandler.IgnoreNotificationCloseInMainApp = false
                     log.info("Ignoring notification close event as it's already been processed by the notification content extension.")
-                    return Promise<Void>()
+                    return Promise(value: ())
                 }
                 
                 return NotificationHandler.sendClose(notification)
@@ -89,7 +89,7 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
                 return NotificationHandler.sendClick(notification)
             } else {
                 // if it's any other action then the actions are already stored in Pending.
-                return Promise<Void>()
+                return Promise(value: ())
             }
         }
         .then { () -> Void in
@@ -103,7 +103,9 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
             completionHandler()
             
         }
-        
+        .catch { err in
+            log.error("Failed to process received notification response: " + String(describing: err))
+        }
         
     }
     

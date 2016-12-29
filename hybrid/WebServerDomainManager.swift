@@ -85,7 +85,7 @@ class WebServerDomainManager {
                 
             }
         } catch {
-            log.error("Could not check whether URL was in a worker domain: " + url.absoluteString! + " / " + String(error))
+            log.error("Could not check whether URL was in a worker domain: " + url.absoluteString + " / " + String(describing: error))
         }
         
         if workersExistForThisDomain == false {
@@ -99,7 +99,7 @@ class WebServerDomainManager {
         do {
             return try mapRequestURLToServerURL(url)
         } catch {
-            log.error("Could not map request URL to server? " + url.absoluteString!)
+            log.error("Could not map request URL to server? " + url.absoluteString)
             return url
         }
         
@@ -170,11 +170,11 @@ class WebServerDomainManager {
         
         // And do the reverse.
         
-        let components = URLComponents(url:serverURL, resolvingAgainstBaseURL: true)!
+        var components = URLComponents(url:serverURL, resolvingAgainstBaseURL: true)!
         
         let serverBeingUsed = self.domainServerMap
             .filter { (key, server) in
-                return server.chosenPortNumber! == (serverURL as NSURL).port!
+                return server.chosenPortNumber! == serverURL.port!
             }
             .first!.0
         

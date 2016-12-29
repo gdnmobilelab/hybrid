@@ -23,12 +23,46 @@ class JSPromiseToPromise<T> {
         
             let bindFunc = jsPromise.context
                 .objectForKeyedSubscript("Function")
-                .constructWithArguments(["obj", "funcName", "return obj[funcName].bind(obj)"])
-            
-            let then = bindFunc.callWithArguments([jsPromise, "then"])
-            
-            then.callWithArguments([unsafeBitCast(fulfillAsConvention, AnyObject.self), unsafeBitCast(rejectAsConvention, AnyObject.self)])
+                .construct(withArguments: ["obj", "funcName", "return obj[funcName].bind(obj)"])!
+        
+            let then = bindFunc.call(withArguments: [jsPromise, "then"])!
+        
+            then.call(withArguments: [unsafeBitCast(fulfillAsConvention, to: AnyObject.self), unsafeBitCast(rejectAsConvention, to: AnyObject.self)])
 
         }
     }
+}
+
+extension JSPromiseToPromise where T: AnyObject {
+    static func pass(_ jsPromise:JSValue) -> Promise<T?> {
+        return Promise<T?> { fulfill, reject in
+            
+            let rejectConverter = { (err:JSValue) in
+                reject(JSContextError(jsValue: err))
+            }
+            
+            let fulfillAsConvention: @convention(block) (JSValue) -> () = { jsVal in
+                
+                var result:T? = nil
+                
+                if jsVal.isUndefined == false && jsVal.isNull == false {
+                    result = jsVal.toObjectOf(T.self as! AnyClass) as! T
+                }
+                
+                fulfill(result)
+            }
+            
+            let rejectAsConvention: @convention(block) (JSValue) -> () = rejectConverter
+            
+            let bindFunc = jsPromise.context
+                .objectForKeyedSubscript("Function")
+                .construct(withArguments: ["obj", "funcName", "return obj[funcName].bind(obj)"])!
+            
+            let then = bindFunc.call(withArguments: [jsPromise, "then"])!
+            
+            then.call(withArguments: [unsafeBitCast(fulfillAsConvention, to: AnyObject.self), unsafeBitCast(rejectAsConvention, to: AnyObject.self)])
+            
+        }
+    }
+
 }

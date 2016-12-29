@@ -66,7 +66,7 @@ import JavaScriptCore
         }
     }
     
-    init(videoURL:URL, options:AnyObject = [], context:NSExtensionContext?) {
+    init(videoURL:URL, options:[String: Any] = [:], context:NSExtensionContext?) {
         self.videoURL = videoURL
         self.playerController = AVPlayerViewController()
         self.playerController.player = AVPlayer(url: videoURL)
@@ -98,7 +98,7 @@ import JavaScriptCore
             self.play()
         }
         
-        log.info("Trying to play video at: " + videoURL.absoluteString!)
+        log.info("Trying to play video at: " + videoURL.absoluteString)
         
         NotificationCenter.default.addObserver(forName: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: nil, queue: nil, using: self.loopIfNeeded)
         
@@ -115,7 +115,7 @@ import JavaScriptCore
         
         let err = asItem!.error
         if let errExists = err {
-            log.error("AV Fail:" + String(errExists))
+            log.error("AV Fail:" + String(describing: errExists))
         }
         
         

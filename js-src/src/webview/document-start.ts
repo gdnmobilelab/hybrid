@@ -10,3 +10,4 @@ window.onerror = function(err) {
     console.error(err);
 }
 
+console.info("Webview layer load complete.")

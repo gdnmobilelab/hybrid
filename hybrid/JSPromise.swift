@@ -54,7 +54,7 @@ import JavaScriptCore
     
     
     /// We store the resolve value in case the promise has resolved before .then() is called
-    var resolveValue:AnyObject?
+    var resolveValue:Any?
     
     
     /// We store the reject value in case the promise has rejected before .catch() is called
@@ -77,14 +77,14 @@ import JavaScriptCore
     /// to the JS promise.
     ///
     /// - Parameter withObj: The object to resolve with. Must convert to AnyObject, or be nil.
-    func resolve(_ withObj: AnyObject?) {
+    func resolve(_ withObj: Any?) {
         self.hasResponded = true
         self.resolveValue = withObj
         
         if withObj != nil {
-            self.jsResolveFunction?.call(withArguments: [withObj!])
+            _ = self.jsResolveFunction?.call(withArguments: [withObj!])
         } else {
-            self.jsResolveFunction?.call(withArguments: [])
+            _ = self.jsResolveFunction?.call(withArguments: [])
         }
     }
     
@@ -98,9 +98,9 @@ import JavaScriptCore
         self.rejectError = withError
         
         
-        let err = JSValue(newErrorFromMessage: String(describing: withError), in: self.jsRejectFunction!.context)
+        let err = JSValue(newErrorFromMessage: String(describing: withError), in: self.jsRejectFunction!.context)!
         
-        self.jsRejectFunction?.call(withArguments: [err])
+        _ = self.jsRejectFunction?.call(withArguments: [err])
     }
     
     
@@ -125,7 +125,7 @@ import JavaScriptCore
         
         let promiseInstance = self.context!
             .objectForKeyedSubscript("Promise")
-            .construct(withArguments: [unsafeBitCast(grabFunctionAsConvention, to: AnyObject.self)])
+            .construct(withArguments: [unsafeBitCast(grabFunctionAsConvention, to: AnyObject.self)])!
         
         // I have no idea why this is required, but we can't call bind() directly from Swift - it results
         // in a type error. Maybe we need to bind the bind function, which... anyway, this quick function
@@ -133,10 +133,10 @@ import JavaScriptCore
         
         let bindFunc = self.context!
             .objectForKeyedSubscript("Function")
-            .construct(withArguments: ["obj", "funcName", "return obj[funcName].bind(obj)"])
+            .construct(withArguments: ["obj", "funcName", "return obj[funcName].bind(obj)"])!
         
-        self.jsThenFunction = bindFunc?.call(withArguments: [promiseInstance, "then"])
-        self.jsCatchFunction = bindFunc?.call(withArguments: [promiseInstance, "catch"])
+        self.jsThenFunction = bindFunc.call(withArguments: [promiseInstance, "then"])
+        self.jsCatchFunction = bindFunc.call(withArguments: [promiseInstance, "catch"])
         
         if self.hasResponded == true {
             if self.rejectError != nil {

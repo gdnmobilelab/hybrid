@@ -14,7 +14,7 @@ class VideoView : UIView {
     
     let videoInstance:NotificationVideo
     
-    init(width: CGFloat, options:AnyObject, worker: ServiceWorkerInstance, context: NSExtensionContext, attachments: [UNNotificationAttachment]) {
+    init(width: CGFloat, options:[String: Any], worker: ServiceWorkerInstance, context: NSExtensionContext, attachments: [UNNotificationAttachment]) {
         
         var proportion:CGFloat = 16/10
         
@@ -39,11 +39,11 @@ class VideoView : UIView {
                 
             }
             
-            log.info("Loading local notification video from " + videoURL.absoluteString!)
+            log.info("Loading local notification video from " + videoURL.absoluteString)
 
             
         } else {
-            log.info("Loading remote notification video from " + videoURL.absoluteString!)
+            log.info("Loading remote notification video from " + videoURL.absoluteString)
         }
         
         self.videoInstance = NotificationVideo(videoURL: videoURL, options: options, context: context)

@@ -101,6 +101,9 @@
 		8A8846061D30074500CF9369 /* ServiceWorkerInstance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8846051D30074500CF9369 /* ServiceWorkerInstance.swift */; };
 		8A8846091D3014AA00CF9369 /* ServiceWorkerInstanceSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8846081D3014AA00CF9369 /* ServiceWorkerInstanceSpec.swift */; };
 		8A88460D1D3504EA00CF9369 /* ServiceWorkerWebSql.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */; };
+		8A88F6AE1E1562E00028DF20 /* EventEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A88F6AD1E1562E00028DF20 /* EventEmitter.swift */; };
+		8A88F6AF1E156B680028DF20 /* EventEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A88F6AD1E1562E00028DF20 /* EventEmitter.swift */; };
+		8A88F6B01E156E9B0028DF20 /* EventEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A88F6AD1E1562E00028DF20 /* EventEmitter.swift */; };
 		8A932BD71D5A668500FA15F8 /* MessageChannelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A932BD61D5A668500FA15F8 /* MessageChannelManager.swift */; };
 		8A933F651D8214F200F9DC72 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6EA5171D8200E7003FDA00 /* Notification.swift */; };
 		8A933F671D87049500F9DC72 /* SharedResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A933F661D87049500F9DC72 /* SharedResources.swift */; };
@@ -308,6 +311,7 @@
 		8A8846051D30074500CF9369 /* ServiceWorkerInstance.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerInstance.swift; sourceTree = "<group>"; };
 		8A8846081D3014AA00CF9369 /* ServiceWorkerInstanceSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerInstanceSpec.swift; sourceTree = "<group>"; };
 		8A88460C1D3504EA00CF9369 /* ServiceWorkerWebSql.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerWebSql.swift; sourceTree = "<group>"; };
+		8A88F6AD1E1562E00028DF20 /* EventEmitter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventEmitter.swift; sourceTree = "<group>"; };
 		8A932BD61D5A668500FA15F8 /* MessageChannelManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageChannelManager.swift; sourceTree = "<group>"; };
 		8A933F661D87049500F9DC72 /* SharedResources.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SharedResources.swift; sourceTree = "<group>"; };
 		8A933F8E1D874B5700F9DC72 /* WebviewClientManagerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebviewClientManagerSpec.swift; sourceTree = "<group>"; };
@@ -585,6 +589,7 @@
 				8A824FEF1E01E59B0065E954 /* PendingNotificationShowStore.swift */,
 				8AFA9C3E1E0301C800368B77 /* ErrorMessage.swift */,
 				8A686F581E0487B20056CBC1 /* PendingNotificationAction.swift */,
+				8A88F6AD1E1562E00028DF20 /* EventEmitter.swift */,
 			);
 			name = shared;
 			sourceTree = "<group>";
@@ -1131,6 +1136,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8AAA5E831E03293300CE62F9 /* ObjC.m in Sources */,
+				8A88F6B01E156E9B0028DF20 /* EventEmitter.swift in Sources */,
 				8A1310131DDFA1430074944D /* JSPromise.swift in Sources */,
 				8AB7EF271D9F156100176FAE /* SharedResources.swift in Sources */,
 				8AFA9C411E03023100368B77 /* ErrorMessage.swift in Sources */,
@@ -1173,6 +1179,7 @@
 				8ACCDCDE1D7A163700A137E1 /* Util.swift in Sources */,
 				8ACCDCD01D7A131900A137E1 /* ServiceWorkerInstance.swift in Sources */,
 				8A53C9281DEE1A2100560310 /* JSPromiseToPromise.swift in Sources */,
+				8A88F6AF1E156B680028DF20 /* EventEmitter.swift in Sources */,
 				8ACCDCD11D7A131900A137E1 /* ServiceWorkerWebSql.swift in Sources */,
 				8ACCDCD21D7A131900A137E1 /* TimeoutManager.swift in Sources */,
 				8A0970BB1DCA693100F16CF4 /* PendingNotificationsActions.swift in Sources */,
@@ -1237,6 +1244,7 @@
 				8A933F671D87049500F9DC72 /* SharedResources.swift in Sources */,
 				8A0970BA1DCA692E00F16CF4 /* PendingNotificationsActions.swift in Sources */,
 				8AA06FD31DCCF95600DE4F45 /* WebviewJS.swift in Sources */,
+				8A88F6AE1E1562E00028DF20 /* EventEmitter.swift in Sources */,
 				8A1278771DDE6A9F006EE758 /* ServiceWorkerCacheStorage.swift in Sources */,
 				8A88460D1D3504EA00CF9369 /* ServiceWorkerWebSql.swift in Sources */,
 				8AA06FD51DCD233E00DE4F45 /* NotificationVideo.swift in Sources */,
@@ -1621,7 +1629,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = gdmobilelab.hybridUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 2.3;
+				SWIFT_VERSION = 3.0;
 				TEST_TARGET_NAME = hybrid;
 			};
 			name = Debug;
@@ -1633,7 +1641,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = gdmobilelab.hybridUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 2.3;
+				SWIFT_VERSION = 3.0;
 				TEST_TARGET_NAME = hybrid;
 			};
 			name = Release;

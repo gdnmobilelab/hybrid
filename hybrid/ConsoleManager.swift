@@ -23,7 +23,7 @@ class ConsoleManager: ScriptMessageManager {
     ///
     /// - Parameter message: An object with a "level" string and an "args" array of items to log
     /// - Returns: nil
-    override func handleMessage(_ message:AnyObject) -> Promise<String>? {
+    override func handleMessage(_ message:[String: Any]) -> Promise<String>? {
         
         let level = message["level"] as! String
         let arguments = message["args"] as? [String]
@@ -33,7 +33,7 @@ class ConsoleManager: ScriptMessageManager {
             return nil
         }
         
-        let argsJoined = arguments!.joinWithSeparator(" ")
+        let argsJoined = arguments!.joined(separator: " ")
         
         if level == "debug" {
             log.debug(argsJoined)

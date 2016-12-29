@@ -15,15 +15,15 @@ import UserNotifications
 /// attaching them to the notification.
 class DownloadToTemporaryStorage {
     
-    static func start(_ fromURL:NSURL) -> Promise<NSURL> {
+    static func start(_ fromURL:URL) -> Promise<URL> {
         
-        return Promise<NSURL> { fulfill, reject in
+        return Promise<URL> { fulfill, reject in
             
-            let task = NSURLSession.sharedSession().downloadTaskWithURL(fromURL) { (completeURL: NSURL?, response:NSURLResponse?, error:NSError?) in
+            let task = URLSession.shared.downloadTask(with: fromURL) { (completeURL: URL?, response:URLResponse?, error:Error?) in
                 
                 
                 if error != nil {
-                    dispatch_async(dispatch_get_main_queue()) {
+                    DispatchQueue.main.async {
                         reject(error!)
                     }
                 } else {
@@ -42,11 +42,11 @@ class DownloadToTemporaryStorage {
                         
                         if let ext = fileExtension {
                             
-                            let urlWithExtension = completeURL!.URLByAppendingPathExtension(ext)!
+                            let urlWithExtension = completeURL!.appendingPathExtension(ext)
                             
                             do {
-                                try NSFileManager.defaultManager().moveItemAtURL(completeURL!, toURL: urlWithExtension)
-                                dispatch_async(dispatch_get_main_queue()) {
+                                try FileManager.default.moveItem(at: completeURL!, to: urlWithExtension)
+                                DispatchQueue.main.async {
                                     fulfill(urlWithExtension)
                                 }
                                 
@@ -56,13 +56,14 @@ class DownloadToTemporaryStorage {
                             }
                         }
                         
-                    }
-                    dispatch_async(dispatch_get_main_queue()) {
-                        fulfill(completeURL!)
+                    } else {
+                        DispatchQueue.main.async {
+                            fulfill(completeURL!)
+                        }
                     }
                 }
             }
-            task.priority = NSURLSessionTaskPriorityHigh
+            task.priority = URLSessionTask.highPriority
             task.resume()
         }
         

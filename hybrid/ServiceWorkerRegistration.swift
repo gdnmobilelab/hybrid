@@ -37,7 +37,7 @@ import PromiseKit
     /// For compatibility with the JS API - we need scope to be accessible at the registration level
     var scope:String {
         get {
-            return self.worker.scope.absoluteString!
+            return self.worker.scope.absoluteString
         }
     }
     
@@ -180,7 +180,7 @@ import PromiseKit
                 
                 let request = UNNotificationRequest(identifier: notificationID, content: content, trigger: nil)
                 
-                UNUserNotificationCenter.currentNotificationCenter().addNotificationRequest(request) { (err) in
+                UNUserNotificationCenter.current().add(request) { (err) in
                     if err != nil {
                         promise.reject(err!)
                     } else {
@@ -189,6 +189,9 @@ import PromiseKit
                     
                 }
 
+            }
+            .catch { err in
+                log.error("Failed to create notification request: " + String(describing: err))
             }
             
         } else {
@@ -203,10 +206,6 @@ import PromiseKit
     
     /// Update the current service worker.
     func update() -> JSPromise {
-        return PromiseToJSPromise.pass(ServiceWorkerManager.update(self.worker.url, scope: nil, forceCheck: true).then { i in
-            // Int isn't AnyObject. Swift is weird.
-            return NSNumber(integer: i)
-        })
-        
+        return PromiseToJSPromise.pass(ServiceWorkerManager.update(self.worker.url, scope: nil, forceCheck: true))
     }
 }

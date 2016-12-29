@@ -10,7 +10,6 @@ import Foundation
 import PromiseKit
 import FMDB
 import JavaScriptCore
-import EmitterKit
 
 
 /// The various states a Service Worker can exist in. As outlined in: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker/state
@@ -83,7 +82,7 @@ class ServiceWorkerManager {
     static let STATUS_CHANGE_EVENT = "service-worker-status-change"
     
     /// EmitterKit event handler that is used whenever a service worker state changes
-    static let events = Event<ServiceWorkerMatch>()
+    static let events = EventEmitter<ServiceWorkerMatch>()
     
     
     /// A map of current, in-use service workers. We use this to ensure that we don't
@@ -103,23 +102,23 @@ class ServiceWorkerManager {
     ///
     /// - Parameter url: URL to fetch
     /// - Returns: NSDate if the Last-Modified header exists, nil if it doesn't
-    static fileprivate func getLastModified(_ url:NSURL) -> Promise<NSDate?> {
+    static fileprivate func getLastModified(_ url:NSURL) -> Promise<Date?> {
         
         let request = FetchRequest(url: url.absoluteString!, options: [
             "method": "HEAD"
         ])
         
         return GlobalFetch.fetchRequest(request)
-        .then { response -> Promise<NSDate?> in
+        .then { response in
             let lastMod = response.headers.get("last-modified")
             
-            var date:NSDate? = nil
+            var date:Date? = nil
             
             if lastMod != nil {
                 date = Util.HTTPDateToNSDate(lastMod!)
             }
             
-            return Promise<NSDate?>(date)
+            return Promise(value: date)
             
         }
         
@@ -174,9 +173,9 @@ class ServiceWorkerManager {
     ///   - scope: If registering a new worker, the scope to register under. Optional, as when updating we use the existing scope.
     ///   - forceCheck: By default, register() only checks the remote URL once every 24 hours. But update() forces it.
     /// - Returns: A promise containing the instance ID of the newly installed worker.
-    static func update(_ urlOfServiceWorker:NSURL, scope:NSURL? = nil, forceCheck:Bool = false) -> Promise<Int> {
+    static func update(_ urlOfServiceWorker:URL, scope:URL? = nil, forceCheck:Bool = false) -> Promise<Int> {
         
-        return Promise<Void>()
+        return Promise(value: ())
         .then { () -> Promise<Int> in
             
             let newest = try self.getNewestWorker(urlOfServiceWorker)
@@ -185,9 +184,9 @@ class ServiceWorkerManager {
             // If our worker is installing or activating, then we return the existing one rather than start a new check loop
             
             if let swState = newest?.installState {
-                if swState != ServiceWorkerInstallState.Activated && swState != ServiceWorkerInstallState.Redundant {
+                if swState != ServiceWorkerInstallState.activated && swState != ServiceWorkerInstallState.redundant {
                     log.info("Worker currently in install or activate state - returning existing instance")
-                    return Promise<Int>(newest!.instanceId)
+                    return Promise(value: newest!.instanceId)
                 }
             }
             
@@ -202,11 +201,11 @@ class ServiceWorkerManager {
                 // We've checked within the last 24 hours. So just return the existing worker
                 log.info("Existing worker has been checked within 24 hours. Returning")
                 
-                return Promise<Int>(newest!.instanceId)
+                return Promise(value: newest!.instanceId)
                 
             }
      
-            let request = FetchRequest(url: urlOfServiceWorker.absoluteString!, options: nil)
+            let request = FetchRequest(url: urlOfServiceWorker.absoluteString, options: nil)
             
             if newest?.lastModified != nil {
                 
@@ -230,31 +229,31 @@ class ServiceWorkerManager {
                 
                 if response.status == 304 {
                     // Not modified. Don't try to read the data as it isn't there.
-                    log.info("Checked for update to " + urlOfServiceWorker.absoluteString! + ", received a 304.")
-                    return Promise<Int>(newest!.instanceId)
+                    log.info("Checked for update to " + urlOfServiceWorker.absoluteString + ", received a 304.")
+                    return Promise(value: newest!.instanceId)
                 }
                 
                 if response.status < 200 || response.status > 299 {
-                    log.error("Checked for update to " + urlOfServiceWorker.absoluteString! + ", received a non-200 response: " + String(response.status))
-                    return Promise<Int>(newest!.instanceId)
+                    log.error("Checked for update to " + urlOfServiceWorker.absoluteString + ", received a non-200 response: " + String(response.status))
+                    return Promise(value: newest!.instanceId)
                 }
             
-                let downloadedJS = String(data: response.data!, encoding: NSUTF8StringEncoding)!
+                let downloadedJS = String(data: response.data!, encoding: String.Encoding.utf8)!
                 let downloadedJSHash = Util.sha256String(downloadedJS)
                 
-                if newest != nil && downloadedJSHash.isEqualToData(newest!.jsHash) {
+                if newest != nil && downloadedJSHash == newest!.jsHash {
                     // No new code, so just return the ID of the existing worker.
-                    log.info("Checked for update to " + urlOfServiceWorker.absoluteString! + ", but no change.")
+                    log.info("Checked for update to " + urlOfServiceWorker.absoluteString + ", but no change.")
                     
                     try Db.mainDatabase.inTransaction { db in
                         // Update the DB with our new last checked time
                         try db.executeUpdate("UPDATE service_workers SET last_checked = ? WHERE instance_id = ?", values: [rightNow, newest!.instanceId])
                     }
 
-                    return Promise<Int>(newest!.instanceId)
+                    return Promise(value: newest!.instanceId)
                 }
                 
-                log.info("Installing new service worker from: " + urlOfServiceWorker.absoluteString!)
+                log.info("Installing new service worker from: " + urlOfServiceWorker.absoluteString)
                 
                 let scopeToUse = scope != nil ? scope! : newest!.scope
                 
@@ -268,7 +267,10 @@ class ServiceWorkerManager {
                     
                     // This happens async, so don't wrap up in the promise
                     self.installServiceWorker(id)
-                    return Promise<Int>(id)
+                    .catch { err in
+                        log.error("Error installing service worker: " + String(describing: err))
+                    }
+                    return Promise(value: id)
                 }
                 
             }
@@ -283,8 +285,8 @@ class ServiceWorkerManager {
     ///
     /// - Parameter pageURL: The URL we want to check
     /// - Returns: A promise of a ServiceWorkerMatch array. If no matches, will be empty.
-    static func getAllServiceWorkersWithScopeContainingURL(_ pageURL:NSURL) -> Promise<[ServiceWorkerMatch]> {
-        return Promise<Void>()
+    static func getAllServiceWorkersWithScopeContainingURL(_ pageURL:URL) -> Promise<[ServiceWorkerMatch]> {
+        return Promise(value: ())
         .then {
             var workerRecords:[ServiceWorkerMatch] = [];
             
@@ -292,14 +294,14 @@ class ServiceWorkerManager {
                 
                 let selectScopeQuery = "SELECT scope FROM service_workers WHERE ? LIKE (scope || '%') ORDER BY length(scope) DESC LIMIT 1"
                 
-                let allWorkersResultSet = try db.executeQuery("SELECT instance_id, install_state, url, scope FROM service_workers WHERE scope = (" + selectScopeQuery + ")", values: [pageURL.absoluteString!])
+                let allWorkersResultSet = try db.executeQuery("SELECT instance_id, install_state, url, scope FROM service_workers WHERE scope = (" + selectScopeQuery + ")", values: [pageURL.absoluteString])
                 
                 
                 while allWorkersResultSet.next() {
-                    let instanceId = Int(allWorkersResultSet.intForColumn("instance_id"))
-                    let installState = ServiceWorkerInstallState(rawValue: Int(allWorkersResultSet.intForColumn("install_state")))!
-                    let url = NSURL(string: allWorkersResultSet.stringForColumn("url"))!
-                    let scope = NSURL(string:allWorkersResultSet.stringForColumn("scope"))!
+                    let instanceId = Int(allWorkersResultSet.int(forColumn: "instance_id"))
+                    let installState = ServiceWorkerInstallState(rawValue: Int(allWorkersResultSet.int(forColumn: "install_state")))!
+                    let url = URL(string: allWorkersResultSet.string(forColumn: "url"))!
+                    let scope = URL(string:allWorkersResultSet.string(forColumn: "scope"))!
                     workerRecords.append(ServiceWorkerMatch(instanceId: instanceId, url: url, installState: installState, scope: scope))
                 }
                 
@@ -307,7 +309,7 @@ class ServiceWorkerManager {
                 
             })
             
-            return Promise<[ServiceWorkerMatch]>(workerRecords)
+            return Promise(value: workerRecords)
 
         }
     }
@@ -321,9 +323,9 @@ class ServiceWorkerManager {
     ///   - js: The JavaScript string itself
     ///   - installState: The ServiceWorkerInstallState. Default is "installing" but we can override, e.g. for tests
     /// - Returns: A promise returning the instance ID of the inserted worker.
-    static func insertServiceWorkerIntoDB(_ serviceWorkerURL:NSURL, scope: NSURL, lastChecked:Int, js:NSData, headers: FetchHeaders, installState:ServiceWorkerInstallState = ServiceWorkerInstallState.Installing) -> Promise<Int> {
+    static func insertServiceWorkerIntoDB(_ serviceWorkerURL:URL, scope: URL, lastChecked:Int, js:Data, headers: FetchHeaders, installState:ServiceWorkerInstallState = ServiceWorkerInstallState.installing) -> Promise<Int> {
         
-        return Promise<Void>()
+        return Promise(value: ())
         .then {
             
             if serviceWorkerURL.host != "localhost" && (serviceWorkerURL.scheme == "http" || scope.scheme == "http") {
@@ -334,18 +336,18 @@ class ServiceWorkerManager {
             var newId:Int64 = -1
             
             try Db.mainDatabase.inTransaction({ (db) in
-                try db.executeUpdate("INSERT INTO service_workers (url, scope, last_checked, contents, headers, install_state) VALUES (?,?,?,?,?,?)", values: [serviceWorkerURL.absoluteString!, scope.absoluteString!, lastChecked, js, headers.toJSON(), installState.rawValue ] as [AnyObject])
+                try db.executeUpdate("INSERT INTO service_workers (url, scope, last_checked, contents, headers, install_state) VALUES (?,?,?,?,?,?)", values: [serviceWorkerURL.absoluteString, scope.absoluteString, lastChecked, js, headers.toJSON(), installState.rawValue ])
                 
                 newId = db.lastInsertRowId()
             })
             
-            log.debug("Inserted service worker into DB for URL: " + serviceWorkerURL.absoluteString! + " with installation state " + String(installState))
+            log.debug("Inserted service worker into DB for URL: " + serviceWorkerURL.absoluteString + " with installation state " + String(describing: installState))
             
             let match = ServiceWorkerMatch(instanceId: Int(newId), url: serviceWorkerURL, installState: installState, scope: scope)
             
             self.events.emit(STATUS_CHANGE_EVENT, match)
             
-            return Promise<Int>(Int(newId))
+            return Promise(value: Int(newId))
         }
        
     }
@@ -365,9 +367,7 @@ class ServiceWorkerManager {
         if updateDatabase == true {
             try Db.mainDatabase.inTransaction({ (db:FMDatabase) in
                 
-                
-                
-                try db.executeUpdate("UPDATE service_workers SET install_state = ? WHERE instance_id = ?", values: [state.rawValue, idAsNSNumber] as [AnyObject])
+                try db.executeUpdate("UPDATE service_workers SET install_state = ? WHERE instance_id = ?", values: [state.rawValue, idAsNSNumber])
                 
                 if db.changes() == 0 {
                     throw ServiceWorkerDoesNotExistError()
@@ -414,9 +414,9 @@ class ServiceWorkerManager {
     /// - Parameter swInstance: The instance we want to activate
     /// - Returns: A promise that waits until the "activate" ExtendedEvent completes.
     static func activateServiceWorker(_ swInstance:ServiceWorkerInstance) -> Promise<Void> {
-        return Promise<Void>()
+        return Promise(value: ())
         .then {
-            try self.updateServiceWorkerInstallState(swInstance.instanceId, state: ServiceWorkerInstallState.Activating)
+            try self.updateServiceWorkerInstallState(swInstance.instanceId, state: ServiceWorkerInstallState.activating)
             
             return swInstance.dispatchExtendableEvent(ExtendableEvent(type: "activate"))
             .then { _ -> Void in
@@ -428,13 +428,12 @@ class ServiceWorkerManager {
                 // TODO: cleanup. Just delete the rows?
                 
                 var idsToInvalidate = [Int]()
-                let idAsNSNumber = NSNumber(longLong: Int64(swInstance.instanceId))
                 
                 try Db.mainDatabase.inTransaction({ (db) in
-                    let workersToMakeRedundant = try db.executeQuery("SELECT instance_id FROM service_workers WHERE url = ? AND NOT instance_id = ?", values: [swInstance.url.absoluteString!, idAsNSNumber])
+                    let workersToMakeRedundant = try db.executeQuery("SELECT instance_id FROM service_workers WHERE url = ? AND NOT instance_id = ?", values: [swInstance.url.absoluteString, swInstance.instanceId])
                     
                     while workersToMakeRedundant.next() {
-                        idsToInvalidate.append(Int(workersToMakeRedundant.intForColumn("instance_id")))
+                        idsToInvalidate.append(Int(workersToMakeRedundant.int(forColumn: "instance_id")))
                     }
                     
                     workersToMakeRedundant.close()
@@ -442,18 +441,18 @@ class ServiceWorkerManager {
                     // we're running these queries manually inside a transaction, so we know they all
                     // ran successfully.
                     
-                    try db.executeUpdate("UPDATE service_workers SET install_state = ? WHERE instance_id = ?", values: [ServiceWorkerInstallState.Activated.rawValue, idAsNSNumber] as [AnyObject])
+                    try db.executeUpdate("UPDATE service_workers SET install_state = ? WHERE instance_id = ?", values: [ServiceWorkerInstallState.activated.rawValue, swInstance.instanceId])
                     
                     // FMDB doesn't support arrays, so we have to manually create our query string with the right number of ?
                     // characters for the number of values we're going to input
                     
                     let placeholders = idsToInvalidate.map({ _ in
                         return "?"
-                    }).joinWithSeparator(",")
+                    }).joined(separator: ",")
                     
-                    var params = [AnyObject]()
+                    var params = [Any]()
                     
-                    params.append(ServiceWorkerInstallState.Redundant.rawValue)
+                    params.append(ServiceWorkerInstallState.redundant.rawValue)
                     
                     for id in idsToInvalidate {
                         params.append(id)
@@ -466,10 +465,10 @@ class ServiceWorkerManager {
                 
                 // now that we've committed the transaction, dispatch events
                 
-                try self.updateServiceWorkerInstallState(swInstance.instanceId, state: ServiceWorkerInstallState.Activated, updateDatabase: false)
+                try self.updateServiceWorkerInstallState(swInstance.instanceId, state: ServiceWorkerInstallState.activated, updateDatabase: false)
                 
                 for oldWorkerId in idsToInvalidate {
-                    try self.updateServiceWorkerInstallState(oldWorkerId, state: ServiceWorkerInstallState.Redundant, updateDatabase: false)
+                    try self.updateServiceWorkerInstallState(oldWorkerId, state: ServiceWorkerInstallState.redundant, updateDatabase: false)
                 }
             }
             
@@ -494,20 +493,20 @@ class ServiceWorkerManager {
             return swInstance!.dispatchExtendableEvent(ExtendableEvent(type: "install"))
             .then { (_) -> Promise<ServiceWorkerInstallState> in
                 
-                try self.updateServiceWorkerInstallState(id, state: ServiceWorkerInstallState.Installed)
+                try self.updateServiceWorkerInstallState(id, state: ServiceWorkerInstallState.installed)
                 
                 let runActivate = swInstance!.globalScope.skipWaitingStatus
                 
                 if runActivate == true {
-                    log.info("Service worker " + swInstance!.url.absoluteString! + " called skipWaiting()")
+                    log.info("Service worker " + swInstance!.url.absoluteString + " called skipWaiting()")
                 }
                 
                 if runActivate == false {
-                    return Promise<ServiceWorkerInstallState>(ServiceWorkerInstallState.Installed)
+                    return Promise(value: ServiceWorkerInstallState.installed)
                 } else {
                     return self.activateServiceWorker(swInstance!)
                     .then { _ in
-                        return Promise<ServiceWorkerInstallState>(ServiceWorkerInstallState.Activated)
+                        return Promise(value: ServiceWorkerInstallState.activated)
                     }
                 }
     
@@ -516,10 +515,10 @@ class ServiceWorkerManager {
                 
                 // If an error occurred in either the installation or optional activation step,
                 // mark the worker as redundant.
-                log.error("Error during installation: " + String(error))
-                try self.updateServiceWorkerInstallState(id, state: ServiceWorkerInstallState.Redundant)
+                log.error("Error during installation: " + String(describing: error))
+                try self.updateServiceWorkerInstallState(id, state: ServiceWorkerInstallState.redundant)
                 
-                return Promise<ServiceWorkerInstallState>(ServiceWorkerInstallState.Redundant)
+                return Promise(value: ServiceWorkerInstallState.redundant)
             }
            
         }
@@ -535,24 +534,24 @@ class ServiceWorkerManager {
     /// - Returns: A promise containing an active service worker. Nil if there isn't one.
     static func cycleThroughEligibleWorkers(_ workerIds:[Int]) -> Promise<ServiceWorkerInstance?> {
         if (workerIds.count == 0) {
-            return Promise<ServiceWorkerInstance?>(nil)
+            return Promise<ServiceWorkerInstance?>(value: nil)
         }
         
         return ServiceWorkerInstance.getById(workerIds.first!)
         .then { (sw) -> Promise<ServiceWorkerInstance?> in
-            log.debug("Eligible service worker with install state: " + String(sw!.installState))
-            if (sw!.installState == ServiceWorkerInstallState.Installed) {
+            log.debug("Eligible service worker with install state: " + String(describing: sw!.installState))
+            if (sw!.installState == ServiceWorkerInstallState.installed) {
                 return self.activateServiceWorker(sw!)
                 .then {
-                    return Promise<ServiceWorkerInstance?>(sw)
+                    return Promise(value: sw)
                 }
             }
             
-            return Promise<ServiceWorkerInstance?>(sw)
+            return Promise(value: sw)
         }
         .then { sw in
-            if sw?.installState == ServiceWorkerInstallState.Activated {
-                return Promise<ServiceWorkerInstance?>(sw!)
+            if sw?.installState == ServiceWorkerInstallState.activated {
+                return Promise(value: sw!)
             }
             
             return cycleThroughEligibleWorkers(Array(workerIds.dropFirst()))
@@ -564,7 +563,7 @@ class ServiceWorkerManager {
     ///
     /// - Parameter url: The URL to match
     /// - Returns: A promise containing a service worker, or nil if there is no scope match.
-    static func getServiceWorkerWhoseScopeContainsURL(_ url:NSURL) -> Promise<ServiceWorkerInstance?> {
+    static func getServiceWorkerWhoseScopeContainsURL(_ url:URL) -> Promise<ServiceWorkerInstance?> {
         
         for (_, sw) in self.currentlyActiveServiceWorkers {
             
@@ -572,7 +571,7 @@ class ServiceWorkerManager {
             // return it.
             
             if sw.scopeContainsURL(url) == true {
-                return Promise<ServiceWorkerInstance?>(sw)
+                return Promise(value: sw)
             }
         }
         
@@ -580,7 +579,7 @@ class ServiceWorkerManager {
         // has a status of Installed, we need to activate it. BUT if that activation fails
         // we need to use an older, installed worker.
         
-        return Promise<Void>()
+        return Promise(value: ())
         .then { () -> Promise<[Int]> in
             var workerIds = [Int]()
             
@@ -589,27 +588,27 @@ class ServiceWorkerManager {
                 
                 let selectScopeQuery = "SELECT scope FROM service_workers WHERE ? LIKE (scope || '%') OR ? = scope ORDER BY length(scope) DESC LIMIT 1"
                 
-                let applicableWorkerResultSet = try db.executeQuery("SELECT instance_id FROM service_workers WHERE scope = (" + selectScopeQuery  + ") AND (install_state == ? OR install_state = ?) ORDER BY instance_id DESC", values: [url.absoluteString!, url.absoluteString!, ServiceWorkerInstallState.Activated.rawValue, ServiceWorkerInstallState.Installed.rawValue])
+                let applicableWorkerResultSet = try db.executeQuery("SELECT instance_id FROM service_workers WHERE scope = (" + selectScopeQuery  + ") AND (install_state == ? OR install_state = ?) ORDER BY instance_id DESC", values: [url.absoluteString, url.absoluteString, ServiceWorkerInstallState.activated.rawValue, ServiceWorkerInstallState.installed.rawValue])
                
                 while applicableWorkerResultSet.next() {
-                    workerIds.append(Int(applicableWorkerResultSet.intForColumn("instance_id")))
+                    workerIds.append(Int(applicableWorkerResultSet.int(forColumn: "instance_id")))
                 }
                 applicableWorkerResultSet.close()
 
             })
             
-            return Promise<[Int]>(workerIds)
+            return Promise(value: workerIds)
         }
         .then { ids in
             if (ids.count == 0) {
-                return Promise<ServiceWorkerInstance?>(nil)
+                return Promise<ServiceWorkerInstance?>(value: nil)
             }
             return self.cycleThroughEligibleWorkers(ids)
             .then { eligibleWorker in
 //                if (eligibleWorker != nil) {
 //                    self.currentlyActiveServiceWorkers.append(eligibleWorker!)
 //                }
-                return Promise<ServiceWorkerInstance?>(eligibleWorker)
+                return Promise(value: eligibleWorker)
             }
         }
         
@@ -638,7 +637,7 @@ class ServiceWorkerManager {
                 if sw == nil {
                     log.error("Received push event for " + workerURL + " but no worker existed to handle it.")
                     PendingPushEventStore.getByWorkerURL(workerURL).forEach { PendingPushEventStore.remove($0) }
-                    return Promise<Void>()
+                    return Promise(value: ())
                 }
                 
                 // processPendingPushEvents() is called in loadServiceWorker() so there's
@@ -651,7 +650,7 @@ class ServiceWorkerManager {
             }
         }
         
-        return when(pushPromises)
+        return when(fulfilled: pushPromises)
         .then { () -> () in
             let checkAll = PendingPushEventStore.getAll()
             if checkAll.count > 0 {

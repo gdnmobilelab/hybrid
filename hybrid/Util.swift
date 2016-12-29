@@ -9,10 +9,9 @@
 import Foundation
 import UIKit
 import XCGLogger
-import EmitterKit
 
 let log = XCGLogger.default
-let ApplicationEvents = Event<AnyObject>()
+let ApplicationEvents = EventEmitter<Any>()
 
 
 /// A dumping ground for some quick utility functions we've used across the app

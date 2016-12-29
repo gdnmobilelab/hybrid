@@ -123,7 +123,7 @@ struct PromiseReturn {
         self.globalFetch = GlobalFetch(workerScope: self.scope)
         
         var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-        urlComponents.path = nil
+        urlComponents.path = ""
         self.jsContext = JSContext()
         self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext)
         self.webSQL = WebSQLDatabaseCreator(context: self.jsContext, origin: urlComponents.url!.absoluteString)
@@ -132,7 +132,7 @@ struct PromiseReturn {
         
         super.init()
         
-    
+        
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.jsContext.name = "SW — " + url.absoluteString
         self.cache = ServiceWorkerCacheStorage(serviceWorker: self)
@@ -154,44 +154,44 @@ struct PromiseReturn {
     /// - Returns: A promise that returns a ServiceWorkerInstance if it exists locally, if not, nil
     static func getActiveWorkerByURL(_ url:URL) -> Promise<ServiceWorkerInstance?> {
         
-        log.info("Request for service worker at URL: " + url.absoluteString!)
+        log.info("Request for service worker at URL: " + url.absoluteString)
         
         for (_, worker) in ServiceWorkerManager.currentlyActiveServiceWorkers {
             if worker.url == url {
-                return Promise<ServiceWorkerInstance?>(worker)
+                return Promise<ServiceWorkerInstance?>(value: worker)
             }
         }
         
         var instance:ServiceWorkerInstance? = nil
         var contents:String? = nil
         
-        return Promise<Void>()
+        return Promise(value: ())
         .then {
             try Db.mainDatabase.inDatabase({ (db) in
                 
-                let serviceWorkerContents = try db.executeQuery("SELECT instance_id, scope, contents FROM service_workers WHERE url = ? AND install_state = ?", values: [url.absoluteString!, ServiceWorkerInstallState.Activated.rawValue])
+                let serviceWorkerContents = try db.executeQuery("SELECT instance_id, scope, contents FROM service_workers WHERE url = ? AND install_state = ?", values: [url.absoluteString, ServiceWorkerInstallState.activated.rawValue])
                 
                 if serviceWorkerContents.next() == false {
                     return serviceWorkerContents.close()
                 }
                 
-                let scope = NSURL(string: serviceWorkerContents.stringForColumn("scope"))!
-                let instanceId = Int(serviceWorkerContents.intForColumn("instance_id"))
+                let scope = URL(string: serviceWorkerContents.string(forColumn: "scope"))!
+                let instanceId = Int(serviceWorkerContents.int(forColumn: "instance_id"))
                 
                 instance = ServiceWorkerInstance(
                     url: url,
                     scope: scope,
                     instanceId: instanceId,
-                    installState: ServiceWorkerInstallState.Activated
+                    installState: ServiceWorkerInstallState.activated
                 )
                 
-                log.debug("Created new instance of service worker with ID " + String(instanceId) + " and install state: " + String(instance!.installState))
-                contents = serviceWorkerContents.stringForColumn("contents")
+                log.debug("Created new instance of service worker with ID " + String(instanceId) + " and install state: " + String(describing: instance!.installState))
+                contents = serviceWorkerContents.string(forColumn: "contents")
                 serviceWorkerContents.close()
             })
             
             if instance == nil {
-                return Promise<ServiceWorkerInstance?>(nil)
+                return Promise<ServiceWorkerInstance?>(value: nil)
             }
             
             return instance!.loadServiceWorker(contents!)
@@ -213,14 +213,14 @@ struct PromiseReturn {
     static func getById(_ id:Int) -> Promise<ServiceWorkerInstance?> {
         
         log.debug("Request for service worker with ID " + String(id))
-        return Promise<Void>()
+        return Promise(value: ())
         .then { () -> Promise<ServiceWorkerInstance?> in
             
             let existingWorker = ServiceWorkerManager.currentlyActiveServiceWorkers[id]
             
             if existingWorker != nil {
                 log.debug("Returning existing service worker for ID " + String(id))
-                return Promise<ServiceWorkerInstance?>(existingWorker)
+                return Promise(value: existingWorker)
             }
             
             
@@ -235,9 +235,9 @@ struct PromiseReturn {
                     return serviceWorkerContents.close()
                 }
                 
-                let url = NSURL(string: serviceWorkerContents.stringForColumn("url"))!
-                let scope = NSURL(string: serviceWorkerContents.stringForColumn("scope"))!
-                let installState = ServiceWorkerInstallState(rawValue: Int(serviceWorkerContents.intForColumn("install_state")))!
+                let url = URL(string: serviceWorkerContents.string(forColumn: "url"))!
+                let scope = URL(string: serviceWorkerContents.string(forColumn: "scope"))!
+                let installState = ServiceWorkerInstallState(rawValue: Int(serviceWorkerContents.int(forColumn: "install_state")))!
                 
                 instance = ServiceWorkerInstance(
                     url: url,
@@ -246,13 +246,13 @@ struct PromiseReturn {
                     installState: installState
                 )
                 
-                log.debug("Created new instance of service worker with ID " + String(id) + " and install state: " + String(instance!.installState))
-                contents = serviceWorkerContents.stringForColumn("contents")
+                log.debug("Created new instance of service worker with ID " + String(id) + " and install state: " + String(describing: instance!.installState))
+                contents = serviceWorkerContents.string(forColumn: "contents")
                 serviceWorkerContents.close()
             })
             
             if instance == nil {
-                return Promise<ServiceWorkerInstance?>(nil)
+                return Promise<ServiceWorkerInstance?>(value: nil)
             }
             
             return instance!.loadServiceWorker(contents!)
@@ -304,9 +304,9 @@ struct PromiseReturn {
     func dispatchExtendableEvent(_ ev:ExtendableEvent) -> Promise<Void> {
         
         let funcToRun = self.jsContext.objectForKeyedSubscript("self")
-            .objectForKeyedSubscript("dispatchEvent")
+            .objectForKeyedSubscript("dispatchEvent")!
         
-        funcToRun.callWithArguments([ev])
+        funcToRun.call(withArguments: [ev])
         
         return ev.resolve()
         
@@ -330,9 +330,9 @@ struct PromiseReturn {
         
         let dispatch = self.jsContext.objectForKeyedSubscript("hybrid")
             .objectForKeyedSubscript("dispatchFetchEvent")
-            .callWithArguments([fetch])
+            .call(withArguments: [fetch])!
         
-        return PromiseBridge<FetchResponse>(jsPromise: dispatch)
+        return JSPromiseToPromise<FetchResponse>.pass(dispatch)
     }
     
     
@@ -359,7 +359,7 @@ struct PromiseReturn {
     /// - Returns: An empty promise that will fulfill when all push events have been processed.
     func processPendingPushEvents() -> Promise<Void> {
         
-        let pendingPushes = PendingPushEventStore.getByWorkerURL(self.url.absoluteString!)
+        let pendingPushes = PendingPushEventStore.getByWorkerURL(self.url.absoluteString)
         
         let processPromises = pendingPushes.map { push -> Promise<Void> in
         
@@ -394,14 +394,14 @@ struct PromiseReturn {
                     self.registration!.storeNotificationShowWithID = nil
                 }
                 
-                return Promise<Void>()
+                return Promise(value: ())
             }
             
         }
         
-        return when(processPromises)
+        return when(fulfilled: processPromises)
         .recover { err -> Void in
-            log.error("Error encountered when processing push events: " + String(err))
+            log.error("Error encountered when processing push events: " + String(describing: err))
         }
 
     }
@@ -415,15 +415,15 @@ struct PromiseReturn {
         
         return Promise<String> {fulfill, reject in
             
-            let workerContextPath = Util.appBundle().pathForResource("worker-context", ofType: "js", inDirectory: "js-dist")!;
+            let workerContextPath = Util.appBundle().path(forResource: "worker-context", ofType: "js", inDirectory: "js-dist")!;
            
-            let contextJS = try NSString(contentsOfFile: workerContextPath, encoding: NSUTF8StringEncoding) as String
+            let contextJS = try String(contentsOfFile: workerContextPath, encoding: String.Encoding.utf8)
             fulfill(contextJS)
         }.then { js in
             return self.runScript("var global = self; hybrid = {}; var navigator = {}; navigator.userAgent = 'hybrid service worker';" + js)
         }.then { js in
             self.applyGlobalVariables()
-            return Promise<Void>()
+            return Promise(value: ())
         }
     }
     
@@ -458,9 +458,9 @@ struct PromiseReturn {
             let result = self.jsContext.evaluateScript(js)
             if (self.contextErrorValue != nil) {
                 let errorText = self.contextErrorValue!.toString()
-                reject(JSContextError(message:errorText))
+                reject(JSContextError(message:errorText!))
             } else {
-                fulfill(result)
+                fulfill(result!)
             }
         }
     }
@@ -472,9 +472,14 @@ struct PromiseReturn {
     /// - Parameters:
     ///   - context: the worker's JSContext
     ///   - exception: The error as a JSValue
-    fileprivate func exceptionHandler(_ context:JSContext!, exception:JSValue!) {
-        self.contextErrorValue = exception
-        log.error("JSCONTEXT error: " + exception.toString())
+    fileprivate func exceptionHandler(_ context:JSContext?, exception:JSValue?) {
+        if let exceptionExists = exception {
+            self.contextErrorValue = exceptionExists
+            log.error("JSCONTEXT error: " + exceptionExists.toString())
+        } else {
+            log.error("Exception called with no exception?")
+        }
+        
         
     }
     

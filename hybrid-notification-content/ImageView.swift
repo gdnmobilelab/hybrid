@@ -16,7 +16,7 @@ class ImageView : UIImageView {
         
         let imageURL = URL(string:url, relativeTo: worker.url as URL?)!
         
-        log.info("Loading notification image from " + imageURL.absoluteString!)
+        log.info("Loading notification image from " + imageURL.absoluteString)
         
         let localURL = attachments.filter { $0.identifier == imageURL.absoluteString}.first?.url
         

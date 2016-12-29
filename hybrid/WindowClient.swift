@@ -46,7 +46,7 @@ import JavaScriptCore
             "message": message
         ])
         
-        WebviewClientManager.clientEvents.emit(newEvent)
+        WebviewClientManager.clientEvents.emit("*", newEvent)
         
     }
     
@@ -59,6 +59,6 @@ import JavaScriptCore
         
         // workerId maybe shouldn't be nil but we don't know it here, and the focus event doesn't need it
         let newEvent = PendingWebviewAction(type: PendingWebviewActionType.focus, record: record)
-        WebviewClientManager.clientEvents.emit(newEvent)
+        WebviewClientManager.clientEvents.emit("*", newEvent)
     }
 }

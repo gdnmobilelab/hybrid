@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import EmitterKit
 import WebKit
 import JavaScriptCore
 
@@ -22,20 +21,20 @@ import JavaScriptCore
 /// Implementation of MessageChannel: https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel
 /// Basically just a pairing of two MessagePorts - postMessage-ing into one triggers a message event on the other.
 @objc class MessageChannel : NSObject, MessageChannelExports {
-    dynamic var port1 = MessagePort()
-    dynamic var port2 = MessagePort()
+    var port1 = MessagePort()
+    var port2 = MessagePort()
     
-    fileprivate var listener1:Listener?
-    fileprivate var listener2:Listener?
+    fileprivate var listener1:Listener<ExtendableMessageEvent?>?
+    fileprivate var listener2:Listener<ExtendableMessageEvent?>?
     
     override required init() {
         super.init()
-        self.listener1 = port1.eventEmitter.on("emit", { (msg: ExtendableMessageEvent?) in
-            self.port2.eventEmitter.emit("message", msg!)
+        self.listener1 = port1.events.on("emit", { (msg: ExtendableMessageEvent?) in
+            self.port2.events.emit("message", msg!)
         })
         
-        self.listener2 = port2.eventEmitter.on("emit", { (msg: ExtendableMessageEvent?) in
-            self.port1.eventEmitter.emit("message", msg!)
+        self.listener2 = port2.events.on("emit", { (msg: ExtendableMessageEvent?) in
+            self.port1.events.emit("message", msg!)
         })
         
     }

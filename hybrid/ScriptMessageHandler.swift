@@ -32,7 +32,7 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     
     /// Just for sanity's sake, a struct to store the fulfill and reject halves of a promise
     struct PromiseStore {
-        var fulfill: (AnyObject) -> ()
+        var fulfill: (Any) -> ()
         var reject: (Error) -> ()
     }
     
@@ -47,8 +47,8 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     ///   - name: The event name to fire
     ///   - arguments: An array of JSON strings to send to the JS function. Note: this means strings should be surrounded in ""s, numbers should not.
     /// - Returns: A promise that resolves with whatever object is passed back by the webview
-    func sendEventAwaitResponse(_ name: String, arguments: [String]) -> Promise<AnyObject> {
-        return Promise<AnyObject> { fulfill, reject in
+    func sendEventAwaitResponse(_ name: String, arguments: [String]) -> Promise<Any> {
+        return Promise<Any> { fulfill, reject in
             
             // Find an available index
             
@@ -59,7 +59,7 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
             
             self.pendingPromises[index] = PromiseStore(fulfill: fulfill, reject: reject)
 
-            self.webview.evaluateJavaScript("window.__promiseBridges['" + self.handlerName + "'].emitWithResponse('" + name + "',[" + arguments.joinWithSeparator(",") + "]," + String(index) + ")", completionHandler: nil)
+            self.webview.evaluateJavaScript("window.__promiseBridges['" + self.handlerName + "'].emitWithResponse('" + name + "',[" + arguments.joined(separator: ",") + "]," + String(index) + ")", completionHandler: nil)
         }
     }
     
@@ -76,10 +76,10 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     ///
     /// - Parameter message: The message to send
     /// - Returns: If not overridden, will throw a HandleMessageNotImplementedError
-    func handleMessage(_ message:AnyObject) -> Promise<String>? {
-        return Promise<String?>(nil)
-            .then { _ in
-                throw HandleMessageNotImplementedError()
+    func handleMessage(_ message:[String: Any]) -> Promise<String>? {
+        return Promise<String?>(value: nil)
+        .then { _ in
+            throw HandleMessageNotImplementedError()
         }
         
     }
@@ -93,7 +93,8 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     func sendEvent(_ name:String, arguments: [String]) {
         self.webview.evaluateJavaScript("window.__promiseBridges['" + self.handlerName + "'].emit('" + name + "'," + arguments.joined(separator: ",") +  ")", completionHandler:  {resp, err in
             if err != nil {
-                log.error("Failed to send event: " + String(err))
+                let mapped = self.webview.url
+                log.error("Failed to send event " + name + " to handler " + self.handlerName + ": " + String(describing: err!))
             }
         })
     }
@@ -102,7 +103,9 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     /// Function that processes responses coming from inside the webview.
     @objc func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         
-        let messageContents = message.body["message"] as! [String: AnyObject]
+        let bodyAsObject = message.body as! [String: Any]
+        
+        let messageContents = bodyAsObject["message"] as! [String: Any]
         
         
         if let callbackResponseIndex = messageContents["callbackResponseIndex"] as? Int {
@@ -123,15 +126,15 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
             return
         }
         
-        let callbackIndex = message.body["callbackIndex"] as? Int
+        let callbackIndex = bodyAsObject["callbackIndex"] as? Int
         let processResult = self.handleMessage(messageContents)
         if processResult != nil && callbackIndex != nil {
             
             let functionName = "window.__promiseBridgeCallbacks['" + self.handlerName + "']"
             
-            let errorCatcher = { (resp:AnyObject?, err: NSError?) in
+            let errorCatcher = { (resp:Any?, err: Error?) in
                 if err != nil {
-                    log.error("it failed: " + String(err))
+                    log.error("it failed: " + String(describing: err))
                 }
             }
             
@@ -140,9 +143,9 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
                     
                     self.webview.evaluateJavaScript(functionName + "(" + String(callbackIndex!) + ",null," + result + ")", completionHandler: errorCatcher)
                 }
-                .error { err in
-                    log.error("Error in promise: " + String(err))
-                    self.webview.evaluateJavaScript(functionName + "(" + String(callbackIndex!) + ",'" + String(err) + "')", completionHandler: errorCatcher)
+                .catch { err in
+                    log.error("Error in promise: " + String(describing: err))
+                    self.webview.evaluateJavaScript(functionName + "(" + String(callbackIndex!) + ",'" + String(describing: err) + "')", completionHandler: errorCatcher)
             }
         }
     }

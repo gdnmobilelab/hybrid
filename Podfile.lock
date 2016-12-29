@@ -1,5 +1,4 @@
 PODS:
-  - EmitterKit (5.0.0)
   - FMDB (2.6.2):
     - FMDB/standard (= 2.6.2)
   - FMDB/standard (2.6.2)
@@ -28,7 +27,6 @@ PODS:
   - XCGLogger/Core (4.0.0)
 
 DEPENDENCIES:
-  - EmitterKit (~> 5)
   - FMDB
   - FMDBMigrationManager
   - GCDWebServer (~> 3.0)
@@ -38,7 +36,6 @@ DEPENDENCIES:
   - XCGLogger (~> 4.0.0)
 
 SPEC CHECKSUMS:
-  EmitterKit: 0057b2086840f20987cb8d4445b4490b96c0bfd8
   FMDB: 854a0341b4726e53276f2a8996f06f1b80f9259a
   FMDBMigrationManager: d52007f328ea0665e8985ca8a33500707aef084f
   GCDWebServer: 2a375ec42839a41d7187d04e5b688d32fa5c4cd5
@@ -47,6 +44,6 @@ SPEC CHECKSUMS:
   Quick: 18d057bc66451eedd5d1c8dc99ba2a5db6e60226
   XCGLogger: 38063ea89b4c8b23232d18efd2e12eb0005f3ea4
 
-PODFILE CHECKSUM: fbf5624b939261bddb8f490bccef3f44f7bad585
+PODFILE CHECKSUM: ad75832d037e2556a7267a80979f4409a49494ed
 
 COCOAPODS: 1.2.0.beta.1

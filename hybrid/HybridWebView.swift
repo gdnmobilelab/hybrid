@@ -9,7 +9,6 @@
 import Foundation
 import WebKit
 import PromiseKit
-import EmitterKit
 
 /// Inherits from WKWebView, adds a few pieces of functionality we need, as well as tracking
 /// of active webviews.
@@ -23,6 +22,8 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     
     let readyStateHandler = ReadyStateHandler()
     
+    var isActive:Bool = false
+    
     
     /// A store for all the active webviews currently in use by the app
     fileprivate static var activeWebviews = [HybridWebview]()
@@ -30,7 +31,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     /// The WebviewClientManager and the HybridWebview can't be directly connected because the former exists
     /// in the notification extension, while the latter doesn't. So we use this listener to connect the two,
     /// when they're in the same environment. It is set by registerWebviewForServiceWorkerEvents()
-    static var webviewClientListener:Listener?
+    static var webviewClientListener:Listener<PendingWebviewAction>?
     
     
     /// Registers this webview for things like WebviewClientManager events. Claim, postMessage, etc. Also
@@ -47,7 +48,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
             // No idea why, but setting this as a static variable at the start doesn't work. We have to create it
             // later.
             
-            HybridWebview.webviewClientListener = WebviewClientManager.clientEvents.on(HybridWebview.processClientEvent)
+            HybridWebview.webviewClientListener = WebviewClientManager.clientEvents.on("*", HybridWebview.processClientEvent)
         }
         
         HybridWebview.saveWebViewRecords()
@@ -109,6 +110,9 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
                     p()
                 }
             }
+            .catch { err in
+                log.error("Error in service worker claim event: " + String(describing: err))
+            }
         }
         else if event.type == PendingWebviewActionType.focus {
             let webView = HybridWebview.activeWebviews[event.record!.index]
@@ -137,7 +141,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
             
             
         } else {
-            log.error("Unrecognised event: " + String(event.type))
+            log.error("Unrecognised event: " + String(describing: event.type))
         }
     }
     
@@ -165,7 +169,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
 
         } catch {
             // Don't really know what we'd do at this point
-            log.error(String(error))
+            log.error(String(describing: error))
         }
         self.console = ConsoleManager(userController: config.userContentController, webView: self)
         self.messageChannelManager = MessageChannelManager(userController: config.userContentController, webView: self)
@@ -183,9 +187,10 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
 
         // hacky hacky
         
+        
         self.pushWebviewListener = self.eventManager!.events.on("pushWebview", { intendedURL in
             
-            var relativeURL = NSURL(string: intendedURL!, relativeToURL: self.URL!)!
+            var relativeURL = URL(string: intendedURL!, relativeTo: self.url)!
             
             if WebServerDomainManager.isLocalServerURL(relativeURL) {
                 relativeURL = WebServerDomainManager.mapServerURLToRequestURL(relativeURL)
@@ -196,7 +201,7 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         })
     }
     
-    fileprivate var pushWebviewListener:Listener?
+    fileprivate var pushWebviewListener:Listener<String?>?
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         
@@ -225,10 +230,10 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     /// - Parameter userController: userController to inject into
     /// - Throws: If the JS file cannot be read
     fileprivate func injectJS(_ userController: WKUserContentController) throws {
-        let docStartPath = Util.appBundle().path(forResource: "document-start", ofType: "js", inDirectory: "js-dist")!;
-        let documentStartJS = try NSString(contentsOfFile: docStartPath, encoding: String.Encoding.utf8) as String;
+        let docStartPath = Util.appBundle().path(forResource: "document-start", ofType: "js", inDirectory: "js-dist")!
+        let documentStartJS = try String(contentsOfFile: docStartPath, encoding: String.Encoding.utf8)
      
-        let userScript = WKUserScript(source: documentStartJS, injectionTime: .atDocumentStart, forMainFrameOnly: true);
+        let userScript = WKUserScript(source: documentStartJS, injectionTime: .atDocumentStart, forMainFrameOnly: true)
         userController.addUserScript(userScript)
     }
     

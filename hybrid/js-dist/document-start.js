@@ -350,6 +350,7 @@ var promiseCallbacks = {};
 var promiseBridges = {};
 window.__promiseBridgeCallbacks = promiseCallbacks;
 window.__promiseBridges = promiseBridges;
+console.log("SET BRIDGE VARIABLE");
 var PromiseOverWKMessage = (function (_super) {
     __extends(PromiseOverWKMessage, _super);
     function PromiseOverWKMessage(name) {
@@ -895,7 +896,7 @@ var MessagePortWrapper = (function () {
             promiseBridge.bridgePromise({
                 operation: "sendToPort",
                 portIndex: _this.nativePortIndex,
-                data: JSON.stringify(data),
+                data: data,
                 isExplicitPost: isExplicitPost,
                 additionalPortIndexes: customPorts.map(function (p) { return p.nativePortIndex; })
             });
@@ -938,7 +939,7 @@ function postMessage(message, ports) {
         .then(function (portIndexes) {
         promiseBridge.bridgePromise({
             operation: "postMessage",
-            data: JSON.stringify(message),
+            data: message,
             additionalPortIndexes: portIndexes
         });
     });
@@ -1412,3 +1413,4 @@ document.addEventListener('readystatechange', function () {
 window.onerror = function (err) {
     console.error(err);
 };
+console.info("Webview layer load complete.");

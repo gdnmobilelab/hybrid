@@ -115,7 +115,7 @@ export class MessagePortWrapper {
             promiseBridge.bridgePromise({
                 operation: "sendToPort",
                 portIndex: this.nativePortIndex,
-                data: JSON.stringify(data),
+                data: data,
                 isExplicitPost: isExplicitPost,
                 additionalPortIndexes: customPorts.map((p) => p.nativePortIndex)
             })
@@ -178,7 +178,7 @@ export function postMessage(message:any, ports: [MessagePort]) {
     .then((portIndexes:number[]) => {
         promiseBridge.bridgePromise({
             operation: "postMessage",
-            data: JSON.stringify(message),
+            data: message,
             additionalPortIndexes: portIndexes
         })
     })

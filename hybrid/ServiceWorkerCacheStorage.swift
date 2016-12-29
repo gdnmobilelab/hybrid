@@ -63,7 +63,7 @@ import PromiseKit
                     var ids: [String] = []
                     
                     while resultSet.next() {
-                        ids.append(resultSet.stringForColumn("cache_id"))
+                        ids.append(resultSet.string(forColumn: "cache_id"))
                     }
                     
                     resultSet.close()
@@ -83,18 +83,11 @@ import PromiseKit
     /// SQL query to get distinct keys. Not sure there's really a huge performance issue though.
     func keys() -> JSPromise {
         
-        // The Swift compiler doesn't like us passing in a Promise<[String]> for reasons
-        // I don't quite understand. But for now we'll just cast to AnyObject to make it happy.
-        
-        let promise = _keys().then { keys in
-            return keys as [AnyObject]
-        }
-        
-        return PromiseToJSPromise.pass(promise)
+        return PromiseToJSPromise<[String]>.pass(_keys())
 
     }
     
-    func _match(_ url: NSURL) -> Promise<FetchResponse> {
+    func _match(_ url: URL) -> Promise<FetchResponse> {
         // Can't find anything in the spec to decide what order we do this in. So we'll just do it in whatever order they come.
 
         return _keys()
@@ -109,7 +102,7 @@ import PromiseKit
             
             var currentIndex = 0
             
-            return Promise<Void>(value: nil)
+            return Promise(value: ())
             .then {
     
                 if allKeys.count == 0 {
@@ -137,7 +130,7 @@ import PromiseKit
         var url = ""
         
         if request.isObject {
-            url = (request.toObjectOf(FetchRequest) as! FetchRequest).url
+            url = (request.toObjectOf(FetchRequest.self) as! FetchRequest).url
         } else {
             url = request.toString()
         }
@@ -149,20 +142,20 @@ import PromiseKit
     }
     
     func _delete(_ name:String) -> Promise<Bool> {
-        return Promise<Void>()
+        return Promise(value: ())
         .then { () -> Bool in
             
             var cacheExisted:Bool = false
             
             try Db.mainDatabase.inTransaction({ db in
                 
-                let queryArguments = [self.worker.url.absoluteString!, name]
+                let queryArguments = [self.worker.url.absoluteString, name]
                 
                 let numRowsQuery = try db.executeQuery("SELECT COUNT(*) FROM cache WHERE service_worker_url = ? and cache_id = ?", values: queryArguments)
                 
                 numRowsQuery.next()
                
-                cacheExisted = numRowsQuery.intForColumnIndex(0) > 0
+                cacheExisted = numRowsQuery.int(forColumnIndex: 0) > 0
                 
                 numRowsQuery.close()
                 

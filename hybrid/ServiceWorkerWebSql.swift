@@ -64,7 +64,7 @@ import JavaScriptCore
         
         do {
             let dbPath = try Db.getFullPathForDB(name, inDirectory: self.sanitisedOrigin)
-            let db = WebSQLDatabase(dbPath: dbPath.path!, context: self.context)
+            let db = WebSQLDatabase(dbPath: dbPath.path, context: self.context)
             return [JSValue(nullIn:self.context), db]
         } catch {
             return [JSValue(newErrorFromMessage: String(describing: error), in: self.context)]

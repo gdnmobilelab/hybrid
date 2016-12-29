@@ -9,27 +9,26 @@
 import Foundation
 import WebKit
 import PromiseKit
-import EmitterKit
 
 /// A Serialization target for MessagePort messages when we are passing them back into a WKWebView.
 class MessagePortMessage {
     
     
     /// Turn into a simple object that can be serialized to JSON.
-    func toSerializableObject() -> [String: AnyObject] {
+    func toSerializableObject() -> Any {
         return [
             "data": self.data != nil ? self.data! : NSNull(),
-            "passedPortIds": self.passedPortIds as AnyObject
+            "passedPortIds": self.passedPortIds as Any
         ]
     }
     
-    let data:AnyObject?
+    let data:Any?
     
     /// We can't pass MessagePorts themselves into the WKWebView, so instead we keep track of the port
     /// IDs we're sending, and using the JS bridge to communicate between native and web.
     var passedPortIds:[Int]!
 
-    init(data:AnyObject?, passedPortIds:[Int]) {
+    init(data:Any?, passedPortIds:[Int]) {
         self.data = data
         self.passedPortIds = passedPortIds
     }
@@ -46,9 +45,9 @@ class MessagePortMessage {
 class MessageChannelManager: ScriptMessageManager {
     
     var activePorts = [Int: MessagePort]()
-    var portListeners = [Int:Listener]()
-    var closeListeners = [Int:Listener]()
-    var onMessage: ((AnyObject, [MessagePort]) -> Void)? = nil
+    var portListeners = [Int:Listener<ExtendableMessageEvent?>]()
+    var closeListeners = [Int:Listener<ExtendableMessageEvent?>]()
+    var onMessage: ((Any, [MessagePort]) -> Void)? = nil
     
     init(userController:WKUserContentController, webView:HybridWebview) {
         super.init(userController: userController, webView: webView, handlerName: "messageChannel")
@@ -59,12 +58,13 @@ class MessageChannelManager: ScriptMessageManager {
     ///
     /// - Parameter message: Message object. Must have key named "operation" with value of create, delete, sendToPort or postMessage
     /// - Returns: nil, unless the operation is "create", in which case it returns the new ID as a string
-    override func handleMessage(_ message:AnyObject) -> Promise<String>? {
-        log.info("AN OPERATION!")
+    override func handleMessage(_ message: [String: Any]) -> Promise<String>? {
+        
         let operation = message["operation"] as! String
+        
         if (operation == "create") {
             let newId = self.createNewPort()
-            return Promise<String>(String(newId))
+            return Promise(value: String(newId))
         }
         if (operation == "delete") {
             let index = message["portIndex"] as! Int
@@ -83,7 +83,7 @@ class MessageChannelManager: ScriptMessageManager {
             if self.onMessage == nil {
                 return nil
             }
-            let data = message["data"] as! String
+            let data = message["data"]!
             let additionalPortIndexes = message["additionalPortIndexes"] as! [Int]
             let actualPorts = additionalPortIndexes.map({ index in
                 return self.activePorts[index]!
@@ -120,7 +120,7 @@ class MessageChannelManager: ScriptMessageManager {
             let data = try JSONSerialization.jsonObject(with: jsonString.data(using: String.Encoding.utf8)!, options: [])
             port!.postMessage(data, ports: portsFromIndexes, fromWebView: self.webview)
         } catch {
-            log.error("Could not post JSON string: " + String(error))
+            log.error("Could not post JSON string: " + String(describing: error))
         }
         
         
@@ -152,7 +152,8 @@ class MessageChannelManager: ScriptMessageManager {
         log.info("Manually adding MessagePort to index #" + String(index))
         self.activePorts[index] = port
         
-        self.portListeners[index] = port.eventEmitter.on("emit", { msg in
+        
+        self.portListeners[index] = port.events.on("emit", { msg in
            
             if msg!.fromWebView != nil && msg!.fromWebView! == self.webview {
                 // If the message originated from this webview we don't want
@@ -173,7 +174,7 @@ class MessageChannelManager: ScriptMessageManager {
             })
         })
         
-        self.closeListeners[index] = port.eventEmitter.on("close", { _ in
+        self.closeListeners[index] = port.events.on("close", { _ in
             log.info("Port #" + String(index) + " closed, marking index for reuse")
             self.deletePort(index)
         })
@@ -197,8 +198,8 @@ class MessageChannelManager: ScriptMessageManager {
         log.info("Deleting port #" + String(index))
         
         self.activePorts.removeValue(forKey: index)
-        self.portListeners.removeValueForKey(index)
-        self.closeListeners.removeValueForKey(index)
+        self.portListeners.removeValue(forKey: index)
+        self.closeListeners.removeValue(forKey: index)
         
         self.webview.evaluateJavaScript("window.__messageChannelBridge.emit('delete'," + String(index) + ")", completionHandler: nil)
     }

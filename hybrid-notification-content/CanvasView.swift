@@ -98,8 +98,8 @@ class CanvasView: UIView {
                 self.pendingRender = true
                 self.setNeedsDisplay()
             }
-            .error { error in
-                log.error("Error in rendering canvas: " + String(error))
+            .catch { error in
+                log.error("Error in rendering canvas: " + String(describing: error))
             }
         }
         

@@ -238,7 +238,7 @@ import JavaScriptCore
 
 /// The part of our FetchRequest object that will be available inside a JSContext
 @objc protocol FetchRequestExports : FetchBodyExports, JSExport {
-    init(url:String, options: [String:AnyObject]?)
+    init(url:String, options: [String:Any]?)
     var referrer:String? {get}
     var url:String {get}
 }
@@ -251,7 +251,7 @@ import JavaScriptCore
     var method:String
     var headers:FetchHeaders
    
-    required init(url:String, options: [String: AnyObject]?)  {
+    required init(url:String, options: [String: Any]?)  {
         self.url = url
         
         var data:Data? = nil
@@ -321,7 +321,7 @@ import JavaScriptCore
 
 /// The part of our FetchResponse object that will be available inside a JSContext
 @objc protocol FetchResponseExports : FetchBodyExports, JSExport {
-    init(body:AnyObject?, options: [String:AnyObject]?)
+    init(body:Any?, options: [String:Any]?)
     var status:Int {get set}
     var statusText:String {get set}
 }
@@ -350,7 +350,7 @@ import JavaScriptCore
     /// - Parameters:
     ///   - body: The body for this response
     ///   - options: Options object, containing status, headers, etc
-    required init(body: AnyObject?, options: [String:AnyObject]?) {
+    required init(body: Any?, options: [String:Any]?) {
         var status = 200
         var statusText = "OK"
         var headers = FetchHeaders()
@@ -436,8 +436,8 @@ class DoNotFollowRedirectSessionDelegate : NSObject, URLSessionDelegate {
         // This parameter can be either a URL string or an instance of a
         // FetchRequest class.
         
-        if request.isInstance(of: FetchRequest) {
-            return request.toObjectOf(FetchRequest) as! FetchRequest
+        if request.isInstance(of: FetchRequest.self) {
+            return request.toObjectOf(FetchRequest.self) as! FetchRequest
         }
         
         return FetchRequest(url: request.toString(), options: options.toObject() as? [String : AnyObject])
@@ -454,11 +454,11 @@ class DoNotFollowRedirectSessionDelegate : NSObject, URLSessionDelegate {
         
         let urlRequest = request.toNSURLRequest()
         
-        log.debug("Fetching " + urlRequest.URL!.absoluteString!)
+        log.debug("Fetching " + urlRequest.url!.absoluteString)
         
         return Promise<FetchResponse> { fulfill, reject in
             
-            var delegate: NSURLSessionDelegate? = nil
+            var delegate: URLSessionDelegate? = nil
             
             if options["redirect"] != nil && options["redirect"] as? String != "follow" {
                 // TODO: work out what "manual" means in the spec
@@ -466,16 +466,16 @@ class DoNotFollowRedirectSessionDelegate : NSObject, URLSessionDelegate {
             }
             
 
-            let session = NSURLSession(configuration: NSURLSessionConfiguration.ephemeralSessionConfiguration(), delegate: delegate, delegateQueue: NSOperationQueue.mainQueue())
+            let session = URLSession(configuration: URLSessionConfiguration.ephemeral, delegate: delegate, delegateQueue: OperationQueue.main)
             
-            let task = session.dataTaskWithRequest(urlRequest, completionHandler: { (data:NSData?, res:NSURLResponse?, err:NSError?) in
+            let task = session.dataTask(with: urlRequest, completionHandler: { (data:Data?, res:URLResponse?, err:Error?) in
                 
                 if err != nil {
                     reject(err!)
                     return
                 }
                
-                let httpResponse = res as? NSHTTPURLResponse
+                let httpResponse = res as? HTTPURLResponse
                 
                 
                 if let response = httpResponse {

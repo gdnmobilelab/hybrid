@@ -29,7 +29,7 @@ enum PendingWebviewActionType: Int32 {
     var type:PendingWebviewActionType
     var record:WebviewRecord?
     var uuid:String
-    var options:[String: AnyObject]?
+    var options:[String: Any]?
     
     // This is a total hack, but if we're in the same process our events evaluate immediately, and we might
     // want to wait for that. This adds a lot of uncertainty, though
@@ -39,7 +39,7 @@ enum PendingWebviewActionType: Int32 {
         self.init(type: type, record: record, options: nil)
     }
     
-    init(type:PendingWebviewActionType, record: WebviewRecord?, options: [String:AnyObject]?) {
+    init(type:PendingWebviewActionType, record: WebviewRecord?, options: [String:Any]?) {
         self.type = type
         self.record = record
         self.options = options
@@ -48,7 +48,7 @@ enum PendingWebviewActionType: Int32 {
     
     
     /// Private init to create an instance with our predefined UUID
-    fileprivate convenience init(type:PendingWebviewActionType, record: WebviewRecord?, options: [String:AnyObject]?, uuid:String) {
+    fileprivate convenience init(type:PendingWebviewActionType, record: WebviewRecord?, options: [String:Any]?, uuid:String) {
         self.init(type: type, record: record, options: options)
         self.uuid = uuid
     }
@@ -66,7 +66,7 @@ enum PendingWebviewActionType: Int32 {
                 let decoded = try JSONSerialization.jsonObject(with: options!, options: [])
                 optionsAsAny = decoded as? [String : AnyObject]
             } catch {
-                log.error("Unable to decode JSON string from storage. " + String(error))
+                log.error("Unable to decode JSON string from storage. " + String(describing: error))
             }
             
         }
@@ -89,7 +89,7 @@ enum PendingWebviewActionType: Int32 {
                 let jsonString = try JSONSerialization.data(withJSONObject: options, options: [])
                 coder.encode(jsonString, forKey: "options")
             } catch {
-                log.error("Unable to serialize event options to JSON. " + String(error))
+                log.error("Unable to serialize event options to JSON. " + String(describing: error))
             }
         }
         

@@ -15,46 +15,41 @@ import PromiseKit
 /// any type, and converts it into a JSPromise
 class PromiseToJSPromise<T> {
     
-    static func pass(_ promise:Promise<Void>) -> JSPromise {
-        let jspromise = JSPromise()
-        
-        promise.then {
-            jspromise.resolve(nil)
-        }
-        .error { err in
-            jspromise.reject(err)
-        }
-        
-        return jspromise
-    }
+//    static func pass(_ promise:Promise<Void>) -> JSPromise {
+//        let jspromise = JSPromise()
+//        
+//        promise.then {
+//            jspromise.resolve(nil)
+//        }
+//        .catch { err in
+//            jspromise.reject(err)
+//        }
+//        
+//        return jspromise
+//    }
+//    
+//    static func pass(_ promise:Promise<Any>) -> JSPromise {
+//        let jspromise = JSPromise()
+//        
+//        promise.then { result in
+//            jspromise.resolve(result)
+//        }
+//        .catch { err in
+//            jspromise.reject(err)
+//        }
+//        
+//        return jspromise
+//    }
     
-    static func pass(_ promise:Promise<Bool>) -> JSPromise {
-        let jspromise = JSPromise()
-        
-        promise.then { result in
-            jspromise.resolve(result)
-        }
-        .error { err in
-            jspromise.reject(err)
-        }
-        
-        return jspromise
-    }
-    
-}
-
-
-
-extension PromiseToJSPromise where T: AnyObject {
     static func pass(_ promise:Promise<T>) -> JSPromise {
         let jspromise = JSPromise()
         
         promise
-        .then { result in
-            jspromise.resolve(result)
-        }
-        .error { err in
-            jspromise.reject(err)
+            .then { result in
+                jspromise.resolve(result)
+            }
+            .catch { err in
+                jspromise.reject(err)
         }
         
         return jspromise
@@ -67,11 +62,45 @@ extension PromiseToJSPromise where T: AnyObject {
             .then { result in
                 jspromise.resolve(result)
             }
-            .error { err in
+            .catch { err in
                 jspromise.reject(err)
         }
         
         return jspromise
     }
+
+    
 }
+
+
+
+//extension PromiseToJSPromisehybrid Group where T: AnyObject {
+//    static func pass(_ promise:Promise<T>) -> JSPromise {
+//        let jspromise = JSPromise()
+//        
+//        promise
+//        .then { result in
+//            jspromise.resolve(result)
+//        }
+//        .catch { err in
+//            jspromise.reject(err)
+//        }
+//        
+//        return jspromise
+//    }
+//    
+//    static func pass(_ promiseArray:Promise<[T]>) -> JSPromise {
+//        let jspromise = JSPromise()
+//        
+//        promiseArray
+//        .then { result in
+//            jspromise.resolve(result)
+//        }
+//        .catch { err in
+//            jspromise.reject(err)
+//        }
+//        
+//        return jspromise
+//    }
+//}
 

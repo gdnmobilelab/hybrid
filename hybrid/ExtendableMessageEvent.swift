@@ -7,12 +7,11 @@
 //
 
 import Foundation
-import EmitterKit
 import WebKit
 import JavaScriptCore
 
 @objc protocol ExtendableMessageEventExports : JSExport {
-    var data:AnyObject? {get}
+    var data:Any? {get}
     var ports:[MessagePort] {get}
     //    init(data:AnyObject?, ports:[MessagePort]?)
 }
@@ -20,7 +19,7 @@ import JavaScriptCore
 
 /// Implementation of browser ExtendableMessageEvent: https://developer.mozilla.org/en-US/docs/Web/API/ExtendableMessageEvent
 @objc class ExtendableMessageEvent : ExtendableEvent, ExtendableMessageEventExports {
-    var data:AnyObject?
+    var data:Any?
     var ports:[MessagePort]
     
     /// We use this to make sure we aren't echoing messages back to the
@@ -28,7 +27,7 @@ import JavaScriptCore
     /// it doesn't make a lot of sense that it would ever do that
     var fromWebView:WKWebView?
     
-    required init(data:AnyObject?, ports: [MessagePort]?) {
+    required init(data:Any?, ports: [MessagePort]?) {
         
         self.data = data
         
@@ -44,7 +43,7 @@ import JavaScriptCore
     }
     
     
-    init(data:AnyObject?, ports:[MessagePort], fromWebView:WKWebView?) {
+    init(data:Any?, ports:[MessagePort], fromWebView:WKWebView?) {
         self.data = data
         self.ports = ports
         

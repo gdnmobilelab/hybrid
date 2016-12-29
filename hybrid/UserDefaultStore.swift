@@ -47,7 +47,7 @@ class UserDefaultStore<T> where T:NSCoding, T:Equatable {
                 }
                 
             } catch {
-                log.error("Failed to decode user default store: " + String(error))
+                log.error("Failed to decode user default store: " + String(describing: error))
             }
             
             return stored

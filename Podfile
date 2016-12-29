@@ -8,7 +8,7 @@ pod 'XCGLogger', '~> 4.0.0'
 pod 'FMDB'
 pod 'FMDBMigrationManager'
 pod 'PromiseKit', '~> 4'
-pod 'EmitterKit', '~> 5'
+#pod 'EmitterKit', '~> 5'
 
 
 target 'hybrid' do

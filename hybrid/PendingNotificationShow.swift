@@ -62,7 +62,7 @@ class PendingNotificationShow: NSObject, NSCoding {
             let toJSON = try JSONSerialization.data(withJSONObject: self.options, options: [])
             aCoder.encode(toJSON, forKey: "options")
         } catch {
-            log.error("Could not serialize notification options: " + String(error))
+            log.error("Could not serialize notification options: " + String(describing: error))
         }
         
     }
@@ -78,7 +78,7 @@ class PendingNotificationShow: NSObject, NSCoding {
         do {
             options = try JSONSerialization.jsonObject(with: optionsAsData, options: []) as! [String:AnyObject]
         } catch {
-            log.error("Could not deserialize notification options:" + String(error))
+            log.error("Could not deserialize notification options:" + String(describing: error))
         }
 
         self.init(title: title, options: options, pushID: pushID, workerURL: workerURL)

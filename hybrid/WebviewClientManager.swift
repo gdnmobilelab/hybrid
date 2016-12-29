@@ -8,7 +8,6 @@
 
 import Foundation
 import JavaScriptCore
-import EmitterKit
 import PromiseKit
 
 @objc protocol WebviewRecordExports : JSExport {
@@ -32,14 +31,20 @@ import PromiseKit
     // Use NSCoding to allow us to store this in UserDefaults
     
     convenience required init?(coder decoder: NSCoder) {
-        let url = decoder.decodeObject(forKey: "url") as? URL
-        let index = decoder.decodeObject(forKey: "index") as! Int
+        let urlString = decoder.decodeObject(forKey: "url") as? String
+        var url:URL? = nil
+        if urlString != nil {
+            url = URL(string: urlString!)
+        }
+        
         let workerId = decoder.decodeObject(forKey: "workerId") as? Int
+        let index = decoder.decodeInteger(forKey: "index")
+        
         self.init(url: url, index: index, workerId: workerId)
     }
     
     func encode(with coder: NSCoder) {
-        coder.encode(self.url, forKey: "url")
+        coder.encode(self.url?.absoluteString, forKey: "url")
         coder.encode(self.index, forKey: "index")
         coder.encode(self.workerId, forKey: "workerId")
     }
@@ -67,7 +72,7 @@ import PromiseKit
     
     /// This event emitter is listened to within HybridWebView.swift in-app, but also in NotificationViewController.swift
     /// in the notification content extension
-    static let clientEvents = Event<PendingWebviewAction>()
+    static let clientEvents = EventEmitter<PendingWebviewAction>()
     
     static func resetActiveWebviewRecords() {
         SharedResources.userDefaults.removeObject(forKey: SharedResources.userDefaultKeys.ACTIVE_WEBVIEWS_KEY)
@@ -119,7 +124,7 @@ import PromiseKit
         
         let claimPromises = WebviewClientManager.currentWebviewRecords.map { record -> Promise<Void> in
             if record.url == nil || record.url!.absoluteString.hasPrefix(self.serviceWorker.scope.absoluteString) == false {
-                return Promise<Void>(value: nil)
+                return Promise(value: ())
             } else {
                 
                 // We put this in an event bridge because out notificiation content extension
@@ -135,26 +140,18 @@ import PromiseKit
                     
                     return Promise<Void> { fulfill, reject in
                         ev.onImmediateExecution = fulfill
-                        WebviewClientManager.clientEvents.emit(ev)
+                        WebviewClientManager.clientEvents.emit("*", ev)
                     }
                     
                 } else {
-                    WebviewClientManager.clientEvents.emit(ev)
-                    return Promise<Void>(value: nil)
+                    WebviewClientManager.clientEvents.emit("*", ev)
+                    return Promise(value: ())
                 }
                 
             }
         }
         
-        let jsP = JSPromise()
-        
-        when(resolved: claimPromises)
-        .then {
-            jsP.resolve(nil)
-        }
-        
-        return jsP
-        
+        return PromiseToJSPromise<Void>.pass(when(fulfilled: claimPromises))
     }
     
     
@@ -173,7 +170,7 @@ import PromiseKit
             return WindowClient(url: record.url!.absoluteString, uniqueId: String(record.index))
         }
         
-        return JSPromise.resolve(matchesToClients)
+        return JSPromise.resolve(matchesToClients as AnyObject?)
         
     }
     @objc(openWindow::)
@@ -197,7 +194,7 @@ import PromiseKit
         
         let newEvent = PendingWebviewAction(type: PendingWebviewActionType.openWindow, record: nil, options: optionsToSave)
         
-        WebviewClientManager.clientEvents.emit(newEvent)
+        WebviewClientManager.clientEvents.emit("*", newEvent)
  
         return JSPromise.resolve(nil)
     }

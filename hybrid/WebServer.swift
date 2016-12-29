@@ -71,7 +71,7 @@ class WebServer {
     func handleServiceWorkerRequest(_ request:GCDWebServerRequest?, completionBlock: GCDWebServerCompletionBlock?) {
         
         let mappedURL = WebServerDomainManager.mapServerURLToRequestURL(request!.url)
-        log.info("Request for " + mappedURL.absoluteString!)
+        log.info("Request for " + mappedURL.absoluteString)
         ServiceWorkerManager.getServiceWorkerWhoseScopeContainsURL(mappedURL)
         .then { (sw) -> Promise<Void> in
             if (sw == nil) {
@@ -79,12 +79,11 @@ class WebServer {
                 // We are likely on a domain that has a worker, but not within the scope of that worker.
                 
                 self.passRequestThroughToNetwork(request!, completionBlock: completionBlock!)
-                return Promise<Void>()
+                return Promise(value: ())
                 
             }
             
-            
-            let fetch = FetchRequest(url: mappedURL.absoluteString!, options: [
+            let fetch = FetchRequest(url: mappedURL.absoluteString, options: [
                 "method": request!.method,
                 "headers": request!.headers as! [String:String]
             ])
@@ -96,10 +95,10 @@ class WebServer {
                 if maybeResponse == nil {
                     return GlobalFetch.fetchRequest(fetch)
                 }
-                return Promise<FetchResponse>(maybeResponse!)
+                return Promise(value: maybeResponse!)
             }
             .recover { err -> Promise<FetchResponse> in
-                log.error(String(err))
+                log.error(String(describing: err))
                 // If fetch event failed, just go to net
                 return GlobalFetch.fetchRequest(fetch)
             }
@@ -112,12 +111,12 @@ class WebServer {
                 }
                 
                 
-                let gcdresponse = GCDWebServerDataResponse(data: response.data, contentType: contentType)
+                let gcdresponse = GCDWebServerDataResponse(data: response.data, contentType: contentType)!
                 
                 gcdresponse.statusCode = response.status
                 
                 for key in response.headers.keys() {
-                    if key.lowercaseString == "content-encoding" {
+                    if key.lowercased() == "content-encoding" {
                         // the body is already ungzipped, so don't do it again
                         continue
                     }
@@ -125,15 +124,15 @@ class WebServer {
                 }
                 
                 completionBlock!(gcdresponse)
-                return Promise<Void>()
+                return Promise(value: ())
             }
             
            
             
-        } .error { (err) -> Void in
-            log.error(String(err))
-            let errAsNSData = String(err).dataUsingEncoding(NSUTF8StringEncoding)!
-            let errorResponse = GCDWebServerDataResponse(data:errAsNSData, contentType: "text/plain")
+        } .catch { (err) -> Void in
+            log.error(String(describing: err))
+            let errAsNSData = String(describing: err).data(using: String.Encoding.utf8)!
+            let errorResponse = GCDWebServerDataResponse(data:errAsNSData, contentType: "text/plain")!
             errorResponse.statusCode = 500
             completionBlock!(errorResponse)
 
@@ -152,9 +151,9 @@ class WebServer {
         
         let urlToActuallyFetch = WebServerDomainManager.mapServerURLToRequestURL(request.url)
         
-        log.info("Going to network to fetch: " + urlToActuallyFetch.absoluteString!)
+        log.info("Going to network to fetch: " + urlToActuallyFetch.absoluteString)
         
-        let fetchRequest = FetchRequest(url: urlToActuallyFetch.absoluteString!, options: [
+        let fetchRequest = FetchRequest(url: urlToActuallyFetch.absoluteString, options: [
             "method": request.method
         ])
         
@@ -172,7 +171,7 @@ class WebServer {
         GlobalFetch.fetchRequest(fetchRequest)
         .then { response -> Void in
             
-            let gcdResponse = GCDWebServerDataResponse(data: response.data, contentType: response.headers.get("content-type"))
+            let gcdResponse = GCDWebServerDataResponse(data: response.data, contentType: response.headers.get("content-type"))!
             gcdResponse.statusCode = response.status
             
             for key in response.headers.keys() {
@@ -183,6 +182,10 @@ class WebServer {
             
             completionBlock(gcdResponse)
             
+        }
+        .catch { err in
+            log.error("Error when trying to go to network for service worker request")
+            completionBlock(nil)
         }
         
     }

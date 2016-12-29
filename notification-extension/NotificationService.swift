@@ -51,7 +51,7 @@ class NotificationService: UNNotificationServiceExtension {
             PayloadToNotificationContent.setNotificationCategoryBasedOnActions(actions.components(separatedBy: ",,,"))
         }
         
-        Promise<Void>()
+        Promise(value: ())
         .then {
             if let collapse = maybeCollapse {
                 
@@ -76,7 +76,7 @@ class NotificationService: UNNotificationServiceExtension {
                 }
             }
             
-            return Promise<Void>()
+            return Promise(value: ())
         }
         .then { () -> Void in
             if attachments == nil {
@@ -84,9 +84,9 @@ class NotificationService: UNNotificationServiceExtension {
                 return
             }
             
-            let attachmentsSplit = attachments!.componentsSeparatedByString(",,,")
+            let attachmentsSplit = attachments!.components(separatedBy: ",,,")
             
-            PayloadToNotificationContent.urlsToNotificationAttachments(attachmentsSplit, relativeTo: NSURL(string: workerURL)!)
+            PayloadToNotificationContent.urlsToNotificationAttachments(attachmentsSplit, relativeTo: URL(string: workerURL)!)
             .then { attachments -> Void in
                 
                 attachments.forEach { self.bestAttemptContent!.attachments.append($0) }
