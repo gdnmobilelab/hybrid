@@ -35,6 +35,8 @@
 	<dict>
 		<key>NSExtensionAttributes</key>
 		<dict>
+			<key>UNNotificationExtensionOverridesDefaultTitle</key>
+			<true/>
 			<key>UNNotificationExtensionCategory</key>
 			<array>
 				<string>extended-content</string>

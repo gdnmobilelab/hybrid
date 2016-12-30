@@ -78,17 +78,21 @@ import JavaScriptCore
 @objc protocol NotificationEventExports : JSExport {
     var notification: Notification {get}
     var action: String {get}
+    var target: String {get}
 }
 
 @objc class NotificationEvent: ExtendableEvent, NotificationEventExports {
     let notification: Notification
     let action: String
+    let target: String
     
-    init(type: String, notification:Notification, action:String = "") {
+    init(type: String, notification:Notification, action:String = "", target:String = "") {
         self.notification = notification
         self.action = action
+        self.target = target
         super.init(type: type)
     }
+    
     
     required init(type: String) {
         fatalError("init(type:) has not been implemented")

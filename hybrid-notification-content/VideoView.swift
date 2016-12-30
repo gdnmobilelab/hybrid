@@ -13,8 +13,12 @@ import UserNotifications
 class VideoView : UIView {
     
     let videoInstance:NotificationVideo
+    let context:NSExtensionContext
+    var videoPlayListener:Listener<NotificationVideoPlayState>?
     
     init(width: CGFloat, options:[String: Any], worker: ServiceWorkerInstance, context: NSExtensionContext, attachments: [UNNotificationAttachment]) {
+        
+        self.context = context
         
         var proportion:CGFloat = 16/10
         
@@ -46,12 +50,27 @@ class VideoView : UIView {
             log.info("Loading remote notification video from " + videoURL.absoluteString)
         }
         
-        self.videoInstance = NotificationVideo(videoURL: videoURL, options: options, context: context)
+        self.videoInstance = NotificationVideo(videoURL: videoURL, options: options)
         
         super.init(frame:CGRect(x: 0,y: 0,width: width, height: width / proportion))
+        
+        self.videoPlayListener = self.videoInstance.events.on("playstate", self.playStateChange)
+        
         videoInstance.playerController.view.frame = self.frame
         self.addSubview(videoInstance.playerController.view)
+
+        if videoInstance.autoplay == true {
+            self.context.mediaPlayingStarted()
+        }
         
+    }
+    
+    func playStateChange(state: NotificationVideoPlayState) {
+        if state == NotificationVideoPlayState.Paused {
+            self.context.mediaPlayingPaused()
+        } else {
+            self.context.mediaPlayingStarted()
+        }
     }
     
     required init?(coder aDecoder: NSCoder) {

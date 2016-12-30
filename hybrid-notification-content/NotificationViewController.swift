@@ -98,6 +98,8 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         
         let attachments = notification.request.content.attachments
         
+        self.title = "MOBILE LAB"
+        
         Promise(value: ())
         .then {
             // We don't run inside the app, so we need to make our DB instance
@@ -132,7 +134,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                     let videoView = VideoView(width: self.view.frame.width, options: videoOptions, worker: sw!, context: self.extensionContext!, attachments: attachments)
                     self.notificationInstance!.video = videoView.videoInstance
                     interactiveViewContainer.addSubview(videoView)
-                    
+
                 }
                 
                 if let canvasOptions = self.notificationShowData!.options["canvas"] {
@@ -165,6 +167,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                         .first!
                     
                     interactiveViewContainer.frame = maxFrame
+                    self.playPauseFrame = maxFrame
                     self.notificationViews.append(interactiveViewContainer)
                 }
                 
@@ -218,6 +221,41 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         
     }
     
+    func sendExpandedNotificationClick() {
+        NotificationHandler.sendNotificationEvent(type: "notificationclick", self.notificationInstance!, target: "interactivearea")
+        .catch { err in
+            log.error("Error processing expanded notification click: " + String(describing: err))
+        }
+    }
+    
+    func mediaPlay() {
+        self.sendExpandedNotificationClick()
+    }
+    
+    func mediaPause() {
+        self.sendExpandedNotificationClick()
+    }
+    
+    var mediaPlayPauseButtonTintColor: UIColor {
+        get {
+            return UIColor(red: 0, green: 0, blue: 0, alpha: 0.0)
+        }
+    }
+
+    private var playPauseFrame:CGRect = CGRect(x:0, y:0, width: 0, height: 0)
+    
+    var mediaPlayPauseButtonFrame: CGRect {
+        get {
+            return self.playPauseFrame
+        }
+    }
+    
+    var mediaPlayPauseButtonType:UNNotificationContentExtensionMediaPlayPauseButtonType {
+        get {
+            return playPauseFrame.width > 0 ? UNNotificationContentExtensionMediaPlayPauseButtonType.default : UNNotificationContentExtensionMediaPlayPauseButtonType.none
+        }
+    }
+    
     class NotificationResponseFailedError : Error {}
     
     func didReceive(_ response: UNNotificationResponse, completionHandler completion: @escaping (UNNotificationContentExtensionResponseOption) -> Void) {
@@ -235,7 +273,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                 // don't want the app to also process this event
                 NotificationHandler.IgnoreNotificationCloseInMainApp = true
                 self.notificationInstance!.closeState = true
-                return NotificationHandler.sendClose(self.notificationInstance!)
+                return NotificationHandler.sendNotificationEvent(type: "notificationclose", self.notificationInstance!)
             }
             
             if let clickedActionIndex = Int(response.actionIdentifier) {

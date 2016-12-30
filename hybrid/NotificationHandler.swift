@@ -32,24 +32,13 @@ class NotificationHandler {
         }
     }
     
-    static func sendClose(_ notification: Notification) -> Promise<Void> {
+    static func sendNotificationEvent(type: String, _ notification: Notification, target:String = "") -> Promise<Void> {
         return ServiceWorkerInstance.getActiveWorkerByURL(notification.belongsToWorkerURL)
         .then { sw in
             
-            let event = NotificationEvent(type: "notificationclose", notification: notification)
+            let event = NotificationEvent(type: type, notification: notification, action: "", target: target)
             
             return sw!.dispatchExtendableEvent(event)
-                
-        }
-    }
-    
-    static func sendClick(_ notification: Notification) -> Promise<Void> {
-        return ServiceWorkerInstance.getActiveWorkerByURL(notification.belongsToWorkerURL)
-            .then { sw in
-                
-                let event = NotificationEvent(type: "notificationclick", notification: notification)
-                
-                return sw!.dispatchExtendableEvent(event)
                 
         }
     }

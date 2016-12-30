@@ -25,11 +25,16 @@ import JavaScriptCore
     func unmute()
 }
 
+enum NotificationVideoPlayState {
+    case Playing
+    case Paused
+}
+
 
 @objc class NotificationVideo : NSObject, NotificationVideoExports {
     
     let playerController:AVPlayerViewController
-    let extensionContext:NSExtensionContext?
+    let events = EventEmitter<NotificationVideoPlayState>()
     
     var loop:Bool = true
     var autoplay:Bool = true
@@ -66,13 +71,12 @@ import JavaScriptCore
         }
     }
     
-    init(videoURL:URL, options:[String: Any] = [:], context:NSExtensionContext?) {
+    init(videoURL:URL, options:[String: Any] = [:]) {
         self.videoURL = videoURL
         self.playerController = AVPlayerViewController()
         self.playerController.player = AVPlayer(url: videoURL)
         self.playerController.showsPlaybackControls = false
         self.playerController.view.autoresizingMask = UIViewAutoresizing()
-        self.extensionContext = context
 
         
         if let autoplay = options["autoplay"] as? Bool {
@@ -87,12 +91,14 @@ import JavaScriptCore
             self.muted = muted
         }
         
+        super.init()
         
         if self.muted == true {
+            self.setAudioCategory(muted: true)
             self.playerController.player!.volume = 0
         }
         
-        super.init()
+        
         
         if self.autoplay == true {
             self.play()
@@ -118,9 +124,20 @@ import JavaScriptCore
             log.error("AV Fail:" + String(describing: errExists))
         }
         
-        
-        
-        
+    }
+    
+    func setAudioCategory(muted:Bool) {
+        do {
+            var opts: AVAudioSessionCategoryOptions = []
+            
+            if muted {
+                opts = AVAudioSessionCategoryOptions.mixWithOthers
+            }
+            
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback, with: opts)
+        } catch {
+            log.error("Could not set audio category:" + String(describing: error))
+        }
     }
     
     func loopIfNeeded(_ notification: Foundation.Notification) {
@@ -133,23 +150,25 @@ import JavaScriptCore
     }
     
     func play() {
-//        self.extensionContext?.mediaPlayingStarted()
+        self.events.emit("playstate", NotificationVideoPlayState.Playing)
         self.playerController.player!.play()
         self.isPlaying = true
     }
     
     func pause() {
-//        self.extensionContext?.mediaPlayingPaused()
+        self.events.emit("playstate", NotificationVideoPlayState.Paused)
         self.playerController.player!.pause()
         self.isPlaying = false
     }
     
     func mute() {
         self.playerController.player!.volume = 0
+        self.setAudioCategory(muted: true)
     }
     
     func unmute() {
         self.playerController.player!.volume = 1
+        self.setAudioCategory(muted: false)
     }
     
 }

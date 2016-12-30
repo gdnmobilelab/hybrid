@@ -80,3 +80,4 @@ class EventEmitter <T:Any> {
         self.listeners[name]!.forEach { $0.funcToCall!(object) }
     }
 }
+

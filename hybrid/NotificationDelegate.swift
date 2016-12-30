@@ -79,14 +79,14 @@ class NotificationDelegate : NSObject, UNUserNotificationCenterDelegate {
                     return Promise(value: ())
                 }
                 
-                return NotificationHandler.sendClose(notification)
+                return NotificationHandler.sendNotificationEvent(type:"notificationclose", notification)
                 .then {
                     // It's possible to call openWindow() in a notificationclose event, but we should
                     // never actually allow that to happen. So just to make sure, we clear any attempts.
                     PendingWebviewActions.removeAll()
                 }
             } else if response.actionIdentifier == UNNotificationDefaultActionIdentifier {
-                return NotificationHandler.sendClick(notification)
+                return NotificationHandler.sendNotificationEvent(type:"notificationclick", notification)
             } else {
                 // if it's any other action then the actions are already stored in Pending.
                 return Promise(value: ())
