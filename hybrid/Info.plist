@@ -32,7 +32,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>3</string>
+	<string>4</string>
 	<key>EMPTY_WORKERS_ON_LOAD</key>
 	<string>${EMPTY_WORKERS_ON_LOAD}</string>
 	<key>INITIAL_URL</key>

@@ -120,6 +120,10 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             
             self.notificationInstance = Notification.fromNotificationShow(self.notificationShowData!)
             
+            if let headerText = self.notificationShowData!.options["headerText"] as? String {
+                self.title = headerText
+            }
+            
             return ServiceWorkerInstance.getActiveWorkerByURL(self.notificationInstance!.belongsToWorkerURL)
             .then { sw -> Void in
                 
@@ -167,17 +171,17 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                         .first!
                     
                     interactiveViewContainer.frame = maxFrame
-                    self.playPauseFrame = maxFrame
                     self.notificationViews.append(interactiveViewContainer)
                 }
                 
                 
-                let bodyText = self.notificationShowData!.options["body"] as! String
-                
-                let textView = NotificationTextView(title: self.notificationShowData!.title, body: bodyText, frame: self.view.frame)
-                
-                
-                self.notificationViews.append(textView)
+                if self.notificationShowData!.options["hideText"] as? Bool != true {
+                    
+                    let bodyText = self.notificationShowData!.options["body"] as! String
+                    let textView = NotificationTextView(title: self.notificationShowData!.title, body: bodyText, frame: self.view.frame)
+                    self.notificationViews.append(textView)
+                    
+                }
 
                 
                 // not returning the promise as we don't want to wait for this, just send it
@@ -223,6 +227,20 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
     func sendExpandedNotificationClick() {
         NotificationHandler.sendNotificationEvent(type: "notificationclick", self.notificationInstance!, target: "interactivearea")
+        .then { () -> Void in
+            
+            // in theory at this point we'd look for notification.close, but we can't act on it. Instead, if we have an
+            // open action, the close is implied.
+            
+            let actionThatBringsAppToFront = PendingWebviewActions.getAll().filter { event in
+                return event.type == PendingWebviewActionType.openWindow || event.type == PendingWebviewActionType.focus
+            }.last
+            
+            if let action = actionThatBringsAppToFront {
+                self.openURLInAppOrExternal(action: action)
+            }
+            
+        }
         .catch { err in
             log.error("Error processing expanded notification click: " + String(describing: err))
         }
@@ -242,17 +260,15 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         }
     }
 
-    private var playPauseFrame:CGRect = CGRect(x:0, y:0, width: 0, height: 0)
-    
     var mediaPlayPauseButtonFrame: CGRect {
         get {
-            return self.playPauseFrame
+            return self.view.frame
         }
     }
     
     var mediaPlayPauseButtonType:UNNotificationContentExtensionMediaPlayPauseButtonType {
         get {
-            return playPauseFrame.width > 0 ? UNNotificationContentExtensionMediaPlayPauseButtonType.default : UNNotificationContentExtensionMediaPlayPauseButtonType.none
+            return UNNotificationContentExtensionMediaPlayPauseButtonType.default
         }
     }
     
@@ -294,41 +310,20 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             
             let allPendingActions = PendingWebviewActions.getAll()
             
-            let actionsThatBringAppToFront = allPendingActions.filter { event in
+            // We shouldn't ever really have more than one
+            
+            let actionThatBringsAppToFront = allPendingActions.filter { event in
                 return event.type == PendingWebviewActionType.openWindow || event.type == PendingWebviewActionType.focus
-            }
+            }.last
 
-            if actionsThatBringAppToFront.count > 0 {
+            if let action = actionThatBringsAppToFront {
                 
                 // We would use UNNotificationContentExtensionResponseOption.DismissAndForwardAction
                 // to bring the app into focus, but that makes you have to decide between whether a
                 // notification can .Dismiss or .DismissAndForwardAction, but not both. Since our buttons
                 // are dynamic we don't want that. So we use a URL handler instead.
                 
-                var url = URL(string: "gdnmobilelab://")!
-                
-                // using first because we sort of have to, also no-one should ever want to open two windows
-                // at once because the browser will only show one
-                
-                let windowOpen = actionsThatBringAppToFront.filter { $0.type == PendingWebviewActionType.openWindow}.first
-                
-                let openOptions = windowOpen?.options?["openOptions"] as? [String: Any]
-                
-                if openOptions?["external"] as? Bool == true {
-                    
-                    // We have the option to open a link "externally", i.e. force it into Safari.
-                    // if that's enabled we pass the URL directly to the OS, rather than into
-                    // the app and back out again.
-                    
-                    
-                    
-                    url = URL(string: windowOpen!.options!["urlToOpen"] as! String)!
-                 
-                    PendingWebviewActions.remove(windowOpen!)
-                }
-        
-                self.extensionContext!.open(url, completionHandler: nil)
-                ServiceWorkerManager.clearActiveServiceWorkers()
+                self.openURLInAppOrExternal(action: action)
                 completion(UNNotificationContentExtensionResponseOption.dismiss)
                 
             } else if self.notificationInstance!.closeState == true {
@@ -344,4 +339,29 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             completion(UNNotificationContentExtensionResponseOption.dismiss)
         }
     }
+
+    func openURLInAppOrExternal(action:PendingWebviewAction) {
+        var url = URL(string: "gdnmobilelab://")!
+        
+        // using first because we sort of have to, also no-one should ever want to open two windows
+        // at once because the browser will only show one
+        
+        let openOptions = action.options?["openOptions"] as? [String: Any]
+        
+        if action.type == PendingWebviewActionType.openWindow && openOptions?["external"] as? Bool == true {
+            
+            // We have the option to open a link "externally", i.e. force it into Safari.
+            // if that's enabled we pass the URL directly to the OS, rather than into
+            // the app and back out again.
+            
+            url = URL(string: action.options!["urlToOpen"] as! String)!
+            
+            PendingWebviewActions.remove(action)
+        }
+        
+        self.extensionContext!.open(url, completionHandler: nil)
+        ServiceWorkerManager.clearActiveServiceWorkers()
+
+    }
+    
 }
