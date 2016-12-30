@@ -26,15 +26,15 @@ class ArrayBufferJSPromise : JSPromise {
         (self.data as NSData).getBytes(&array, length:count * MemoryLayout<UInt32>.size)
         
         let arrayBuffer = context.objectForKeyedSubscript("ArrayBuffer")
-            .construct(withArguments: [self.data.count])
+            .construct(withArguments: [self.data.count])!
         
         let uIntArray = context.objectForKeyedSubscript("Uint32Array")
-            .construct(withArguments: [arrayBuffer])
+            .construct(withArguments: [arrayBuffer])!
         
         var idx = 0
         while idx < array.count {
             let jv = JSValue(uInt32: array[idx], in: context)
-            uIntArray?.setObject(jv, atIndexedSubscript: idx)
+            uIntArray.setObject(jv, atIndexedSubscript: idx)
             idx = idx + 1
         }
         

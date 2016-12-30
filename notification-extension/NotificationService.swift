@@ -78,21 +78,25 @@ class NotificationService: UNNotificationServiceExtension {
             
             return Promise(value: ())
         }
-        .then { () -> Void in
+        .then { () -> Promise<Void> in
             if attachments == nil {
                 contentHandler(self.bestAttemptContent!)
-                return
+                return Promise(value: ())
             }
             
             let attachmentsSplit = attachments!.components(separatedBy: ",,,")
             
-            PayloadToNotificationContent.urlsToNotificationAttachments(attachmentsSplit, relativeTo: URL(string: workerURL)!)
+            return PayloadToNotificationContent.urlsToNotificationAttachments(attachmentsSplit, relativeTo: URL(string: workerURL)!)
             .then { attachments -> Void in
                 
                 attachments.forEach { self.bestAttemptContent!.attachments.append($0) }
                 contentHandler(self.bestAttemptContent!)
                     
             }
+        }
+        .catch { err in
+            log.error("Error encountered when parsing notification data: " + String(describing: err))
+            contentHandler(self.bestAttemptContent!)
         }
         
         

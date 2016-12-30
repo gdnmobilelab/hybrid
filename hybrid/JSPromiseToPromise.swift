@@ -46,7 +46,7 @@ extension JSPromiseToPromise where T: AnyObject {
                 var result:T? = nil
                 
                 if jsVal.isUndefined == false && jsVal.isNull == false {
-                    result = jsVal.toObjectOf(T.self as! AnyClass) as! T
+                    result = (jsVal.toObjectOf(T.self) as! T)
                 }
                 
                 fulfill(result)

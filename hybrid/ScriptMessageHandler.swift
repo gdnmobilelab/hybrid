@@ -93,7 +93,6 @@ class ScriptMessageManager: NSObject, WKScriptMessageHandler {
     func sendEvent(_ name:String, arguments: [String]) {
         self.webview.evaluateJavaScript("window.__promiseBridges['" + self.handlerName + "'].emit('" + name + "'," + arguments.joined(separator: ",") +  ")", completionHandler:  {resp, err in
             if err != nil {
-                let mapped = self.webview.url
                 log.error("Failed to send event " + name + " to handler " + self.handlerName + ": " + String(describing: err!))
             }
         })

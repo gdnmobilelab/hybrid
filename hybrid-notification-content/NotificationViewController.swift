@@ -179,6 +179,9 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                 
                 // not returning the promise as we don't want to wait for this, just send it
                 NotificationHandler.sendExpand(self.notificationInstance!)
+                .catch { err in
+                    log.error("Error encountered when sending notification expand event:" + String(describing: err))
+                }
                 
             }
             
@@ -207,6 +210,9 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             UIView.animate(withDuration: 0.2) {
                 self.preferredContentSize = CGSize(width: 0, height: self.notificationViews.last!.frame.maxY)
             }
+        }
+        .catch { err in
+            log.error("Error encountered setting/resizing notification views: " + String(describing: err))
         }
         
         
@@ -294,9 +300,10 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                 completion(UNNotificationContentExtensionResponseOption.doNotDismiss)
             }
             
-            
-//            PendingWebviewActions.clear()
         }
-
+        .catch { err in
+            log.error("Error parsing notification actions: " + String(describing: err))
+            completion(UNNotificationContentExtensionResponseOption.dismiss)
+        }
     }
 }

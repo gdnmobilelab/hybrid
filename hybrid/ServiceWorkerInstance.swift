@@ -432,7 +432,8 @@ struct PromiseReturn {
     /// then go through and manually declare global variables.
     fileprivate func applyGlobalVariables() {
         
-        let global = self.jsContext.objectForKeyedSubscript("global")
+        let global = self.jsContext.objectForKeyedSubscript("global")!
+        
         
         let globalKeys = self.jsContext
             .objectForKeyedSubscript("Object")
@@ -441,7 +442,7 @@ struct PromiseReturn {
             .toArray() as! [String]
         
         for key in globalKeys {
-            self.jsContext.setObject(global!.objectForKeyedSubscript(key), forKeyedSubscript: key as (NSCopying & NSObjectProtocol)!)
+            self.jsContext.setObject(global.objectForKeyedSubscript(key)!, forKeyedSubscript: key as (NSCopying & NSObjectProtocol)!)
         }
 
     }

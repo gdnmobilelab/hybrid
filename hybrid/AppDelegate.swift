@@ -14,7 +14,7 @@ import GCDWebServer
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
-    static var window: UIWindow?
+    private static var window: UIWindow?
     static var rootController:HybridNavigationController?
     
     func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
@@ -222,6 +222,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // all of our active workers are up to date.
         
         ServiceWorkerManager.processAllPendingPushEvents()
+        .catch { err in
+            log.error("Error encountered when processing push events:" + String(describing: err))
+        }
     }
     
     func applicationWillTerminate(_ application: UIApplication) {

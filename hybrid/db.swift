@@ -209,7 +209,11 @@ class DbMigrate {
                 let workerScope = existingWorkers.string(forColumn: "scope")
                 
                 let indexOfPreloadWorker = entries.index { obj in
-                    return obj["url"] as! String == workerURL && obj["scope"] as! String == workerScope
+                    
+                    let url = obj["url"] as! String
+                    let scope = obj["scope"] as! String
+                    
+                    return url == workerURL && scope == workerScope
                 }
                 
                 if indexOfPreloadWorker != nil {

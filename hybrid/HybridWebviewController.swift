@@ -190,9 +190,9 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
 //        self.navigationItem.leftBarButtonItem = back
     }
     
-    func popThisView() {
-        self.hybridNavigationController!.popViewController(animated: true)
-    }
+//    func popThisView() {
+//        let _ = self.hybridNavigationController!.popViewController(animated: true)
+//    }
     
 //    func fiddleContentInsets() {
 //        

@@ -206,6 +206,9 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             }
                 
         }
+        .catch { err in
+            log.error("Failed to push view controller for " + url.absoluteString + ", " + String(describing: err))
+        }
         
     }
     
@@ -294,6 +297,9 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             self.prepareWebviewFor(backURL, attemptAcceleratedLoading: false)
             .then { controller in
                 self.viewControllers.insert(controller, at: 0)
+            }
+            .catch { err in
+                log.error("Failed to create view from default back URL " + backURL.absoluteString + ": " + String(describing: err))
             }
 
         }

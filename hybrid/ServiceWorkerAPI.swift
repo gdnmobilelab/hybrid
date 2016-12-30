@@ -39,6 +39,9 @@ class ServiceWorkerAPI: ScriptMessageManager {
         
         let ev = ExtendableMessageEvent(data: message, ports: ports)
         self.currentActiveServiceWorker!.dispatchExtendableEvent(ev)
+        .catch { err in
+            log.error("Failed to send message to worker:" + String(describing: err))
+        }
         
 //        do {
 //            
@@ -188,28 +191,34 @@ class ServiceWorkerAPI: ScriptMessageManager {
     /// - Returns: A JSON-encoded array of ServiceWorkerMatch objects
     func getAllWorkers(_ webviewURL:URL) -> Promise<String> {
         return ServiceWorkerManager.getAllServiceWorkersWithScopeContainingURL(webviewURL)
-        .then { matches -> String in
+        .then { matches in
             
             let activeWorkers = matches.filter({ match in
                 return match.installState == ServiceWorkerInstallState.activated
             })
             
-            if activeWorkers.count > 0 {
-                // if we have an active worker, load it and save it
-                
-                ServiceWorkerInstance.getById(activeWorkers[0].instanceId)
-                .then { sw in
-                    self.currentActiveServiceWorker = sw
+            return Promise(value: ())
+            .then { () -> Promise<Void> in
+                if activeWorkers.count > 0 {
+                    // if we have an active worker, load it and save it
+                    
+                    return ServiceWorkerInstance.getById(activeWorkers[0].instanceId)
+                    .then { sw in
+                        self.currentActiveServiceWorker = sw
+                    }
+                    
+                } else {
+                    return Promise(value: ())
+                }
+            }
+            .then {
+                let jsonObjs = matches.map { match in
+                    return match.toSerializableObject()
                 }
                 
+                return Promise(value: JSONSerializable.serialize(jsonObjs)!)
             }
             
-            let jsonObjs = matches.map { match in
-                return match.toSerializableObject()
-            }
-            
-            
-            return JSONSerializable.serialize(jsonObjs)!
         }
     }
     
