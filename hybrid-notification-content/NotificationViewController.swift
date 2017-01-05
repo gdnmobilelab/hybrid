@@ -22,6 +22,9 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
     var notificationShowData:PendingNotificationShow?
     var notificationInstance:Notification?
+    var currentVideoView:VideoView?
+    var currentCanvasView:CanvasView?
+    var interactiveViewContainer:UIView?
 //    var interactiveViews = ActiveNotificationViews()
     
     static var webviewEventListener:Listener<PendingWebviewAction>?
@@ -98,7 +101,12 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         
         let attachments = notification.request.content.attachments
         
-        self.title = "MOBILE LAB"
+        // Copy the array to refer to later - we remove views that aren't
+        // in our new stack.
+        let currentNotificationViews = self.notificationViews.map { $0 }
+        self.notificationViews.removeAll()
+        
+        self.title = ""
         
         Promise(value: ())
         .then {
@@ -107,7 +115,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             
             // If we're loading on top of an existing notification, clear any
             // existing views
-            self.removeAllViews()
+//            self.removeAllViews()
             
             return self.processPendingPushEvents(notification.request.identifier)
         }
@@ -122,6 +130,8 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             
             if let headerText = self.notificationShowData!.options["headerText"] as? String {
                 self.title = headerText
+            } else {
+                self.title = "MOBILE LAB"
             }
             
             return ServiceWorkerInstance.getActiveWorkerByURL(self.notificationInstance!.belongsToWorkerURL)
@@ -131,27 +141,57 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                     throw ErrorMessage("No service worker exists for the specified URL")
                 }
                 
-                let interactiveViewContainer = UIView()
+                if self.interactiveViewContainer == nil {
+                    self.interactiveViewContainer = UIView()
+                }
                 
                 if let videoOptions = self.notificationShowData!.options["video"] as? [String:Any] {
                     
-                    let videoView = VideoView(width: self.view.frame.width, options: videoOptions, worker: sw!, context: self.extensionContext!, attachments: attachments)
+                    let videoView:VideoView
+                    
+                    if (self.currentVideoView?.optionsMatch(newOptions: videoOptions, workerURL: sw!.url, attachments: attachments)) == true {
+                        
+                        // If it's the same video, preserve the current view, so we don't lose playback point etc
+                        
+                        videoView = self.currentVideoView!
+                    } else {
+                        videoView = VideoView(width: self.view.frame.width, options: videoOptions, worker: sw!, context: self.extensionContext!, attachments: attachments)
+                    }
+                    
+                    
                     self.notificationInstance!.video = videoView.videoInstance
-                    interactiveViewContainer.addSubview(videoView)
+                    self.currentVideoView = videoView
+                    self.interactiveViewContainer!.addSubview(videoView)
 
+                } else {
+                    self.currentVideoView?.removeFromSuperview()
+                    self.currentVideoView = nil
+                    self.notificationInstance!.video = nil
                 }
                 
                 if let canvasOptions = self.notificationShowData!.options["canvas"] {
                     
                     var proportion:CGFloat = 1
+                    
                     if let canvasProportion = canvasOptions["proportion"] as? CGFloat {
                         proportion = canvasProportion
                     }
-                    let canvasView = CanvasView(width: self.view.frame.width, ratio: proportion, worker: sw!, notification: self.notificationInstance!)
+                    
+                    let canvasView:CanvasView
+                    
+                    if (self.currentCanvasView?.proportion == proportion) {
+                        canvasView = self.currentCanvasView!
+                    } else {
+                        canvasView = CanvasView(width: self.view.frame.width, proportion: proportion, worker: sw!, notification: self.notificationInstance!)
+                    }
                     
                     self.notificationInstance!.canvas = canvasView.canvas
-                    interactiveViewContainer.addSubview(canvasView)
+                    self.interactiveViewContainer!.addSubview(canvasView)
                     
+                } else {
+                    self.currentCanvasView?.removeFromSuperview()
+                    self.currentCanvasView = nil
+                    self.notificationInstance!.canvas = nil
                 }
                 
                 if let imageURL = self.notificationShowData!.options["image"] as? String {
@@ -161,17 +201,17 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                     self.notificationViews.append(imageView)
                 }
                 
-                if interactiveViewContainer.subviews.count > 0 {
+                if self.interactiveViewContainer!.subviews.count > 0 {
                     
                     // Interactive views have to be the same size as each other otherwise it'll look weird
                     
-                    let maxFrame = interactiveViewContainer.subviews
+                    let maxFrame = self.interactiveViewContainer!.subviews
                         .map { $0.frame }
                         .sorted { $0.height > $1.height }
                         .first!
                     
-                    interactiveViewContainer.frame = maxFrame
-                    self.notificationViews.append(interactiveViewContainer)
+                    self.interactiveViewContainer!.frame = maxFrame
+                    self.notificationViews.append(self.interactiveViewContainer!)
                 }
                 
                 
@@ -208,6 +248,12 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             
         }
         .then { () -> Void in
+            
+            currentNotificationViews.forEach { view in
+                if self.notificationViews.contains(view) == false {
+                    view.removeFromSuperview()
+                }
+            }
             
             self.notificationViews.forEach { view in
                 self.setFrame(view)
@@ -294,7 +340,8 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             
             if let clickedActionIndex = Int(response.actionIdentifier) {
                 
-                let action = self.notificationShowData!.getActions()[clickedActionIndex].identifier
+                let actions = self.notificationShowData!.getActions()
+                let action = actions[clickedActionIndex].identifier
                 
                 return NotificationHandler.sendAction(action, notification: self.notificationInstance!)
                 

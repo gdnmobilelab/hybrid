@@ -52,17 +52,18 @@ class CanvasView: UIView {
     fileprivate let worker: ServiceWorkerInstance
     fileprivate var displayLink:CADisplayLink?
     fileprivate let notification:Notification
+    let proportion:CGFloat
     
     fileprivate static func multiplyByRatio(_ num:CGFloat) -> Int {
         return Int(num * UIScreen.main.scale)
     }
     
-    init(width: CGFloat, ratio: CGFloat, worker: ServiceWorkerInstance, notification:Notification) {
+    init(width: CGFloat, proportion: CGFloat, worker: ServiceWorkerInstance, notification:Notification) {
         
-        let height = width / ratio
+        let height = width / proportion
         self.worker = worker
         
-        
+        self.proportion = proportion
         
         self.notification = notification
         

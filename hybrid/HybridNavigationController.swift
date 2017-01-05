@@ -248,6 +248,10 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
             self.navigationBar.barTintColor = UIColor.white
         }
         
+        self.navigationBar.setBottomBorderColor(color: self.navigationBar.barTintColor!)
+        
+
+        
         if isBright == false {
             self.navigationBar.tintColor = UIColor.white
             self.statusBarStyle = UIStatusBarStyle.lightContent
@@ -266,6 +270,8 @@ class HybridNavigationController : UINavigationController, UINavigationControlle
         self.setNeedsStatusBarAppearanceUpdate()
         
     }
+    
+    var bottomBorderView:UIView?
     
     
     /// When a controller show is complete, we check to see if there is a controller in the waiting area - if not, create one.

@@ -74,6 +74,12 @@ import PromiseKit
         self.worker = worker
     }
     
+    
+    /// No idea why, but identifiers with dashes in them seem to be problematic.
+    func makeTagNameSafe(_ tag:String) -> String {
+        return tag.addingPercentEncoding(withAllowedCharacters: CharacterSet.alphanumerics)!
+    }
+    
     @objc(showNotification::)
     /// Show a notification locally, without going through any remote notification handlers.
     ///
@@ -108,7 +114,7 @@ import PromiseKit
             // and handle both.
             
             if Bundle.main.bundleURL.lastPathComponent != "hybrid-notification-content.appex" {
-                notificationID = storeID
+                notificationID = makeTagNameSafe(storeID)
             }
 
         }
@@ -147,7 +153,7 @@ import PromiseKit
 
             
             if let tag = options["tag"] as? String {
-                content.threadIdentifier = tag
+                content.threadIdentifier = makeTagNameSafe(tag)
             }
             
             PayloadToNotificationContent.urlsToNotificationAttachments(potentialAttachments, relativeTo: self.worker.url)

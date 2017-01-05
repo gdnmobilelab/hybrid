@@ -86,17 +86,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 return event.type == PendingWebviewActionType.openWindow
             }
             
-//            let launchKey = launchOptions?["UIApplicationLaunchOptionsURLKey"]
-//            let launch = launchOptions!
+            // if UIApplicationLaunchOptionsKey.url exists then the app will call the open URL function below
             
-            
-            
-            if windowOpenActions.count == 0 && launchOptions?[UIApplicationLaunchOptionsKey.url] == nil {
+            if windowOpenActions.count == 0 && launchOptions == nil {
                 pushDefaultStartURL()
                 
-            } else {
+            }/* else {
                 NotificationDelegate.processPendingActions()
-            }
+            }*/
             
             
             
@@ -115,6 +112,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
     }
+    
+//    func application(_ application: UIApplication, willContinueUserActivityWithType userActivityType: String) -> Bool {
+//        NSLog("here?")
+//        return true
+//    }
     
     func pushDefaultStartURL() {
         let initialURL = Bundle.main.object(forInfoDictionaryKey: "INITIAL_URL") as! String
@@ -150,6 +152,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
         
         NotificationDelegate.processPendingActions()
+        
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
+        
+        // We can just launch the app with gdnmobilelab://, but sometimes we also send
+        // a full URL
+        
+        if components.host != nil && components.host != "" {
+            
+            components.scheme = "https"
+            
+            HybridNavigationController.current!.pushNewHybridWebViewControllerFor(components.url!, animated: false)
+            
+        } else {
+            // sometimes gdnmobilelab:// is used just to bring the app to the front, but if we don't already have a homepage
+            // it's because this is a fresh launch. If there were pending window open calls they have been processed in
+            // application(), but if there weren't then we need to add the homepage.
+            
+            if HybridNavigationController.current!.viewControllers.count == 0 {
+                pushDefaultStartURL()
+            }
+        }
         
         return true
         
