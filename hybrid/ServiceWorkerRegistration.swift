@@ -21,6 +21,9 @@ import PromiseKit
     @objc(showNotification::)
     func showNotification(_ title:String, options: [String:AnyObject]) -> JSPromise
     
+    @objc(getNotifications:)
+    func getNotifications(_ options: [String:AnyObject]) -> JSPromise
+    
     func update() -> JSPromise
 }
 
@@ -229,5 +232,29 @@ import PromiseKit
     /// Update the current service worker.
     func update() -> JSPromise {
         return PromiseToJSPromise.pass(ServiceWorkerManager.update(self.worker.url, scope: nil, forceCheck: true))
+    }
+    
+    @objc(getNotifications:)
+    func getNotifications(_ options: [String:AnyObject]?) -> JSPromise {
+        let promise = Promise<[Notification]> { fulfill, reject in
+            UNUserNotificationCenter.current().getDeliveredNotifications(completionHandler: { notifications in
+                
+                let allPending = PendingNotificationShowStore.getAll()
+                
+                var mappedObjects = notifications.map { nativeNotification -> Notification in
+                    let pending = allPending.first { $0.pushID == nativeNotification.request.identifier }
+                    return Notification.fromNotificationShow(pending!)
+                }
+                
+                if let tag = options?["tag"] as? String {
+                    mappedObjects = mappedObjects.filter { $0.tag == tag }
+                }
+                
+                fulfill(mappedObjects)
+                
+            })
+        }
+        
+        return PromiseToJSPromise<[Notification]>.pass(promise)
     }
 }

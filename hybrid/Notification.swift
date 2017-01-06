@@ -8,6 +8,7 @@
 
 import Foundation
 import JavaScriptCore
+import UserNotifications
 
 @objc protocol NotificationExports: JSExport {
     var title: String {get set}
@@ -34,6 +35,7 @@ import JavaScriptCore
     var title:String
     var video: NotificationVideo?
     var canvas: OffscreenCanvas?
+    var pushID:String
     
     //show different text in collapsed view vs expanded
     var collapsed: [String: Any]?
@@ -43,9 +45,10 @@ import JavaScriptCore
     /// in the mean time. We always want the latest instance.
     var belongsToWorkerURL:URL
     
-    init(title:String, notificationData: [String:AnyObject]? = nil, belongsToWorkerURL:URL) {
+    init(title:String, notificationData: [String:AnyObject]? = nil, belongsToWorkerURL:URL, pushID:String) {
         self.title = title
         self.belongsToWorkerURL = belongsToWorkerURL
+        self.pushID = pushID
         
         if let data = notificationData {
             self.body = data["body"] as? String
@@ -64,14 +67,16 @@ import JavaScriptCore
     
     func close() {
         self.closeState = true
+        UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [self.pushID])
     }
     
     static func fromNotificationShow(_ notificationShow: PendingNotificationShow, canvas:OffscreenCanvas? = nil, videoView:NotificationVideo? = nil) -> Notification {
         
-        let notification = Notification(title: notificationShow.title, notificationData: notificationShow.options as [String:AnyObject]?, belongsToWorkerURL: notificationShow.workerURL as URL)
+        let notification = Notification(title: notificationShow.title, notificationData: notificationShow.options as [String:AnyObject]?, belongsToWorkerURL: notificationShow.workerURL as URL, pushID: notificationShow.pushID)
         
         notification.video = videoView
         notification.canvas = canvas
+        
         
         return notification
         

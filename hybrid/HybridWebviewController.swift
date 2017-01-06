@@ -363,4 +363,12 @@ class HybridWebviewController : UIViewController, WKNavigationDelegate, WKUIDele
         self.view.addSubview(self.screenshotView!)
         
     }
+    
+    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+        
+        let alert = UIAlertController(title: webView.title!, message: message, preferredStyle: UIAlertControllerStyle.alert)
+        alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.default, handler: nil))
+        self.present(alert, animated: true, completion: completionHandler)
+        
+    }
 }

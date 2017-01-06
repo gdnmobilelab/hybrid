@@ -275,26 +275,6 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     }
     
     
-    /// Stops page loads for any URL that is under the scope of a service worker, which we want to load locallys
-//    func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
-//        
-//        // If the URL falls within the scope of any service worker, we want to redirect the
-//        // browser to our local web server with the cached responses rather than the internet.
-//       
-//       
-//        let rewrittenURL = WebServerDomainManager.rewriteURLIfInWorkerDomain(navigationAction.request.URL!)
-//        
-//        if rewrittenURL == navigationAction.request.URL! {
-//            decisionHandler(WKNavigationActionPolicy.Allow)
-//            return
-//        }
-//        
-//        decisionHandler(WKNavigationActionPolicy.Cancel)
-//        webView.loadRequest(NSURLRequest(URL: rewrittenURL))
-//
-//    }
-    
-    
     /// Transform the raw URL into a remote URL, if it happens to be running on localhost. If not, just return the current URL
     var mappedURL:URL? {
         get {
