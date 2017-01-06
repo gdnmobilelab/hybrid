@@ -21,7 +21,8 @@ export const notification = {
     prototype: {
         image: "",
         video: "",
-        canvas: ""
+        canvas: "",
+        collapsed: ""
     }
 };
 

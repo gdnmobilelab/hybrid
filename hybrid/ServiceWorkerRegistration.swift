@@ -147,7 +147,25 @@ import PromiseKit
             }
             
             let content = UNMutableNotificationContent()
-            content.title = title
+            
+            // We have the ability to provide different collapsed titles and bodies on iOS,
+            // if we want. Not a Notification API feature, but playing around with it to see if
+            // we find it useful or not.
+            
+            let collapsed = options["collapsed"] as? [String: AnyObject]
+            
+            if let collapsedTitle = collapsed?["title"] as? String {
+                content.title = collapsedTitle
+            } else {
+                content.title = title
+            }
+            
+            if let collapsedBody = collapsed?["body"] as? String {
+                content.body = collapsedBody
+            }
+            else if let body = options["body"] as? String {
+                content.body = body
+            }
             
             content.sound = UNNotificationSound.default()
 
@@ -160,9 +178,7 @@ import PromiseKit
             .then { attachments -> Void in
                 log.info("Fetched potential attachments")
                 
-                if let body = options["body"] as? String {
-                     content.body = body
-                }
+                
                 
                 content.categoryIdentifier = "extended-content"
                

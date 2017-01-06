@@ -11,46 +11,50 @@ import JavaScriptCore
 
 @objc protocol NotificationExports: JSExport {
     var title: String {get set}
-    var actions: [AnyObject]? {get set}
+    var actions: [Any]? {get set}
     var body:String? {get set}
-    var data: AnyObject? {get set}
+    var data: Any? {get set}
     var tag: String? {get set}
     var icon: String? {get set}
-    var image: AnyObject? {get set}
+    var image: Any? {get set}
     var video: NotificationVideo? {get}
     var canvas: OffscreenCanvas? {get}
-    
+    var collapsed: [String: Any]? {get}
     func close()
     
 }
 
 @objc class Notification : NSObject, NotificationExports {
-    var actions: [AnyObject]? = nil
+    var actions: [Any]? = nil
     var body:String? = nil
-    var data:AnyObject? = nil
+    var data:Any? = nil
     var tag:String? = nil
     var icon:String? = nil
-    var image: AnyObject? = nil
+    var image: Any? = nil
     var title:String
     var video: NotificationVideo?
     var canvas: OffscreenCanvas?
+    
+    //show different text in collapsed view vs expanded
+    var collapsed: [String: Any]?
     
     
     /// We don't store a reference to the worker itself because it could have been updated
     /// in the mean time. We always want the latest instance.
     var belongsToWorkerURL:URL
     
-    init(title:String, notificationData: AnyObject? = nil, belongsToWorkerURL:URL) {
+    init(title:String, notificationData: [String:AnyObject]? = nil, belongsToWorkerURL:URL) {
         self.title = title
         self.belongsToWorkerURL = belongsToWorkerURL
         
-        if let data = notificationData as? [String: AnyObject] {
+        if let data = notificationData {
             self.body = data["body"] as? String
             self.tag = data["tag"] as? String
             self.actions = data["actions"] as? [AnyObject]
             self.icon = data["icon"] as? String
             self.image = data["image"]
             self.data = data["data"]
+            self.collapsed = data["collapsed"] as? [String: Any]
         }
         
         
@@ -64,7 +68,7 @@ import JavaScriptCore
     
     static func fromNotificationShow(_ notificationShow: PendingNotificationShow, canvas:OffscreenCanvas? = nil, videoView:NotificationVideo? = nil) -> Notification {
         
-        let notification = Notification(title: notificationShow.title, notificationData: notificationShow.options as AnyObject?, belongsToWorkerURL: notificationShow.workerURL as URL)
+        let notification = Notification(title: notificationShow.title, notificationData: notificationShow.options as [String:AnyObject]?, belongsToWorkerURL: notificationShow.workerURL as URL)
         
         notification.video = videoView
         notification.canvas = canvas
