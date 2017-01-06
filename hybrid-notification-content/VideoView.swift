@@ -16,14 +16,14 @@ class VideoView : UIView {
     let context:NSExtensionContext
     var videoPlayListener:Listener<NotificationVideoPlayState>?
     
-    private let opts:VideoOptions
+    private let opts:VideoViewOptions
     
-    private struct VideoOptions {
+    private struct VideoViewOptions {
         var proportion:CGFloat
         var videoURL:URL
     }
     
-    private static func getOptionsFromObject(_ options: [String:Any], _ workerURL: URL, _ attachments: [UNNotificationAttachment]) -> VideoOptions {
+    private static func getOptionsFromObject(_ options: [String:Any], _ workerURL: URL, _ attachments: [UNNotificationAttachment]) -> VideoViewOptions {
         var proportion:CGFloat = 16/10
         
         if let proportionOption = options["proportion"] as? CGFloat {
@@ -53,7 +53,7 @@ class VideoView : UIView {
             log.info("Loading remote notification video from " + videoURL.absoluteString)
         }
         
-        return VideoOptions(proportion: proportion, videoURL: videoURL)
+        return VideoViewOptions(proportion: proportion, videoURL: videoURL)
     }
     
     func optionsMatch(newOptions: [String:Any], workerURL:URL, attachments: [UNNotificationAttachment]) -> Bool {

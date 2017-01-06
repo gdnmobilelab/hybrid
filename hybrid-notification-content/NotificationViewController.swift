@@ -24,8 +24,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     var notificationInstance:Notification?
     var currentVideoView:VideoView?
     var currentCanvasView:CanvasView?
-    var interactiveViewContainer:UIView?
-//    var interactiveViews = ActiveNotificationViews()
+    var interactiveViewContainer = UIView()
     
     static var webviewEventListener:Listener<PendingWebviewAction>?
     
@@ -63,27 +62,6 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
     
     
     
-    /// Hopefully any pending push events have already been processed by the app. But
-    /// if a user has force quit the app it won't be woken up on push, so we need to
-    /// catch any unprocessed push events before we do anything else.
-    ///
-    /// - Parameter pushID: The identifier of the remote notification
-    /// - Returns: A promise that resolves when push events have been processed
-    func processPendingPushEvents(_ pushID:String) -> Promise<Void> {
-        let pendingPushEvent = PendingPushEventStore.getByPushID(pushID)
-        
-        if pendingPushEvent == nil {
-            return Promise(value: ())
-        }
-        
-        return ServiceWorkerInstance.getActiveWorkerByURL(URL(string: pendingPushEvent!.serviceWorkerURL)!)
-        .then { sw in
-            // Process all pending events, too complicated otherwise (what if a user opens a later
-            // notification followed by an earlier one?)
-            return sw!.processPendingPushEvents()
-        }
-    }
-    
     func removeAllViews() {
         self.notificationViews.forEach { view in
             view.removeFromSuperview()
@@ -106,18 +84,30 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         let currentNotificationViews = self.notificationViews.map { $0 }
         self.notificationViews.removeAll()
         
-        self.title = ""
+        self.title = "MOBILE LAB"
         
         Promise(value: ())
         .then {
             // We don't run inside the app, so we need to make our DB instance
             try Db.createMainDatabase()
             
-            // If we're loading on top of an existing notification, clear any
-            // existing views
-//            self.removeAllViews()
+            /// Hopefully any pending push events have already been processed by the app. But
+            /// if a user has force quit the app it won't be woken up on push, so we need to
+            /// catch any unprocessed push events before we do anything else.
             
-            return self.processPendingPushEvents(notification.request.identifier)
+            let pendingPushEvent = PendingPushEventStore.getByPushID(notification.request.identifier)
+    
+            if pendingPushEvent == nil {
+                return Promise(value: ())
+            }
+    
+            return ServiceWorkerInstance.getActiveWorkerByURL(URL(string: pendingPushEvent!.serviceWorkerURL)!)
+            .then { sw in
+                // Process all pending events, too complicated otherwise (what if a user opens a later
+                // notification followed by an earlier one?)
+                return sw!.processPendingPushEvents()
+            }
+            
         }
         .then {
             self.notificationShowData = PendingNotificationShowStore.getByPushID(notification.request.identifier)
@@ -141,27 +131,21 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                     throw ErrorMessage("No service worker exists for the specified URL")
                 }
                 
-                if self.interactiveViewContainer == nil {
-                    self.interactiveViewContainer = UIView()
-                }
-                
                 if let videoOptions = self.notificationShowData!.options["video"] as? [String:Any] {
                     
-                    let videoView:VideoView
-                    
-                    if (self.currentVideoView?.optionsMatch(newOptions: videoOptions, workerURL: sw!.url, attachments: attachments)) == true {
+                    if self.currentVideoView == nil || self.currentVideoView!.optionsMatch(newOptions: videoOptions, workerURL: sw!.url, attachments: attachments) == false {
                         
                         // If it's the same video, preserve the current view, so we don't lose playback point etc
                         
-                        videoView = self.currentVideoView!
-                    } else {
-                        videoView = VideoView(width: self.view.frame.width, options: videoOptions, worker: sw!, context: self.extensionContext!, attachments: attachments)
+                        self.currentVideoView = VideoView(width: self.view.frame.width, options: videoOptions, worker: sw!, context: self.extensionContext!, attachments: attachments)
                     }
                     
                     
-                    self.notificationInstance!.video = videoView.videoInstance
-                    self.currentVideoView = videoView
-                    self.interactiveViewContainer!.addSubview(videoView)
+                    self.notificationInstance!.video = self.currentVideoView?.videoInstance
+                    
+                    if let view = self.currentVideoView {
+                        self.interactiveViewContainer.addSubview(view)
+                    }
 
                 } else {
                     self.currentVideoView?.removeFromSuperview()
@@ -177,16 +161,15 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                         proportion = canvasProportion
                     }
                     
-                    let canvasView:CanvasView
-                    
-                    if (self.currentCanvasView?.proportion == proportion) {
-                        canvasView = self.currentCanvasView!
-                    } else {
-                        canvasView = CanvasView(width: self.view.frame.width, proportion: proportion, worker: sw!, notification: self.notificationInstance!)
+                    if self.currentCanvasView == nil || self.currentCanvasView!.proportion != proportion {
+                        self.currentCanvasView = CanvasView(width: self.view.frame.width, proportion: proportion, worker: sw!, notification: self.notificationInstance!)
+
                     }
                     
-                    self.notificationInstance!.canvas = canvasView.canvas
-                    self.interactiveViewContainer!.addSubview(canvasView)
+                    self.notificationInstance!.canvas = self.currentCanvasView?.canvas
+                    if let view = self.currentCanvasView {
+                        self.interactiveViewContainer.addSubview(view)
+                    }
                     
                 } else {
                     self.currentCanvasView?.removeFromSuperview()
@@ -201,17 +184,17 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
                     self.notificationViews.append(imageView)
                 }
                 
-                if self.interactiveViewContainer!.subviews.count > 0 {
+                if self.interactiveViewContainer.subviews.count > 0 {
                     
                     // Interactive views have to be the same size as each other otherwise it'll look weird
                     
-                    let maxFrame = self.interactiveViewContainer!.subviews
+                    let maxFrame = self.interactiveViewContainer.subviews
                         .map { $0.frame }
                         .sorted { $0.height > $1.height }
                         .first!
                     
-                    self.interactiveViewContainer!.frame = maxFrame
-                    self.notificationViews.append(self.interactiveViewContainer!)
+                    self.interactiveViewContainer.frame = maxFrame
+                    self.notificationViews.append(self.interactiveViewContainer)
                 }
                 
                 
@@ -267,7 +250,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
         .catch { err in
             log.error("Error encountered setting/resizing notification views: " + String(describing: err))
         }
-        
+//
         
     }
     
@@ -340,8 +323,7 @@ class NotificationViewController: UIViewController, UNNotificationContentExtensi
             
             if let clickedActionIndex = Int(response.actionIdentifier) {
                 
-                let actions = self.notificationShowData!.getActions()
-                let action = actions[clickedActionIndex].identifier
+                let action = self.notificationShowData!.getActions()[clickedActionIndex].identifier
                 
                 return NotificationHandler.sendAction(action, notification: self.notificationInstance!)
                 

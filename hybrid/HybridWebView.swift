@@ -156,6 +156,10 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
     init(frame: CGRect) {
         let config = WKWebViewConfiguration()
         config.userContentController = WKUserContentController()
+        config.allowsInlineMediaPlayback = true
+        config.allowsAirPlayForMediaPlayback = true
+        config.allowsPictureInPictureMediaPlayback = true
+        config.mediaTypesRequiringUserActionForPlayback = []
         
         super.init(frame: frame, configuration: config)
         

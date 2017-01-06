@@ -88,7 +88,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             // if UIApplicationLaunchOptionsKey.url exists then the app will call the open URL function below
             
-            if windowOpenActions.count == 0 && launchOptions == nil {
+            var pushDefault = false
+            
+            if launchOptions == nil || launchOptions![UIApplicationLaunchOptionsKey.url] == nil {
+                pushDefault = true
+            }
+            
+            if windowOpenActions.count == 0 && pushDefault == true {
                 pushDefaultStartURL()
                 
             }/* else {
