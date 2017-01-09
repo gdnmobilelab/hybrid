@@ -19,6 +19,8 @@ class SharedResources {
         case unknown
     }
     
+    static var appGroupName = Bundle.main.object(forInfoDictionaryKey: "APP_GROUP_NAME") as! String
+    
     static var currentExecutionEnvironment = ExecutionEnvironment.unknown
     
     
@@ -30,9 +32,9 @@ class SharedResources {
     
     
     /// The shared UserDefaults storage that we store things like pending notifications actions in.
-    static let userDefaults = UserDefaults(suiteName: "group.com.gdnmobilelab.hybrid")!
+    static let userDefaults = UserDefaults(suiteName: appGroupName)!
     
     
     /// The shared directory where we store our database files.
-    static let fileSystemURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.com.gdnmobilelab.hybrid")!
+    static let fileSystemURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupName)!
 }
