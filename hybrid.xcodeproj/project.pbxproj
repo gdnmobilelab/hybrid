@@ -1454,6 +1454,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APP_GROUP_NAME = group.com.gdnmobilelab.hybrid;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -1490,7 +1491,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INITIAL_URL = "https://alastairtest.ngrok.io/inauguration/";
+				INITIAL_URL = "https://app.gdnmobilelab.com/";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1506,6 +1507,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				APP_GROUP_NAME = group.com.gdnmobilelab.hybrid;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -1582,7 +1584,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = hybrid/hybrid.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
-				DEVELOPMENT_TEAM = 6J2C5AEPEG;
+				DEVELOPMENT_TEAM = 998P9U5NGJ;
 				EMPTY_WORKERS_ON_LOAD = "$(inherited)";
 				INFOPLIST_FILE = hybrid/Info.plist;
 				INITIAL_URL = "$(inherited)";
@@ -1590,8 +1592,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gdnmobilelab.hybrid;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "f2e831a0-f34c-4e63-ad0f-51d080316293";
-				PROVISIONING_PROFILE_SPECIFIER = "hybrid dist with domain";
+				PROVISIONING_PROFILE = "e85e5c16-9a51-49c8-89ca-b0c847f1856b";
+				PROVISIONING_PROFILE_SPECIFIER = "Guardian Mobile Lab App Store";
 				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[arch=*]" = IS_RELEASE;
 				SWIFT_OBJC_BRIDGING_HEADER = "hybrid/hybrid-Bridging-Header.h";
 				SWIFT_VERSION = 3.0;

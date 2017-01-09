@@ -3495,10 +3495,9 @@ module.exports = atob.atob = atob;
 
 var atob = interopDefault(nodeAtob);
 
-var index$12 = createCommonjsModule(function (module, exports) {
+var b64 = createCommonjsModule(function (module, exports) {
 'use strict'
 
-exports.byteLength = byteLength
 exports.toByteArray = toByteArray
 exports.fromByteArray = fromByteArray
 
@@ -3506,17 +3505,23 @@ var lookup = []
 var revLookup = []
 var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array
 
-var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-for (var i = 0, len = code.length; i < len; ++i) {
-  lookup[i] = code[i]
-  revLookup[code.charCodeAt(i)] = i
+function init () {
+  var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+  for (var i = 0, len = code.length; i < len; ++i) {
+    lookup[i] = code[i]
+    revLookup[code.charCodeAt(i)] = i
+  }
+
+  revLookup['-'.charCodeAt(0)] = 62
+  revLookup['_'.charCodeAt(0)] = 63
 }
 
-revLookup['-'.charCodeAt(0)] = 62
-revLookup['_'.charCodeAt(0)] = 63
+init()
 
-function placeHoldersCount (b64) {
+function toByteArray (b64) {
+  var i, j, l, tmp, placeHolders, arr
   var len = b64.length
+
   if (len % 4 > 0) {
     throw new Error('Invalid string. Length must be a multiple of 4')
   }
@@ -3526,19 +3531,9 @@ function placeHoldersCount (b64) {
   // represent one byte
   // if there is only one, then the three characters before it represent 2 bytes
   // this is just a cheap hack to not do indexOf twice
-  return b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
-}
+  placeHolders = b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
 
-function byteLength (b64) {
   // base64 is 4/3 + up to two characters of the original data
-  return b64.length * 3 / 4 - placeHoldersCount(b64)
-}
-
-function toByteArray (b64) {
-  var i, j, l, tmp, placeHolders, arr
-  var len = b64.length
-  placeHolders = placeHoldersCount(b64)
-
   arr = new Arr(len * 3 / 4 - placeHolders)
 
   // if there are placeholders, only get up to the last complete 4 chars
@@ -3612,19 +3607,17 @@ function fromByteArray (uint8) {
 }
 });
 
-var index$13 = interopDefault(index$12);
-var fromByteArray = index$12.fromByteArray;
-var toByteArray = index$12.toByteArray;
-var byteLength = index$12.byteLength;
+var b64$1 = interopDefault(b64);
+var fromByteArray = b64.fromByteArray;
+var toByteArray = b64.toByteArray;
 
 var require$$1$2 = Object.freeze({
-  default: index$13,
+  default: b64$1,
   fromByteArray: fromByteArray,
-  toByteArray: toByteArray,
-  byteLength: byteLength
+  toByteArray: toByteArray
 });
 
-var index$14 = createCommonjsModule(function (module, exports) {
+var index$12 = createCommonjsModule(function (module, exports) {
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -3711,12 +3704,12 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 }
 });
 
-var index$15 = interopDefault(index$14);
-var write = index$14.write;
-var read = index$14.read;
+var index$13 = interopDefault(index$12);
+var write = index$12.write;
+var read = index$12.read;
 
 var require$$0$6 = Object.freeze({
-  default: index$15,
+  default: index$13,
   write: write,
   read: read
 });
