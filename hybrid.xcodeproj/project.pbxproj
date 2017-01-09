@@ -1370,7 +1370,7 @@
 				DEVELOPMENT_TEAM = 6J2C5AEPEG;
 				INFOPLIST_FILE = "notification-extension/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "gdnmobilelab.hybrid.notification-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.gdnmobilelab.hybrid.notification-service";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "126bd440-fa04-45f9-88a8-7480d713620e";
 				PROVISIONING_PROFILE_SPECIFIER = "hybrid notify-ext dev";
@@ -1392,7 +1392,7 @@
 				DEVELOPMENT_TEAM = 6J2C5AEPEG;
 				INFOPLIST_FILE = "notification-extension/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "gdnmobilelab.hybrid.notification-extension";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.gdnmobilelab.hybrid.notification-service";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "b7af0ff4-fa3b-426f-8994-4da6ff0f729a";
 				PROVISIONING_PROFILE_SPECIFIER = "XC iOS: gdnmobilelab.hybrid.notification-extension";
@@ -1414,7 +1414,7 @@
 				INFOPLIST_FILE = "hybrid-notification-content/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "gdnmobilelab.hybrid.hybrid-notification-content";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.gdnmobilelab.hybrid.notification-content";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "4b005d58-8a96-4f37-81a1-3dc63a601a2f";
 				PROVISIONING_PROFILE_SPECIFIER = "gdnmobilelab dev notify";
@@ -1437,7 +1437,7 @@
 				INFOPLIST_FILE = "hybrid-notification-content/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "gdnmobilelab.hybrid.hybrid-notification-content";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.gdnmobilelab.hybrid.notification-content";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "f3dc524e-988f-40db-90eb-8d600dba83b3";
 				PROVISIONING_PROFILE_SPECIFIER = "XC iOS: gdnmobilelab.hybrid.hybrid-notification-content";
@@ -1487,12 +1487,13 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INITIAL_URL = "https://alastairtest.ngrok.io/app/feature-demo/";
+				INITIAL_URL = "https://alastairtest.ngrok.io/inauguration/";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_SWIFT_FLAGS = "-DDEBUG";
 				SDKROOT = iphoneos;
+				SERVICE_WORKER_ENABLED_DOMAINS = "*";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
 			};
@@ -1537,6 +1538,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_SWIFT_FLAGS = "-DRELEASE";
 				SDKROOT = iphoneos;
+				SERVICE_WORKER_ENABLED_DOMAINS = "app.gdnmobilelab.com,www.gdnmobilelab.com";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;
 				VALIDATE_PRODUCT = YES;
@@ -1558,7 +1560,7 @@
 				INITIAL_URL = "$(inherited)";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = gdnmobilelab.hybrid;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gdnmobilelab.hybrid;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "dbc090f1-f89d-4915-b23f-d8dad2b0daf2";
 				PROVISIONING_PROFILE_SPECIFIER = "gdnmobilelab hybrid plus domain";
@@ -1583,7 +1585,7 @@
 				INITIAL_URL = "$(inherited)";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = gdnmobilelab.hybrid;
+				PRODUCT_BUNDLE_IDENTIFIER = com.gdnmobilelab.hybrid;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "f2e831a0-f34c-4e63-ad0f-51d080316293";
 				PROVISIONING_PROFILE_SPECIFIER = "hybrid dist with domain";

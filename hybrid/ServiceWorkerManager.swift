@@ -178,6 +178,11 @@ class ServiceWorkerManager {
         return Promise(value: ())
         .then { () -> Promise<Int> in
             
+            if  ServiceWorkerManager.allowedServiceWorkerDomains.contains("*") == false &&
+                ServiceWorkerManager.allowedServiceWorkerDomains.contains(urlOfServiceWorker.host!) == false {
+                throw ErrorMessage("Domain is not in the list of approved worker domains")
+            }
+            
             let newest = try self.getNewestWorker(urlOfServiceWorker)
             
             
@@ -659,6 +664,12 @@ class ServiceWorkerManager {
         }
     }
         
-        
+    static var allowedServiceWorkerDomains:[String] {
+        get {
+            let str = Bundle.main.object(forInfoDictionaryKey: "SERVICE_WORKER_ENABLED_DOMAINS") as! String
+            
+            return str.components(separatedBy: ",")
+        }
+    }
         
     }

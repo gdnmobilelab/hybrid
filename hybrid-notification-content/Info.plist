@@ -35,8 +35,6 @@
 	<dict>
 		<key>NSExtensionAttributes</key>
 		<dict>
-			<key>UNNotificationExtensionOverridesDefaultTitle</key>
-			<true/>
 			<key>UNNotificationExtensionCategory</key>
 			<array>
 				<string>extended-content</string>
@@ -45,6 +43,8 @@
 			<true/>
 			<key>UNNotificationExtensionInitialContentSizeRatio</key>
 			<real>0.25</real>
+			<key>UNNotificationExtensionOverridesDefaultTitle</key>
+			<true/>
 		</dict>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.usernotifications.content-extension</string>

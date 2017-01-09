@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>SERVICE_WORKER_ENABLED_DOMAINS</key>
+	<string>${SERVICE_WORKER_ENABLED_DOMAINS}</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -32,7 +34,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>8</string>
+	<string>9</string>
 	<key>EMPTY_WORKERS_ON_LOAD</key>
 	<string>${EMPTY_WORKERS_ON_LOAD}</string>
 	<key>INITIAL_URL</key>
