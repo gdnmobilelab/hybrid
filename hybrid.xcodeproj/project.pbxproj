@@ -820,7 +820,7 @@
 				TargetAttributes = {
 					8A7A49F11D91A991004C8253 = {
 						CreatedOnToolsVersion = 8.0;
-						DevelopmentTeam = 6J2C5AEPEG;
+						DevelopmentTeam = 998P9U5NGJ;
 						LastSwiftMigration = 0820;
 						ProvisioningStyle = Manual;
 						SystemCapabilities = {
@@ -831,7 +831,7 @@
 					};
 					8AA1128E1D79E3CD001EC463 = {
 						CreatedOnToolsVersion = 8.0;
-						DevelopmentTeam = 6J2C5AEPEG;
+						DevelopmentTeam = 998P9U5NGJ;
 						LastSwiftMigration = 0820;
 						ProvisioningStyle = Manual;
 						SystemCapabilities = {
@@ -845,7 +845,7 @@
 					};
 					D31BC1081CD534CE00CF6BEB = {
 						CreatedOnToolsVersion = 7.3;
-						DevelopmentTeam = 6J2C5AEPEG;
+						DevelopmentTeam = 998P9U5NGJ;
 						LastSwiftMigration = 0820;
 						ProvisioningStyle = Manual;
 						SystemCapabilities = {
@@ -1367,13 +1367,13 @@
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CODE_SIGN_ENTITLEMENTS = "notification-extension/notification-extension.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = 6J2C5AEPEG;
+				DEVELOPMENT_TEAM = 998P9U5NGJ;
 				INFOPLIST_FILE = "notification-extension/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.gdnmobilelab.hybrid.notification-service";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "126bd440-fa04-45f9-88a8-7480d713620e";
-				PROVISIONING_PROFILE_SPECIFIER = "hybrid notify-ext dev";
+				PROVISIONING_PROFILE = "527a5ace-09c2-4060-b8c4-737a9575898d";
+				PROVISIONING_PROFILE_SPECIFIER = "Guardian Mobile Lab Notification Service Debug";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OBJC_BRIDGING_HEADER = "notification-extension/hybrid-notification-extension-Bridging-Header.h";
@@ -1410,14 +1410,14 @@
 				CLANG_WARN_SUSPICIOUS_MOVES = YES;
 				CODE_SIGN_ENTITLEMENTS = "hybrid-notification-content/hybrid-notification-content.entitlements";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = 6J2C5AEPEG;
+				DEVELOPMENT_TEAM = 998P9U5NGJ;
 				INFOPLIST_FILE = "hybrid-notification-content/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.gdnmobilelab.hybrid.notification-content";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "4b005d58-8a96-4f37-81a1-3dc63a601a2f";
-				PROVISIONING_PROFILE_SPECIFIER = "gdnmobilelab dev notify";
+				PROVISIONING_PROFILE = "be40e60e-7dca-41c8-a960-a8d8f774650e";
+				PROVISIONING_PROFILE_SPECIFIER = "Guardian Mobile Lab Notification Content Debug";
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OBJC_BRIDGING_HEADER = "hybrid-notification-content/hybrid-notification-content-Bridging-Header.h";
@@ -1554,7 +1554,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = hybrid/hybrid.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = 6J2C5AEPEG;
+				DEVELOPMENT_TEAM = 998P9U5NGJ;
 				EMPTY_WORKERS_ON_LOAD = "$(inherited)";
 				INFOPLIST_FILE = hybrid/Info.plist;
 				INITIAL_URL = "$(inherited)";
@@ -1562,8 +1562,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gdnmobilelab.hybrid;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "dbc090f1-f89d-4915-b23f-d8dad2b0daf2";
-				PROVISIONING_PROFILE_SPECIFIER = "gdnmobilelab hybrid plus domain";
+				PROVISIONING_PROFILE = "7109b5e3-5af1-482c-9f81-c579d235491d";
+				PROVISIONING_PROFILE_SPECIFIER = "Guardian Mobile Lab Debug";
 				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[arch=*]" = IS_DEBUG;
 				SWIFT_OBJC_BRIDGING_HEADER = "hybrid/hybrid-Bridging-Header.h";
 				SWIFT_VERSION = 3.0;
