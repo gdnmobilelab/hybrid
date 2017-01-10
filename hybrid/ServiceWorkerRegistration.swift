@@ -22,7 +22,7 @@ import PromiseKit
     func showNotification(_ title:String, options: [String:AnyObject]) -> JSPromise
     
     @objc(getNotifications:)
-    func getNotifications(_ options: [String:AnyObject]) -> JSPromise
+    func getNotifications(_ options: [String:AnyObject]?) -> JSPromise
     
     func update() -> JSPromise
 }
