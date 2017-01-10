@@ -68,6 +68,7 @@
 		8A54109D1D3819DE00F44F38 /* ServiceWorkerManagerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109C1D3819DE00F44F38 /* ServiceWorkerManagerSpec.swift */; };
 		8A54109F1D381EF000F44F38 /* HybridWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109E1D381EF000F44F38 /* HybridWebView.swift */; };
 		8A5410A11D38235000F44F38 /* WebServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5410A01D38235000F44F38 /* WebServer.swift */; };
+		8A542C971E246F9A00A023CE /* 2016070600000000.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8A542C961E246F9A00A023CE /* 2016070600000000.sql */; };
 		8A55C6361D626F38004AFD21 /* update-worker-test in Resources */ = {isa = PBXBuildFile; fileRef = 8A55C6351D626F38004AFD21 /* update-worker-test */; };
 		8A55C6381D636B34004AFD21 /* update-worker-skip-waiting in Resources */ = {isa = PBXBuildFile; fileRef = 8A55C6371D636B34004AFD21 /* update-worker-skip-waiting */; };
 		8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */; };
@@ -147,7 +148,6 @@
 		8AD283521D55076D00D2DF07 /* TestUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AD283511D55076D00D2DF07 /* TestUtil.swift */; };
 		8AD8946D1E24407700BEAA6A /* 201606290.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AD894681E24407700BEAA6A /* 201606290.sql */; };
 		8AD8946E1E24407700BEAA6A /* 2016062900000000.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AD894691E24407700BEAA6A /* 2016062900000000.sql */; };
-		8AD8946F1E24407700BEAA6A /* 2016070600000000.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AD8946A1E24407700BEAA6A /* 2016070600000000.sql */; };
 		8AD894701E24407700BEAA6A /* 2016111400000000.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AD8946B1E24407700BEAA6A /* 2016111400000000.sql */; };
 		8AD894711E24407700BEAA6A /* 2016120800000000.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AD8946C1E24407700BEAA6A /* 2016120800000000.sql */; };
 		8ADBC6971E0090490037263D /* MessagePort.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADBC6961E0090490037263D /* MessagePort.swift */; };
@@ -164,7 +164,6 @@
 		8ADDB6A51DDCF09500B69AE8 /* HexColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A31DDCF08E00B69AE8 /* HexColor.swift */; };
 		8ADDB6A71DDD197500B69AE8 /* HybridWebviewMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A61DDD197400B69AE8 /* HybridWebviewMetadata.swift */; };
 		8ADDB6A91DDE067200B69AE8 /* RenderCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADDB6A81DDE067200B69AE8 /* RenderCheck.swift */; };
-		8ADE58B01DF66BD9007E7A4D /* 2016070600000000.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8ADE58AD1DF66BD9007E7A4D /* 2016070600000000.sql */; };
 		8ADE58B21DF66BF2007E7A4D /* preload-workers in Resources */ = {isa = PBXBuildFile; fileRef = 8ADE58B11DF66BF2007E7A4D /* preload-workers */; };
 		8AEA3F261D54056C000A7C70 /* server-test-data in Resources */ = {isa = PBXBuildFile; fileRef = 8AEA3F251D54056C000A7C70 /* server-test-data */; };
 		8AEBD0D21D42E6230042A4AB /* WebServerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AEBD0D11D42E6230042A4AB /* WebServerSpec.swift */; };
@@ -286,6 +285,7 @@
 		8A54109C1D3819DE00F44F38 /* ServiceWorkerManagerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerManagerSpec.swift; sourceTree = "<group>"; };
 		8A54109E1D381EF000F44F38 /* HybridWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridWebView.swift; sourceTree = "<group>"; };
 		8A5410A01D38235000F44F38 /* WebServer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServer.swift; sourceTree = "<group>"; };
+		8A542C961E246F9A00A023CE /* 2016070600000000.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = 2016070600000000.sql; path = migrations/2016070600000000.sql; sourceTree = "<group>"; };
 		8A54D3631D80612D00592112 /* hybrid-notification-content.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "hybrid-notification-content.entitlements"; sourceTree = "<group>"; };
 		8A55C6351D626F38004AFD21 /* update-worker-test */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "update-worker-test"; sourceTree = "<group>"; };
 		8A55C6371D636B34004AFD21 /* update-worker-skip-waiting */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "update-worker-skip-waiting"; sourceTree = "<group>"; };
@@ -334,7 +334,6 @@
 		8AD283511D55076D00D2DF07 /* TestUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtil.swift; sourceTree = "<group>"; };
 		8AD894681E24407700BEAA6A /* 201606290.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = 201606290.sql; path = migrations/201606290.sql; sourceTree = "<group>"; };
 		8AD894691E24407700BEAA6A /* 2016062900000000.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = 2016062900000000.sql; path = migrations/2016062900000000.sql; sourceTree = "<group>"; };
-		8AD8946A1E24407700BEAA6A /* 2016070600000000.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = 2016070600000000.sql; path = migrations/2016070600000000.sql; sourceTree = "<group>"; };
 		8AD8946B1E24407700BEAA6A /* 2016111400000000.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = 2016111400000000.sql; path = migrations/2016111400000000.sql; sourceTree = "<group>"; };
 		8AD8946C1E24407700BEAA6A /* 2016120800000000.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = 2016120800000000.sql; path = migrations/2016120800000000.sql; sourceTree = "<group>"; };
 		8ADBC6961E0090490037263D /* MessagePort.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessagePort.swift; sourceTree = "<group>"; };
@@ -347,7 +346,6 @@
 		8ADDB6A31DDCF08E00B69AE8 /* HexColor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HexColor.swift; sourceTree = "<group>"; };
 		8ADDB6A61DDD197400B69AE8 /* HybridWebviewMetadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridWebviewMetadata.swift; sourceTree = "<group>"; };
 		8ADDB6A81DDE067200B69AE8 /* RenderCheck.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RenderCheck.swift; sourceTree = "<group>"; };
-		8ADE58AD1DF66BD9007E7A4D /* 2016070600000000.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = 2016070600000000.sql; path = migrations/2016070600000000.sql; sourceTree = "<group>"; };
 		8ADE58B11DF66BF2007E7A4D /* preload-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "preload-workers"; sourceTree = "<group>"; };
 		8ADE58B31DF72584007E7A4D /* preload-workers.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "preload-workers.json"; sourceTree = "<group>"; };
 		8AEA3F251D54056C000A7C70 /* server-test-data */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "server-test-data"; sourceTree = "<group>"; };
@@ -602,9 +600,9 @@
 		8ADE58AA1DF66BB3007E7A4D /* migrations */ = {
 			isa = PBXGroup;
 			children = (
+				8A542C961E246F9A00A023CE /* 2016070600000000.sql */,
 				8AD894681E24407700BEAA6A /* 201606290.sql */,
 				8AD894691E24407700BEAA6A /* 2016062900000000.sql */,
-				8ADE58AD1DF66BD9007E7A4D /* 2016070600000000.sql */,
 				8AD8946B1E24407700BEAA6A /* 2016111400000000.sql */,
 				8AD8946C1E24407700BEAA6A /* 2016120800000000.sql */,
 			);
@@ -926,10 +924,9 @@
 				D31BC1171CD534CF00CF6BEB /* LaunchScreen.storyboard in Resources */,
 				D31BC1141CD534CF00CF6BEB /* Assets.xcassets in Resources */,
 				8AD8946D1E24407700BEAA6A /* 201606290.sql in Resources */,
-				8AD8946F1E24407700BEAA6A /* 2016070600000000.sql in Resources */,
+				8A542C971E246F9A00A023CE /* 2016070600000000.sql in Resources */,
 				8AD8946E1E24407700BEAA6A /* 2016062900000000.sql in Resources */,
 				8AD894701E24407700BEAA6A /* 2016111400000000.sql in Resources */,
-				8ADE58B01DF66BD9007E7A4D /* 2016070600000000.sql in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
