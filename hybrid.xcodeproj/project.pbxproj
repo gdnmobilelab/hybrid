@@ -72,6 +72,8 @@
 		8A55C6361D626F38004AFD21 /* update-worker-test in Resources */ = {isa = PBXBuildFile; fileRef = 8A55C6351D626F38004AFD21 /* update-worker-test */; };
 		8A55C6381D636B34004AFD21 /* update-worker-skip-waiting in Resources */ = {isa = PBXBuildFile; fileRef = 8A55C6371D636B34004AFD21 /* update-worker-skip-waiting */; };
 		8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */; };
+		8A6339261E2681690005204B /* 2017011100000000.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8A6339251E2681690005204B /* 2017011100000000.sql */; };
+		8A6339281E26823F0005204B /* ImportScriptsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6339271E26823F0005204B /* ImportScriptsHandler.swift */; };
 		8A686F591E0487B20056CBC1 /* PendingNotificationAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A686F581E0487B20056CBC1 /* PendingNotificationAction.swift */; };
 		8A686F5A1E0488210056CBC1 /* PendingNotificationAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A686F581E0487B20056CBC1 /* PendingNotificationAction.swift */; };
 		8A6C4E971DA560B4008429C0 /* NotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */; };
@@ -291,6 +293,8 @@
 		8A55C6371D636B34004AFD21 /* update-worker-skip-waiting */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "update-worker-skip-waiting"; sourceTree = "<group>"; };
 		8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebviewClientManager.swift; sourceTree = "<group>"; };
 		8A61C2718D624655AC9BD4D7 /* Pods-hybrid.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-hybrid.release.xcconfig"; path = "Pods/Target Support Files/Pods-hybrid/Pods-hybrid.release.xcconfig"; sourceTree = "<group>"; };
+		8A6339251E2681690005204B /* 2017011100000000.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 2017011100000000.sql; sourceTree = "<group>"; };
+		8A6339271E26823F0005204B /* ImportScriptsHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImportScriptsHandler.swift; sourceTree = "<group>"; };
 		8A686F581E0487B20056CBC1 /* PendingNotificationAction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PendingNotificationAction.swift; sourceTree = "<group>"; };
 		8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationHandler.swift; sourceTree = "<group>"; };
 		8A6EA5171D8200E7003FDA00 /* Notification.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
@@ -502,6 +506,7 @@
 				8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */,
 				8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */,
 				8A1278721DDE5057006EE758 /* WindowClient.swift */,
+				8A6339271E26823F0005204B /* ImportScriptsHandler.swift */,
 			);
 			name = "service-worker";
 			sourceTree = "<group>";
@@ -605,6 +610,7 @@
 				8AD894691E24407700BEAA6A /* 2016062900000000.sql */,
 				8AD8946B1E24407700BEAA6A /* 2016111400000000.sql */,
 				8AD8946C1E24407700BEAA6A /* 2016120800000000.sql */,
+				8A6339251E2681690005204B /* 2017011100000000.sql */,
 			);
 			name = migrations;
 			sourceTree = "<group>";
@@ -921,6 +927,7 @@
 				D381163A1CD5AE96004A3CCD /* js-dist in Resources */,
 				8AD894711E24407700BEAA6A /* 2016120800000000.sql in Resources */,
 				8ADE58B21DF66BF2007E7A4D /* preload-workers in Resources */,
+				8A6339261E2681690005204B /* 2017011100000000.sql in Resources */,
 				D31BC1171CD534CF00CF6BEB /* LaunchScreen.storyboard in Resources */,
 				D31BC1141CD534CF00CF6BEB /* Assets.xcassets in Resources */,
 				8AD8946D1E24407700BEAA6A /* 201606290.sql in Resources */,
@@ -1258,6 +1265,7 @@
 				8A2449471D6F374D00052D92 /* HybridWebviewController.swift in Sources */,
 				8A878AC61D4A8F7600D31F85 /* ServiceWorkerCache.swift in Sources */,
 				8ACCDCCF1D7A0CD700A137E1 /* Console.swift in Sources */,
+				8A6339281E26823F0005204B /* ImportScriptsHandler.swift in Sources */,
 				8A263A7F1D354D7C00B6505E /* TimeoutManager.swift in Sources */,
 				8A1310151DE215B00074944D /* ServiceWorkerGlobalScope.swift in Sources */,
 				8A4A265F1D5A32930021B0A2 /* MessageChannel.swift in Sources */,
