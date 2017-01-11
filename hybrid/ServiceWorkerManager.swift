@@ -244,43 +244,121 @@ class ServiceWorkerManager {
                 }
             
                 let downloadedJS = String(data: response.data!, encoding: String.Encoding.utf8)!
-                let downloadedJSHash = Util.sha256String(downloadedJS)
                 
-                if newest != nil && downloadedJSHash == newest!.jsHash {
-                    // No new code, so just return the ID of the existing worker.
-                    log.info("Checked for update to " + urlOfServiceWorker.absoluteString + ", but no change.")
+                return resolveImportScripts(inJS: downloadedJS, relativeTo: urlOfServiceWorker)
+                .then { resolvedJS in
+                    let downloadedJSHash = Util.sha256String(resolvedJS)
                     
-                    try Db.mainDatabase.inTransaction { db in
-                        // Update the DB with our new last checked time
-                        try db.executeUpdate("UPDATE service_workers SET last_checked = ? WHERE instance_id = ?", values: [rightNow, newest!.instanceId])
-                    }
+                    if newest != nil && downloadedJSHash == newest!.jsHash {
+                        // No new code, so just return the ID of the existing worker.
+                        log.info("Checked for update to " + urlOfServiceWorker.absoluteString + ", but no change.")
+                        
+                        try Db.mainDatabase.inTransaction { db in
+                            // Update the DB with our new last checked time
+                            try db.executeUpdate("UPDATE service_workers SET last_checked = ? WHERE instance_id = ?", values: [rightNow, newest!.instanceId])
+                        }
 
-                    return Promise(value: newest!.instanceId)
-                }
-                
-                log.info("Installing new service worker from: " + urlOfServiceWorker.absoluteString)
-                
-                let scopeToUse = scope != nil ? scope! : newest!.scope
-                
-                return self.insertServiceWorkerIntoDB(
-                    urlOfServiceWorker,
-                    scope: scopeToUse,
-                    lastChecked: rightNow,
-                    js: response.data!,
-                    headers: response.headers
-                ).then { id in
-                    
-                    // This happens async, so don't wrap up in the promise
-                    self.installServiceWorker(id)
-                    .catch { err in
-                        log.error("Error installing service worker: " + String(describing: err))
+                        return Promise(value: newest!.instanceId)
                     }
-                    return Promise(value: id)
+                    
+                    log.info("Installing new service worker from: " + urlOfServiceWorker.absoluteString)
+                    
+                    let scopeToUse = scope != nil ? scope! : newest!.scope
+                    
+                    return self.insertServiceWorkerIntoDB(
+                        urlOfServiceWorker,
+                        scope: scopeToUse,
+                        lastChecked: rightNow,
+                        js: resolvedJS.data(using: String.Encoding.utf8)!,
+                        headers: response.headers
+                    ).then { id in
+                        
+                        // This happens async, so don't wrap up in the promise
+                        self.installServiceWorker(id)
+                        .catch { err in
+                            log.error("Error installing service worker: " + String(describing: err))
+                        }
+                        return Promise(value: id)
+                    }
                 }
-                
             }
             
         }
+
+    }
+    
+    
+    /// Super ugly, but it's the only functional way I've found to resolve importScripts() calls for now. It uses
+    /// a regex to grab calls to the function, then directly replaces with the code being imported.
+    ///
+    /// - Parameter inJS: The JS with importScripts() statements
+    /// - Returns: JS with the importScripts() functions replaced
+    static func resolveImportScripts(inJS: String, relativeTo: URL) -> Promise<String> {
+        
+        return Promise(value:())
+        .then {
+            let regex = "importScripts\\(\\s*((?:['\"].*?['\"][\\s,]*)+)\\)"
+            
+            var modifyJS = inJS
+            
+            if let range = modifyJS.range(of: regex, options: .regularExpression) {
+                
+                // This matches the entire regex, rather than the part we actually want. Lovely. So
+                // we have to Swift's crazy range stuff to substring the part we want. Replacing ' with
+                // " to make this valid JSON
+                let matched = modifyJS.substring(with: range).replacingOccurrences(of: "'", with: "\"")
+                
+                let cutLeft = matched.index(matched.startIndex, offsetBy: "importScripts(".characters.count)
+                let cutRight = matched.index(matched.endIndex, offsetBy: -1)
+                
+                let cutRange = Range<String.Index>(uncheckedBounds: (lower: cutLeft, upper: cutRight))
+                
+                let args = "[" + matched.substring(with: cutRange) + "]"
+                
+                // Now that we have the arguments used, we try to parse it as JSON - strictly speaking it's not,
+                // but it'll help us filter out instances we can't handle, e.g. using a variable
+                
+                let argsAsArray = try JSONSerialization.jsonObject(with: args.data(using: String.Encoding.utf8)!, options: []) as! [String]
+                
+                let scriptURLs = argsAsArray.map { URL(string: $0, relativeTo: relativeTo)! }
+                    
+                let fetchAllScripts = scriptURLs.map { GlobalFetch.fetch($0.absoluteString) }
+                
+                return when(fulfilled: fetchAllScripts)
+                .then { allScripts -> Promise<[String]> in
+                    let not200s = allScripts.filter { $0.status != 200 }
+                    if not200s.count > 0 {
+                        throw ErrorMessage("importScripts() returned non-200 responses")
+                    }
+                    
+                    let scriptContents = allScripts.map { String(data: $0.data!, encoding: String.Encoding.utf8)! }
+                    
+                    // Of course, these imported scripts might have importScripts() calls in them too!
+                    let resolvePromises = scriptContents.enumerated().map { (idx, scr) in
+                        return resolveImportScripts(inJS: scr, relativeTo: scriptURLs[idx])
+                    }
+                    
+                    return when(fulfilled: resolvePromises)
+                }
+                .then { resolvedScripts in
+                
+                    
+                    let allJs = resolvedScripts.map { "(function() {" + $0 + "}).apply(self);" }
+                    
+                    modifyJS = modifyJS.replacingCharacters(in: range, with: allJs.joined(separator: ""))
+                    
+                    // This only matches the first importScripts call in the file, so we now run it through again to see if there
+                    // is another one.
+                    
+                    return resolveImportScripts(inJS: modifyJS, relativeTo: relativeTo)
+                }
+                
+
+            } else {
+                return Promise(value: modifyJS)
+            }
+        }
+        
 
     }
     
