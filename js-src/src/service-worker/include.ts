@@ -5,5 +5,5 @@ import './globals/indexeddb';
 
 import './hybrid/dispatch-extended-event';
 
-import './self/skip-waiting';
 import './self/events';
+import './self/import-scripts';

@@ -455,6 +455,7 @@ class DoNotFollowRedirectSessionDelegate : NSObject, URLSessionDelegate {
         let urlRequest = request.toNSURLRequest()
         
         log.debug("Fetching " + urlRequest.url!.absoluteString)
+
         
         return Promise<FetchResponse> { fulfill, reject in
             
@@ -465,7 +466,6 @@ class DoNotFollowRedirectSessionDelegate : NSObject, URLSessionDelegate {
                 delegate = DoNotFollowRedirectSessionDelegate()
             }
             
-
             let session = URLSession(configuration: URLSessionConfiguration.ephemeral, delegate: delegate, delegateQueue: OperationQueue.main)
             
             let task = session.dataTask(with: urlRequest, completionHandler: { (data:Data?, res:URLResponse?, err:Error?) in
@@ -493,7 +493,12 @@ class DoNotFollowRedirectSessionDelegate : NSObject, URLSessionDelegate {
 
                     let resp = FetchResponse(body: data, status: response.statusCode, statusText: "", headers: fh)
                     
-                    fulfill(resp)
+                    DispatchQueue.main.async {
+                        fulfill(resp)
+                    }
+                    
+                    
+                    
                     
                 } else {
                     reject(NoErrorButNoResponseError())
@@ -503,6 +508,9 @@ class DoNotFollowRedirectSessionDelegate : NSObject, URLSessionDelegate {
             })
             
             task.resume()
+        }.then { response in
+            NSLog("ehere")
+            return Promise(value: response)
         }
         
     }

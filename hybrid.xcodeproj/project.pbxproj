@@ -11,7 +11,6 @@
 		8A0156CC1D654B530091995E /* ServiceWorkerCoreFunctionsSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156CB1D654B530091995E /* ServiceWorkerCoreFunctionsSpec.swift */; };
 		8A0156CE1D654C240091995E /* fetch-test in Resources */ = {isa = PBXBuildFile; fileRef = 8A0156CD1D654C240091995E /* fetch-test */; };
 		8A0156D01D65FCAE0091995E /* GlobalFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */; };
-		8A0156D21D66402D0091995E /* PromiseBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156D11D66402D0091995E /* PromiseBridge.swift */; };
 		8A0970B81DC977A300F16CF4 /* WebServerDomainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B71DC977A300F16CF4 /* WebServerDomainManager.swift */; };
 		8A0970BA1DCA692E00F16CF4 /* PendingNotificationsActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B91DCA692E00F16CF4 /* PendingNotificationsActions.swift */; };
 		8A0970BB1DCA693100F16CF4 /* PendingNotificationsActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0970B91DCA692E00F16CF4 /* PendingNotificationsActions.swift */; };
@@ -74,6 +73,7 @@
 		8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */; };
 		8A6339261E2681690005204B /* 2017011100000000.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8A6339251E2681690005204B /* 2017011100000000.sql */; };
 		8A6339281E26823F0005204B /* ImportScriptsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6339271E26823F0005204B /* ImportScriptsHandler.swift */; };
+		8A6339291E269A4F0005204B /* ImportScriptsHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6339271E26823F0005204B /* ImportScriptsHandler.swift */; };
 		8A686F591E0487B20056CBC1 /* PendingNotificationAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A686F581E0487B20056CBC1 /* PendingNotificationAction.swift */; };
 		8A686F5A1E0488210056CBC1 /* PendingNotificationAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A686F581E0487B20056CBC1 /* PendingNotificationAction.swift */; };
 		8A6C4E971DA560B4008429C0 /* NotificationHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A6C4E961DA560B4008429C0 /* NotificationHandler.swift */; };
@@ -138,7 +138,6 @@
 		8ACCDCD31D7A131900A137E1 /* ServiceWorkerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A54109A1D38179E00F44F38 /* ServiceWorkerManager.swift */; };
 		8ACCDCD41D7A131900A137E1 /* ServiceWorkerCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A878AC51D4A8F7600D31F85 /* ServiceWorkerCache.swift */; };
 		8ACCDCD61D7A131900A137E1 /* GlobalFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */; };
-		8ACCDCD71D7A131900A137E1 /* PromiseBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A0156D11D66402D0091995E /* PromiseBridge.swift */; };
 		8ACCDCD81D7A131900A137E1 /* ServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */; };
 		8ACCDCD91D7A131900A137E1 /* PushManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493E1D6CF71500052D92 /* PushManager.swift */; };
 		8ACCDCDA1D7A131900A137E1 /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ACCDCCE1D7A0CD700A137E1 /* Console.swift */; };
@@ -248,7 +247,6 @@
 		8A0156CB1D654B530091995E /* ServiceWorkerCoreFunctionsSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerCoreFunctionsSpec.swift; sourceTree = "<group>"; };
 		8A0156CD1D654C240091995E /* fetch-test */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "fetch-test"; sourceTree = "<group>"; };
 		8A0156CF1D65FCAE0091995E /* GlobalFetch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GlobalFetch.swift; sourceTree = "<group>"; };
-		8A0156D11D66402D0091995E /* PromiseBridge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PromiseBridge.swift; sourceTree = "<group>"; };
 		8A0970B71DC977A300F16CF4 /* WebServerDomainManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServerDomainManager.swift; sourceTree = "<group>"; };
 		8A0970B91DCA692E00F16CF4 /* PendingNotificationsActions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PendingNotificationsActions.swift; sourceTree = "<group>"; };
 		8A0970C01DCB8D6700F16CF4 /* AVKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVKit.framework; path = System/Library/Frameworks/AVKit.framework; sourceTree = SDKROOT; };
@@ -491,7 +489,6 @@
 				8AA06FD41DCD233E00DE4F45 /* NotificationVideo.swift */,
 				8A5283AE1DBA752200EB0886 /* OffscreenCanvas.swift */,
 				8A12786F1DDE4E92006EE758 /* OffscreenCanvasRenderingContext2D.swift */,
-				8A0156D11D66402D0091995E /* PromiseBridge.swift */,
 				8ADDB6A01DDBCA7100B69AE8 /* PushEvent.swift */,
 				8A24493E1D6CF71500052D92 /* PushManager.swift */,
 				8A1310101DDF9B4F0074944D /* PushMessageData.swift */,
@@ -1176,6 +1173,7 @@
 				8A13100F1DDF85110074944D /* PromiseToJSPromise.swift in Sources */,
 				8ADDB69C1DDBB4CD00B69AE8 /* JSContextError.swift in Sources */,
 				8A824FF11E01E5BA0065E954 /* PendingNotificationShowStore.swift in Sources */,
+				8A6339291E269A4F0005204B /* ImportScriptsHandler.swift in Sources */,
 				8A9D71161DC12B9100375365 /* PendingPushEvent.swift in Sources */,
 				8A5283B31DBAB7C400EB0886 /* ImageBitmap.swift in Sources */,
 				8AFA9C3A1E01FBE100368B77 /* NotificationTextView.swift in Sources */,
@@ -1197,7 +1195,6 @@
 				8ACCDCD41D7A131900A137E1 /* ServiceWorkerCache.swift in Sources */,
 				8ACCDCD61D7A131900A137E1 /* GlobalFetch.swift in Sources */,
 				8A824FED1E01E55F0065E954 /* PendingNotificationShow.swift in Sources */,
-				8ACCDCD71D7A131900A137E1 /* PromiseBridge.swift in Sources */,
 				8A933F681D87049500F9DC72 /* SharedResources.swift in Sources */,
 				8AFA9C401E03023000368B77 /* ErrorMessage.swift in Sources */,
 				8ACCDCD81D7A131900A137E1 /* ServiceWorkerRegistration.swift in Sources */,
@@ -1292,7 +1289,6 @@
 				8A1310111DDF9B4F0074944D /* PushMessageData.swift in Sources */,
 				8A0970C31DCB988900F16CF4 /* DownloadToDisk.swift in Sources */,
 				8A2475881D623BDA008906FB /* EventManager.swift in Sources */,
-				8A0156D21D66402D0091995E /* PromiseBridge.swift in Sources */,
 				8ADBC6991E00906F0037263D /* ExtendableMessageEvent.swift in Sources */,
 				8A13100E1DDF84940074944D /* PromiseToJSPromise.swift in Sources */,
 			);
@@ -1496,7 +1492,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INITIAL_URL = "https://app.gdnmobilelab.com/";
+				INITIAL_URL = "https://alastairtest.ngrok.io/app/feature-demo/";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;

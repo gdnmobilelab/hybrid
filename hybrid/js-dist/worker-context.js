@@ -1210,9 +1210,6 @@ function __awaiter(thisArg, _arguments, P, generator) {
 }
 
 global.Promise = Promise$1;
-global.__bind = function (obj, funcName) {
-    return obj[funcName].bind(obj);
-};
 
 // (ExtendableEvent as any).prototype.waitUntil = function(promise:Promise<any>) {
 //     this.waitUntilPromise = promise;
@@ -9037,15 +9034,6 @@ hybrid.dispatchFetchEvent = function (data) {
 //     self.dispatchEvent(ev as MessageEvent);
 // }
 
-// let selfAsAny = self as any;
-// let __waitSkipped = false;
-// selfAsAny.skipWaiting = function() {
-//     __waitSkipped = true;
-// }
-// hybrid.__getSkippedWaitingStatus = function() {
-//     return __waitSkipped;
-// }
-
 var events = createCommonjsModule(function (module) {
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -9369,6 +9357,14 @@ selfAsAny$1.addEventListener = emitter.addListener.bind(emitter);
 selfAsAny$1.removeEventListener = emitter.removeListener.bind(emitter);
 selfAsAny$1.dispatchEvent = function (evt) {
     emitter.emit(evt.type, evt);
+};
+
+// ObjC calls can't have a dynamic number of arguments like JS can. So we use this
+// wrapper to convert the arguments into an array.
+self.importScripts = function () {
+    var urls = Array.prototype.slice.call(arguments);
+    var scripts = self.importArrayOfScripts(urls);
+    console.log(scripts);
 };
 
 var selfAsAny = self;

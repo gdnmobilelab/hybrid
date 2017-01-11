@@ -82,6 +82,9 @@ struct PromiseReturn {
     var globalFetch:GlobalFetch
     var console:Console
     
+    /// Hopefully for threading
+    let dispatchQueue: DispatchQueue
+    
     /// Another shim to match the service worker spec, this turns out installstate enum into
     /// a string.
     var state:String {
@@ -105,7 +108,8 @@ struct PromiseReturn {
          }
     }
     
-    var globalScope:ServiceWorkerGlobalScope
+    var importScriptsHandler:ImportScriptsHandler?
+    var globalScope:ServiceWorkerGlobalScope?
     
     
     init(url:URL, scope: URL?, instanceId:Int, installState: ServiceWorkerInstallState) {
@@ -125,12 +129,16 @@ struct PromiseReturn {
         var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)!
         urlComponents.path = ""
         self.jsContext = JSContext()
-        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext)
+        
         self.webSQL = WebSQLDatabaseCreator(context: self.jsContext, origin: urlComponents.url!.absoluteString)
         
         self.console = Console(context: self.jsContext)
         
+        self.dispatchQueue = DispatchQueue(label: "worker-queue-" + String(self.instanceId), qos: DispatchQoS.background, attributes: DispatchQueue.Attributes.concurrent, autoreleaseFrequency: DispatchQueue.AutoreleaseFrequency.inherit, target: nil)
         super.init()
+        
+        self.importScriptsHandler = ImportScriptsHandler(serviceWorker: self)
+        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext, importScriptsHandler: self.importScriptsHandler!)
         
         
         self.jsContext.exceptionHandler = self.exceptionHandler
@@ -303,12 +311,18 @@ struct PromiseReturn {
     /// - Returns: A promise that waits until any waitUntil() call has completed. Right now it returns a value from that, it should not.
     func dispatchExtendableEvent(_ ev:ExtendableEvent) -> Promise<Void> {
         
-        let funcToRun = self.jsContext.objectForKeyedSubscript("self")
-            .objectForKeyedSubscript("dispatchEvent")!
+        return Promise(value: ())
+        .then(on: DispatchQueue.global(), execute: {
+            log.debug("Dispatching " + ev.type + " event into worker...")
+            let funcToRun = self.jsContext.objectForKeyedSubscript("self")
+                .objectForKeyedSubscript("dispatchEvent")!
+            
+            funcToRun.call(withArguments: [ev])
+            return ev.resolve()
+        })
         
-        funcToRun.call(withArguments: [ev])
         
-        return ev.resolve()
+     
         
 //        return PromiseBridge<JSValue>(jsPromise: funcToRun.callWithArguments([ev]))
 //        .then { returnValue -> JSValue? in
@@ -343,13 +357,17 @@ struct PromiseReturn {
     /// - Parameter workerJS: The JS to run
     /// - Returns: A promise when execution is complete and any pending push events have fired.
     func loadServiceWorker(_ workerJS:String) -> Promise<Void> {
-        return self.loadContextScript()
-        .then {_ in
-            return self.runScript(workerJS)
-        }
-        .then { _ in
-            return self.processPendingPushEvents()
-        }
+        return Promise(value: ())
+        .then(execute: {
+            return self.loadContextScript()
+            .then {_ in
+                return self.runScript(workerJS)
+            }
+            .then { _ in
+                return self.processPendingPushEvents()
+            }
+        })
+        
     }
     
     
@@ -434,7 +452,6 @@ struct PromiseReturn {
         
         let global = self.jsContext.objectForKeyedSubscript("global")!
         
-        
         let globalKeys = self.jsContext
             .objectForKeyedSubscript("Object")
             .objectForKeyedSubscript("keys")
@@ -456,13 +473,22 @@ struct PromiseReturn {
     fileprivate func runScript(_ js: String) -> Promise<JSValue> {
         self.contextErrorValue = nil
         return Promise<JSValue> { fulfill, reject in
-            let result = self.jsContext.evaluateScript(js)
-            if (self.contextErrorValue != nil) {
-                let errorText = self.contextErrorValue!.toString()
-                reject(JSContextError(message:errorText!))
-            } else {
-                fulfill(result!)
+            
+            self.dispatchQueue.async {
+                log.info("sleep 1")
+                Thread.sleep(forTimeInterval: 5)
+                log.info("end sleep 1")
+                
+                let result = self.jsContext.evaluateScript(js)
+                if (self.contextErrorValue != nil) {
+                    let errorText = self.contextErrorValue!.toString()
+                    reject(JSContextError(message:errorText!))
+                } else {
+                    fulfill(result!)
+                }
+
             }
+            
         }
     }
     

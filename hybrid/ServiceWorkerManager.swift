@@ -500,7 +500,7 @@ class ServiceWorkerManager {
                 
                 try self.updateServiceWorkerInstallState(id, state: ServiceWorkerInstallState.installed)
                 
-                let runActivate = swInstance!.globalScope.skipWaitingStatus
+                let runActivate = swInstance!.globalScope!.skipWaitingStatus
                 
                 if runActivate == true {
                     log.info("Service worker " + swInstance!.url.absoluteString + " called skipWaiting()")

@@ -11,6 +11,9 @@ import JavaScriptCore
 
 @objc protocol ServiceWorkerGlobalScopeExports: JSExport {
     func skipWaiting()
+    
+    @objc(importArrayOfScripts:)
+    func importArrayOfScripts(urls: [String]) -> [String]
 }
 
 /// A work in progress. In time I want to move all of the custom classes into here.
@@ -18,11 +21,18 @@ import JavaScriptCore
     
     var skipWaitingStatus = false
     var jsContext:JSContext
+    let importScriptsHandler:ImportScriptsHandler
     
-    init(context:JSContext) {
+    init(context:JSContext, importScriptsHandler: ImportScriptsHandler) {
         self.jsContext = context
+        self.importScriptsHandler = importScriptsHandler
         super.init()
         self.applySelfToGlobal()
+    }
+    
+    @objc(importArrayOfScripts:)
+    func importArrayOfScripts(urls: [String]) -> [String] {
+        return self.importScriptsHandler.importScriptsFromArray(urls: urls)
     }
     
     func skipWaiting() {
