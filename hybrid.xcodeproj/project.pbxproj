@@ -1551,7 +1551,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = B46C29523D9C4D0AF532ADC1 /* Pods-hybrid.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = hybrid/hybrid.entitlements;
@@ -1576,7 +1576,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 8A61C2718D624655AC9BD4D7 /* Pods-hybrid.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = hybrid/hybrid.entitlements;
