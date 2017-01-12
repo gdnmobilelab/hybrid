@@ -19,7 +19,7 @@ class SharedResources {
         case unknown
     }
     
-    static var appGroupName = Bundle.main.object(forInfoDictionaryKey: "APP_GROUP_NAME") as! String
+    static var appGroupName = "group.com.gdnmobilelab.hybrid"
     
     static var currentExecutionEnvironment = ExecutionEnvironment.unknown
     
