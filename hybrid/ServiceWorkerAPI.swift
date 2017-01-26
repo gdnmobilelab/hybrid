@@ -88,6 +88,8 @@ class ServiceWorkerAPI: ScriptMessageManager {
     /// - Parameter match: The ServiceWorkerMatch that has changed - contains relevant worker metadata
     func serviceWorkerChange(_ match:ServiceWorkerMatch) {
         
+        let mappedURL = self.webview.mappedURL
+        
         if self.webview.isActive == false || self.webview.mappedURL == nil {
             // often because it's a test webview that has a URL of about:blank
             return

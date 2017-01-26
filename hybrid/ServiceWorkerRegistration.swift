@@ -170,7 +170,13 @@ import PromiseKit
                 content.body = body
             }
             
-            content.sound = UNNotificationSound.default()
+            let maybeSilent = options["silent"] as? String
+            
+            if maybeSilent == "true" {
+                content.sound = nil
+            } else {
+                content.sound = UNNotificationSound.default()
+            }
 
             
             if let tag = options["tag"] as? String {

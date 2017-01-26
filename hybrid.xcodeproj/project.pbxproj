@@ -1540,7 +1540,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_SWIFT_FLAGS = "-DRELEASE";
 				SDKROOT = iphoneos;
-				SERVICE_WORKER_ENABLED_DOMAINS = "app.gdnmobilelab.com,www.gdnmobilelab.com";
+				SERVICE_WORKER_ENABLED_DOMAINS = "app.gdnmobilelab.com,www.gdnmobilelab.com,app.stg.gdnmobilelab.com";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 3.0;
 				VALIDATE_PRODUCT = YES;

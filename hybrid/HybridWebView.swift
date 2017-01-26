@@ -163,8 +163,9 @@ class HybridWebview : WKWebView, WKNavigationDelegate {
         
         super.init(frame: frame, configuration: config)
         
+
         self.evaluateJavaScript("navigator.userAgent") { (userAgent, err) in
-            self.customUserAgent = (userAgent as! String) + " hybridwebview"
+            self.customUserAgent = (userAgent as! String) + " hybridwebview/" + (Util.appBundle().infoDictionary!["CFBundleShortVersionString"] as! String)
             
         }
         

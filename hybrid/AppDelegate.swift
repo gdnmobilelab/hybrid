@@ -10,6 +10,7 @@ import UIKit
 import PromiseKit
 import UserNotifications
 import GCDWebServer
+import XCGLogger
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -33,8 +34,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         SharedResources.currentExecutionEnvironment = SharedResources.ExecutionEnvironment.app
         
         log.setup(level: .debug, showLogIdentifier: false, showFunctionName: false, showThreadName: true, showLevel: true, showFileNames: false, showLineNumbers: false, showDate: false, writeToFile: nil, fileLevel: nil)
-        
-        
+    
         
         do {
             
@@ -144,12 +144,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         ServiceWorkerManager.processAllPendingPushEvents()
-        .then {
+        .then { () -> Void in
             completionHandler(UIBackgroundFetchResult.newData)
+            ServiceWorkerRegistration.suppressNotificationShow = false
         }
         .catch { err in
             log.error("Error encountered when processing push events: " + String(describing: err))
+            ServiceWorkerRegistration.suppressNotificationShow = false
         }
+        
 
       
         
