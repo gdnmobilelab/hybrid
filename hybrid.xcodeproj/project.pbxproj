@@ -1098,7 +1098,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$PROJECT_DIR\"/js-src\nrm ../hybrid/js-dist/*\nnpm run rollup -- src/webview/document-start.ts -o ../hybrid/js-dist/document-start.js &&\nnpm run rollup -- src/service-worker/worker-context.ts -o ../hybrid/js-dist/worker-context.js\n";
+			shellScript = "cd \"$PROJECT_DIR\"/js-src\nSRC_HASH=\"$(npm run make-hash --silent)\"\nEXISTING_HASH=\"$(cat ../hybrid/js-dist/src-hash || echo \\\"NO-EXISTING-HASH\\\")\"\nif [ \"$SRC_HASH\" == \"$EXISTING_HASH\" ]\nthen\n  echo \"JS assets not changed, skipping...\"\nelse\n  echo \"Rebuilding JS assets...\"\n  rm ../hybrid/js-dist/*\n  npm run rollup -- src/webview/document-start.ts -o ../hybrid/js-dist/document-start.js\n  npm run rollup -- src/service-worker/worker-context.ts -o ../hybrid/js-dist/worker-context.js\n  echo \"${SRC_HASH}\" > ../hybrid/js-dist/src-hash\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 		DE06B41D1E7E156132351F47 /* [CP] Copy Pods Resources */ = {

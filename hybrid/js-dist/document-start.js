@@ -1317,6 +1317,7 @@ serviceWorkerBridge.on("postMessage", function (message, numberOfPorts) {
 
 var navigatorAsAny = navigator;
 navigatorAsAny.serviceWorker = ServiceWorkerContainer;
+asdfasdfasfasdf;
 
 var promiseBridge$2 = new PromiseOverWKMessage("console");
 var makeSuitable = function (val) {
