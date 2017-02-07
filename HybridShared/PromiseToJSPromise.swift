@@ -13,9 +13,9 @@ import PromiseKit
 /// This would just be a part of JSPromise, but Objective C doesn't like generics.
 /// So instead it's just a small wrapper class that accepts a PromiseKit promise of
 /// any type, and converts it into a JSPromise
-class PromiseToJSPromise<T> {
+public class PromiseToJSPromise<T> {
     
-    static func pass(_ promise:Promise<T>) -> JSPromise {
+    public static func pass(_ promise:Promise<T>) -> JSPromise {
         let jspromise = JSPromise()
         
         promise
@@ -29,7 +29,7 @@ class PromiseToJSPromise<T> {
         return jspromise
     }
     
-    static func pass(_ promiseArray:Promise<[T]>) -> JSPromise {
+    public static func pass(_ promiseArray:Promise<[T]>) -> JSPromise {
         let jspromise = JSPromise()
         
         promiseArray
@@ -42,7 +42,7 @@ class PromiseToJSPromise<T> {
         
         return jspromise
     }
-
+    
     
 }
 
@@ -51,7 +51,7 @@ class PromiseToJSPromise<T> {
 //extension PromiseToJSPromisehybrid Group where T: AnyObject {
 //    static func pass(_ promise:Promise<T>) -> JSPromise {
 //        let jspromise = JSPromise()
-//        
+//
 //        promise
 //        .then { result in
 //            jspromise.resolve(result)
@@ -59,13 +59,13 @@ class PromiseToJSPromise<T> {
 //        .catch { err in
 //            jspromise.reject(err)
 //        }
-//        
+//
 //        return jspromise
 //    }
-//    
+//
 //    static func pass(_ promiseArray:Promise<[T]>) -> JSPromise {
 //        let jspromise = JSPromise()
-//        
+//
 //        promiseArray
 //        .then { result in
 //            jspromise.resolve(result)
@@ -73,7 +73,7 @@ class PromiseToJSPromise<T> {
 //        .catch { err in
 //            jspromise.reject(err)
 //        }
-//        
+//
 //        return jspromise
 //    }
 //}

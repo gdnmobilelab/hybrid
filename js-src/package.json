@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --require ts-node/register --require ./test-bootstrap.js test/**/*.ts test/**/**/*.ts",
-    "rollup": "node_modules/.bin/rollup --config rollup.config.js",
+    "rollup": "rollup --config rollup.config.js",
+    "rollup-for-tests": "rollup --config rollup.test.config.js",
     "browserify": "browserify",
     "debug-preload": "CONFIGURATION=Debug node preload-workers/index.js ~/Projects/hybrid/preload-workers.json ~/Projects/hybrid/preload-workers",
     "make-hash": "hash-files -f '[\"./src/**/*\"]'"
@@ -29,8 +29,11 @@
     "promise-tools": "^1.0.2",
     "resolve-url": "^0.2.1",
     "rollup": "^0.34.7",
+    "rollup-plugin-alias": "^1.2.0",
     "rollup-plugin-buble": "^0.7.0",
     "rollup-plugin-commonjs": "^3.3.1",
+    "rollup-plugin-inject": "^2.0.0",
+    "rollup-plugin-multi-entry": "^2.0.1",
     "rollup-plugin-node-resolve": "^1.7.3",
     "rollup-plugin-typescript": "^0.7.6",
     "rollup-plugin-uglify": "^1.0.1",

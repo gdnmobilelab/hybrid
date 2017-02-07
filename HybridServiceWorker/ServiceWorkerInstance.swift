@@ -11,7 +11,7 @@ import JavaScriptCore
 import PromiseKit
 import FMDB
 import UserNotifications
-
+import HybridShared
 
 /// The variables and methods we expose to be used inside the JSContext. The instance itself
 /// is available within the context as self.registration.active
@@ -28,9 +28,6 @@ import UserNotifications
     /// The actual JavascriptCore context in which our worker lives and runs.
     var jsContext:JSContext!
     
-    var cache:ServiceWorkerCacheStorage!
-    
-    
     /// Errors encountered in the JSContext are passed to exceptionHandler() rather than
     /// immediately returning. So, we store the error in this variable and pluck it back
     /// out so that we can keep it in our Promise chain.
@@ -44,7 +41,6 @@ import UserNotifications
     /// The scope for this service worker
     let scope:URL!
     
-    let timeoutManager = ServiceWorkerTimeoutManager()
     var registration: ServiceWorkerRegistration?
     
     
@@ -53,7 +49,7 @@ import UserNotifications
     let webSQL: WebSQLDatabaseCreator!
     var clientManager:WebviewClientManager?
     
-   
+    
     var installState:ServiceWorkerInstallState!
     
     
@@ -70,7 +66,6 @@ import UserNotifications
         }
     }
     
-    var globalFetch:GlobalFetch
     var console:Console
     
     /// Another shim to match the service worker spec, this turns out installstate enum into
@@ -93,7 +88,7 @@ import UserNotifications
                 return "redundant"
             }
             return ""
-         }
+        }
     }
     
     var globalScope:ServiceWorkerGlobalScope
@@ -111,12 +106,10 @@ import UserNotifications
         self.installState = installState
         self.instanceId = instanceId
         
-        self.globalFetch = GlobalFetch(workerScope: self.scope)
-        
         var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)!
         urlComponents.path = ""
         self.jsContext = JSContext()
-        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext)
+        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext, workerURL: url, scope: self.scope)
         self.webSQL = WebSQLDatabaseCreator(context: self.jsContext, origin: urlComponents.url!.absoluteString)
         
         self.console = Console(context: self.jsContext)
@@ -126,15 +119,13 @@ import UserNotifications
         
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.jsContext.name = "SW — " + url.absoluteString
-        self.cache = ServiceWorkerCacheStorage(serviceWorker: self)
-        self.globalFetch.addToJSContext(self.jsContext)
         
         self.registration = ServiceWorkerRegistration(worker: self)
         self.clientManager = WebviewClientManager(serviceWorker: self)
         
         self.hookFunctions()
         
-        ServiceWorkerManager.currentlyActiveServiceWorkers[instanceId] = self
+//        ServiceWorkerManager.currentlyActiveServiceWorkers[instanceId] = self
     }
     
     
@@ -143,117 +134,117 @@ import UserNotifications
     ///
     /// - Parameter url: The URL this service worker was downloaded from
     /// - Returns: A promise that returns a ServiceWorkerInstance if it exists locally, if not, nil
-    static func getActiveWorkerByURL(_ url:URL) -> Promise<ServiceWorkerInstance?> {
-        
-        log.info("Request for service worker at URL: " + url.absoluteString)
-        
-        for (_, worker) in ServiceWorkerManager.currentlyActiveServiceWorkers {
-            if worker.url == url {
-                return Promise<ServiceWorkerInstance?>(value: worker)
-            }
-        }
-        
-        var instance:ServiceWorkerInstance? = nil
-        var contents:String? = nil
-        
-        return Promise(value: ())
-        .then {
-            try Db.mainDatabase.inDatabase({ (db) in
-                
-                let serviceWorkerContents = try db.executeQuery("SELECT instance_id, scope, contents FROM service_workers WHERE url = ? AND install_state = ?", values: [url.absoluteString, ServiceWorkerInstallState.activated.rawValue])
-                
-                if serviceWorkerContents.next() == false {
-                    return serviceWorkerContents.close()
-                }
-                
-                let scope = URL(string: serviceWorkerContents.string(forColumn: "scope"))!
-                let instanceId = Int(serviceWorkerContents.int(forColumn: "instance_id"))
-                
-                instance = ServiceWorkerInstance(
-                    url: url,
-                    scope: scope,
-                    instanceId: instanceId,
-                    installState: ServiceWorkerInstallState.activated
-                )
-                
-                log.debug("Created new instance of service worker with ID " + String(instanceId) + " and install state: " + String(describing: instance!.installState))
-                contents = serviceWorkerContents.string(forColumn: "contents")
-                serviceWorkerContents.close()
-            })
-            
-            if instance == nil {
-                return Promise<ServiceWorkerInstance?>(value: nil)
-            }
-            
-            return instance!.loadServiceWorker(contents!)
-                .then { _ in
-                    return instance
-            }
-
-        }
-
-    }
+//    static func getActiveWorkerByURL(_ url:URL) -> Promise<ServiceWorkerInstance?> {
+//        
+//        log.info("Request for service worker at URL: " + url.absoluteString)
+//        
+//        for (_, worker) in ServiceWorkerManager.currentlyActiveServiceWorkers {
+//            if worker.url == url {
+//                return Promise<ServiceWorkerInstance?>(value: worker)
+//            }
+//        }
+//        
+//        var instance:ServiceWorkerInstance? = nil
+//        var contents:String? = nil
+//        
+//        return Promise(value: ())
+//            .then {
+//                try Db.mainDatabase.inDatabase({ (db) in
+//                    
+//                    let serviceWorkerContents = try db.executeQuery("SELECT instance_id, scope, contents FROM service_workers WHERE url = ? AND install_state = ?", values: [url.absoluteString, ServiceWorkerInstallState.activated.rawValue])
+//                    
+//                    if serviceWorkerContents.next() == false {
+//                        return serviceWorkerContents.close()
+//                    }
+//                    
+//                    let scope = URL(string: serviceWorkerContents.string(forColumn: "scope"))!
+//                    let instanceId = Int(serviceWorkerContents.int(forColumn: "instance_id"))
+//                    
+//                    instance = ServiceWorkerInstance(
+//                        url: url,
+//                        scope: scope,
+//                        instanceId: instanceId,
+//                        installState: ServiceWorkerInstallState.activated
+//                    )
+//                    
+//                    log.debug("Created new instance of service worker with ID " + String(instanceId) + " and install state: " + String(describing: instance!.installState))
+//                    contents = serviceWorkerContents.string(forColumn: "contents")
+//                    serviceWorkerContents.close()
+//                })
+//                
+//                if instance == nil {
+//                    return Promise<ServiceWorkerInstance?>(value: nil)
+//                }
+//                
+//                return instance!.loadServiceWorker(contents!)
+//                    .then { _ in
+//                        return instance
+//                }
+//                
+//        }
+//        
+//    }
     
-   
+    
     /// Fetch a service worker directly by ID. In many cases (particularly cross-process) we already know
     /// exactly which worker we want to target. Will return an already running worker if it exists, if not
     /// if it will create a new one.
     ///
     /// - Parameter id: The service worker ID, as created by the database primary key
     /// - Returns: A promise returning either a ServiceWorkerInstance if it exists, or nil if not
-    static func getById(_ id:Int) -> Promise<ServiceWorkerInstance?> {
-        
-        log.debug("Request for service worker with ID " + String(id))
-        return Promise(value: ())
-        .then { () -> Promise<ServiceWorkerInstance?> in
-            
-            let existingWorker = ServiceWorkerManager.currentlyActiveServiceWorkers[id]
-            
-            if existingWorker != nil {
-                log.debug("Returning existing service worker for ID " + String(id))
-                return Promise(value: existingWorker)
-            }
-            
-            
-            var instance:ServiceWorkerInstance? = nil
-            var contents:String? = nil
-            
-            try Db.mainDatabase.inDatabase({ (db) in
-                
-                let serviceWorkerContents = try db.executeQuery("SELECT url, scope, contents, install_state FROM service_workers WHERE instance_id = ?", values: [id])
-                
-                if serviceWorkerContents.next() == false {
-                    return serviceWorkerContents.close()
-                }
-                
-                let url = URL(string: serviceWorkerContents.string(forColumn: "url"))!
-                let scope = URL(string: serviceWorkerContents.string(forColumn: "scope"))!
-                let installState = ServiceWorkerInstallState(rawValue: Int(serviceWorkerContents.int(forColumn: "install_state")))!
-                
-                instance = ServiceWorkerInstance(
-                    url: url,
-                    scope: scope,
-                    instanceId: id,
-                    installState: installState
-                )
-                
-                log.debug("Created new instance of service worker with ID " + String(id) + " and install state: " + String(describing: instance!.installState))
-                contents = serviceWorkerContents.string(forColumn: "contents")
-                serviceWorkerContents.close()
-            })
-            
-            if instance == nil {
-                return Promise<ServiceWorkerInstance?>(value: nil)
-            }
-            
-            return instance!.loadServiceWorker(contents!)
-            .then { _ in
-                return instance
-            }
-            
-        }
-        
-    }
+//    static func getById(_ id:Int) -> Promise<ServiceWorkerInstance?> {
+//        
+//        log.debug("Request for service worker with ID " + String(id))
+//        return Promise(value: ())
+//            .then { () -> Promise<ServiceWorkerInstance?> in
+//                
+//                let existingWorker = ServiceWorkerManager.currentlyActiveServiceWorkers[id]
+//                
+//                if existingWorker != nil {
+//                    log.debug("Returning existing service worker for ID " + String(id))
+//                    return Promise(value: existingWorker)
+//                }
+//                
+//                
+//                var instance:ServiceWorkerInstance? = nil
+//                var contents:String? = nil
+//                
+//                try Db.mainDatabase.inDatabase({ (db) in
+//                    
+//                    let serviceWorkerContents = try db.executeQuery("SELECT url, scope, contents, install_state FROM service_workers WHERE instance_id = ?", values: [id])
+//                    
+//                    if serviceWorkerContents.next() == false {
+//                        return serviceWorkerContents.close()
+//                    }
+//                    
+//                    let url = URL(string: serviceWorkerContents.string(forColumn: "url"))!
+//                    let scope = URL(string: serviceWorkerContents.string(forColumn: "scope"))!
+//                    let installState = ServiceWorkerInstallState(rawValue: Int(serviceWorkerContents.int(forColumn: "install_state")))!
+//                    
+//                    instance = ServiceWorkerInstance(
+//                        url: url,
+//                        scope: scope,
+//                        instanceId: id,
+//                        installState: installState
+//                    )
+//                    
+//                    log.debug("Created new instance of service worker with ID " + String(id) + " and install state: " + String(describing: instance!.installState))
+//                    contents = serviceWorkerContents.string(forColumn: "contents")
+//                    serviceWorkerContents.close()
+//                })
+//                
+//                if instance == nil {
+//                    return Promise<ServiceWorkerInstance?>(value: nil)
+//                }
+//                
+//                return instance!.loadServiceWorker(contents!)
+//                    .then { _ in
+//                        return instance
+//                }
+//                
+//        }
+//        
+//    }
     
     
     /// Very simple check to see if any given URL lives within the scope of this worker
@@ -274,7 +265,7 @@ import UserNotifications
         let toBind: [String:AnyObject] = [
             "registration": self.registration!,
             "clients": self.clientManager!,
-        ]
+            ]
         
         for (key, val) in toBind {
             selfObj?.setObject(val, forKeyedSubscript: key as (NSCopying & NSObjectProtocol)!)
@@ -299,14 +290,14 @@ import UserNotifications
         
         return ev.resolve()
         
-//        return PromiseBridge<JSValue>(jsPromise: funcToRun.callWithArguments([ev]))
-//        .then { returnValue -> JSValue? in
-//            if self.contextErrorValue != nil {
-//                throw JSContextError(jsValue: returnValue!)
-//            }
-//            return returnValue
-//        }
-
+        //        return PromiseBridge<JSValue>(jsPromise: funcToRun.callWithArguments([ev]))
+        //        .then { returnValue -> JSValue? in
+        //            if self.contextErrorValue != nil {
+        //                throw JSContextError(jsValue: returnValue!)
+        //            }
+        //            return returnValue
+        //        }
+        
     }
     
     
@@ -333,11 +324,11 @@ import UserNotifications
     /// - Returns: A promise when execution is complete and any pending push events have fired.
     func loadServiceWorker(_ workerJS:String) -> Promise<Void> {
         return self.loadContextScript()
-        .then {_ in
-            return self.runScript(workerJS)
-        }
-        .then { _ in
-            return self.processPendingPushEvents()
+            .then {_ in
+                return self.runScript(workerJS)
+            }
+            .then { _ in
+                return self.processPendingPushEvents()
         }
     }
     
@@ -351,7 +342,7 @@ import UserNotifications
         let pendingPushes = PendingPushEventStore.getByWorkerURL(self.url.absoluteString)
         
         let processPromises = pendingPushes.map { push -> Promise<Void> in
-        
+            
             let pushEvent = PushEvent(dataAsString: push.payload)
             
             // Since we're acting in response to a push event we don't want to duplicate any
@@ -368,31 +359,31 @@ import UserNotifications
             PendingPushEventStore.remove(push)
             
             return self.dispatchExtendableEvent(pushEvent)
-            .then {_ in
-                
-                
-                
-                if self.registration!.storeNotificationShowWithID != nil {
+                .then {_ in
                     
-                    // This will happen if we receive a push event that doesn't try to show
-                    // a notification. That isn't allowed because iOS has already shown a notification
-                    // no matter what. In the future we can use iOS silent notifications, though.
                     
-                    log.error("ServiceWorkerRegistration did not store notification show data - your push event didn't use showNotification()?")
                     
-                    self.registration!.storeNotificationShowWithID = nil
-                }
-                
-                return Promise(value: ())
+                    if self.registration!.storeNotificationShowWithID != nil {
+                        
+                        // This will happen if we receive a push event that doesn't try to show
+                        // a notification. That isn't allowed because iOS has already shown a notification
+                        // no matter what. In the future we can use iOS silent notifications, though.
+                        
+                        log.error("ServiceWorkerRegistration did not store notification show data - your push event didn't use showNotification()?")
+                        
+                        self.registration!.storeNotificationShowWithID = nil
+                    }
+                    
+                    return Promise(value: ())
             }
             
         }
         
         return when(fulfilled: processPromises)
-        .recover { err -> Void in
-            log.error("Error encountered when processing push events: " + String(describing: err))
+            .recover { err -> Void in
+                log.error("Error encountered when processing push events: " + String(describing: err))
         }
-
+        
     }
     
     
@@ -404,15 +395,15 @@ import UserNotifications
         
         return Promise<String> {fulfill, reject in
             
-            let workerContextPath = Util.appBundle().path(forResource: "worker-context", ofType: "js", inDirectory: "js-dist")!;
-           
+            let workerContextPath = SharedResources.appBundle.path(forResource: "worker-context", ofType: "js", inDirectory: "js-dist")!;
+            
             let contextJS = try String(contentsOfFile: workerContextPath, encoding: String.Encoding.utf8)
             fulfill(contextJS)
-        }.then { js in
-            return self.runScript("var global = self; hybrid = {}; var navigator = {}; navigator.userAgent = 'hybrid service worker';" + js)
-        }.then { js in
-            self.applyGlobalVariables()
-            return Promise(value: ())
+            }.then { js in
+                return self.runScript("var global = self; hybrid = {}; var navigator = {}; navigator.userAgent = 'hybrid service worker';" + js)
+            }.then { js in
+                self.applyGlobalVariables()
+                return Promise(value: ())
         }
     }
     
@@ -433,9 +424,9 @@ import UserNotifications
         for key in globalKeys {
             self.jsContext.setObject(global.objectForKeyedSubscript(key)!, forKeyedSubscript: key as (NSCopying & NSObjectProtocol)!)
         }
-
+        
     }
-
+    
     
     /// JSContext logs exceptions via the exceptionHandler() function, so this is a quick wrapper
     /// to run JS, catch any potential error, or return if the script was successful.

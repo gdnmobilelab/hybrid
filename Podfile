@@ -10,6 +10,19 @@ pod 'FMDBMigrationManager'
 pod 'PromiseKit', '~> 4'
 #pod 'EmitterKit', '~> 5'
 
+target 'HybridServiceWorker' do
+    
+end
+
+target 'HybridShared' do
+    
+end
+
+
+target 'HybridServiceWorkerTests' do
+    pod 'Quick', '~> 1.0.0'
+    pod 'Nimble', '~> 6.0.0'
+end
 
 target 'hybrid' do
     
@@ -26,7 +39,7 @@ end
 
 target 'hybridTests' do
 
-    pod 'Quick'
-    pod 'Nimble'
+    pod 'Quick', '~> 1.0.0'
+    pod 'Nimble', '~> 6.0.0'
     pod 'GCDWebServer', '~> 3.0'
 end

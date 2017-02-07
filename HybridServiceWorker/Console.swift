@@ -8,7 +8,7 @@
 
 import Foundation
 import JavaScriptCore
-
+import HybridShared
 
 /// A layer that we place between the browser debug console and the service worker, so that
 /// we can see debug output in the XCode console
@@ -22,7 +22,7 @@ import JavaScriptCore
     init(context:JSContext) {
         
         self.originalConsole = context.objectForKeyedSubscript("console")
-       
+        
         super.init()
         
         let newConsole = JSValue(newObjectIn: context)!
@@ -78,5 +78,5 @@ import JavaScriptCore
         }
     }
     
-
+    
 }

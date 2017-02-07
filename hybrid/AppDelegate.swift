@@ -11,6 +11,7 @@ import PromiseKit
 import UserNotifications
 import GCDWebServer
 import XCGLogger
+import HybridServiceWorker
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
