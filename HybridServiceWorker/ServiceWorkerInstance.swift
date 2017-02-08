@@ -17,6 +17,8 @@ import HybridShared
 /// is available within the context as self.registration.active
 @objc protocol ServiceWorkerInstanceExports : JSExport {
     var scriptURL:String {get}
+    var state: String {get}
+    var onstatechange: JSValue? {get set}
 }
 
 
@@ -24,9 +26,10 @@ import HybridShared
 /// that add our SW helper library, as well as provide hooks for things like setTimeout and event execution
 @objc open class ServiceWorkerInstance : NSObject, ServiceWorkerInstanceExports {
     
+    static let containingVirtualMachine = JSVirtualMachine()!
     
     /// The actual JavascriptCore context in which our worker lives and runs.
-    var jsContext:JSContext!
+    let jsContext:JSContext
     
     /// Errors encountered in the JSContext are passed to exceptionHandler() rather than
     /// immediately returning. So, we store the error in this variable and pluck it back
@@ -35,28 +38,20 @@ import HybridShared
     
     
     /// The remote URL this service worker was downloaded from.
-    let url:URL!
-    
+    let url:URL
     
     /// The scope for this service worker
-    let scope:URL!
+    let scope:URL
     
-    var registration: ServiceWorkerRegistration?
-    
-    
-    /// While service workers don't support WebSQL, we're using a WebSQL-based shim to add
-    /// IndexedDB support.
-    let webSQL: WebSQLDatabaseCreator!
-    var clientManager:WebviewClientManager?
+    var installState:ServiceWorkerInstallState
+    let globalScope:ServiceWorkerGlobalScope
     
     
-    var installState:ServiceWorkerInstallState!
+    /// The only event we emit directly from the worker is statechange
+    let jsEvents = EventEmitter<AnyObject>()
     
-    
-    /// The ID for this worker. This is controlled by the database, where it is set by an
-    /// auto-incrementing primary key.
-    let instanceId:Int
-    
+    /// JS can set a function directly to onstatechange rather than use addEventListener
+    var onstatechange:JSValue?
     
     /// The same as the url property, but returns a string instead of NSURL, so that we can use
     /// this in the JSContext. Matches the Service Worker spec's scriptURL property.
@@ -65,8 +60,6 @@ import HybridShared
             return self.url.absoluteString
         }
     }
-    
-    var console:Console
     
     /// Another shim to match the service worker spec, this turns out installstate enum into
     /// a string.
@@ -90,42 +83,40 @@ import HybridShared
             return ""
         }
     }
-    
-    var globalScope:ServiceWorkerGlobalScope
-    
-    
-    init(url:URL, scope: URL?, instanceId:Int, installState: ServiceWorkerInstallState) {
+
+    public init(url:URL, scope: URL?, installState: ServiceWorkerInstallState) {
         
         self.url = url
-        if (scope != nil) {
-            self.scope = scope
+        
+        if let scopeExists = scope {
+            self.scope = scopeExists
         } else {
             self.scope = url.deletingLastPathComponent()
         }
         
         self.installState = installState
-        self.instanceId = instanceId
         
-        var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false)!
-        urlComponents.path = ""
-        self.jsContext = JSContext()
+        self.jsContext = JSContext(virtualMachine: ServiceWorkerInstance.containingVirtualMachine)
         self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext, workerURL: url, scope: self.scope)
-        self.webSQL = WebSQLDatabaseCreator(context: self.jsContext, origin: urlComponents.url!.absoluteString)
-        
-        self.console = Console(context: self.jsContext)
         
         super.init()
-        
         
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.jsContext.name = "SW — " + url.absoluteString
         
-        self.registration = ServiceWorkerRegistration(worker: self)
-        self.clientManager = WebviewClientManager(serviceWorker: self)
-        
-        self.hookFunctions()
+        self.jsEvents.on("statechange", self.processStateChange)
         
 //        ServiceWorkerManager.currentlyActiveServiceWorkers[instanceId] = self
+    }
+    
+    
+    /// Not sure if this actually works, but this flags to the garbage collector that this JSContext is ready
+    /// to be removed. At least according to this:
+    ///
+    /// http://stackoverflow.com/questions/35689482/force-garbage-collection-of-javascriptcore-virtual-machine-on-ios
+    public func destroy() {
+        self.jsContext.name = "SW (destroyed) - " + self.url.absoluteString
+        JSGarbageCollect(self.jsContext.jsGlobalContextRef)
     }
     
     
@@ -256,32 +247,13 @@ import HybridShared
     }
     
     
-    /// Add various classes and objects to the global scope of the service worker. To be broken out
-    /// into a ServiceWorkerGlobalScope class at some point, possibly.
-    fileprivate func hookFunctions() {
-        
-        let selfObj = self.jsContext.objectForKeyedSubscript("self")
-        
-        let toBind: [String:AnyObject] = [
-            "registration": self.registration!,
-            "clients": self.clientManager!,
-            ]
-        
-        for (key, val) in toBind {
-            selfObj?.setObject(val, forKeyedSubscript: key as (NSCopying & NSObjectProtocol)!)
-            self.jsContext.setObject(val, forKeyedSubscript: key as (NSCopying & NSObjectProtocol)!)
-        }
-        
-    }
-    
-    
     /// Service workers have "extendable events" - normal JS events that come with an e.waitUntil()
     /// function attached. These allow you to extend the life of a service worker until the promises
     /// inside waitUntil() have completed.
     ///
     /// - Parameter ev: The ExtendableEvent to dispatch. We have a few subclasses like NotificationEvent.
     /// - Returns: A promise that waits until any waitUntil() call has completed. Right now it returns a value from that, it should not.
-    func dispatchExtendableEvent(_ ev:ExtendableEvent) -> Promise<Void> {
+    public func dispatchExtendableEvent(_ ev:ExtendableEvent) -> Promise<Void> {
         
         let funcToRun = self.jsContext.objectForKeyedSubscript("self")
             .objectForKeyedSubscript("dispatchEvent")!
@@ -289,14 +261,6 @@ import HybridShared
         funcToRun.call(withArguments: [ev])
         
         return ev.resolve()
-        
-        //        return PromiseBridge<JSValue>(jsPromise: funcToRun.callWithArguments([ev]))
-        //        .then { returnValue -> JSValue? in
-        //            if self.contextErrorValue != nil {
-        //                throw JSContextError(jsValue: returnValue!)
-        //            }
-        //            return returnValue
-        //        }
         
     }
     
@@ -322,7 +286,7 @@ import HybridShared
     ///
     /// - Parameter workerJS: The JS to run
     /// - Returns: A promise when execution is complete and any pending push events have fired.
-    func loadServiceWorker(_ workerJS:String) -> Promise<Void> {
+    public func loadServiceWorker(_ workerJS:String) -> Promise<Void> {
         return self.loadContextScript()
             .then {_ in
                 return self.runScript(workerJS)
@@ -352,7 +316,7 @@ import HybridShared
             // This is only used in background mode as we can suppress the remote notification
             // in foreground mode.
             
-            self.registration!.storeNotificationShowWithID = push.pushID
+            self.globalScope.registration.storeNotificationShowWithID = push.pushID
             
             // We remove the event BEFORE sending it because the event might well call update,
             // which would mean the new worker would try to process this event as well.
@@ -363,7 +327,7 @@ import HybridShared
                     
                     
                     
-                    if self.registration!.storeNotificationShowWithID != nil {
+                    if self.globalScope.registration.storeNotificationShowWithID != nil {
                         
                         // This will happen if we receive a push event that doesn't try to show
                         // a notification. That isn't allowed because iOS has already shown a notification
@@ -371,7 +335,7 @@ import HybridShared
                         
                         log.error("ServiceWorkerRegistration did not store notification show data - your push event didn't use showNotification()?")
                         
-                        self.registration!.storeNotificationShowWithID = nil
+                        self.globalScope.registration.storeNotificationShowWithID = nil
                     }
                     
                     return Promise(value: ())
@@ -386,6 +350,12 @@ import HybridShared
         
     }
     
+    var userAgent:String {
+        get {
+            return "com.gdnmobilelab.hybrid/" + (SharedResources.appBundle.infoDictionary!["CFBundleShortVersionString"] as! String)
+        }
+    }
+    
     
     /// Loads the shell JavaScript, containing our various shims and utility functions to replicate the global
     /// service worker environment.
@@ -393,38 +363,19 @@ import HybridShared
     /// - Returns: An empty promise that fulfills immediately (the operation is synchonous). Promise is used to catch errors.
     fileprivate func loadContextScript() -> Promise<Void> {
         
-        return Promise<String> {fulfill, reject in
+        return Promise<String> { fulfill, reject in
             
             let workerContextPath = SharedResources.appBundle.path(forResource: "worker-context", ofType: "js", inDirectory: "js-dist")!;
             
             let contextJS = try String(contentsOfFile: workerContextPath, encoding: String.Encoding.utf8)
             fulfill(contextJS)
-            }.then { js in
-                return self.runScript("var global = self; hybrid = {}; var navigator = {}; navigator.userAgent = 'hybrid service worker';" + js)
-            }.then { js in
-                self.applyGlobalVariables()
-                return Promise(value: ())
+            
         }
-    }
-    
-    
-    /// JSContext doesn't have a 'global' variable so instead we make our own,
-    /// then go through and manually declare global variables.
-    fileprivate func applyGlobalVariables() {
-        
-        let global = self.jsContext.objectForKeyedSubscript("global")!
-        
-        
-        let globalKeys = self.jsContext
-            .objectForKeyedSubscript("Object")
-            .objectForKeyedSubscript("keys")
-            .call(withArguments: [global])
-            .toArray() as! [String]
-        
-        for key in globalKeys {
-            self.jsContext.setObject(global.objectForKeyedSubscript(key)!, forKeyedSubscript: key as (NSCopying & NSObjectProtocol)!)
+        .then { js in
+            return self.runScript("var global = self; var hybrid = {}; var navigator = {}; navigator.userAgent = '" + self.userAgent + "';" + js)
+        }.then { js in
+            return Promise(value: ())
         }
-        
     }
     
     
@@ -460,8 +411,21 @@ import HybridShared
         } else {
             log.error("Exception called with no exception?")
         }
-        
-        
+    }
+    
+    
+    /// If the onstatechange value has been set via JS, we need to make sure that function is executed.
+    func processStateChange(obj:AnyObject) {
+        if let statechange = self.onstatechange {
+            
+            if statechange.isNull {
+                return
+            }
+            
+            statechange.call(withArguments: [[
+                "target": self
+            ]])
+        }
     }
     
 }

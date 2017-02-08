@@ -32,7 +32,10 @@ import HybridShared
 /// A port of web ServiceWorkerRegistration: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration
 @objc class ServiceWorkerRegistration: NSObject, ServiceWorkerRegistrationExports {
     var pushManager:PushManager
-    var worker:ServiceWorkerInstance
+//    var worker:ServiceWorkerInstance
+    
+    let scopeURL: URL
+    let workerURL: URL
     
     var storeNotificationShowWithID:String?
     static var suppressNotificationShow:Bool = false
@@ -41,7 +44,7 @@ import HybridShared
     /// For compatibility with the JS API - we need scope to be accessible at the registration level
     var scope:String {
         get {
-            return self.worker.scope.absoluteString
+            return self.scopeURL.absoluteString
         }
     }
     
@@ -54,28 +57,29 @@ import HybridShared
     /// Return the current service worker if it is in an Activated state.
     var active:ServiceWorkerInstance? {
         get {
-            return self.worker.installState == ServiceWorkerInstallState.activated ? self.worker : nil
+            return nil //self.worker.installState == ServiceWorkerInstallState.activated ? self.worker : nil
         }
     }
     
     /// Return the current service worker if it is in an Installed state
     var waiting:ServiceWorkerInstance? {
         get {
-            return self.worker.installState == ServiceWorkerInstallState.installed ? self.worker : nil
+            return nil //self.worker.installState == ServiceWorkerInstallState.installed ? self.worker : nil
         }
     }
     
     /// Return the current service worker if it is in an Installing state
     var installing:ServiceWorkerInstance? {
         get {
-            return self.worker.installState == ServiceWorkerInstallState.installing ? self.worker : nil
+            return nil //self.worker.installState == ServiceWorkerInstallState.installing ? self.worker : nil
         }
     }
     
     
-    init(worker:ServiceWorkerInstance) {
+    init(scope: URL, workerURL: URL) {
         self.pushManager = PushManager()
-        self.worker = worker
+        self.scopeURL = scope
+        self.workerURL = workerURL
     }
     
     
@@ -124,7 +128,7 @@ import HybridShared
         }
         
         
-        let pending = PendingNotificationShow(title: title, options: options, pushID: notificationID, workerURL: self.worker.scriptURL)
+        let pending = PendingNotificationShow(title: title, options: options, pushID: notificationID, workerURL: self.workerURL.absoluteString)
         
         PendingNotificationShowStore.add(pending)
         
@@ -184,7 +188,7 @@ import HybridShared
                 content.threadIdentifier = makeTagNameSafe(tag)
             }
             
-            PayloadToNotificationContent.urlsToNotificationAttachments(potentialAttachments, relativeTo: self.worker.url)
+            PayloadToNotificationContent.urlsToNotificationAttachments(potentialAttachments, relativeTo: self.workerURL)
                 .then { attachments -> Void in
                     log.info("Fetched potential attachments")
                     

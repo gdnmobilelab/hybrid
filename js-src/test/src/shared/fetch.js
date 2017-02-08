@@ -1,5 +1,8 @@
-provide("Fetch API", {
-    "fetches a response": function() {
-        throw new Error("turds!")
-    }
+
+test("Fetch API", () => {
+    return Promise.resolve()
+    .then(() => {
+        throw new Error("oh no")
+        return true;
+    })
 })

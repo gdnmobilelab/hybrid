@@ -679,21 +679,20 @@
 		8A3B37721E492CF700FB95EF /* HybridServiceWorker */ = {
 			isa = PBXGroup;
 			children = (
-				8AA9AA221E4A6CBB00468A3F /* WebSQL */,
-				8AA9AA0F1E4A5C2100468A3F /* Notifications */,
-				8AA9AA0A1E4A5AC500468A3F /* Worker */,
-				8AA9AA031E4A505400468A3F /* Util */,
-				8AA9A9FA1E4A4A7C00468A3F /* Fetch */,
+				8A3B37731E492CF700FB95EF /* HybridServiceWorker.h */,
+				8A3B37741E492CF700FB95EF /* Info.plist */,
+				8AA9A9C11E4A2D8B00468A3F /* Cache */,
+				8AA9A9CE1E4A2EE000468A3F /* Canvas */,
 				8AA9A9F01E4A487200468A3F /* Client */,
 				8AA9A9E81E4A45C400468A3F /* Events */,
-				8AA9A9CE1E4A2EE000468A3F /* Canvas */,
+				8AA9A9FA1E4A4A7C00468A3F /* Fetch */,
 				8AA9A9C71E4A2E3900468A3F /* Message */,
-				8AA9A9C21E4A2D9C00468A3F /* Push */,
-				8AA9A9C11E4A2D8B00468A3F /* Cache */,
-				8A3B37961E4931B100FB95EF /* enum */,
-				8A3B37731E492CF700FB95EF /* HybridServiceWorker.h */,
+				8AA9AA0F1E4A5C2100468A3F /* Notifications */,
 				8A3B37B21E49337E00FB95EF /* Promises */,
-				8A3B37741E492CF700FB95EF /* Info.plist */,
+				8AA9A9C21E4A2D9C00468A3F /* Push */,
+				8AA9AA031E4A505400468A3F /* Util */,
+				8AA9AA221E4A6CBB00468A3F /* WebSQL */,
+				8AA9AA0A1E4A5AC500468A3F /* Worker */,
 			);
 			path = HybridServiceWorker;
 			sourceTree = "<group>";
@@ -709,25 +708,17 @@
 			path = HybridServiceWorkerTests;
 			sourceTree = "<group>";
 		};
-		8A3B37961E4931B100FB95EF /* enum */ = {
-			isa = PBXGroup;
-			children = (
-				8A3B37971E4931C300FB95EF /* ServiceWorkerInstallState.swift */,
-			);
-			name = enum;
-			sourceTree = "<group>";
-		};
 		8A3B379F1E49321E00FB95EF /* HybridShared */ = {
 			isa = PBXGroup;
 			children = (
-				8AA9AA141E4A5D2F00468A3F /* ObjC */,
-				8AA9A9DF1E4A370D00468A3F /* Util */,
-				8AA9A9DA1E4A341500468A3F /* Resources */,
-				8AA9A9D31E4A335D00468A3F /* Database */,
-				8A3B37B31E4933C300FB95EF /* Fetch */,
 				8A3B37A01E49321E00FB95EF /* HybridShared.h */,
 				8A3B37A11E49321E00FB95EF /* Info.plist */,
 				8A3B37AC1E4932C500FB95EF /* Log.swift */,
+				8AA9A9D31E4A335D00468A3F /* Database */,
+				8A3B37B31E4933C300FB95EF /* Fetch */,
+				8AA9AA141E4A5D2F00468A3F /* ObjC */,
+				8AA9A9DA1E4A341500468A3F /* Resources */,
+				8AA9A9DF1E4A370D00468A3F /* Util */,
 			);
 			path = HybridShared;
 			sourceTree = "<group>";
@@ -978,6 +969,7 @@
 		8AA9AA0A1E4A5AC500468A3F /* Worker */ = {
 			isa = PBXGroup;
 			children = (
+				8A3B37971E4931C300FB95EF /* ServiceWorkerInstallState.swift */,
 				8AE51AC71E4A2B100099AF77 /* ServiceWorkerGlobalScope.swift */,
 				8A3B378E1E492DAC00FB95EF /* ServiceWorkerInstance.swift */,
 				8AA9AA0B1E4A5AD400468A3F /* ServiceWorkerRegistration.swift */,
@@ -1707,7 +1699,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$PROJECT_DIR\"/js-src\nnpm run rollup-for-tests -- -o ../HybridServiceWorkerTests/js-dist/tests.js";
+			shellScript = "cd \"$PROJECT_DIR\"/js-src\nnpm run compile-tests -- -o ../HybridServiceWorkerTests/js-dist/tests.js";
 		};
 		8A53C92C1DF5D16600560310 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;

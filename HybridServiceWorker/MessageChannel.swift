@@ -12,7 +12,7 @@ import JavaScriptCore
 import HybridShared
 
 
-@objc protocol MessageChannelExports : JSExport {
+@objc public protocol MessageChannelExports : JSExport {
     var port1:MessagePort {get}
     var port2:MessagePort {get}
     init()
@@ -21,14 +21,14 @@ import HybridShared
 
 /// Implementation of MessageChannel: https://developer.mozilla.org/en-US/docs/Web/API/MessageChannel
 /// Basically just a pairing of two MessagePorts - postMessage-ing into one triggers a message event on the other.
-@objc class MessageChannel : NSObject, MessageChannelExports {
-    var port1 = MessagePort()
-    var port2 = MessagePort()
+@objc public class MessageChannel : NSObject, MessageChannelExports {
+    public var port1 = MessagePort()
+    public var port2 = MessagePort()
     
     fileprivate var listener1:Listener<ExtendableMessageEvent?>?
     fileprivate var listener2:Listener<ExtendableMessageEvent?>?
     
-    override required init() {
+    override required public init() {
         super.init()
         self.listener1 = port1.events.on("emit", { (msg: ExtendableMessageEvent?) in
             self.port2.events.emit("message", msg!)

@@ -20,9 +20,9 @@ import HybridShared
 }
 
 /// An implementation of MessagePort: https://developer.mozilla.org/en-US/docs/Web/API/MessagePort
-@objc open class MessagePort : NSObject, MessagePortExports {
+@objc public class MessagePort : NSObject, MessagePortExports {
     
-    let events = EventEmitter<ExtendableMessageEvent?>()
+    public let events = EventEmitter<ExtendableMessageEvent?>()
     
     fileprivate var messageListener:Listener<ExtendableMessageEvent?>?
     
@@ -67,19 +67,19 @@ import HybridShared
         onmessage!.call(withArguments: [message!])
     }
     
-    func postMessage(_ data: Any) {
+    public func postMessage(_ data: Any) {
         self.postMessage(data, ports: [], fromWebView: nil)
     }
     
-    func postMessage(_ data:Any, ports:[MessagePort]) {
+    public func postMessage(_ data:Any, ports:[MessagePort]) {
         self.postMessage(data, ports: ports, fromWebView: nil)
     }
     
-    func postMessage(_ data:Any, ports:[MessagePort], fromWebView:WKWebView?) {
+    public func postMessage(_ data:Any, ports:[MessagePort], fromWebView:WKWebView?) {
         self.events.emit("emit", ExtendableMessageEvent(data: data, ports: ports,fromWebView: fromWebView))
     }
     
-    func close() {
+    public func close() {
         if self._pendingJSExecution {
             self._pendingClose = true
         } else {

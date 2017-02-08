@@ -24,8 +24,15 @@ import HybridShared
 @objc class WebviewClientManager : NSObject, WebviewClientManagerExports {
     
     
-    let serviceWorker:ServiceWorkerInstance
+//    let serviceWorker:ServiceWorkerInstance
+    let scope: URL
+    let workerURL: URL
+//    let instanceId
     
+    required init(scope: URL, workerURL: URL) {
+        self.scope = scope
+        self.workerURL = workerURL
+    }
     
     
     /// This event emitter is listened to within HybridWebView.swift in-app, but also in NotificationViewController.swift
@@ -81,32 +88,35 @@ import HybridShared
     func claim() -> JSPromise {
         
         let claimPromises = WebviewClientManager.currentWebviewRecords.map { record -> Promise<Void> in
-            if record.url == nil || record.url!.absoluteString.hasPrefix(self.serviceWorker.scope.absoluteString) == false {
-                return Promise(value: ())
-            } else {
-                
-                // We put this in an event bridge because out notificiation content extension
-                // needs to be able to emit these events, which unfortunately means we need
-                // to store such events for execution later
-                
-                let ev = PendingWebviewAction(type: PendingWebviewActionType.claim, record: record, options: [
-                    "newServiceWorkerId": self.serviceWorker.instanceId as AnyObject
-                    ])
-                
-                if SharedResources.currentExecutionEnvironment == ExecutionEnvironment.app {
-                    // We're in the app, so we want to wait for immediate execution
-                    
-                    return Promise<Void> { fulfill, reject in
-                        ev.onImmediateExecution = fulfill
-                        WebviewClientManager.clientEvents.emit("*", ev)
-                    }
-                    
-                } else {
-                    WebviewClientManager.clientEvents.emit("*", ev)
-                    return Promise(value: ())
-                }
-                
-            }
+            
+            return Promise(value: ())
+            
+//            if record.url == nil || record.url!.absoluteString.hasPrefix(self.serviceWorker.scope.absoluteString) == false {
+//                return Promise(value: ())
+//            } else {
+//                
+//                // We put this in an event bridge because out notificiation content extension
+//                // needs to be able to emit these events, which unfortunately means we need
+//                // to store such events for execution later
+//                
+//                let ev = PendingWebviewAction(type: PendingWebviewActionType.claim, record: record, options: [
+//                    "newServiceWorkerId": self.serviceWorker.instanceId as AnyObject
+//                    ])
+//                
+//                if SharedResources.currentExecutionEnvironment == ExecutionEnvironment.app {
+//                    // We're in the app, so we want to wait for immediate execution
+//                    
+//                    return Promise<Void> { fulfill, reject in
+//                        ev.onImmediateExecution = fulfill
+//                        WebviewClientManager.clientEvents.emit("*", ev)
+//                    }
+//                    
+//                } else {
+//                    WebviewClientManager.clientEvents.emit("*", ev)
+//                    return Promise(value: ())
+//                }
+//                
+//            }
         }
         
         return PromiseToJSPromise<Void>.pass(when(fulfilled: claimPromises))
@@ -117,11 +127,11 @@ import HybridShared
     func matchAll(_ options: JSValue) -> JSPromise {
         
         let matchingRecords = WebviewClientManager.currentWebviewRecords.filter { record in
-            
-            if record.workerId == nil {
-                return false
-            }
-            return record.workerId! == self.serviceWorker.instanceId
+            return false
+//            if record.workerId == nil {
+//                return false
+//            }
+//            return record.workerId! == self.serviceWorker.instanceId
         }
         
         let matchesToClients = matchingRecords.map {record in
@@ -140,7 +150,7 @@ import HybridShared
     ///   - options: An object, currently the 'external' attribute is the only one supported.
     func openWindow(_ url:String, options:AnyObject?) -> JSPromise {
         
-        let urlToOpen = URL(string: url,relativeTo: self.serviceWorker.scope as URL?)!
+        let urlToOpen = URL(string: url,relativeTo: self.scope)!
         
         var optionsToSave: [String:AnyObject] = [
             "urlToOpen": urlToOpen.absoluteString as AnyObject
@@ -157,7 +167,5 @@ import HybridShared
         return JSPromise.resolve(nil)
     }
     
-    required init(serviceWorker:ServiceWorkerInstance) {
-        self.serviceWorker = serviceWorker
-    }
+    
 }

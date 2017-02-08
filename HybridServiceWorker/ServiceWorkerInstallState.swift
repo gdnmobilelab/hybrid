@@ -15,7 +15,7 @@ import Foundation
 /// - Activating: The worker is currently in the process of activating
 /// - Activated: The worker is activated and ready to receive events and messages
 /// - Redundant: The worker has either failed to install or has been superseded by a new version of the worker.
-enum ServiceWorkerInstallState: Int {
+public enum ServiceWorkerInstallState: Int {
     case installing
     case installed
     case activating

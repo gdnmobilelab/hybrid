@@ -18,8 +18,8 @@ import JavaScriptCore
 
 
 /// Implementation of browser ExtendableMessageEvent: https://developer.mozilla.org/en-US/docs/Web/API/ExtendableMessageEvent
-@objc class ExtendableMessageEvent : ExtendableEvent, ExtendableMessageEventExports {
-    var data:Any?
+@objc public class ExtendableMessageEvent : ExtendableEvent, ExtendableMessageEventExports {
+    public var data:Any?
     var ports:[MessagePort]
     
     /// We use this to make sure we aren't echoing messages back to the
@@ -27,7 +27,7 @@ import JavaScriptCore
     /// it doesn't make a lot of sense that it would ever do that
     var fromWebView:WKWebView?
     
-    required init(data:Any?, ports: [MessagePort]?) {
+    public required init(data:Any?, ports: [MessagePort]?) {
         
         self.data = data
         
@@ -51,7 +51,7 @@ import JavaScriptCore
         super.init(type: "message")
     }
     
-    required init(type: String) {
+    required public init(type: String) {
         fatalError("ExtendableMessageEvent must be created with data, ports initializer")
     }
 }

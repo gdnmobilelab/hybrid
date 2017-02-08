@@ -50,7 +50,6 @@ import HybridShared
         
         super.init()
         
-        self.context.setObject(self, forKeyedSubscript: "__WebSQLDatabaseCreator" as (NSCopying & NSObjectProtocol)!)
     }
     
     

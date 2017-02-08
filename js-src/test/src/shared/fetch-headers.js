@@ -1,5 +1,7 @@
-// describe("Fetch Headers", () => {
-//     it("Should fire a test", () => {
-//         return true;
-//     })
-// })
+
+test("Fetch API Headers", () => {
+    return Promise.resolve()
+    .then(() => {
+        return true;
+    })
+})
