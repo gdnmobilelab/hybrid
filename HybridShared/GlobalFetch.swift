@@ -36,7 +36,7 @@ public class GlobalFetch {
     ///   - request: The FetchRequest to process
     ///   - options: The options for this request, as outlined in the 'init' object here: https://developer.mozilla.org/en-US/docs/Web/API/GlobalFetch/fetch
     /// - Returns: A promise that will resolve with a FetchResponse when the operation succeeds.
-    public static func fetch(_ request: FetchRequest, options:[String:AnyObject] = [:]) -> Promise<FetchResponse> {
+    public static func fetch(request: FetchRequest) -> Promise<FetchResponse> {
         
         let urlRequest = request.toNSURLRequest()
         
@@ -46,7 +46,7 @@ public class GlobalFetch {
             
             var delegate: URLSessionDelegate? = nil
             
-            if options["redirect"] != nil && options["redirect"] as? String != "follow" {
+            if request.redirect != "follow" {
                 // TODO: work out what "manual" means in the spec
                 delegate = DoNotFollowRedirectSessionDelegate()
             }
@@ -99,7 +99,7 @@ public class GlobalFetch {
     /// - Parameter url: The string URL to download
     /// - Returns: a promise that evaluates to a FetchResponse.
     static public func fetch(_ url:String) -> Promise<FetchResponse> {
-        return fetch(FetchRequest(url: url, options: nil))
+        return fetch(request: FetchRequest(url: url, options: nil))
     }
     
 }

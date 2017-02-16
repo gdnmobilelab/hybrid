@@ -25,7 +25,7 @@ import UserNotifications
     
 }
 
-@objc class Notification : NSObject, NotificationExports {
+@objc public class HybridNotification : NSObject, NotificationExports {
     var actions: [Any]? = nil
     var body:String? = nil
     var data:Any? = nil
@@ -70,9 +70,9 @@ import UserNotifications
         UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [self.pushID])
     }
     
-    static func fromNotificationShow(_ notificationShow: PendingNotificationShow, canvas:OffscreenCanvas? = nil, videoView:NotificationVideo? = nil) -> Notification {
+    static func fromNotificationShow(_ notificationShow: PendingNotificationShow, canvas:OffscreenCanvas? = nil, videoView:NotificationVideo? = nil) -> HybridNotification {
         
-        let notification = Notification(title: notificationShow.title, notificationData: notificationShow.options as [String:AnyObject]?, belongsToWorkerURL: notificationShow.workerURL as URL, pushID: notificationShow.pushID)
+        let notification = HybridNotification(title: notificationShow.title, notificationData: notificationShow.options as [String:AnyObject]?, belongsToWorkerURL: notificationShow.workerURL as URL, pushID: notificationShow.pushID)
         
         notification.video = videoView
         notification.canvas = canvas

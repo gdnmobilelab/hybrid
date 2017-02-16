@@ -50,4 +50,13 @@ public class SharedResources {
     }
     
     public static let ApplicationEvents = EventEmitter<Any>()
+    
+    public static var allowedServiceWorkerDomains:[String] {
+        
+        get {
+            let str = SharedResources.appBundle.object(forInfoDictionaryKey: "SERVICE_WORKER_ENABLED_DOMAINS") as! String
+            return str.components(separatedBy: ",")
+        }
+        
+    }
 }

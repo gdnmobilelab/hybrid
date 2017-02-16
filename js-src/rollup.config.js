@@ -8,6 +8,7 @@ import {minify} from 'uglify-js';
 const config = {
     sourceMap: false,
     treeshake: false,
+    format: 'iife',
     plugins: [
         typescript({
             include: "src/**"

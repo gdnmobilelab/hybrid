@@ -26,6 +26,12 @@ public class FetchResponse : FetchBody {
         self.data = body
     }
     
+    public var ok:Bool {
+        get {
+            return self.status >= 200 && self.status <= 299
+        }
+    }
+    
     
     /// If created without a status, it is assumed the status is 200. This initialiser
     /// matches the JS API

@@ -82,7 +82,7 @@ struct RequestAndResponse {
                     
                     let fetchRequest = FetchRequest(url: url.absoluteString, options: nil)
                     
-                    return GlobalFetch.fetch(fetchRequest)
+                    return GlobalFetch.fetch(request: fetchRequest)
                         .then { response in
                             
                             if response.status < 200 || response.status > 299 {

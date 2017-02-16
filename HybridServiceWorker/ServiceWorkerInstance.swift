@@ -15,7 +15,7 @@ import HybridShared
 
 /// The variables and methods we expose to be used inside the JSContext. The instance itself
 /// is available within the context as self.registration.active
-@objc protocol ServiceWorkerInstanceExports : JSExport {
+@objc protocol ServiceWorkerInstanceExports : JSEventEmitterExports {
     var scriptURL:String {get}
     var state: String {get}
     var onstatechange: JSValue? {get set}
@@ -24,7 +24,7 @@ import HybridShared
 
 /// The core of our service worker functionality. This class wraps a JSContext with a series of helper functions
 /// that add our SW helper library, as well as provide hooks for things like setTimeout and event execution
-@objc open class ServiceWorkerInstance : NSObject, ServiceWorkerInstanceExports {
+@objc open class ServiceWorkerInstance : JSEventEmitter, ServiceWorkerInstanceExports {
     
     static let containingVirtualMachine = JSVirtualMachine()!
     
@@ -38,20 +38,48 @@ import HybridShared
     
     
     /// The remote URL this service worker was downloaded from.
-    let url:URL
+    public let url:URL
     
     /// The scope for this service worker
-    let scope:URL
+    public let scope:URL
     
-    var installState:ServiceWorkerInstallState
+    
     let globalScope:ServiceWorkerGlobalScope
     
+    public var skipWaitingStatus: Bool {
+        get {
+            return self.globalScope.skipWaitingStatus
+        }
+    }
     
-    /// The only event we emit directly from the worker is statechange
-    let jsEvents = EventEmitter<AnyObject>()
     
-    /// JS can set a function directly to onstatechange rather than use addEventListener
-    var onstatechange:JSValue?
+    /// JS can set a function directly to onstatechange rather than use addEventListener.
+    /// So we need to manually map it to an event listener when they do.
+    
+    var _onstatechange: JSValue? = nil
+    
+    var onstatechange:JSValue? {
+        
+        get {
+            return self._onstatechange
+        }
+        
+        set (value) {
+            
+            // if we have an existing value, remove the event listener for it
+            if let stateChangeFunc = self._onstatechange {
+                self.removeJSEventListener(name: "statechange", funcToRun: stateChangeFunc)
+            }
+            
+            if value == nil || value!.isNull == true || value!.isUndefined == true {
+                return
+            }
+            
+            self._onstatechange = value
+            self.addJSEventListener(name: "statechange", funcToRun: value!)
+            
+        }
+    }
     
     /// The same as the url property, but returns a string instead of NSURL, so that we can use
     /// this in the JSContext. Matches the Service Worker spec's scriptURL property.
@@ -84,7 +112,7 @@ import HybridShared
         }
     }
 
-    public init(url:URL, scope: URL?, installState: ServiceWorkerInstallState) {
+    public init(url:URL, scope: URL?, installState: ServiceWorkerInstallState, registration: ServiceWorkerRegistrationProtocol? = nil) {
         
         self.url = url
         
@@ -94,17 +122,15 @@ import HybridShared
             self.scope = url.deletingLastPathComponent()
         }
         
-        self.installState = installState
+        self._installState = installState
         
         self.jsContext = JSContext(virtualMachine: ServiceWorkerInstance.containingVirtualMachine)
-        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext, workerURL: url, scope: self.scope)
+        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext, workerURL: url, scope: self.scope, registration: registration)
         
         super.init()
         
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.jsContext.name = "SW — " + url.absoluteString
-        
-        self.jsEvents.on("statechange", self.processStateChange)
         
 //        ServiceWorkerManager.currentlyActiveServiceWorkers[instanceId] = self
     }
@@ -118,134 +144,6 @@ import HybridShared
         self.jsContext.name = "SW (destroyed) - " + self.url.absoluteString
         JSGarbageCollect(self.jsContext.jsGlobalContextRef)
     }
-    
-    
-    /// Fetch a service worker by its URL (not scope). Will return an already running worker if it exists, if not
-    /// if it will create a new one.
-    ///
-    /// - Parameter url: The URL this service worker was downloaded from
-    /// - Returns: A promise that returns a ServiceWorkerInstance if it exists locally, if not, nil
-//    static func getActiveWorkerByURL(_ url:URL) -> Promise<ServiceWorkerInstance?> {
-//        
-//        log.info("Request for service worker at URL: " + url.absoluteString)
-//        
-//        for (_, worker) in ServiceWorkerManager.currentlyActiveServiceWorkers {
-//            if worker.url == url {
-//                return Promise<ServiceWorkerInstance?>(value: worker)
-//            }
-//        }
-//        
-//        var instance:ServiceWorkerInstance? = nil
-//        var contents:String? = nil
-//        
-//        return Promise(value: ())
-//            .then {
-//                try Db.mainDatabase.inDatabase({ (db) in
-//                    
-//                    let serviceWorkerContents = try db.executeQuery("SELECT instance_id, scope, contents FROM service_workers WHERE url = ? AND install_state = ?", values: [url.absoluteString, ServiceWorkerInstallState.activated.rawValue])
-//                    
-//                    if serviceWorkerContents.next() == false {
-//                        return serviceWorkerContents.close()
-//                    }
-//                    
-//                    let scope = URL(string: serviceWorkerContents.string(forColumn: "scope"))!
-//                    let instanceId = Int(serviceWorkerContents.int(forColumn: "instance_id"))
-//                    
-//                    instance = ServiceWorkerInstance(
-//                        url: url,
-//                        scope: scope,
-//                        instanceId: instanceId,
-//                        installState: ServiceWorkerInstallState.activated
-//                    )
-//                    
-//                    log.debug("Created new instance of service worker with ID " + String(instanceId) + " and install state: " + String(describing: instance!.installState))
-//                    contents = serviceWorkerContents.string(forColumn: "contents")
-//                    serviceWorkerContents.close()
-//                })
-//                
-//                if instance == nil {
-//                    return Promise<ServiceWorkerInstance?>(value: nil)
-//                }
-//                
-//                return instance!.loadServiceWorker(contents!)
-//                    .then { _ in
-//                        return instance
-//                }
-//                
-//        }
-//        
-//    }
-    
-    
-    /// Fetch a service worker directly by ID. In many cases (particularly cross-process) we already know
-    /// exactly which worker we want to target. Will return an already running worker if it exists, if not
-    /// if it will create a new one.
-    ///
-    /// - Parameter id: The service worker ID, as created by the database primary key
-    /// - Returns: A promise returning either a ServiceWorkerInstance if it exists, or nil if not
-//    static func getById(_ id:Int) -> Promise<ServiceWorkerInstance?> {
-//        
-//        log.debug("Request for service worker with ID " + String(id))
-//        return Promise(value: ())
-//            .then { () -> Promise<ServiceWorkerInstance?> in
-//                
-//                let existingWorker = ServiceWorkerManager.currentlyActiveServiceWorkers[id]
-//                
-//                if existingWorker != nil {
-//                    log.debug("Returning existing service worker for ID " + String(id))
-//                    return Promise(value: existingWorker)
-//                }
-//                
-//                
-//                var instance:ServiceWorkerInstance? = nil
-//                var contents:String? = nil
-//                
-//                try Db.mainDatabase.inDatabase({ (db) in
-//                    
-//                    let serviceWorkerContents = try db.executeQuery("SELECT url, scope, contents, install_state FROM service_workers WHERE instance_id = ?", values: [id])
-//                    
-//                    if serviceWorkerContents.next() == false {
-//                        return serviceWorkerContents.close()
-//                    }
-//                    
-//                    let url = URL(string: serviceWorkerContents.string(forColumn: "url"))!
-//                    let scope = URL(string: serviceWorkerContents.string(forColumn: "scope"))!
-//                    let installState = ServiceWorkerInstallState(rawValue: Int(serviceWorkerContents.int(forColumn: "install_state")))!
-//                    
-//                    instance = ServiceWorkerInstance(
-//                        url: url,
-//                        scope: scope,
-//                        instanceId: id,
-//                        installState: installState
-//                    )
-//                    
-//                    log.debug("Created new instance of service worker with ID " + String(id) + " and install state: " + String(describing: instance!.installState))
-//                    contents = serviceWorkerContents.string(forColumn: "contents")
-//                    serviceWorkerContents.close()
-//                })
-//                
-//                if instance == nil {
-//                    return Promise<ServiceWorkerInstance?>(value: nil)
-//                }
-//                
-//                return instance!.loadServiceWorker(contents!)
-//                    .then { _ in
-//                        return instance
-//                }
-//                
-//        }
-//        
-//    }
-    
-    
-    /// Very simple check to see if any given URL lives within the scope of this worker
-    ///
-    /// - Parameter url: The URL to check
-    /// - Returns: true if within scope, otherwise false
-    func scopeContainsURL(_ url:URL) -> Bool {
-        return url.absoluteString.hasPrefix(self.scope.absoluteString)
-    }
-    
     
     /// Service workers have "extendable events" - normal JS events that come with an e.waitUntil()
     /// function attached. These allow you to extend the life of a service worker until the promises
@@ -291,9 +189,9 @@ import HybridShared
             .then {_ in
                 return self.runScript(workerJS)
             }
-            .then { _ in
-                return self.processPendingPushEvents()
-        }
+//            .then { _ in
+//                return self.processPendingPushEvents()
+//        }
     }
     
     
@@ -301,54 +199,54 @@ import HybridShared
     /// This function will process any push events created in a notification content context, or other.
     ///
     /// - Returns: An empty promise that will fulfill when all push events have been processed.
-    func processPendingPushEvents() -> Promise<Void> {
-        
-        let pendingPushes = PendingPushEventStore.getByWorkerURL(self.url.absoluteString)
-        
-        let processPromises = pendingPushes.map { push -> Promise<Void> in
-            
-            let pushEvent = PushEvent(dataAsString: push.payload)
-            
-            // Since we're acting in response to a push event we don't want to duplicate any
-            // notification that's already been shown. So we store notification data for later
-            // use in the notification content view.
-            //
-            // This is only used in background mode as we can suppress the remote notification
-            // in foreground mode.
-            
-            self.globalScope.registration.storeNotificationShowWithID = push.pushID
-            
-            // We remove the event BEFORE sending it because the event might well call update,
-            // which would mean the new worker would try to process this event as well.
-            PendingPushEventStore.remove(push)
-            
-            return self.dispatchExtendableEvent(pushEvent)
-                .then {_ in
-                    
-                    
-                    
-                    if self.globalScope.registration.storeNotificationShowWithID != nil {
-                        
-                        // This will happen if we receive a push event that doesn't try to show
-                        // a notification. That isn't allowed because iOS has already shown a notification
-                        // no matter what. In the future we can use iOS silent notifications, though.
-                        
-                        log.error("ServiceWorkerRegistration did not store notification show data - your push event didn't use showNotification()?")
-                        
-                        self.globalScope.registration.storeNotificationShowWithID = nil
-                    }
-                    
-                    return Promise(value: ())
-            }
-            
-        }
-        
-        return when(fulfilled: processPromises)
-            .recover { err -> Void in
-                log.error("Error encountered when processing push events: " + String(describing: err))
-        }
-        
-    }
+//    func processPendingPushEvents() -> Promise<Void> {
+//        
+//        let pendingPushes = PendingPushEventStore.getByWorkerURL(self.url.absoluteString)
+//        
+//        let processPromises = pendingPushes.map { push -> Promise<Void> in
+//            
+//            let pushEvent = PushEvent(dataAsString: push.payload)
+//            
+//            // Since we're acting in response to a push event we don't want to duplicate any
+//            // notification that's already been shown. So we store notification data for later
+//            // use in the notification content view.
+//            //
+//            // This is only used in background mode as we can suppress the remote notification
+//            // in foreground mode.
+//            
+//            self.globalScope.registration.storeNotificationShowWithID = push.pushID
+//            
+//            // We remove the event BEFORE sending it because the event might well call update,
+//            // which would mean the new worker would try to process this event as well.
+//            PendingPushEventStore.remove(push)
+//            
+//            return self.dispatchExtendableEvent(pushEvent)
+//                .then {_ in
+//                    
+//                    
+//                    
+//                    if self.globalScope.registration.storeNotificationShowWithID != nil {
+//                        
+//                        // This will happen if we receive a push event that doesn't try to show
+//                        // a notification. That isn't allowed because iOS has already shown a notification
+//                        // no matter what. In the future we can use iOS silent notifications, though.
+//                        
+//                        log.error("ServiceWorkerRegistration did not store notification show data - your push event didn't use showNotification()?")
+//                        
+//                        self.globalScope.registration.storeNotificationShowWithID = nil
+//                    }
+//                    
+//                    return Promise(value: ())
+//            }
+//            
+//        }
+//        
+//        return when(fulfilled: processPromises)
+//            .recover { err -> Void in
+//                log.error("Error encountered when processing push events: " + String(describing: err))
+//        }
+//        
+//    }
     
     var userAgent:String {
         get {
@@ -413,18 +311,15 @@ import HybridShared
         }
     }
     
+    fileprivate var _installState:ServiceWorkerInstallState
     
-    /// If the onstatechange value has been set via JS, we need to make sure that function is executed.
-    func processStateChange(obj:AnyObject) {
-        if let statechange = self.onstatechange {
-            
-            if statechange.isNull {
-                return
-            }
-            
-            statechange.call(withArguments: [[
-                "target": self
-            ]])
+    public var installState: ServiceWorkerInstallState {
+        get {
+            return self._installState
+        }
+        set(value) {
+            self._installState = value
+            self.dispatchJSEvent(ev: StateChangeEvent(workerInstance: self))
         }
     }
     

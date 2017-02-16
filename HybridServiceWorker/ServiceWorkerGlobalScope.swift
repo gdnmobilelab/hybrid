@@ -24,10 +24,10 @@ import HybridShared
     let timeout: TimeoutManager
     let console: Console
     let clientManager: WebviewClientManager
-    let registration: ServiceWorkerRegistration
+    let registration: ServiceWorkerRegistrationWrapper?
     let webSQL: WebSQLDatabaseCreator
     
-    init(context:JSContext, workerURL:URL, scope: URL) {
+    init(context:JSContext, workerURL:URL, scope: URL, registration: ServiceWorkerRegistrationProtocol?) {
         
         self.jsContext = context
         self.scope = scope
@@ -35,7 +35,19 @@ import HybridShared
         self.timeout = TimeoutManager()
         self.console = Console(context: context)
         self.clientManager = WebviewClientManager(scope: self.scope, workerURL: workerURL)
-        self.registration = ServiceWorkerRegistration(scope: self.scope, workerURL: workerURL)
+        
+        if registration != nil {
+            
+            self.registration = ServiceWorkerRegistrationWrapper(instance: registration!)
+            
+        } else {
+            
+            // In a break with the Service Worker API, it is possible to run a worker without a
+            // registration, if we want it to be entirely isolated from outside events
+            
+            self.registration = nil
+        }
+        
         
         var domainComponents = URLComponents(url: scope, resolvingAgainstBaseURL: true)!
         domainComponents.path = "/"
@@ -102,7 +114,7 @@ import HybridShared
             "caches": self.cache,
             "Cache": ServiceWorkerCache.self,
             "MessagePort": MessagePort.self,
-            "ServiceWorkerRegistration": ServiceWorkerRegistration.self,
+//            "ServiceWorkerRegistration": ServiceWorkerRegistration.self,
             "PushManager": PushManager.self,
             "MessageChannel": MessageChannel.self,
             "Client": WindowClient.self,
@@ -111,7 +123,7 @@ import HybridShared
             "OffscreenCanvasRenderingContext2D": OffscreenCanvasRenderingContext2D.self,
             "ImageBitmap": ImageBitmap.self,
             "ExtendableEvent": ExtendableEvent.self,
-            "Notification": Notification.self,
+            "Notification": HybridNotification.self,
             "PushMessageData": PushMessageData.self,
             "createImageBitmap": ImageBitmap.createImageBitmap,
             "Request": FetchRequest.self,

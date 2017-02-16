@@ -3,6 +3,9 @@ declare module "path-browserify" {
     
 }
 
+declare var __hybridRegisterCommands: any;
+
+
 // declare module "eventemitter3" {
 //     export default null;
 // }

@@ -34,16 +34,16 @@ import JavaScriptCore
     fileprivate var values = [String: [String]]()
     
     @objc(set::)
-    func set(_ name: String, value: String) {
+    public func set(_ name: String, value: String) {
         values[name.lowercased()] = [value]
     }
     
-    func delete(_ name:String) {
+    public func delete(_ name:String) {
         values.removeValue(forKey: name.lowercased())
     }
     
     @objc(append::)
-    func append(_ name: String, value: String) {
+    public func append(_ name: String, value: String) {
         if var val = values[name.lowercased()] {
             val.append(value)
         } else {
@@ -51,7 +51,7 @@ import JavaScriptCore
         }
     }
     
-    func keys() -> [String] {
+    public func keys() -> [String] {
         var arr = [String]()
         for (key, _) in self.values {
             arr.append(key)
@@ -59,11 +59,11 @@ import JavaScriptCore
         return arr
     }
     
-    func get(_ name:String) -> String? {
+    public func get(_ name:String) -> String? {
         return values[name.lowercased()]?.first
     }
     
-    func getAll(_ name:String) -> [String]? {
+    public func getAll(_ name:String) -> [String]? {
         return values[name.lowercased()]
     }
     

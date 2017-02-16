@@ -46,7 +46,7 @@ extension GlobalFetch {
             // It's possible to request relative to scope. So we need to make sure we handle that.
             request.url = URL(string: request.url, relativeTo: scope)!.absoluteString
             
-            return PromiseToJSPromise.pass(GlobalFetch.fetch(request))
+            return PromiseToJSPromise.pass(GlobalFetch.fetch(request: request))
 
         }
         

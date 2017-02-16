@@ -14,6 +14,7 @@ public class FetchRequest : FetchBody {
     public var url:String
     var method:String
     var headers:FetchHeaders
+    let redirect:String
     
     required public init(url:String, options: [String: Any]?)  {
         self.url = url
@@ -42,10 +43,19 @@ public class FetchRequest : FetchBody {
             }
             
             
+            
+            
         } else {
             self.method = "GET"
             self.headers = FetchHeaders()
         }
+        
+        if let redirect = options?["redirect"] as? String {
+            self.redirect = redirect
+        } else {
+            self.redirect = "follow"
+        }
+        
         
         super.init()
         if data != nil {

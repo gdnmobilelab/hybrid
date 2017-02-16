@@ -6,7 +6,6 @@ const promiseCallbacks: {[key:string]: Function} = {};
 const promiseBridges: {[key:string]: PromiseOverWKMessage} = {};
 (window as any).__promiseBridgeCallbacks = promiseCallbacks;
 (window as any).__promiseBridges = promiseBridges;
-console.log("SET BRIDGE VARIABLE")
 
 export class PromiseOverWKMessage extends EventEmitter {
 
