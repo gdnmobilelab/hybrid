@@ -35,7 +35,7 @@ class ReturnSerializer {
         var serializedValue:Any? = nil
         dump(value)
         
-        if value == nil {
+        if value == nil || value is Void {
             
             serializedValue = NSNull()
             
@@ -44,7 +44,7 @@ class ReturnSerializer {
             
             var serializedObject: [String:Any] = [
                 "type": "connected-item",
-                "jsClassName": valueIsReceiver.jsClassName
+                "jsClassName": type(of: valueIsReceiver).jsClassName
             ]
           
             let existingIndex = manager.getIndexForExistingConnectedItem(valueIsReceiver)
@@ -60,7 +60,7 @@ class ReturnSerializer {
                 
                 serializedObject["existing"] = false
                 serializedObject["index"] = newIndex
-                serializedObject["initialData"] = try self.serialize(valueIsReceiver.getInitialData(), manager: manager)
+                serializedObject["initialData"] = try self.serialize(valueIsReceiver.getArgumentsForJSMirror(), manager: manager)
                 
             }
             

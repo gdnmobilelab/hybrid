@@ -1,285 +1,6 @@
 (function () {
 'use strict';
 
-const __assign = Object.assign || function (target) {
-    for (var source, i = 1; i < arguments.length; i++) {
-        source = arguments[i];
-        for (var prop in source) {
-            if (Object.prototype.hasOwnProperty.call(source, prop)) {
-                target[prop] = source[prop];
-            }
-        }
-    }
-    return target;
-};
-
-function __extends(d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-}
-
-function __decorate(decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
-
-function __metadata(k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-}
-
-function __param(paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-}
-
-function __awaiter(thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments)).next());
-    });
-}
-
-// We have one native bridge, but potentially more than one webview-side bridge
-// if we use iframes. So we need to set up a quick storage container
-// that actually references the top frame
-var sharedStorage;
-if (window.top !== window && window.top.location.href) {
-    // the href check makes sure we're on same-origin
-    sharedStorage = window.top.webkit.messageHandlers.hybrid.sharedStorage;
-}
-else {
-    sharedStorage = {};
-    window.webkit.messageHandlers.hybrid.sharedStorage = sharedStorage;
-}
-
-if (!sharedStorage.connectedItems) {
-    sharedStorage.connectedItems = [];
-}
-var connectedItems = sharedStorage.connectedItems;
-var registeredClasses = {};
-function registerClass(name, classObj) {
-    registeredClasses[name] = classObj;
-}
-function createItem(item) {
-    var classToCreate = registeredClasses[item.jsClassName];
-    if (!classToCreate) {
-        throw new Error("Tried to create an instance of class " + item.jsClassName + " but it wasn't registered");
-    }
-    if (connectedItems[item.index]) {
-        throw new Error("Item already exists at index #" + item.index);
-    }
-    var newInstance = new classToCreate(item.index, item.initialData);
-    connectedItems[item.index] = newInstance;
-    return newInstance;
-}
-function getExistingItem(item) {
-    var existingItem = connectedItems[item.index];
-    if (!existingItem) {
-        throw new Error("Item does not exist at index #" + item.index);
-    }
-    return existingItem;
-}
-function processSerializedItem(item) {
-    if (item.existing === true) {
-        return getExistingItem(item);
-    }
-    else {
-        return createItem(item);
-    }
-}
-function getIndexOfItem(item) {
-    return connectedItems.indexOf(item);
-}
-
-function deserializeValue(asValue) {
-    if (asValue.value instanceof Array) {
-        return asValue.value.map(deserialize);
-    }
-    else if (Object(asValue.value) === asValue.value) {
-        var newObj = {};
-        for (var key in asValue.value) {
-            var serializedValue = deserialize(asValue.value[key]);
-            newObj[key] = serializedValue;
-        }
-        return newObj;
-    }
-    else if (typeof asValue.value === "string" || typeof asValue.value === "number" || typeof asValue.value === "boolean" || asValue.value === null) {
-        return asValue.value;
-    }
-}
-function deserialize(serializedObject) {
-    if (serializedObject == null) {
-        return null;
-    }
-    if (serializedObject.type === "value") {
-        return deserializeValue(serializedObject);
-    }
-    else if (serializedObject.type === "connected-item") {
-        return processSerializedItem(serializedObject);
-    }
-    else {
-        throw new Error("Did not know how to deserialize this");
-    }
-}
-
-var storedReturnPromises = [];
-var ReceiveFromNativeEvent = (function () {
-    function ReceiveFromNativeEvent(type, data) {
-        this.storedPromiseId = -1;
-        this.type = type;
-        this.data = data;
-    }
-    ReceiveFromNativeEvent.prototype.respondWith = function (promise) {
-        if (this.storedPromiseId !== -1) {
-            throw new Error("respondWith has already been called");
-        }
-        var vacantStoreId = 0;
-        while (storedReturnPromises[vacantStoreId]) {
-            vacantStoreId++;
-        }
-        storedReturnPromises[vacantStoreId] = promise;
-        this.storedPromiseId = vacantStoreId;
-    };
-    Object.defineProperty(ReceiveFromNativeEvent.prototype, "metadata", {
-        get: function () {
-            if (this.storedPromiseId === -1) {
-                return {
-                    type: 'null'
-                };
-            }
-            else {
-                return {
-                    type: 'promise',
-                    promiseId: this.storedPromiseId
-                };
-            }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    return ReceiveFromNativeEvent;
-}());
-
-if (!sharedStorage.storedResolves) {
-    console.info("create new shared store");
-    sharedStorage.storedResolves = {};
-}
-var storedResolves = sharedStorage.storedResolves;
-var DispatchToNativeEvent = (function () {
-    function DispatchToNativeEvent(type, data, targetItemId) {
-        if (targetItemId === void 0) { targetItemId = null; }
-        this.storedResolveId = -1;
-        this.type = type;
-        this.data = data;
-        this.targetItemId = targetItemId;
-    }
-    // Dispatch this event to the native environment, and wait
-    // for a response
-    DispatchToNativeEvent.prototype.dispatchAndResolve = function () {
-        var _this = this;
-        return new Promise(function (fulfill, reject) {
-            var vacantResolveId = 0;
-            while (storedResolves[vacantResolveId]) {
-                vacantResolveId++;
-            }
-            storedResolves[vacantResolveId] = { fulfill, reject };
-            console.log('stored resolves', storedResolves);
-            _this.storedResolveId = vacantResolveId;
-            console.info("Sending event to native with targetId", _this.targetItemId, "and promiseId", _this.storedResolveId);
-            sendToNative({
-                command: _this.type,
-                data: _this.data,
-                storedResolveId: _this.storedResolveId,
-                targetItemId: _this.targetItemId
-            });
-        });
-    };
-    DispatchToNativeEvent.resolvePromise = function (promiseId, data, error) {
-        console.info("Resolving promise #", promiseId, storedResolves);
-        var _a = storedResolves[promiseId], fulfill = _a.fulfill, reject = _a.reject;
-        if (error) {
-            reject(new Error(error));
-        }
-        else {
-            fulfill(data);
-        }
-        // storedResolves[promiseId] = null;
-    };
-    return DispatchToNativeEvent;
-}());
-
-var windowTarget = window;
-if (window.top !== window && window.top.location.href) {
-    // href check makes sure we have same-origin permissions. If we don't
-    // we're kind of screwed.
-    console.info("We appear to be running inside a frame, referencing the parent handler.");
-    windowTarget = window.top;
-}
-var hybridHandler = (windowTarget).webkit.messageHandlers.hybrid;
-if (window.top === window) {
-    hybridHandler.receiveCommand = deserializeAndRunCommand;
-}
-function sendToNative(data) {
-    // if (window.top !== window) {
-    //     let frameIndex = -1;
-    //     let frames:any = window.top.frames;
-    //     while (frameIndex < frames.length - 1) {
-    //         if (frames[frameIndex] === window) {
-    //             break;
-    //         }
-    //         frameIndex++;
-    //     }
-    //     if (frameIndex === -1) {
-    //         throw new Error("Could not find this window in the frames array");
-    //     }
-    //     data = {
-    //         command: 'frameinstruction',
-    //         frameIndex: frameIndex,
-    //         data: data
-    //     }
-    // }
-    hybridHandler.postMessage(data);
-}
-function runCommand(instruction) {
-    console.log("Running command", instruction);
-    if (instruction.commandName === "resolvepromise") {
-        // When a DispatchToNativeEvent dispatches, it sends alone a numeric ID for the
-        // promise that is awaiting resolving/rejecting. The native handler either waits
-        // for a native promise to resolve or immediately resolves this promise via the
-        // resolvepromise command.
-        var asResolve = instruction;
-        console.info("Received promis resolve with ID", asResolve.promiseId);
-        DispatchToNativeEvent.resolvePromise(asResolve.promiseId, asResolve.data, asResolve.error);
-    }
-    if (instruction.commandName === "itemevent") {
-        var itemEvent = instruction;
-        var deserializedItem = itemEvent.target;
-        var deserializedData = deserialize(itemEvent.data);
-        var event = new ReceiveFromNativeEvent(itemEvent.eventName, deserializedData);
-        console.info("Dispatching event " + itemEvent.eventName + " in", deserializedItem);
-        deserializedItem.nativeEvents.emit(itemEvent.eventName, event);
-        return event.metadata;
-    }
-    else if (instruction.commandName === "registerItem") {
-        var registerCommand = instruction;
-        var target_1 = window;
-        registerCommand.path.forEach(function (key) {
-            // Go through the path keys, grabbing the correct target object
-            target_1 = target_1[key];
-        });
-        console.info("Registering", registerCommand.item, "as " + registerCommand.name + " on", target_1);
-        target_1[registerCommand.name] = registerCommand.item;
-    }
-}
-function deserializeAndRunCommand(command) {
-    var instruction = deserialize(command);
-    return runCommand(instruction);
-}
-
 var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {}
 
 function interopDefault(ex) {
@@ -584,19 +305,342 @@ if ('undefined' !== typeof module) {
 
 var EventEmitter = interopDefault(index);
 
+const __assign = Object.assign || function (target) {
+    for (var source, i = 1; i < arguments.length; i++) {
+        source = arguments[i];
+        for (var prop in source) {
+            if (Object.prototype.hasOwnProperty.call(source, prop)) {
+                target[prop] = source[prop];
+            }
+        }
+    }
+    return target;
+};
+
+function __extends(d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
+
+function __decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+
+function __metadata(k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+}
+
+function __param(paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+}
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments)).next());
+    });
+}
+
+// We have one native bridge, but potentially more than one webview-side bridge
+// if we use iframes. So we need to set up a quick storage container
+// that actually references the top frame
+var sharedStorage;
+if (window.top !== window && window.top.location.href) {
+    // the href check makes sure we're on same-origin
+    sharedStorage = window.top.webkit.messageHandlers.hybrid.sharedStorage;
+}
+else {
+    sharedStorage = {};
+    window.webkit.messageHandlers.hybrid.sharedStorage = sharedStorage;
+}
+
+function deserializeValue(asValue) {
+    if (asValue.value instanceof Array) {
+        return asValue.value.map(deserialize);
+    }
+    else if (Object(asValue.value) === asValue.value) {
+        var newObj = {};
+        for (var key in asValue.value) {
+            var serializedValue = deserialize(asValue.value[key]);
+            newObj[key] = serializedValue;
+        }
+        return newObj;
+    }
+    else if (typeof asValue.value === "string" || typeof asValue.value === "number" || typeof asValue.value === "boolean" || asValue.value === null) {
+        return asValue.value;
+    }
+}
+function deserialize(serializedObject) {
+    if (serializedObject == null) {
+        return null;
+    }
+    if (serializedObject.type === "value") {
+        return deserializeValue(serializedObject);
+    }
+    else if (serializedObject.type === "connected-item") {
+        return processSerializedItem(serializedObject);
+    }
+    else {
+        throw new Error("Did not know how to deserialize this");
+    }
+}
+
+var storedReturnPromises = [];
+var ReceiveFromNativeEvent = (function () {
+    function ReceiveFromNativeEvent(type, data) {
+        this.storedPromiseId = -1;
+        this.type = type;
+        this.data = data;
+    }
+    ReceiveFromNativeEvent.prototype.respondWith = function (promise) {
+        if (this.storedPromiseId !== -1) {
+            throw new Error("respondWith has already been called");
+        }
+        var vacantStoreId = 0;
+        while (storedReturnPromises[vacantStoreId]) {
+            vacantStoreId++;
+        }
+        storedReturnPromises[vacantStoreId] = promise;
+        this.storedPromiseId = vacantStoreId;
+    };
+    Object.defineProperty(ReceiveFromNativeEvent.prototype, "metadata", {
+        get: function () {
+            if (this.storedPromiseId === -1) {
+                return {
+                    type: 'null'
+                };
+            }
+            else {
+                return {
+                    type: 'promise',
+                    promiseId: this.storedPromiseId
+                };
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return ReceiveFromNativeEvent;
+}());
+
+var windowTarget = window;
+if (window.top !== window && window.top.location.href) {
+    // href check makes sure we have same-origin permissions. If we don't
+    // we're kind of screwed.
+    console.info("We appear to be running inside a frame, referencing the parent handler.");
+    windowTarget = window.top;
+}
+var hybridHandler = (windowTarget).webkit.messageHandlers.hybrid;
+// if (window.top === window) {
+hybridHandler.receiveCommand = deserializeAndRunCommand;
+// }
+function sendToNative(data) {
+    // if (window.top !== window) {
+    //     let frameIndex = -1;
+    //     let frames:any = window.top.frames;
+    //     while (frameIndex < frames.length - 1) {
+    //         if (frames[frameIndex] === window) {
+    //             break;
+    //         }
+    //         frameIndex++;
+    //     }
+    //     if (frameIndex === -1) {
+    //         throw new Error("Could not find this window in the frames array");
+    //     }
+    //     data = {
+    //         command: 'frameinstruction',
+    //         frameIndex: frameIndex,
+    //         data: data
+    //     }
+    // }
+    hybridHandler.postMessage(data);
+}
+function runCommand(instruction) {
+    console.log("Running command", instruction);
+    if (instruction.commandName === "resolvepromise") {
+        // When a DispatchToNativeEvent dispatches, it sends alone a numeric ID for the
+        // promise that is awaiting resolving/rejecting. The native handler either waits
+        // for a native promise to resolve or immediately resolves this promise via the
+        // resolvepromise command.
+        var asResolve = instruction;
+        console.info("Received promis resolve with ID", asResolve.promiseId);
+        DispatchToNativeEvent.resolvePromise(asResolve.promiseId, asResolve.data, asResolve.error);
+    }
+    if (instruction.commandName === "itemevent") {
+        var itemEvent = instruction;
+        var deserializedItem = itemEvent.target;
+        var deserializedData = deserialize(itemEvent.data);
+        var event = new ReceiveFromNativeEvent(itemEvent.eventName, deserializedData);
+        console.info("Dispatching event " + itemEvent.eventName + " in", deserializedItem);
+        deserializedItem.nativeEvents.emit(itemEvent.eventName, event);
+        return event.metadata;
+    }
+    else if (instruction.commandName === "registerItem") {
+        var registerCommand = instruction;
+        var target_1 = window;
+        registerCommand.path.forEach(function (key) {
+            // Go through the path keys, grabbing the correct target object
+            target_1 = target_1[key];
+        });
+        console.info("Registering", registerCommand.item, "as " + registerCommand.name + " on", target_1);
+        target_1[registerCommand.name] = registerCommand.item;
+    }
+}
+function deserializeAndRunCommand(command) {
+    console.info("Deserialize and run", command);
+    var instruction = deserialize(command);
+    return runCommand(instruction);
+}
+
+if (!sharedStorage.storedResolves) {
+    console.info("create new shared store");
+    sharedStorage.storedResolves = {};
+}
+var storedResolves = sharedStorage.storedResolves;
+var DispatchToNativeEvent = (function () {
+    function DispatchToNativeEvent(type, data, targetItemId) {
+        if (targetItemId === void 0) { targetItemId = null; }
+        this.storedResolveId = -1;
+        this.type = type;
+        this.data = data;
+        this.targetItemId = targetItemId;
+    }
+    // Dispatch this event to the native environment, and wait
+    // for a response
+    DispatchToNativeEvent.prototype.dispatchAndResolve = function () {
+        var _this = this;
+        return new Promise(function (fulfill, reject) {
+            var vacantResolveId = 0;
+            while (storedResolves[vacantResolveId]) {
+                vacantResolveId++;
+            }
+            storedResolves[vacantResolveId] = { fulfill, reject };
+            console.log('stored resolves', storedResolves);
+            _this.storedResolveId = vacantResolveId;
+            console.info("Sending event to native with targetId", _this.targetItemId, "and promiseId", _this.storedResolveId);
+            sendToNative({
+                command: _this.type,
+                data: _this.data,
+                storedResolveId: _this.storedResolveId,
+                targetItemId: _this.targetItemId
+            });
+        });
+    };
+    DispatchToNativeEvent.resolvePromise = function (promiseId, data, error) {
+        console.info("Resolving promise #", promiseId, storedResolves);
+        var _a = storedResolves[promiseId], fulfill = _a.fulfill, reject = _a.reject;
+        if (error) {
+            reject(new Error(error));
+        }
+        else {
+            fulfill(data);
+        }
+        // storedResolves[promiseId] = null;
+    };
+    return DispatchToNativeEvent;
+}());
+
+if (!sharedStorage.connectedItems) {
+    // ensure we are running with a clean slate.
+    new DispatchToNativeEvent("clearbridgeitems").dispatchAndResolve();
+    sharedStorage.connectedItems = [];
+}
+var connectedItems = sharedStorage.connectedItems;
+var registeredClasses = {};
+function addItem(item) {
+    connectedItems.push(item);
+    return connectedItems.length - 1;
+}
+function registerClass(name, classObj) {
+    registeredClasses[name] = classObj;
+}
+// export function setItemAtIndex(item: NativeItemProxy, index: number) {
+//     connectedItems[index] = item;
+// }
+function createItem(item) {
+    var classToCreate = registeredClasses[item.jsClassName];
+    if (!classToCreate) {
+        throw new Error("Tried to create an instance of class " + item.jsClassName + " but it wasn't registered");
+    }
+    if (connectedItems[item.index]) {
+        throw new Error("Item already exists at index #" + item.index);
+    }
+    var newInstance = new classToCreate(item.index, item.initialData);
+    connectedItems[item.index] = newInstance;
+    return newInstance;
+}
+function getExistingItem(item) {
+    var existingItem = connectedItems[item.index];
+    if (!existingItem) {
+        throw new Error("Item does not exist at index #" + item.index);
+    }
+    return existingItem;
+}
+function processSerializedItem(item) {
+    if (item.existing === true) {
+        return getExistingItem(item);
+    }
+    else {
+        return createItem(item);
+    }
+}
+function getIndexOfItem(item) {
+    return connectedItems.indexOf(item);
+}
+
 var NativeItemProxy = (function () {
     function NativeItemProxy() {
+        this.nativeId = -1;
         this.nativeEvents = new EventEmitter();
     }
+    // constructor(nativeClassName: string, args:IArguments) {
+    //     let ev = new DispatchToNativeEvent("createbridgeitem", {
+    //         className: nativeClassName,
+    //         args: [].slice.call(args)
+    //     })
+    //     this.nativeIdFetch = ev.dispatchAndResolve()
+    //     .then((id) => {
+    //         console.log('IIIDDD', id);
+    //         // console.info(`Created native bridge for ${nativeClassName} with ID #${id}`);
+    //         return id;
+    //     })
+    // }
+    NativeItemProxy.createWithBridge = function () {
+        var argArray = [].slice.call(arguments);
+        var thisClass = this;
+        var instance = new (thisClass.bind.apply(thisClass, [void 0].concat(argArray)))();
+        var idx = addItem(instance);
+        console.info("Trying to register an instance of " + thisClass.name + " at index #" + idx + "...");
+        var ev = new DispatchToNativeEvent("createbridgeitem", {
+            itemIndex: idx,
+            className: thisClass.name,
+            args: argArray
+        });
+        ev.dispatchAndResolve()
+            .then(function () {
+            console.log('WORKED?!?');
+        })
+            .catch(function (err) {
+            console.error(err);
+        });
+    };
     NativeItemProxy.prototype.sendToNative = function (name, data) {
         if (data === void 0) { data = null; }
-        var id = getIndexOfItem(this);
-        if (id === -1) {
-            throw new Error("Trying to send to native but we're not registered. Are you doing this in the constructor? Don't.");
-        }
-        var nativeEvent = { name, data };
-        var ev = new DispatchToNativeEvent("sendtoitem", nativeEvent, id);
-        return ev.dispatchAndResolve();
+        return this.nativeIdFetch
+            .then(function (id) {
+            if (id === -1) {
+                throw new Error("Trying to send to native but we're not registered. Are you doing this in the constructor? Don't.");
+            }
+            var nativeEvent = { name, data };
+            var ev = new DispatchToNativeEvent("sendtoitem", nativeEvent, id);
+            return ev.dispatchAndResolve();
+        });
     };
     return NativeItemProxy;
 }());
@@ -604,7 +648,7 @@ var NativeItemProxy = (function () {
 var ServiceWorkerContainer = (function (_super) {
     __extends(ServiceWorkerContainer, _super);
     function ServiceWorkerContainer() {
-        _super.call(this);
+        _super.call(this, "ServiceWorkerContainer", arguments);
         // this.nativeEvents.on('test', (e:ReceiveFromNativeEvent) => {
         //     console.log("it worked?")
         //     // e.respondWith(
@@ -627,7 +671,6 @@ var ServiceWorkerContainer = (function (_super) {
     };
     return ServiceWorkerContainer;
 }(NativeItemProxy));
-registerClass("ServiceWorkerContainer", ServiceWorkerContainer);
 
 // import './navigator/service-worker';
 // import './console';
@@ -636,12 +679,8 @@ registerClass("ServiceWorkerContainer", ServiceWorkerContainer);
 // import './notification/notification';
 // import './util/set-document-html';
 // import './load-handler';
-if (__hybridRegisterCommands) {
-    var parsedCommands = deserialize(__hybridRegisterCommands);
-    console.info("Found " + parsedCommands.length + " register commands on load.");
-    parsedCommands.forEach(runCommand);
-    __hybridRegisterCommands = undefined;
-}
+// (navigator as any).serviceWorker = new ServiceWorkerContainer();
+ServiceWorkerContainer.createWithBridge();
 window.shimDidLoad = true;
 
 }());

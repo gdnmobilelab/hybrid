@@ -17,9 +17,9 @@ if (window.top !== window && window.top.location.href) {
 
 const hybridHandler = (windowTarget).webkit.messageHandlers.hybrid;
 
-if (window.top === window) {
+// if (window.top === window) {
     hybridHandler.receiveCommand = deserializeAndRunCommand;
-}
+// }
 
 export function sendToNative(data:any) {
 
@@ -104,7 +104,7 @@ export function runCommand(instruction: BridgeCommand):any {
 }
 
 function deserializeAndRunCommand(command:Serialized):any {
-
+    console.info("Deserialize and run", command)
     let instruction = deserialize(command);
 
     return runCommand(instruction);

@@ -3,14 +3,21 @@ import { sharedStorage } from '../shared-storage/shared-storage';
 
 export type DispatchToNativeEventType = 
     "resolvepromise" |
-    "sendtoitem";
+    "sendtoitem" |
+    "createbridgeitem" |
+    "clearbridgeitems";
+
+interface PromiseResolve {
+    fulfill: Function;
+    reject: Function;
+}
 
 if (!sharedStorage.storedResolves) {
     console.info("create new shared store")
     sharedStorage.storedResolves = {};
 }
 
-const storedResolves: {fulfill: Function, reject: Function} = sharedStorage.storedResolves;
+const storedResolves: { [id: number] : PromiseResolve } = sharedStorage.storedResolves;
 
 export class DispatchToNativeEvent {
 

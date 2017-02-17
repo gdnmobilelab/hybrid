@@ -1,16 +1,16 @@
 import { NativeItemProxy } from '../bridge/native-item-proxy';
 import { ReceiveFromNativeEvent } from '../bridge/receive-from-native-event';
 import { ServiceWorkerRegistration } from './service-worker-registration';
-import { registerClass } from '../bridge/connected-items';
+// import { registerClass } from '../bridge/connected-items';
 
 interface ServiceWorkerRegistrationOptions {
     scope?: string
 };
 
-class ServiceWorkerContainer extends NativeItemProxy {
+export class ServiceWorkerContainer extends NativeItemProxy {
 
     constructor() {
-        super();
+        super("ServiceWorkerContainer", arguments);
 
         // this.nativeEvents.on('test', (e:ReceiveFromNativeEvent) => {
 
@@ -40,4 +40,4 @@ class ServiceWorkerContainer extends NativeItemProxy {
 
 }
 
-registerClass("ServiceWorkerContainer", ServiceWorkerContainer);
+// registerClass("ServiceWorkerContainer", ServiceWorkerContainer);

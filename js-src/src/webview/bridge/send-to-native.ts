@@ -29,7 +29,7 @@ export class SendToNative {
         let msgChannel = new MessageChannel();
 
         msgChannel.port2.onmessage = function() {
-
+            
         }
 
         window.top.postMessage("getFrameIndex","*", [msgChannel.port1]);

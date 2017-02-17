@@ -11,12 +11,13 @@ import PromiseKit
 
 protocol HybridMessageReceiver {
     
-    var jsClassName: String { get }
-    
     var hashValue: Int { get }
     
-    func getInitialData() -> Any?
-
+    static var jsClassName: String { get }
+    
+    static func createFromJSArguments(args: [Any?], from: HybridMessageManager) throws -> HybridMessageReceiver
+    
+    func getArgumentsForJSMirror() throws -> [Any?]
     
     func receiveMessage(_ msg: WebviewMessage) -> Promise<Any?>?
     

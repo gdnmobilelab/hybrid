@@ -14,16 +14,10 @@
 import { deserialize } from './deserializer/deserialize';
 import { runCommand } from './bridge/bridge';
 import { BridgeCommand } from './bridge/bridge-commands';
-import './navigator/service-worker-container';
+import { ServiceWorkerContainer } from './navigator/service-worker-container';
 
-if (__hybridRegisterCommands) {
-    
-    let parsedCommands = deserialize(__hybridRegisterCommands) as BridgeCommand[];
-    console.info(`Found ${parsedCommands.length} register commands on load.`)
-    
-    parsedCommands.forEach(runCommand);
+// (navigator as any).serviceWorker = new ServiceWorkerContainer();
 
-    __hybridRegisterCommands = undefined;
-}
+ServiceWorkerContainer.createWithBridge();
 
 (window as any).shimDidLoad = true;

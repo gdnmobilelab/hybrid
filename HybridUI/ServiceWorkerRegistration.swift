@@ -9,13 +9,27 @@
 import Foundation
 import PromiseKit
 import HybridServiceWorker
+import HybridShared
 
 
 /// The ServiceWorkerRegistration is the bridge between the container and the worker
 /// itself. One registration can be shared between different containers.
 class ServiceWorkerRegistration : NSObject, HybridMessageReceiver {
     
-    let jsClassName = "ServiceWorkerRegistration"
+    internal func getArgumentsForJSMirror() throws -> [Any?] {
+        return [self.scope.absoluteString]
+    }
+    
+    internal static func createFromJSArguments(args: [Any?], from manager: HybridMessageManager) throws -> HybridMessageReceiver {
+        
+        let scope = args[0] as! String
+        
+        return ServiceWorkerRegistration(scope: URL(string: scope)!)
+        
+    }
+
+    
+    static let jsClassName = "ServiceWorkerRegistration"
     
     let containers = Set<ServiceWorkerContainer>()
     
@@ -40,6 +54,11 @@ class ServiceWorkerRegistration : NSObject, HybridMessageReceiver {
             self._active = value
         }
         
+    }
+    
+    static func createFromJSArguments(args: [Any?]) throws -> HybridMessageReceiver {
+        
+        throw ErrorMessage("not yet")
     }
     
     var installing:ServiceWorkerInstance? {

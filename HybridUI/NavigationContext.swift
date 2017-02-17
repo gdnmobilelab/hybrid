@@ -12,18 +12,18 @@ import Foundation
 class HybridWebviewContext {
     
     let webview:HybridWebview
-    let serviceWorkerContainer:ServiceWorkerContainer
+//    let serviceWorkerContainer:ServiceWorkerContainer
 
     init(webview:HybridWebview) {
         self.webview = webview
-        self.serviceWorkerContainer = ServiceWorkerContainer(webview: self.webview)
+//        self.serviceWorkerContainer = ServiceWorkerContainer(webview: self.webview)
     }
     
     func getRegisterCommands() -> [RegisterItemCommand] {
         
         var commands = [RegisterItemCommand]()
         
-        commands.append(RegisterItemCommand(path: ["navigator"], name: "serviceWorker", item: self.serviceWorkerContainer))
+//        commands.append(RegisterItemCommand(path: ["navigator"], name: "serviceWorker", item: self.serviceWorkerContainer))
         
         return commands
         

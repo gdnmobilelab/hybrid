@@ -10,7 +10,7 @@ import Foundation
 
 public class ErrorMessage : Error {
     
-    let message:String
+    public let message:String
     
     public init(_ msg:String) {
         self.message = msg

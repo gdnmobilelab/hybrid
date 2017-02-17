@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import HybridShared
 
 struct ResolvePromiseCommand : BridgeCommand {
     
@@ -14,12 +15,25 @@ struct ResolvePromiseCommand : BridgeCommand {
     let promiseId: Int
     let error: Error?
     
+    func getMsgFromError(_ err: Error) -> String {
+        let asMsg = err as? ErrorMessage
+        var msg = String(describing: err)
+        
+        if let isMsg = asMsg {
+            msg = isMsg.message
+        }
+        
+        return msg
+    }
+    
     func getPayload() -> [String : Any?] {
+    
+        
         return [
             "commandName": "resolvepromise",
             "promiseId": self.promiseId,
             "data": self.data,
-            "error": self.error != nil ? String(describing: self.error!) : nil
+            "error": self.error != nil ? self.getMsgFromError(self.error!) : nil
         ]
     }
     

@@ -13,6 +13,9 @@ import WKWebviewBridge
 import HybridShared
 
 @objc class ServiceWorkerContainer : NSObject, HybridMessageReceiver {
+    
+    static let jsClassName = "ServiceWorkerContainer"
+
     var controller: String?
     
     let webview: HybridWebview
@@ -27,7 +30,6 @@ import HybridShared
         self.navigateListener = self.webview.events.on("navigate", self.updateURL)
     }
     
-    let jsClassName = "ServiceWorkerContainer"
     
     func receiveMessage(_ msg: WebviewMessage) -> Promise<Any?>? {
         
@@ -51,6 +53,14 @@ import HybridShared
 
         }
         
+    }
+    
+    static func createFromJSArguments(args: [Any?], from manager: HybridMessageManager) -> HybridMessageReceiver {
+        return ServiceWorkerContainer(webview: manager.webview!)
+    }
+    
+    internal func getArgumentsForJSMirror() throws -> [Any?] {
+        throw ErrorMessage("ServiceWorkerContainer should never be constructed on the native side")
     }
     
     
@@ -118,12 +128,6 @@ import HybridShared
             
             
         }
-    }
-    
-    func getInitialData() -> Any? {
-        return [
-            "controller": self.controller
-        ]
     }
     
     func register(withOptions: ServiceWorkerRegisterMessage) -> Promise<Void> {

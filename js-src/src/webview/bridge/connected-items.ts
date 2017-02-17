@@ -1,17 +1,30 @@
 import { SerializedConnectedItem }  from '../deserializer/deserialize-types';
 import { NativeItemProxy } from './native-item-proxy';
 import { sharedStorage } from '../shared-storage/shared-storage';
+import { DispatchToNativeEvent } from './dispatch-to-native-event';
 
 if (!sharedStorage.connectedItems) {
+    // ensure we are running with a clean slate.
+
+    new DispatchToNativeEvent("clearbridgeitems").dispatchAndResolve();
     sharedStorage.connectedItems = [];
 }
 
 let connectedItems: NativeItemProxy[] = sharedStorage.connectedItems;
 let registeredClasses: { [className: string] : any } = {};
 
+export function addItem(item: NativeItemProxy): number {
+    connectedItems.push(item);
+    return connectedItems.length - 1;
+}
+
 export function registerClass(name: string, classObj:any) {
     registeredClasses[name] = classObj;
 }
+
+// export function setItemAtIndex(item: NativeItemProxy, index: number) {
+//     connectedItems[index] = item;
+// }
 
 function createItem(item: SerializedConnectedItem) {
 
@@ -58,3 +71,4 @@ export function getIndexOfItem(item: NativeItemProxy):number {
     return connectedItems.indexOf(item);
 
 }
+

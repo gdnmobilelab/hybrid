@@ -31,16 +31,16 @@ class HybridWebviewConfiguration : WKWebViewConfiguration {
     
     func createScripts(registerCommands: [RegisterItemCommand]) {
         
-        let registerCommands = registerCommands.map { $0.getPayload() }
-        dump(registerCommands)
+//        let registerCommands = registerCommands.map { $0.getPayload() }
+//        dump(registerCommands)
         do {
             
-            let serialized = try ReturnSerializer.serializeToJSON(registerCommands, manager: self.messageHandler)
-            
-            let commandsScript = WKUserScript(source: "var __hybridRegisterCommands = \(serialized);", injectionTime: WKUserScriptInjectionTime.atDocumentStart, forMainFrameOnly: false)
+//            let serialized = try ReturnSerializer.serializeToJSON(registerCommands, manager: self.messageHandler)
+//            
+//            let commandsScript = WKUserScript(source: "var __hybridRegisterCommands = \(serialized);", injectionTime: WKUserScriptInjectionTime.atDocumentStart, forMainFrameOnly: false)
             let docStartScript = try self.createDocumentStartScript()
             
-            self.userContentController.addUserScript(commandsScript)
+//            self.userContentController.addUserScript(commandsScript)
             self.userContentController.addUserScript(docStartScript)
             
         } catch {

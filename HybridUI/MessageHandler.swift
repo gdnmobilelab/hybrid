@@ -12,6 +12,10 @@ import JavaScriptCore
 import WebKit
 import HybridShared
 
+fileprivate let ConnectedItemTypes: [HybridMessageReceiver.Type] = [
+    ServiceWorkerContainer.self
+]
+
 /// A bridge between our native code and WKWebView script, that allows us to store promises, run code
 /// asynchonously on the native side, then resolve the original promise in the web client.
 class HybridMessageManager: NSObject, WKScriptMessageHandler {
@@ -35,7 +39,7 @@ class HybridMessageManager: NSObject, WKScriptMessageHandler {
         .then { () -> Promise<Any?> in
             
             let serializedJSON = try ReturnSerializer.serializeToJSON(command.getPayload(), manager: self)
-            let js = "window.webkit.messageHandlers.hybrid.bridge.receiveCommand(\(serializedJSON));"
+            let js = "window.webkit.messageHandlers.hybrid.receiveCommand(\(serializedJSON));"
             
             return self.webview!.evaluateJavaScriptAndCatchError(js)
             .then { returnValue -> Promise<Any?> in
@@ -70,6 +74,9 @@ class HybridMessageManager: NSObject, WKScriptMessageHandler {
                 log.warning("Was not expecting a response to command, but received one: " + String(describing: response!))
             }
         }
+        .catch { error in
+            log.error(String(describing: error))
+        }
     }
     
     func getIndexForExistingConnectedItem( _ item: HybridMessageReceiver) -> Int? {
@@ -79,7 +86,7 @@ class HybridMessageManager: NSObject, WKScriptMessageHandler {
         
     }
     
-    func resolvePromise(_ body: [String: Any]) {
+    func resolvePromise(_ body: [String: Any]) -> Promise<Any?> {
         
         let promiseId = body["promiseId"] as! Int
         let data = body["value"]
@@ -89,45 +96,64 @@ class HybridMessageManager: NSObject, WKScriptMessageHandler {
         
         self.delayedPromiseStore.resolve(forId: promiseId, error: errorInstance, data: data)
         
+        return Promise(value: nil)
     }
     
-    func sendToItem(_ body: [String: Any]) {
+    func sendToItem(_ body: [String: Any]) throws -> Promise<Any?> {
         
         let targetItemId = body["targetItemId"] as? Int
         
         if targetItemId == nil {
-            log.error("Tried to send a sendtoitem event, but did not include a targetItemId")
-            return
+            throw ErrorMessage("Tried to send a sendtoitem event, but did not include a targetItemId")
         }
         
         if self.connectedItems[targetItemId!] == nil {
-            log.error("Tried to send a sendtoitem event, but the target ID does not exist")
-            return
+            throw ErrorMessage("Tried to send a sendtoitem event, but the target ID does not exist")
         }
         
         let targetItem = self.connectedItems[targetItemId!]!
         
-        let promiseId = body["storedResolveId"] as! Int
-        
         let nativeEvent = body["data"] as! [String: Any?]
         
         let commandName = nativeEvent["name"] as! String
-        let commandData = nativeEvent["data"]
+        let commandData = nativeEvent["data"]!
         
         let maybePromise = targetItem.receiveMessage(WebviewMessage(command: commandName, data: commandData, webview: self.webview!))
         
         if maybePromise == nil {
-            self.sendCommand(ResolvePromiseCommand(data: nil, promiseId: promiseId, error: nil))
-            return
+            return Promise(value: nil)
         }
         
-        maybePromise!
-        .then { returnData in
-            self.sendCommand(ResolvePromiseCommand(data: returnData, promiseId: promiseId, error: nil))
+        return maybePromise!
+//        .then { returnData in
+//            self.sendCommand(ResolvePromiseCommand(data: returnData, promiseId: promiseId, error: nil))
+//        }
+        
+    }
+    
+    func createBridgeItem(_ body: [String: Any]) throws -> Promise<Any?> {
+        
+        let data = body["data"] as! [String:Any]
+        
+        let bridgeItemType = data["className"] as! String
+        let initializeArguments = data["args"] as! [Any?]
+        let indexOfNewItem = data["itemIndex"] as! Int
+        
+        let targetClass = ConnectedItemTypes.filter { $0.jsClassName == bridgeItemType }.first
+        
+        if targetClass == nil {
+            throw ErrorMessage("Did not recognise class type " + bridgeItemType)
         }
-        .catch { error in
-            self.sendCommand(ResolvePromiseCommand(data: nil, promiseId: promiseId, error: error))
+        
+        let newItem = try targetClass!.createFromJSArguments(args: initializeArguments, from: self)
+        
+        if self.connectedItems[indexOfNewItem] != nil {
+            throw ErrorMessage("Item already exists at this index.")
         }
+        
+        self.connectedItems[indexOfNewItem] = newItem
+        
+        return Promise(value: newItem)
         
     }
     
@@ -143,85 +169,40 @@ class HybridMessageManager: NSObject, WKScriptMessageHandler {
         }
         
         let command = body!["command"] as! String
+        let promiseId = body!["storedResolveId"] as! Int
         
-        if command == "resolvepromise" {
-            return self.resolvePromise(body!)
-        }
-        
-        if command == "sendtoitem" {
-            return self.sendToItem(body!)
-        }
-        
-        
-        let target = body!["targetIndex"] as! Int
-        let data = body!["data"]
-        
-        // Commands can return promises, but don't have to. If promiseIndex has been passed
-        // then we know the JS command is expecting a response.
-        let promiseReturnIndex = body!["promiseIndex"] as? Int
-        
-        let msg = WebviewMessage(command: command, data: data, webview: self.webview!)
-        
-        let itemToSendTo = self.connectedItems[target]
-        
-        if itemToSendTo == nil {
-            log.error("No handler is registered for index #" + String(target))
-            return
-        }
-        
-        let returnPromise = itemToSendTo!.receiveMessage(msg)
-        
-        if returnPromise != nil && promiseReturnIndex == nil {
-            
-            // It's possible for our Swift command to return a promise when we're not expecting it.
-            // Nothing we can really do in that scenario, except log that it happened.
-            
-            log.error("Receiver wants to send back a message, but the webview did not assign a promise return index")
-            return
-            
-        } else if let promise = returnPromise {
-            
-            // If the command did return a promise, then we wait for that promise to resolve, and send
-            // the return data (if there is any) back into the webview
-            
-            _ = promise.then { returnData -> Promise<Void> in
-                
-                var returnAsJSON = ""
-                
-                if let returnDataExists = returnData {
-                    
-                    // It's possible to use a promise simply to wait for an async operation to complete
-                    // without actually returning any data. But if it does have any data, serialise it into
-                    // JSON when we return the JS function.
-                    
-                    let returnAsData = try JSONSerialization.data(withJSONObject: returnDataExists, options: [])
-                    // Add the comma because this is the second argument we're passing in
-                    returnAsJSON = ", " + String(data: returnAsData, encoding: String.Encoding.utf8)!
-                }
-               
-                // This code is defined in our JS package. We add a custom function to the messageHandler created
-                // by the WKWebView itself.
-                
-                let js = "window.webkit.messageHandlers.hybrid.promiseResponse(\(promiseReturnIndex)\(returnAsJSON));"
-                
-                return Promise(resolvers: { (resolve, reject) in
-                    
-                    self.webview!.evaluateJavaScript(js, completionHandler: { (response, error) in
-                        if error != nil {
-                            reject(error!)
-                        } else {
-                            resolve()
-                        }
-                    })
-                    
-                })
-                
-                
+        _ = Promise(value:())
+        .then { () -> Promise<Any?> in
+            if command == "resolvepromise" {
+                return self.resolvePromise(body!)
             }
-            .catch { error in
-                log.error("Encountered error when passing return data back to webview: " + String(describing: error))
+            
+            if command == "sendtoitem" {
+                return try self.sendToItem(body!)
             }
+            
+            if command == "createbridgeitem" {
+                return try self.createBridgeItem(body!)
+            }
+            
+            if command == "clearbridgeitems" {
+                self.connectedItems.removeAll()
+                return Promise(value: ())
+            }
+            
+            throw ErrorMessage("Do not understand command " + command)
+            
         }
+        .then { response in
+            return ResolvePromiseCommand(data: response, promiseId: promiseId, error: nil)
+        }
+        .recover { error in
+            return ResolvePromiseCommand(data: nil, promiseId: promiseId, error: error)
+        }
+        .then { cmd in
+            self.sendCommand(cmd)
+        }
+
     }
     
     
