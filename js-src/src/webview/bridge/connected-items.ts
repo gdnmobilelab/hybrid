@@ -4,10 +4,11 @@ import { sharedStorage } from '../shared-storage/shared-storage';
 import { DispatchToNativeEvent } from './dispatch-to-native-event';
 
 if (!sharedStorage.connectedItems) {
-    // ensure we are running with a clean slate.
 
-    new DispatchToNativeEvent("clearbridgeitems").dispatchAndResolve();
+    // ensure we are running with a clean slate.
+    new DispatchToNativeEvent("clearbridgeitems", null).dispatchAndResolve();
     sharedStorage.connectedItems = [];
+
 }
 
 let connectedItems: NativeItemProxy[] = sharedStorage.connectedItems;
@@ -22,9 +23,24 @@ export function registerClass(name: string, classObj:any) {
     registeredClasses[name] = classObj;
 }
 
-// export function setItemAtIndex(item: NativeItemProxy, index: number) {
-//     connectedItems[index] = item;
-// }
+export function dispatchTargetedEvent(target: NativeItemProxy, name: String, data: any) {
+
+    let itemIndex = getIndexOfItem(target);
+
+    
+    if (itemIndex === -1) {
+        throw new Error("Item is not in our collection of connected items.")
+    }
+
+    console.info(`Dispatching event "${name}" to connected ${target.constructor.name} (#${itemIndex})`)
+
+
+    let nativeEvent = { name, data };
+
+    let ev = new DispatchToNativeEvent("sendtoitem", nativeEvent, itemIndex);
+
+    return ev.dispatchAndResolve();
+}
 
 function createItem(item: SerializedConnectedItem) {
 

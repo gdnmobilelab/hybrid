@@ -33,7 +33,6 @@ class ReturnSerializer {
     static func serialize(_ value: Any?, manager: HybridMessageManager) throws -> [String: Any] {
         
         var serializedValue:Any? = nil
-        dump(value)
         
         if value == nil || value is Void {
             

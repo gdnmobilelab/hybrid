@@ -16,8 +16,8 @@ import { runCommand } from './bridge/bridge';
 import { BridgeCommand } from './bridge/bridge-commands';
 import { ServiceWorkerContainer } from './navigator/service-worker-container';
 
-// (navigator as any).serviceWorker = new ServiceWorkerContainer();
+(navigator as any).serviceWorker = ServiceWorkerContainer.createWithBridge();
 
-ServiceWorkerContainer.createWithBridge();
+
 
 (window as any).shimDidLoad = true;

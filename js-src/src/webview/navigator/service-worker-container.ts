@@ -9,9 +9,8 @@ interface ServiceWorkerRegistrationOptions {
 
 export class ServiceWorkerContainer extends NativeItemProxy {
 
-    constructor() {
-        super("ServiceWorkerContainer", arguments);
-
+    // constructor() {
+    //     super();
         // this.nativeEvents.on('test', (e:ReceiveFromNativeEvent) => {
 
         //     console.log("it worked?")
@@ -28,7 +27,7 @@ export class ServiceWorkerContainer extends NativeItemProxy {
         // }, 100)
         
         
-    }
+    // }
 
     register(url: URL, options: ServiceWorkerRegistrationOptions = {}) : Promise<void> {
         return this.sendToNative("register", [url, options]);

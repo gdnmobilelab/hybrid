@@ -147,6 +147,7 @@ public class Db {
     /// - Throws: If we can't create the database, it'll throw, and the app will not launch successfully
     public static func createMainDatabase() throws {
         Db.mainDB = try Db(dbFilename: "db")
+        try DbMigrate.migrate()
     }
     
     

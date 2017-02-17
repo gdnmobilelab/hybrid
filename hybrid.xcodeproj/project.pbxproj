@@ -230,6 +230,7 @@
 		8AB8D0EB1E560A9500D0E5F4 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8AB8D0E91E560A9500D0E5F4 /* LaunchScreen.storyboard */; };
 		8AB8D0F91E561D4700D0E5F4 /* ServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB8D0F81E561D4700D0E5F4 /* ServiceWorkerRegistration.swift */; };
 		8AB8D0FC1E561F6700D0E5F4 /* ServiceWorkerRegistrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB8D0FB1E561F6700D0E5F4 /* ServiceWorkerRegistrationManager.swift */; };
+		8AB8D1041E575BB500D0E5F4 /* 2017021700_service_workers.sql in Resources */ = {isa = PBXBuildFile; fileRef = 8AB8D1031E575BB500D0E5F4 /* 2017021700_service_workers.sql */; };
 		8AB917E21DF87E6500CD8153 /* ReadyStateHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB917E11DF87E6500CD8153 /* ReadyStateHandler.swift */; };
 		8ACCDCCF1D7A0CD700A137E1 /* Console.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ACCDCCE1D7A0CD700A137E1 /* Console.swift */; };
 		8ACCDCD01D7A131900A137E1 /* ServiceWorkerInstance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8846051D30074500CF9369 /* ServiceWorkerInstance.swift */; };
@@ -721,6 +722,7 @@
 		8AB8D0F81E561D4700D0E5F4 /* ServiceWorkerRegistration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistration.swift; sourceTree = "<group>"; };
 		8AB8D0FB1E561F6700D0E5F4 /* ServiceWorkerRegistrationManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistrationManager.swift; sourceTree = "<group>"; };
 		8AB8D0FD1E562B5100D0E5F4 /* JSTests.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = JSTests.entitlements; sourceTree = "<group>"; };
+		8AB8D1031E575BB500D0E5F4 /* 2017021700_service_workers.sql */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = 2017021700_service_workers.sql; sourceTree = "<group>"; };
 		8AB917E11DF87E6500CD8153 /* ReadyStateHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReadyStateHandler.swift; sourceTree = "<group>"; };
 		8ACCDCCE1D7A0CD700A137E1 /* Console.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Console.swift; sourceTree = "<group>"; };
 		8AD2834F1D55070000D2DF07 /* test-workers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "test-workers"; sourceTree = "<group>"; };
@@ -1305,6 +1307,7 @@
 		8AA9A9D31E4A335D00468A3F /* Database */ = {
 			isa = PBXGroup;
 			children = (
+				8AB8D1001E575B5200D0E5F4 /* Migrations */,
 				8AA9A9D41E4A337000468A3F /* Db.swift */,
 				8AA9A9D61E4A337D00468A3F /* DbMigrate.swift */,
 				8AA9A9D81E4A339F00468A3F /* CustomMigration.swift */,
@@ -1440,6 +1443,14 @@
 				8AB8D0FB1E561F6700D0E5F4 /* ServiceWorkerRegistrationManager.swift */,
 			);
 			name = Registration;
+			sourceTree = "<group>";
+		};
+		8AB8D1001E575B5200D0E5F4 /* Migrations */ = {
+			isa = PBXGroup;
+			children = (
+				8AB8D1031E575BB500D0E5F4 /* 2017021700_service_workers.sql */,
+			);
+			name = Migrations;
 			sourceTree = "<group>";
 		};
 		8ACCDCDB1D7A161D00A137E1 /* shared */ = {
@@ -2080,6 +2091,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8AB8D1041E575BB500D0E5F4 /* 2017021700_service_workers.sql in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

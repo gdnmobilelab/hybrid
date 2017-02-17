@@ -84,8 +84,11 @@ class DbMigrate {
     static func migrate() throws {
         
         try Db.mainDatabase.inDatabase { (db) in
-            let migrateManager = FMDBMigrationManager(database: db, migrationsBundle: SharedResources.appBundle)!
             
+            let hybridSharedBundle = Bundle(for: Db.self)
+            
+            let migrateManager = FMDBMigrationManager(database: db, migrationsBundle: hybridSharedBundle)!
+ 
             // Has to be disabled, or the manager tries to add the static CustomMigration to migrate list
             migrateManager.dynamicMigrationsEnabled = false
             

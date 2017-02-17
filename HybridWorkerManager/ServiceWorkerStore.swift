@@ -56,7 +56,7 @@ class ServiceWorkerStore {
         
         try Db.mainDatabase.inDatabase { db in
             
-            let allWorkersResultSet = try db.executeQuery("SELECT id,url,scope,headers,install_state,last_checked FROM service_workers WHERE " + whereString, values: values)
+            let allWorkersResultSet = try db.executeQuery("SELECT instance_id,url,scope,headers,install_state,last_checked FROM service_workers WHERE " + whereString, values: values)
             
             while allWorkersResultSet.next() {
                 do {

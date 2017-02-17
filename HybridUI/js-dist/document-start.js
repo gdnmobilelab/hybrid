@@ -437,28 +437,10 @@ if (window.top !== window && window.top.location.href) {
     windowTarget = window.top;
 }
 var hybridHandler = (windowTarget).webkit.messageHandlers.hybrid;
-// if (window.top === window) {
-hybridHandler.receiveCommand = deserializeAndRunCommand;
-// }
+if (window.top === window) {
+    hybridHandler.receiveCommand = deserializeAndRunCommand;
+}
 function sendToNative(data) {
-    // if (window.top !== window) {
-    //     let frameIndex = -1;
-    //     let frames:any = window.top.frames;
-    //     while (frameIndex < frames.length - 1) {
-    //         if (frames[frameIndex] === window) {
-    //             break;
-    //         }
-    //         frameIndex++;
-    //     }
-    //     if (frameIndex === -1) {
-    //         throw new Error("Could not find this window in the frames array");
-    //     }
-    //     data = {
-    //         command: 'frameinstruction',
-    //         frameIndex: frameIndex,
-    //         data: data
-    //     }
-    // }
     hybridHandler.postMessage(data);
 }
 function runCommand(instruction) {
@@ -469,7 +451,6 @@ function runCommand(instruction) {
         // for a native promise to resolve or immediately resolves this promise via the
         // resolvepromise command.
         var asResolve = instruction;
-        console.info("Received promis resolve with ID", asResolve.promiseId);
         DispatchToNativeEvent.resolvePromise(asResolve.promiseId, asResolve.data, asResolve.error);
     }
     if (instruction.commandName === "itemevent") {
@@ -493,13 +474,11 @@ function runCommand(instruction) {
     }
 }
 function deserializeAndRunCommand(command) {
-    console.info("Deserialize and run", command);
     var instruction = deserialize(command);
     return runCommand(instruction);
 }
 
 if (!sharedStorage.storedResolves) {
-    console.info("create new shared store");
     sharedStorage.storedResolves = {};
 }
 var storedResolves = sharedStorage.storedResolves;
@@ -521,9 +500,7 @@ var DispatchToNativeEvent = (function () {
                 vacantResolveId++;
             }
             storedResolves[vacantResolveId] = { fulfill, reject };
-            console.log('stored resolves', storedResolves);
             _this.storedResolveId = vacantResolveId;
-            console.info("Sending event to native with targetId", _this.targetItemId, "and promiseId", _this.storedResolveId);
             sendToNative({
                 command: _this.type,
                 data: _this.data,
@@ -533,7 +510,6 @@ var DispatchToNativeEvent = (function () {
         });
     };
     DispatchToNativeEvent.resolvePromise = function (promiseId, data, error) {
-        console.info("Resolving promise #", promiseId, storedResolves);
         var _a = storedResolves[promiseId], fulfill = _a.fulfill, reject = _a.reject;
         if (error) {
             reject(new Error(error));
@@ -541,14 +517,14 @@ var DispatchToNativeEvent = (function () {
         else {
             fulfill(data);
         }
-        // storedResolves[promiseId] = null;
+        storedResolves[promiseId] = null;
     };
     return DispatchToNativeEvent;
 }());
 
 if (!sharedStorage.connectedItems) {
     // ensure we are running with a clean slate.
-    new DispatchToNativeEvent("clearbridgeitems").dispatchAndResolve();
+    new DispatchToNativeEvent("clearbridgeitems", null).dispatchAndResolve();
     sharedStorage.connectedItems = [];
 }
 var connectedItems = sharedStorage.connectedItems;
@@ -560,9 +536,16 @@ function addItem(item) {
 function registerClass(name, classObj) {
     registeredClasses[name] = classObj;
 }
-// export function setItemAtIndex(item: NativeItemProxy, index: number) {
-//     connectedItems[index] = item;
-// }
+function dispatchTargetedEvent(target, name, data) {
+    var itemIndex = getIndexOfItem(target);
+    if (itemIndex === -1) {
+        throw new Error("Item is not in our collection of connected items.");
+    }
+    console.info("Dispatching event \"" + name + "\" to connected " + target.constructor.name + " (#" + itemIndex + ")");
+    var nativeEvent = { name, data };
+    var ev = new DispatchToNativeEvent("sendtoitem", nativeEvent, itemIndex);
+    return ev.dispatchAndResolve();
+}
 function createItem(item) {
     var classToCreate = registeredClasses[item.jsClassName];
     if (!classToCreate) {
@@ -623,24 +606,14 @@ var NativeItemProxy = (function () {
             args: argArray
         });
         ev.dispatchAndResolve()
-            .then(function () {
-            console.log('WORKED?!?');
-        })
             .catch(function (err) {
             console.error(err);
         });
+        return instance;
     };
     NativeItemProxy.prototype.sendToNative = function (name, data) {
         if (data === void 0) { data = null; }
-        return this.nativeIdFetch
-            .then(function (id) {
-            if (id === -1) {
-                throw new Error("Trying to send to native but we're not registered. Are you doing this in the constructor? Don't.");
-            }
-            var nativeEvent = { name, data };
-            var ev = new DispatchToNativeEvent("sendtoitem", nativeEvent, id);
-            return ev.dispatchAndResolve();
-        });
+        return dispatchTargetedEvent(this, name, data);
     };
     return NativeItemProxy;
 }());
@@ -648,20 +621,23 @@ var NativeItemProxy = (function () {
 var ServiceWorkerContainer = (function (_super) {
     __extends(ServiceWorkerContainer, _super);
     function ServiceWorkerContainer() {
-        _super.call(this, "ServiceWorkerContainer", arguments);
-        // this.nativeEvents.on('test', (e:ReceiveFromNativeEvent) => {
-        //     console.log("it worked?")
-        //     // e.respondWith(
-        //     //     Promise.resolve('test')
-        //     // )
-        // })
-        // setTimeout(() => {
-        //     this.sendToNative("test", {one: "two"})
-        //     .then((response) => {
-        //         console.log('promise response', response);
-        //     })
-        // }, 100)
+        _super.apply(this, arguments);
     }
+    // constructor() {
+    //     super();
+    // this.nativeEvents.on('test', (e:ReceiveFromNativeEvent) => {
+    //     console.log("it worked?")
+    //     // e.respondWith(
+    //     //     Promise.resolve('test')
+    //     // )
+    // })
+    // setTimeout(() => {
+    //     this.sendToNative("test", {one: "two"})
+    //     .then((response) => {
+    //         console.log('promise response', response);
+    //     })
+    // }, 100)
+    // }
     ServiceWorkerContainer.prototype.register = function (url, options) {
         if (options === void 0) { options = {}; }
         return this.sendToNative("register", [url, options]);
@@ -679,8 +655,7 @@ var ServiceWorkerContainer = (function (_super) {
 // import './notification/notification';
 // import './util/set-document-html';
 // import './load-handler';
-// (navigator as any).serviceWorker = new ServiceWorkerContainer();
-ServiceWorkerContainer.createWithBridge();
+navigator.serviceWorker = ServiceWorkerContainer.createWithBridge();
 window.shimDidLoad = true;
 
 }());

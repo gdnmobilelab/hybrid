@@ -17,36 +17,11 @@ if (window.top !== window && window.top.location.href) {
 
 const hybridHandler = (windowTarget).webkit.messageHandlers.hybrid;
 
-// if (window.top === window) {
+if (window.top === window) {
     hybridHandler.receiveCommand = deserializeAndRunCommand;
-// }
+}
 
 export function sendToNative(data:any) {
-
-    // if (window.top !== window) {
-
-    //     let frameIndex = -1;
-    //     let frames:any = window.top.frames;
-
-    //     while (frameIndex < frames.length - 1) {
-    //         if (frames[frameIndex] === window) {
-    //             break;
-    //         }
-    //         frameIndex++;
-    //     }
-
-    //     if (frameIndex === -1) {
-    //         throw new Error("Could not find this window in the frames array");
-    //     }
-
-    //     data = {
-    //         command: 'frameinstruction',
-    //         frameIndex: frameIndex,
-    //         data: data
-    //     }
-
-    // }
-
 
     hybridHandler.postMessage(data);
 }
@@ -63,7 +38,7 @@ export function runCommand(instruction: BridgeCommand):any {
         // resolvepromise command.
 
         let asResolve = instruction as ResolvePromiseCommand;
-        console.info("Received promis resolve with ID", asResolve.promiseId)
+     
         DispatchToNativeEvent.resolvePromise(asResolve.promiseId, asResolve.data, asResolve.error);
 
     }
@@ -104,7 +79,7 @@ export function runCommand(instruction: BridgeCommand):any {
 }
 
 function deserializeAndRunCommand(command:Serialized):any {
-    console.info("Deserialize and run", command)
+
     let instruction = deserialize(command);
 
     return runCommand(instruction);

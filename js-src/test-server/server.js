@@ -28,6 +28,7 @@ browserifyBundle({
             body: `
                 <body>
                 <script src='//localhost:35729/livereload.js'></script>
+                
                 <script src='browser-tests.js'></script>
                 </body>
             `
