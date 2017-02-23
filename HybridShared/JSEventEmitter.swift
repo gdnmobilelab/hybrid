@@ -12,10 +12,10 @@ import JavaScriptCore
 @objc public protocol JSEventEmitterExports : JSExport {
     
     @objc(addEventListener::)
-    func addJSEventListener(name: String, funcToRun:JSValue)
+    func addEventListener(_ name: String, withJSFunc:JSValue)
     
     @objc(removeEventListener::)
-    func removeJSEventListener(name: String, funcToRun:JSValue)
+    func removeEventListener(_ name: String, withJSFunc:JSValue)
     
     @objc(dispatchEvent:)
     func dispatchJSEvent(ev: JSEvent)
@@ -53,7 +53,7 @@ fileprivate class JsFuncWrapper: Hashable {
     fileprivate func runJSFunc(_ funcToRun: JSValue) -> ((JSEvent) -> Void) {
         
         return { (emitVal:JSEvent) -> Void in
-            
+
             funcToRun.call(withArguments: [emitVal])
             
         }
@@ -63,18 +63,24 @@ fileprivate class JsFuncWrapper: Hashable {
     fileprivate var allListeners = Set<JsFuncWrapper>()
     
     @objc(addEventListener::)
-    public func addJSEventListener(name: String, funcToRun:JSValue) {
+    public func addEventListener(_ name: String, withJSFunc:JSValue) {
         
-        let listener = self.jsEvents.on(name, self.runJSFunc(funcToRun))
+        let listener = self.jsEvents.on(name, self.runJSFunc(withJSFunc))
         
-        allListeners.insert(JsFuncWrapper(funcToRun, listener: listener))
+        allListeners.insert(JsFuncWrapper(withJSFunc, listener: listener))
+        
+    }
+    
+    public func addEventListener(_ name: String, withSwiftFunc: @escaping (JSEvent) -> Void) -> Listener<JSEvent> {
+        
+        return self.jsEvents.on(name, withSwiftFunc)
         
     }
     
     @objc(removeEventListener::)
-    public func removeJSEventListener(name: String, funcToRun:JSValue) {
+    public func removeEventListener(_ name: String, withJSFunc:JSValue) {
         
-        let existingWrapper = self.allListeners.filter { $0.jsVal == funcToRun }.first
+        let existingWrapper = self.allListeners.filter { $0.jsVal == withJSFunc }.first
         
         if let wrapper = existingWrapper {
             

@@ -1,45 +1,32 @@
+import { DispatchToNativeEvent } from './dispatch-to-native-event';
 import { SerializedConnectedItem }  from '../deserializer/deserialize-types';
 import { NativeItemProxy } from './native-item-proxy';
 import { sharedStorage } from '../shared-storage/shared-storage';
-import { DispatchToNativeEvent } from './dispatch-to-native-event';
+import { deserialize } from '../deserializer/deserialize';
 
-if (!sharedStorage.connectedItems) {
-
-    // ensure we are running with a clean slate.
-    new DispatchToNativeEvent("clearbridgeitems", null).dispatchAndResolve();
-    sharedStorage.connectedItems = [];
-
-}
-
-let connectedItems: NativeItemProxy[] = sharedStorage.connectedItems;
+let connectedItems: NativeItemProxy[] = null;
 let registeredClasses: { [className: string] : any } = {};
 
-export function addItem(item: NativeItemProxy): number {
-    connectedItems.push(item);
-    return connectedItems.length - 1;
+export function initializeStore() {
+    if (sharedStorage.connectedItems) {
+        // we're already initialized
+        console.info("Store already exists (we're in a frame?)")
+        connectedItems = sharedStorage.connectedItems;
+        return;
+    }
+    console.warn("Clearing bridge items on native and JS side")
+    new DispatchToNativeEvent("clearbridgeitems").dispatchAndResolve();
+    sharedStorage.connectedItems = [];
+    connectedItems = sharedStorage.connectedItems;
+}
+
+export function manuallyAddItem(index:number, item:NativeItemProxy) {
+    connectedItems[index] = item;
 }
 
 export function registerClass(name: string, classObj:any) {
+    console.info(`Registering ${name} as a native proxy class`);
     registeredClasses[name] = classObj;
-}
-
-export function dispatchTargetedEvent(target: NativeItemProxy, name: String, data: any) {
-
-    let itemIndex = getIndexOfItem(target);
-
-    
-    if (itemIndex === -1) {
-        throw new Error("Item is not in our collection of connected items.")
-    }
-
-    console.info(`Dispatching event "${name}" to connected ${target.constructor.name} (#${itemIndex})`)
-
-
-    let nativeEvent = { name, data };
-
-    let ev = new DispatchToNativeEvent("sendtoitem", nativeEvent, itemIndex);
-
-    return ev.dispatchAndResolve();
 }
 
 function createItem(item: SerializedConnectedItem) {
@@ -54,9 +41,21 @@ function createItem(item: SerializedConnectedItem) {
         throw new Error("Item already exists at index #" + item.index);
     }
 
-    let newInstance = new classToCreate(item.index, item.initialData) as NativeItemProxy;
+    // Our custom item declaration isn't made of serialized values in the same way other stuff is.
+    // However, the initialData argument *is*, since we don't know what will be passed in.
+    let initialData:any[] = deserialize(item.initialData)
+
+    // Creating a new instance via apply:
+    // http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
+
+    // first argument is ignored
+    initialData.unshift(null);
+
+    let newInstance = new (Function.prototype.bind.apply(classToCreate, initialData)) as NativeItemProxy;
 
     connectedItems[item.index] = newInstance;
+
+    console.info(`Created an instance of ${item.jsClassName} at index #${item.index}`)
 
     return newInstance;
 }
@@ -66,7 +65,9 @@ function getExistingItem(item: SerializedConnectedItem) {
     let existingItem = connectedItems[item.index];
 
     if (!existingItem) {
-        throw new Error("Item does not exist at index #" + item.index);
+        console.error(connectedItems);
+        throw new Error(`Item of type ${item.jsClassName} does not exist at index #` + item.index);
+        
     }
 
     return existingItem;

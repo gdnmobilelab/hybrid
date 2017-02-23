@@ -1,11 +1,13 @@
 import { sendToNative } from './bridge';
 import { sharedStorage } from '../shared-storage/shared-storage';
+import { notNativeConsole } from '../global/console';
 
 export type DispatchToNativeEventType = 
     "resolvepromise" |
     "sendtoitem" |
     "createbridgeitem" |
-    "clearbridgeitems";
+    "clearbridgeitems" |
+    "connectproxyitem";
 
 interface PromiseResolve {
     fulfill: Function;
@@ -23,12 +25,19 @@ export class DispatchToNativeEvent {
     type: string
     data: any
     storedResolveId = -1
-    targetItemId:number
 
-    constructor(type: DispatchToNativeEventType, data: any, targetItemId:number = null) {
+    constructor(type: DispatchToNativeEventType, data: any = null) {
         this.type = type;
         this.data = data;
-        this.targetItemId = targetItemId;
+    }
+
+    dispatch() {
+        // notNativeConsole.info(`Dispatching command ${this.type} to native...`, this.data)
+        sendToNative({
+            command: this.type,
+            data: this.data,
+            storedResolveId: this.storedResolveId
+        })
     }
 
     // Dispatch this event to the native environment, and wait
@@ -47,12 +56,7 @@ export class DispatchToNativeEvent {
 
             this.storedResolveId = vacantResolveId;
 
-            sendToNative({
-                command: this.type,
-                data: this.data,
-                storedResolveId: this.storedResolveId,
-                targetItemId: this.targetItemId
-            })
+            this.dispatch();
 
         })
 

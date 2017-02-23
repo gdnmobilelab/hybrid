@@ -24,14 +24,10 @@ import HybridShared
 @objc class WebviewClientManager : NSObject, WebviewClientManagerExports {
     
     
-//    let serviceWorker:ServiceWorkerInstance
-    let scope: URL
-    let workerURL: URL
-//    let instanceId
+    let worker:ServiceWorkerInstance
     
-    required init(scope: URL, workerURL: URL) {
-        self.scope = scope
-        self.workerURL = workerURL
+    required init(worker:ServiceWorkerInstance) {
+        self.worker = worker
     }
     
     
@@ -86,6 +82,12 @@ import HybridShared
     
     /// Allows a worker to claim any webviews under its scope and become their active worker
     func claim() -> JSPromise {
+        
+        let getClientsEvent = GetWorkerClientsEvent(worker: self.worker)
+        
+        self.worker.events.emit("getclients", getClientsEvent)
+        
+        
         
         let claimPromises = WebviewClientManager.currentWebviewRecords.map { record -> Promise<Void> in
             
@@ -150,7 +152,7 @@ import HybridShared
     ///   - options: An object, currently the 'external' attribute is the only one supported.
     func openWindow(_ url:String, options:AnyObject?) -> JSPromise {
         
-        let urlToOpen = URL(string: url,relativeTo: self.scope)!
+        let urlToOpen = URL(string: url,relativeTo: self.worker.scope)!
         
         var optionsToSave: [String:AnyObject] = [
             "urlToOpen": urlToOpen.absoluteString as AnyObject

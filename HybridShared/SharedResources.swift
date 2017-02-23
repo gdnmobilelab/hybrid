@@ -55,7 +55,9 @@ public class SharedResources {
         
         get {
             let str = SharedResources.appBundle.object(forInfoDictionaryKey: "SERVICE_WORKER_ENABLED_DOMAINS") as! String
-            return str.components(separatedBy: ",")
+            let split = str.components(separatedBy: ",")
+            
+            return split
         }
         
     }

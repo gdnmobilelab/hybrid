@@ -24,7 +24,7 @@ import HybridShared
 
 /// The core of our service worker functionality. This class wraps a JSContext with a series of helper functions
 /// that add our SW helper library, as well as provide hooks for things like setTimeout and event execution
-@objc open class ServiceWorkerInstance : JSEventEmitter, ServiceWorkerInstanceExports {
+@objc public class ServiceWorkerInstance : JSEventEmitter, ServiceWorkerInstanceExports {
     
     static let containingVirtualMachine = JSVirtualMachine()!
     
@@ -43,8 +43,16 @@ import HybridShared
     /// The scope for this service worker
     public let scope:URL
     
+    public let events = EventEmitter<ServiceWorkerEvent>()
     
-    let globalScope:ServiceWorkerGlobalScope
+    
+    fileprivate var _globalScope:ServiceWorkerGlobalScope?
+    
+    var globalScope: ServiceWorkerGlobalScope {
+        get {
+            return self._globalScope!
+        }
+    }
     
     public var skipWaitingStatus: Bool {
         get {
@@ -68,7 +76,7 @@ import HybridShared
             
             // if we have an existing value, remove the event listener for it
             if let stateChangeFunc = self._onstatechange {
-                self.removeJSEventListener(name: "statechange", funcToRun: stateChangeFunc)
+                self.removeEventListener("statechange", withJSFunc: stateChangeFunc)
             }
             
             if value == nil || value!.isNull == true || value!.isUndefined == true {
@@ -76,7 +84,7 @@ import HybridShared
             }
             
             self._onstatechange = value
-            self.addJSEventListener(name: "statechange", funcToRun: value!)
+            self.addEventListener("statechange", withJSFunc: value!)
             
         }
     }
@@ -91,7 +99,7 @@ import HybridShared
     
     /// Another shim to match the service worker spec, this turns out installstate enum into
     /// a string.
-    var state:String {
+    public var state:String {
         get {
             if self.installState == ServiceWorkerInstallState.activated {
                 return "activated"
@@ -125,9 +133,11 @@ import HybridShared
         self._installState = installState
         
         self.jsContext = JSContext(virtualMachine: ServiceWorkerInstance.containingVirtualMachine)
-        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext, workerURL: url, scope: self.scope, registration: registration)
         
         super.init()
+        
+        self._globalScope = ServiceWorkerGlobalScope(worker: self, registration: registration)
+        
         
         self.jsContext.exceptionHandler = self.exceptionHandler
         self.jsContext.name = "SW — " + url.absoluteString
@@ -263,7 +273,9 @@ import HybridShared
         
         return Promise<String> { fulfill, reject in
             
-            let workerContextPath = SharedResources.appBundle.path(forResource: "worker-context", ofType: "js", inDirectory: "js-dist")!;
+            let workerBundle = Bundle(for: ServiceWorkerInstance.self)
+            
+            let workerContextPath = workerBundle.path(forResource: "worker-context", ofType: "js", inDirectory: "js-dist")!;
             
             let contextJS = try String(contentsOfFile: workerContextPath, encoding: String.Encoding.utf8)
             fulfill(contextJS)
@@ -319,6 +331,7 @@ import HybridShared
         }
         set(value) {
             self._installState = value
+            self.jsContext.name = "SW (\(self.state)) — " + url.absoluteString
             self.dispatchJSEvent(ev: StateChangeEvent(workerInstance: self))
         }
     }

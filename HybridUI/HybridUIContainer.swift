@@ -14,7 +14,7 @@ import HybridWorkerManager
 public class HybridUIContainer {
     
     let workerManager = ServiceWorkerManager()
-    let registrationManager = ServiceWorkerRegistrationManager()
+//    let registrationManager = ServiceWorkerRegistrationManager()
     public let controller = UIViewController()
     
     public init(withStartingURL: URL) {

@@ -9,15 +9,21 @@
 import Foundation
 import HybridShared
 
-class ReturnSerializer {
+class Serializer {
     
-    static func serializeToJSON(_ value: Any?, manager: HybridMessageManager) throws -> String {
+    let manager: HybridMessageManager
+    
+    init(_ manager: HybridMessageManager) {
+        self.manager = manager
+    }
+    
+    func serializeToJSON(_ value: Any?) throws -> String {
         
         if value == nil {
             return "null"
         }
         
-        let serialized = try self.serialize(value!, manager: manager)
+        let serialized = try self.serialize(value!)
         
         let data = try JSONSerialization.data(withJSONObject: serialized, options: [])
         
@@ -30,7 +36,7 @@ class ReturnSerializer {
     /// map into custom instructions for the webview.
     ///
     /// - Parameter obj: the value we want to convert.
-    static func serialize(_ value: Any?, manager: HybridMessageManager) throws -> [String: Any] {
+    func serialize(_ value: Any?) throws -> [String: Any] {
         
         var serializedValue:Any? = nil
         
@@ -46,7 +52,7 @@ class ReturnSerializer {
                 "jsClassName": type(of: valueIsReceiver).jsClassName
             ]
           
-            let existingIndex = manager.getIndexForExistingConnectedItem(valueIsReceiver)
+            let existingIndex = self.manager.getIndexForExistingConnectedItem(valueIsReceiver)
             
             if let index = existingIndex {
                 
@@ -55,11 +61,11 @@ class ReturnSerializer {
                 
             } else {
                 
-                let newIndex = manager.addNewConnectedItem(valueIsReceiver)
+                let newIndex = self.manager.addNewConnectedItem(valueIsReceiver)
                 
                 serializedObject["existing"] = false
                 serializedObject["index"] = newIndex
-                serializedObject["initialData"] = try self.serialize(valueIsReceiver.getArgumentsForJSMirror(), manager: manager)
+                serializedObject["initialData"] = try self.serialize(valueIsReceiver.getArgumentsForJSMirror())
                 
             }
             
@@ -72,14 +78,14 @@ class ReturnSerializer {
             
         } else if let valueIsArray = value as? [Any?] {
             
-            serializedValue = try valueIsArray.map { try self.serialize($0, manager: manager) }
+            serializedValue = try valueIsArray.map { try self.serialize($0) }
 
         } else if let valueIsDictionary = value as? [String: Any?] {
             
             var newDictionary = [String: Any]()
             
             try valueIsDictionary.forEach { key, value in
-                newDictionary[key] = try self.serialize(value, manager: manager)
+                newDictionary[key] = try self.serialize(value)
             }
             
             serializedValue = newDictionary
@@ -87,8 +93,6 @@ class ReturnSerializer {
         }
         
         if serializedValue == nil {
-            let failed = String(describing: value!)
-
             throw ErrorMessage("Encounted an item that was not serializable:" + String(describing: value))
         }
         

@@ -15,15 +15,17 @@ import PromiseKit
 /// This class manages the lifecycle of app service worker instances, primarily installing, updating
 /// and changing the status of connected workers accordingly (e.g. setting an older worker to redundant
 /// once a new version has been installed)
-public class ServiceWorkerManager {
+public class ServiceWorkerManager : NSObject {
     
     var activeServiceWorkers = Set<ServiceWorkerInstanceBridge>()
     let store = ServiceWorkerStore()
     
-    let lifecycleEvents = EventEmitter<ServiceWorkerInstanceBridge>()
-    
-    public init() {
+    public let lifecycleEvents = EventEmitter<ServiceWorkerEvent>()
 
+    public var activeInstances: [ServiceWorkerInstance] {
+        get {
+            return self.activeServiceWorkers.map { $0.instance }
+        }
     }
     
     
@@ -78,9 +80,37 @@ public class ServiceWorkerManager {
             return ServiceWorkerInstanceBridge.create(record: record, contents: contents, manager: self)
             .then { activeWorker in
                 self.activeServiceWorkers.insert(activeWorker)
+                
+                
+                // We fire this event so any existing registrations pick up on the existence of the worker
+                
+                self.lifecycleEvents.emit("statechange", WorkerStateChangeEvent(worker: activeWorker.instance, newState: .installing))
                 return Promise(value: activeWorker)
             }
         }
+        
+    }
+    
+    public func makeWorkerRedundant(worker: ServiceWorkerInstance) -> Promise<Void> {
+        
+        return Promise(value:())
+        .then { () -> Void in
+            
+            let bridge = self.activeServiceWorkers.filter { $0.instance == worker }.first
+            
+            if bridge == nil {
+                throw ErrorMessage("Worker instance is not in active list for this manager. Is it from a different manager?")
+            }
+            
+            try self.updateWorkerStatuses([UpdateStatusInstruction(id: bridge!.id, newState: ServiceWorkerInstallState.redundant)])
+            
+            bridge!.instance.destroy()
+            
+            self.activeServiceWorkers.remove(bridge!)
+            
+        }
+        
+        
         
     }
     
@@ -88,20 +118,14 @@ public class ServiceWorkerManager {
     /// Because there are security implications for allowing service workers, we manually control
     /// which domains are allowed to install service workers via this app and which are not.
     public func workerURLIsAllowed(url:URL) -> Bool {
-        return SharedResources.allowedServiceWorkerDomains.contains("*") == false &&
-            SharedResources.allowedServiceWorkerDomains.contains(url.host!) == false
+        return SharedResources.allowedServiceWorkerDomains.contains("*") == true ||
+            SharedResources.allowedServiceWorkerDomains.contains(url.host!) == true
     }
     
     
-    /// An attempt to mirror ServiceWorkerRegistration.update(), as outlined here:
-    /// https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/update
-    ///
-    /// - Parameters:
-    ///   - url: URL of the worker to download
-    ///   - scope: The scope we're updating - need to supply, unlike in the Web API
-    /// - Returns: A promise that resolves to nil if update was successful (this includes
-    ///            an update that was not needed). Throws if we can't check.
-    public func update(url: URL, scope: URL) -> Promise<Void> {
+    /// Grab the latest content from the remote URL. Queries our existing workers and fetches
+    /// ETag and Last-Modified headers if applicable, to stop us downloading the entire content
+    func grabNewContent(url: URL, scope: URL) -> Promise<FetchResponse?> {
         return Promise(value: ())
         .then { () -> Promise<FetchResponse> in
                 
@@ -158,7 +182,7 @@ public class ServiceWorkerManager {
             
             if response.status == 304 {
                 log.info("Request for worker returned a 304 not-modified status. Returning.")
-                return Promise(value: ())
+                return Promise(value: nil)
             }
             
             if response.ok == false {
@@ -167,13 +191,55 @@ public class ServiceWorkerManager {
                 throw ErrorMessage("Attempt to update worker resulted in status code " + String(response.status))
             }
             
-            log.info("Request for worker returned an OK response, installing new worker...")
-            return self.installServiceWorker(url: url, scope: scope, response: response)
+            return Promise(value: response)
         }
 
     }
     
-    func installServiceWorker(url: URL, scope: URL, response: FetchResponse) -> Promise<Void> {
+    /// An attempt to mirror ServiceWorkerRegistration.update(), as outlined here:
+    /// https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration/update
+    ///
+    /// - Parameters:
+    ///   - url: URL of the worker to download
+    ///   - scope: The scope we're updating - need to supply, unlike in the Web API
+    /// - Returns: A promise that resolves to nil if update was successful (this includes
+    ///            an update that was not needed). Throws if we can't check.
+    public func update(url: URL, scope: URL) -> Promise<Void> {
+
+        return self.grabNewContent(url: url, scope: scope)
+        .then { newResponse in
+            if newResponse == nil {
+                return Promise(value:())
+            } else {
+                log.info("Request for worker returned an OK response, installing new worker...")
+                return self.installServiceWorker(url: url, scope: scope, response: newResponse!, waitForFullInstallCycle: true)
+            }
+        }
+        
+    }
+    
+    
+    /// An attempt to mirror ServiceWorkerContainer.register(), as outlined here:
+    /// https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerContainer/register
+    ///
+    /// The primary difference to update() is that this does not wait for the full install/activate
+    /// lifecycle to complete - the promise returns whenever the worker is at installing.
+    public func register(url: URL, scope: URL) -> Promise<Void> {
+        
+        return self.grabNewContent(url: url, scope: scope)
+        .then { newResponse in
+            if newResponse == nil {
+                return Promise(value:())
+            } else {
+                log.info("Request for worker returned an OK response, installing new worker...")
+                return self.installServiceWorker(url: url, scope: scope, response: newResponse!, waitForFullInstallCycle: false)
+            }
+        }
+        
+    }
+    
+    
+    func installServiceWorker(url: URL, scope: URL, response: FetchResponse, waitForFullInstallCycle: Bool) -> Promise<Void> {
         return response.text()
         .then { contents in
             
@@ -185,8 +251,11 @@ public class ServiceWorkerManager {
                 log.info("Running install event for worker...")
                 let installEvent = ExtendableEvent(type: "install")
                 
-                return worker.instance.dispatchExtendableEvent(installEvent)
-                .then {
+                // This promise will run no matter what, but underneath we control whether we
+                // want to wait for it to complete or not.
+                
+                let installEventPromise = worker.instance.dispatchExtendableEvent(installEvent)
+                .then { () -> Promise<Void> in
                     let allWorkersForURL = try self.store.getAllWorkerRecords(forURL: url, withScope: scope)
                     
                     // Shouldn't really happen, but there's a chance there is already a worker in the installed
@@ -204,29 +273,49 @@ public class ServiceWorkerManager {
                     // Actually run the updates
                     try self.updateWorkerStatuses(updateInstructions)
                     
-                    if worker.instance.skipWaitingStatus == true {
-                        log.info("Worker called skipWaiting(), activating immediately")
+                    // We move onto activate immediately in two situations:
+                    // 1) skipWaiting has been called
+                    // 2) there is no active worker on this scope
+                    
+                    let activeOrActivatingWorkers = try self.store.getAllWorkerRecords(forScope: scope, includingChildScopes: false)
+                        .filter { $0.installState == .activated || $0.installState == .activating }
+                    
+                    if worker.instance.skipWaitingStatus == true || activeOrActivatingWorkers.count == 0 {
+                        if worker.instance.skipWaitingStatus == true {
+                            log.info("Worker called skipWaiting(), activating immediately")
+                        } else {
+                            log.info("There is no active worker for this scope, activating immediately")
+                        }
+                        
                         return self.activateServiceWorker(worker: worker.instance, id: newWorkerId)
                     } else {
                         log.info("Worker did not call skipWaiting(), leaving at installed status")
                     }
                     
                     return Promise(value:())
+                        
+                }.catch { err in
                     
+                    log.error("Encountered error when installing worker: " + String(describing: err))
+                    
+                    // If installation failed, set the worker to redundant
+                    do {
+                        try self.updateWorkerStatuses([UpdateStatusInstruction(id: newWorkerId, newState: ServiceWorkerInstallState.redundant)])
+                    } catch {
+                        // Not much we can do at this point
+                        log.error("Also encountered error when trying to update worker to redundant: " + String(describing: error))
+                    }
+                        
                 }
-                
-            }
-            .catch { err in
-                log.error("Encountered error when installing worker: " + String(describing: err))
-                
-                // If installation failed, set the worker to redundant
-                do {
-                    try self.updateWorkerStatuses([UpdateStatusInstruction(id: newWorkerId, newState: ServiceWorkerInstallState.redundant)])
-                } catch {
-                    // Not much we can do at this point
-                    log.error("Also encountered error when trying to update worker to redundant: " + String(describing: error))
+
+
+                    
+                if waitForFullInstallCycle == false {
+                    // If we don't want to wait for the full cycle (i.e. we ran register(), we exit early here)
+                    return Promise(value: ())
                 }
-                
+                    
+                return installEventPromise
             }
             
         }
@@ -277,17 +366,6 @@ public class ServiceWorkerManager {
         
     }
     
-    func updateWorkerState(id: Int, newStatus: ServiceWorkerInstallState) throws {
-     
-        try Db.mainDatabase.inTransaction { db in
-            
-            try db.executeUpdate("UPDATE service_workers SET install_state = ? WHERE id = ?", values: [newStatus.rawValue, id])
-        
-        }
-        
-        
-    }
-    
     
     /// We do these in bulk so that we can wrap them all in a transaction - if one fails, they all will.
     func updateWorkerStatuses(_ statuses: [UpdateStatusInstruction]) throws {
@@ -295,7 +373,9 @@ public class ServiceWorkerManager {
         try Db.mainDatabase.inTransaction { db in
             
             try statuses.forEach { statusUpdate in
-                try db.executeUpdate("UPDATE service_workers SET install_state = ? WHERE id = ?", values: [statusUpdate.newState.rawValue, statusUpdate.id])
+                
+                try self.store.updateWorkerState(workerId: statusUpdate.id, newState: statusUpdate.newState, dbTransaction: db)
+                
             }
             
         }
@@ -313,10 +393,19 @@ public class ServiceWorkerManager {
                 return
             }
             
-            self.lifecycleEvents.emit("statechange", activeInstance!)
-
+            self.lifecycleEvents.emit("statechange", WorkerStateChangeEvent(worker: activeInstance!.instance, newState: update.newState))
+            
+            activeInstance!.instance.installState = update.newState
+            
         }
         
+    }
+    
+    public func removeAllWorkersFromDatabase() throws {
+        self.clearActiveServiceWorkers()
+        try Db.mainDatabase.inTransaction { db in
+            try db.executeUpdate("DELETE FROM service_workers", values: [])
+        }
     }
     
 }

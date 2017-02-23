@@ -1,6 +1,120 @@
 (function () {
 'use strict';
 
+const __assign = Object.assign || function (target) {
+    for (var source, i = 1; i < arguments.length; i++) {
+        source = arguments[i];
+        for (var prop in source) {
+            if (Object.prototype.hasOwnProperty.call(source, prop)) {
+                target[prop] = source[prop];
+            }
+        }
+    }
+    return target;
+};
+
+function __extends(d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
+
+function __decorate(decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+}
+
+function __metadata(k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+}
+
+function __param(paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+}
+
+function __awaiter(thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments)).next());
+    });
+}
+
+function deserializeValue(asValue) {
+    if (asValue.value instanceof Array) {
+        return asValue.value.map(deserialize);
+    }
+    else if (Object(asValue.value) === asValue.value) {
+        var newObj = {};
+        for (var key in asValue.value) {
+            var serializedValue = deserialize(asValue.value[key]);
+            newObj[key] = serializedValue;
+        }
+        return newObj;
+    }
+    else if (typeof asValue.value === "string" || typeof asValue.value === "number" || typeof asValue.value === "boolean" || asValue.value === null) {
+        return asValue.value;
+    }
+    else {
+        throw new Error("Could not deserialize this value");
+    }
+}
+function deserialize(serializedObject) {
+    if (serializedObject == null) {
+        return null;
+    }
+    if (serializedObject.type === "value") {
+        return deserializeValue(serializedObject);
+    }
+    else if (serializedObject.type === "connected-item") {
+        return processSerializedItem(serializedObject);
+    }
+    else {
+        throw new Error("Did not know how to deserialize this");
+    }
+}
+
+var storedReturnPromises = [];
+var ReceiveFromNativeEvent = (function () {
+    function ReceiveFromNativeEvent(type, data) {
+        this.storedPromiseId = -1;
+        this.type = type;
+        this.data = data;
+    }
+    ReceiveFromNativeEvent.prototype.respondWith = function (promise) {
+        if (this.storedPromiseId !== -1) {
+            throw new Error("respondWith has already been called");
+        }
+        var vacantStoreId = 0;
+        while (storedReturnPromises[vacantStoreId]) {
+            vacantStoreId++;
+        }
+        storedReturnPromises[vacantStoreId] = promise;
+        this.storedPromiseId = vacantStoreId;
+    };
+    Object.defineProperty(ReceiveFromNativeEvent.prototype, "metadata", {
+        get: function () {
+            if (this.storedPromiseId === -1) {
+                return {
+                    type: 'null'
+                };
+            }
+            else {
+                return {
+                    type: 'promise',
+                    promiseId: this.storedPromiseId
+                };
+            }
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return ReceiveFromNativeEvent;
+}());
+
 var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {}
 
 function interopDefault(ex) {
@@ -305,129 +419,176 @@ if ('undefined' !== typeof module) {
 
 var EventEmitter = interopDefault(index);
 
-const __assign = Object.assign || function (target) {
-    for (var source, i = 1; i < arguments.length; i++) {
-        source = arguments[i];
-        for (var prop in source) {
-            if (Object.prototype.hasOwnProperty.call(source, prop)) {
-                target[prop] = source[prop];
-            }
+var NativeItemProxy = (function () {
+    function NativeItemProxy() {
+        this.nativeEvents = new EventEmitter();
+        this.emitJSEvent = this.emitJSEvent.bind(this);
+    }
+    NativeItemProxy.prototype.emitJSEvent = function (name, data, waitForPromiseReturn) {
+        if (data === void 0) { data = null; }
+        if (waitForPromiseReturn === void 0) { waitForPromiseReturn = true; }
+        var cmd = {
+            commandName: "itemevent",
+            target: this,
+            eventName: name,
+            data: data
+        };
+        var dispatchEvent = new DispatchToNativeEvent("sendtoitem", cmd);
+        // notNativeConsole.info(`Dispatching "${name}" event into native environment...`)
+        if (waitForPromiseReturn) {
+            return dispatchEvent.dispatchAndResolve();
         }
-    }
-    return target;
-};
-
-function __extends(d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-}
-
-function __decorate(decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-}
-
-function __metadata(k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-}
-
-function __param(paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-}
-
-function __awaiter(thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments)).next());
-    });
-}
-
-// We have one native bridge, but potentially more than one webview-side bridge
-// if we use iframes. So we need to set up a quick storage container
-// that actually references the top frame
-var sharedStorage;
-if (window.top !== window && window.top.location.href) {
-    // the href check makes sure we're on same-origin
-    sharedStorage = window.top.webkit.messageHandlers.hybrid.sharedStorage;
-}
-else {
-    sharedStorage = {};
-    window.webkit.messageHandlers.hybrid.sharedStorage = sharedStorage;
-}
-
-function deserializeValue(asValue) {
-    if (asValue.value instanceof Array) {
-        return asValue.value.map(deserialize);
-    }
-    else if (Object(asValue.value) === asValue.value) {
-        var newObj = {};
-        for (var key in asValue.value) {
-            var serializedValue = deserialize(asValue.value[key]);
-            newObj[key] = serializedValue;
+        else {
+            dispatchEvent.dispatch();
+            return Promise.resolve();
         }
-        return newObj;
+    };
+    return NativeItemProxy;
+}());
+var NativeItemProxyWithEvents = (function (_super) {
+    __extends(NativeItemProxyWithEvents, _super);
+    function NativeItemProxyWithEvents() {
+        _super.apply(this, arguments);
+        this.events = new EventEmitter();
     }
-    else if (typeof asValue.value === "string" || typeof asValue.value === "number" || typeof asValue.value === "boolean" || asValue.value === null) {
-        return asValue.value;
+    NativeItemProxyWithEvents.prototype.addEventListener = function (name, listener) {
+        this.events.on(name, listener);
+    };
+    NativeItemProxyWithEvents.prototype.removeEventListener = function (name, listener) {
+        this.events.off(name, listener);
+    };
+    NativeItemProxyWithEvents.prototype.dispatchEvent = function (ev) {
+        this.events.emit(ev.type, ev);
+    };
+    return NativeItemProxyWithEvents;
+}(NativeItemProxy));
+
+function makeSuitable(val) {
+    if (val instanceof Error) {
+        return val.toString();
     }
-}
-function deserialize(serializedObject) {
-    if (serializedObject == null) {
-        return null;
+    else if (typeof val == "string") {
+        return val;
     }
-    if (serializedObject.type === "value") {
-        return deserializeValue(serializedObject);
-    }
-    else if (serializedObject.type === "connected-item") {
-        return processSerializedItem(serializedObject);
+    else if (val === null || val === undefined) {
+        return "null";
     }
     else {
-        throw new Error("Did not know how to deserialize this");
+        var returnString = "(not stringifyable): ";
+        try {
+            returnString = JSON.stringify(val);
+        }
+        catch (err) {
+            returnString += err.toString();
+        }
+        return returnString;
     }
 }
-
-var storedReturnPromises = [];
-var ReceiveFromNativeEvent = (function () {
-    function ReceiveFromNativeEvent(type, data) {
-        this.storedPromiseId = -1;
-        this.type = type;
-        this.data = data;
+;
+var levels = ['debug', 'info', 'log', 'error', 'warn'];
+var notNativeConsole = {};
+var ConsoleInterceptor = (function (_super) {
+    __extends(ConsoleInterceptor, _super);
+    function ConsoleInterceptor(targetConsole) {
+        var _this = this;
+        _super.call(this);
+        targetConsole.doNotEmitToNative = {};
+        levels.forEach(function (level) {
+            notNativeConsole[level] = targetConsole[level].bind(targetConsole);
+            _this.createInterceptor(targetConsole, level);
+        });
     }
-    ReceiveFromNativeEvent.prototype.respondWith = function (promise) {
-        if (this.storedPromiseId !== -1) {
-            throw new Error("respondWith has already been called");
-        }
-        var vacantStoreId = 0;
-        while (storedReturnPromises[vacantStoreId]) {
-            vacantStoreId++;
-        }
-        storedReturnPromises[vacantStoreId] = promise;
-        this.storedPromiseId = vacantStoreId;
+    ConsoleInterceptor.prototype.getArgumentsForNativeConstructor = function () {
+        return [];
     };
-    Object.defineProperty(ReceiveFromNativeEvent.prototype, "metadata", {
-        get: function () {
-            if (this.storedPromiseId === -1) {
-                return {
-                    type: 'null'
-                };
+    ConsoleInterceptor.prototype.createInterceptor = function (obj, key) {
+        var originalLog = obj[key];
+        var self = this;
+        // We use this to stop forming infinite loops
+        obj.doNotEmitToNative[key] = obj[key].bind(obj);
+        obj[key] = function () {
+            originalLog.apply(obj, arguments);
+            var suitableArguments = [].slice.call(arguments).map(makeSuitable);
+            self.emitJSEvent(key, suitableArguments, false);
+        };
+    };
+    return ConsoleInterceptor;
+}(NativeItemProxy));
+
+// If a proxy creation is already happening, we want to wait until
+// it is complete before we run another, or we run into the danger
+// of running the same operation twice.
+var nativeProxyCreationCurrentlyHappening = Promise.resolve();
+function serialize(obj) {
+    if (obj === null) {
+        return Promise.resolve(null);
+    }
+    else if (obj instanceof NativeItemProxy) {
+        // is a native object
+        var asNative_1 = obj;
+        var name_1 = asNative_1.constructor.name;
+        return nativeProxyCreationCurrentlyHappening
+            .then(function () {
+            var itemIndex = getIndexOfItem(obj);
+            var retObj = {
+                type: 'connected-item',
+                existing: itemIndex > -1,
+                jsClassName: name_1,
+            };
+            if (itemIndex === -1) {
+                notNativeConsole.warn("Found new " + name_1 + " when serializing, manually creating link...");
+                retObj.initialData = asNative_1.getArgumentsForNativeConstructor();
+                var ev = new DispatchToNativeEvent("connectproxyitem", retObj);
+                // Not we set the waiting promise to be our new operation, to pause
+                // all others.
+                nativeProxyCreationCurrentlyHappening = ev.dispatchAndResolve();
+                return nativeProxyCreationCurrentlyHappening.then(function (newIndex) {
+                    retObj.index = newIndex;
+                    manuallyAddItem(newIndex, asNative_1);
+                    return retObj;
+                });
             }
             else {
-                return {
-                    type: 'promise',
-                    promiseId: this.storedPromiseId
-                };
+                retObj.index = itemIndex;
+                return Promise.resolve(retObj);
             }
-        },
-        enumerable: true,
-        configurable: true
-    });
-    return ReceiveFromNativeEvent;
-}());
+        });
+    }
+    else if (obj instanceof Array) {
+        var serializePromises = obj.map(function (o) { return serialize(o); });
+        return Promise.all(serializePromises)
+            .then(function (serialized) {
+            return {
+                type: 'value',
+                value: serialized
+            };
+        });
+    }
+    else if (Object(obj) === obj) {
+        var keys_1 = Object.keys(obj);
+        var serializePromises = keys_1.map(function (k) { return serialize(obj[k]); });
+        return Promise.all(serializePromises)
+            .then(function (serialized) {
+            var newObj = {};
+            keys_1.forEach(function (key, idx) {
+                newObj[key] = serialized[idx];
+            });
+            return {
+                type: 'value',
+                value: newObj
+            };
+        });
+    }
+    else if (typeof obj === "string" || typeof obj === "number" || typeof obj === "boolean" || obj === null) {
+        return Promise.resolve({
+            type: 'value',
+            value: obj
+        });
+    }
+    else {
+        return Promise.reject(new Error("Do not know how to serialize this item"));
+    }
+}
 
 var windowTarget = window;
 if (window.top !== window && window.top.location.href) {
@@ -441,10 +602,15 @@ if (window.top === window) {
     hybridHandler.receiveCommand = deserializeAndRunCommand;
 }
 function sendToNative(data) {
-    hybridHandler.postMessage(data);
+    serialize(data)
+        .then(function (serializedData) {
+        hybridHandler.postMessage(serializedData);
+    })
+        .catch(function (err) {
+        console.error(err);
+    });
 }
 function runCommand(instruction) {
-    console.log("Running command", instruction);
     if (instruction.commandName === "resolvepromise") {
         // When a DispatchToNativeEvent dispatches, it sends alone a numeric ID for the
         // promise that is awaiting resolving/rejecting. The native handler either waits
@@ -456,7 +622,7 @@ function runCommand(instruction) {
     if (instruction.commandName === "itemevent") {
         var itemEvent = instruction;
         var deserializedItem = itemEvent.target;
-        var deserializedData = deserialize(itemEvent.data);
+        var deserializedData = itemEvent.eventData;
         var event = new ReceiveFromNativeEvent(itemEvent.eventName, deserializedData);
         console.info("Dispatching event " + itemEvent.eventName + " in", deserializedItem);
         deserializedItem.nativeEvents.emit(itemEvent.eventName, event);
@@ -478,18 +644,38 @@ function deserializeAndRunCommand(command) {
     return runCommand(instruction);
 }
 
+// We have one native bridge, but potentially more than one webview-side bridge
+// if we use iframes. So we need to set up a quick storage container
+// that actually references the top frame
+var sharedStorage;
+if (window.top !== window && window.top.location.href) {
+    // the href check makes sure we're on same-origin
+    sharedStorage = window.top.webkit.messageHandlers.hybrid.sharedStorage;
+}
+else {
+    sharedStorage = {};
+    window.webkit.messageHandlers.hybrid.sharedStorage = sharedStorage;
+}
+
 if (!sharedStorage.storedResolves) {
     sharedStorage.storedResolves = {};
 }
 var storedResolves = sharedStorage.storedResolves;
 var DispatchToNativeEvent = (function () {
-    function DispatchToNativeEvent(type, data, targetItemId) {
-        if (targetItemId === void 0) { targetItemId = null; }
+    function DispatchToNativeEvent(type, data) {
+        if (data === void 0) { data = null; }
         this.storedResolveId = -1;
         this.type = type;
         this.data = data;
-        this.targetItemId = targetItemId;
     }
+    DispatchToNativeEvent.prototype.dispatch = function () {
+        // notNativeConsole.info(`Dispatching command ${this.type} to native...`, this.data)
+        sendToNative({
+            command: this.type,
+            data: this.data,
+            storedResolveId: this.storedResolveId
+        });
+    };
     // Dispatch this event to the native environment, and wait
     // for a response
     DispatchToNativeEvent.prototype.dispatchAndResolve = function () {
@@ -501,12 +687,7 @@ var DispatchToNativeEvent = (function () {
             }
             storedResolves[vacantResolveId] = { fulfill, reject };
             _this.storedResolveId = vacantResolveId;
-            sendToNative({
-                command: _this.type,
-                data: _this.data,
-                storedResolveId: _this.storedResolveId,
-                targetItemId: _this.targetItemId
-            });
+            _this.dispatch();
         });
     };
     DispatchToNativeEvent.resolvePromise = function (promiseId, data, error) {
@@ -522,29 +703,26 @@ var DispatchToNativeEvent = (function () {
     return DispatchToNativeEvent;
 }());
 
-if (!sharedStorage.connectedItems) {
-    // ensure we are running with a clean slate.
-    new DispatchToNativeEvent("clearbridgeitems", null).dispatchAndResolve();
-    sharedStorage.connectedItems = [];
-}
-var connectedItems = sharedStorage.connectedItems;
+var connectedItems = null;
 var registeredClasses = {};
-function addItem(item) {
-    connectedItems.push(item);
-    return connectedItems.length - 1;
+function initializeStore() {
+    if (sharedStorage.connectedItems) {
+        // we're already initialized
+        console.info("Store already exists (we're in a frame?)");
+        connectedItems = sharedStorage.connectedItems;
+        return;
+    }
+    console.warn("Clearing bridge items on native and JS side");
+    new DispatchToNativeEvent("clearbridgeitems").dispatchAndResolve();
+    sharedStorage.connectedItems = [];
+    connectedItems = sharedStorage.connectedItems;
+}
+function manuallyAddItem(index, item) {
+    connectedItems[index] = item;
 }
 function registerClass(name, classObj) {
+    console.info("Registering " + name + " as a native proxy class");
     registeredClasses[name] = classObj;
-}
-function dispatchTargetedEvent(target, name, data) {
-    var itemIndex = getIndexOfItem(target);
-    if (itemIndex === -1) {
-        throw new Error("Item is not in our collection of connected items.");
-    }
-    console.info("Dispatching event \"" + name + "\" to connected " + target.constructor.name + " (#" + itemIndex + ")");
-    var nativeEvent = { name, data };
-    var ev = new DispatchToNativeEvent("sendtoitem", nativeEvent, itemIndex);
-    return ev.dispatchAndResolve();
 }
 function createItem(item) {
     var classToCreate = registeredClasses[item.jsClassName];
@@ -554,14 +732,23 @@ function createItem(item) {
     if (connectedItems[item.index]) {
         throw new Error("Item already exists at index #" + item.index);
     }
-    var newInstance = new classToCreate(item.index, item.initialData);
+    // Our custom item declaration isn't made of serialized values in the same way other stuff is.
+    // However, the initialData argument *is*, since we don't know what will be passed in.
+    var initialData = deserialize(item.initialData);
+    // Creating a new instance via apply:
+    // http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
+    // first argument is ignored
+    initialData.unshift(null);
+    var newInstance = new (Function.prototype.bind.apply(classToCreate, initialData));
     connectedItems[item.index] = newInstance;
+    console.info("Created an instance of " + item.jsClassName + " at index #" + item.index);
     return newInstance;
 }
 function getExistingItem(item) {
     var existingItem = connectedItems[item.index];
     if (!existingItem) {
-        throw new Error("Item does not exist at index #" + item.index);
+        console.error(connectedItems);
+        throw new Error(("Item of type " + item.jsClassName + " does not exist at index #") + item.index);
     }
     return existingItem;
 }
@@ -577,76 +764,143 @@ function getIndexOfItem(item) {
     return connectedItems.indexOf(item);
 }
 
-var NativeItemProxy = (function () {
-    function NativeItemProxy() {
-        this.nativeId = -1;
-        this.nativeEvents = new EventEmitter();
-    }
-    // constructor(nativeClassName: string, args:IArguments) {
-    //     let ev = new DispatchToNativeEvent("createbridgeitem", {
-    //         className: nativeClassName,
-    //         args: [].slice.call(args)
-    //     })
-    //     this.nativeIdFetch = ev.dispatchAndResolve()
-    //     .then((id) => {
-    //         console.log('IIIDDD', id);
-    //         // console.info(`Created native bridge for ${nativeClassName} with ID #${id}`);
-    //         return id;
-    //     })
-    // }
-    NativeItemProxy.createWithBridge = function () {
-        var argArray = [].slice.call(arguments);
-        var thisClass = this;
-        var instance = new (thisClass.bind.apply(thisClass, [void 0].concat(argArray)))();
-        var idx = addItem(instance);
-        console.info("Trying to register an instance of " + thisClass.name + " at index #" + idx + "...");
-        var ev = new DispatchToNativeEvent("createbridgeitem", {
-            itemIndex: idx,
-            className: thisClass.name,
-            args: argArray
-        });
-        ev.dispatchAndResolve()
-            .catch(function (err) {
-            console.error(err);
-        });
-        return instance;
-    };
-    NativeItemProxy.prototype.sendToNative = function (name, data) {
-        if (data === void 0) { data = null; }
-        return dispatchTargetedEvent(this, name, data);
-    };
-    return NativeItemProxy;
-}());
-
 var ServiceWorkerContainer = (function (_super) {
     __extends(ServiceWorkerContainer, _super);
     function ServiceWorkerContainer() {
-        _super.apply(this, arguments);
+        var _this = this;
+        _super.call(this);
+        // This doesn't actually do anything except serialize the container and
+        // send it over to the native side. If we don't do that, the native version
+        // never gets created, so never looks for workers etc.
+        this.emitJSEvent("init");
+        this.nativeEvents.on('newactiveregistration', this.receiveActiveRegistration.bind(this));
+        // Create our ready promise, and set a listener that'll fulfill the promise
+        // when we receive a new active registration.
+        this.ready = new Promise(function (fulfill, reject) {
+            _this.nativeEvents.once('newactiveregistration', function (ev) {
+                console.log('FIRED READY EVENT');
+                var reg = ev.data;
+                try {
+                    fulfill(reg);
+                }
+                catch (err) {
+                    reject(err);
+                }
+            });
+        });
+        this.addEventListener('controllerchange', function (ev) {
+            if (this.oncontrollerchange instanceof Function) {
+                this.oncontrollerchange(ev);
+            }
+        });
     }
-    // constructor() {
-    //     super();
-    // this.nativeEvents.on('test', (e:ReceiveFromNativeEvent) => {
-    //     console.log("it worked?")
-    //     // e.respondWith(
-    //     //     Promise.resolve('test')
-    //     // )
-    // })
-    // setTimeout(() => {
-    //     this.sendToNative("test", {one: "two"})
-    //     .then((response) => {
-    //         console.log('promise response', response);
-    //     })
-    // }, 100)
-    // }
+    ServiceWorkerContainer.prototype.receiveActiveRegistration = function (ev) {
+        console.log('wtffffff');
+        var newRegistration = ev.data;
+        this.controller = newRegistration.active;
+        this.dispatchEvent({
+            type: "controllerchange",
+            target: this
+        });
+        console.log("SET CONTROLLER?", newRegistration.active);
+    };
+    ServiceWorkerContainer.prototype.getArgumentsForNativeConstructor = function () {
+        var frameType = window.top === window ? 'top-level' : 'nested';
+        return [window.location.href, frameType];
+    };
     ServiceWorkerContainer.prototype.register = function (url, options) {
         if (options === void 0) { options = {}; }
-        return this.sendToNative("register", [url, options]);
+        return this.emitJSEvent("register", [url, options]);
     };
     ServiceWorkerContainer.prototype.getRegistrations = function () {
-        return this.sendToNative("getRegistrations");
+        return this.emitJSEvent("getRegistrations")
+            .then(function (r) {
+            console.log('result?', r);
+            return r;
+        });
     };
     return ServiceWorkerContainer;
+}(NativeItemProxyWithEvents));
+registerClass("ServiceWorkerContainer", ServiceWorkerContainer);
+
+var ServiceWorkerRegistration = (function (_super) {
+    __extends(ServiceWorkerRegistration, _super);
+    function ServiceWorkerRegistration(scope) {
+        _super.call(this);
+        this.scope = scope;
+        this.nativeEvents.on('statechange', this.setWorkerState.bind(this));
+    }
+    ServiceWorkerRegistration.prototype.setWorkerState = function (ev) {
+        var _a = ev.data, property = _a.property, worker = _a.worker;
+        if (property === 'installing') {
+            this.installing = worker;
+        }
+        else if (property === 'waiting') {
+            this.waiting = worker;
+        }
+        else if (property === 'activating') {
+            this.activating = worker;
+        }
+        else if (property === 'active') {
+            this.active = worker;
+        }
+        else if (property === 'redundant') {
+            this.redundant = worker;
+        }
+        else {
+            throw new Error("Did not understand property " + property);
+        }
+        console.info("Received worker for state: " + property);
+        console.log('workerstate', arguments);
+    };
+    ServiceWorkerRegistration.prototype.getArgumentsForNativeConstructor = function () {
+        return [];
+    };
+    ServiceWorkerRegistration.prototype.unregister = function () {
+        return this.emitJSEvent("unregister", null);
+    };
+    return ServiceWorkerRegistration;
 }(NativeItemProxy));
+;
+registerClass("ServiceWorkerRegistration", ServiceWorkerRegistration);
+
+var ServiceWorker = (function (_super) {
+    __extends(ServiceWorker, _super);
+    function ServiceWorker(scriptURL, state) {
+        _super.call(this);
+        this.onstatechange = undefined;
+        this.scriptURL = scriptURL;
+        this.state = state;
+        this.nativeEvents.on("statechange", this.processStateChange.bind(this));
+        this.addEventListener("statechange", this.checkStateChangeObject.bind(this));
+    }
+    ServiceWorker.prototype.processStateChange = function (ev) {
+        var newState = ev.data;
+        this.state = newState;
+        this.dispatchEvent({
+            type: 'statechange',
+            target: this
+        });
+    };
+    // If we've manually set the onstatechange variable we need to call it.
+    ServiceWorker.prototype.checkStateChangeObject = function (ev) {
+        // console.log('statechange?', this.onstatechange, this.onstatechange instanceof Function)
+        if (this.onstatechange instanceof Function) {
+            console.log("RUNNING FUNCTION");
+            this.onstatechange(ev);
+        }
+    };
+    ServiceWorker.prototype.getArgumentsForNativeConstructor = function () {
+        throw new Error("Cannot be constructed on JS side");
+    };
+    return ServiceWorker;
+}(NativeItemProxyWithEvents));
+registerClass("ServiceWorker", ServiceWorker);
+
+var target = window;
+target.ServiceWorkerRegistration = ServiceWorkerRegistration;
+target.ServiceWorkerContainer = ServiceWorkerContainer;
+target.ServiceWorker = ServiceWorker;
 
 // import './navigator/service-worker';
 // import './console';
@@ -655,7 +909,11 @@ var ServiceWorkerContainer = (function (_super) {
 // import './notification/notification';
 // import './util/set-document-html';
 // import './load-handler';
-navigator.serviceWorker = ServiceWorkerContainer.createWithBridge();
+initializeStore();
+new ConsoleInterceptor(console);
+// If this is a page reload, we might still have bridge items cached
+// on the native side. Just to be sure, clear them out.
+navigator.serviceWorker = new ServiceWorkerContainer();
 window.shimDidLoad = true;
 
 }());

@@ -1,10 +1,11 @@
+import { DispatchToNativeEvent } from './dispatch-to-native-event';
 import { deserialize } from '../deserializer/deserialize';
 import { BridgeCommand, BridgeItemEventCommand, RegisterItemCommand, ResolvePromiseCommand } from './bridge-commands';
-import { processSerializedItem } from './connected-items';
 import { NativeItemProxy } from './native-item-proxy';
 import { Serialized } from '../deserializer/deserialize-types';
 import { ReceiveFromNativeEvent } from './receive-from-native-event';
-import { DispatchToNativeEvent } from './dispatch-to-native-event';
+import { serialize } from '../deserializer/serialize';
+import { notNativeConsole } from '../global/console';
 
 let windowTarget: any = window;
 
@@ -22,13 +23,16 @@ if (window.top === window) {
 }
 
 export function sendToNative(data:any) {
-
-    hybridHandler.postMessage(data);
+    serialize(data)
+    .then((serializedData) => {
+        hybridHandler.postMessage(serializedData);
+    })
+    .catch((err) => {
+        console.error(err);
+    })
 }
 
 export function runCommand(instruction: BridgeCommand):any {
-
-    console.log("Running command", instruction)
 
     if (instruction.commandName === "resolvepromise") {
 
@@ -48,7 +52,7 @@ export function runCommand(instruction: BridgeCommand):any {
         let itemEvent = (instruction as BridgeItemEventCommand);
 
         let deserializedItem = itemEvent.target as NativeItemProxy;
-        let deserializedData = deserialize(itemEvent.data);
+        let deserializedData = itemEvent.eventData;
 
         let event = new ReceiveFromNativeEvent(itemEvent.eventName, deserializedData);
 

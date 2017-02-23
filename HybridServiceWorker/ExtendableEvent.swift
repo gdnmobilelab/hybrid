@@ -13,8 +13,9 @@ import HybridShared
 
 class PromiseAlreadyResolvedError : Error {}
 
-@objc public protocol ExtendableEventExports: JSEvent {
+@objc public protocol ExtendableEventExports: JSEvent, JSExport {
     init(type:String)
+    
     func waitUntil(_ promise:JSValue)
 }
 

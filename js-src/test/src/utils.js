@@ -5,6 +5,9 @@ Promise.prototype.always = function(onResolveOrReject) {
       .then(() => {
         throw reason;
       })
+      .catch((err) => {
+        throw err;
+      })
       
     });
 };

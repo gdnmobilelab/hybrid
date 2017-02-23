@@ -44,5 +44,7 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>SERVICE_WORKER_ENABLED_DOMAINS</key>
+	<string>${SERVICE_WORKER_ENABLED_DOMAINS}</string>
 </dict>
 </plist>

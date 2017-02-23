@@ -4,7 +4,16 @@ module.exports = [
         reply: {
             headers: { "content-type": "text/javascript" },
             body: `
-                
+                self.addEventListener('install', function(e) {
+                    // Delay install so that we catch the installing state
+
+                    var p = new Promise(function(fulfill,reject) {
+                        setTimeout(fulfill, 100);
+                    });
+
+                    e.waitUntil(p);
+                })
+
             `
         }
     },

@@ -11,5 +11,5 @@ import Foundation
 struct WebviewMessage {
     let command: String
     let data: Any?
-    let webview:HybridWebview
+    let messageHandler: HybridMessageManager
 }

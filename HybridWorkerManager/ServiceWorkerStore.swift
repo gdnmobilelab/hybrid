@@ -47,7 +47,7 @@ class ServiceWorkerStore {
             .joined(separator: ",")
         
         
-        return try self.getWorkerRecordsFor(whereString: "id IN (" + questionMarks + ")", values: forIds)
+        return try self.getWorkerRecordsFor(whereString: "instance_id IN (" + questionMarks + ")", values: forIds)
         
     }
     
@@ -113,17 +113,34 @@ class ServiceWorkerStore {
         
         try Db.mainDatabase.inDatabase { db in
             
-            let resultSet = try db.executeQuery("SELECT contents FROM service_workers WHERE id = ?", values: [byId])
+            let resultSet = try db.executeQuery("SELECT contents FROM service_workers WHERE instance_id = ?", values: [byId])
             
             if resultSet.next() == false {
+                resultSet.close()
                 throw ErrorMessage("No worker exists with this ID")
             }
             
             contents = resultSet.string(forColumn: "contents")!
+            
+            resultSet.close()
         }
         
         
         return contents!
+    }
+    
+    func updateWorkerState(workerId:Int, newState: ServiceWorkerInstallState, dbTransaction: FMDatabase? = nil) throws {
+        
+        let actOn = { (db:FMDatabase) throws in
+            try db.executeUpdate("UPDATE service_workers SET install_state = ? WHERE instance_id = ?", values: [newState.rawValue, workerId])
+        }
+        
+        if dbTransaction == nil {
+            try Db.mainDatabase.inTransaction(actOn)
+        } else {
+            try actOn(dbTransaction!)
+        }
+        
     }
     
     

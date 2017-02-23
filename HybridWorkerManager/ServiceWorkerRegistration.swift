@@ -22,7 +22,7 @@ class ServiceWorkerRegistration: ServiceWorkerRegistrationProtocol {
         self.scope = scope
         self.scriptURL = scriptURL
         self.manager = manager
-        self.updateListener = self.manager.lifecycleEvents.on("statechange", self.receiveWorkerUpdate)
+//        self.updateListener = self.manager.lifecycleEvents.on("statechange", self.receiveWorkerUpdate)
     }
     
     var active: ServiceWorkerInstance?
@@ -41,62 +41,62 @@ class ServiceWorkerRegistration: ServiceWorkerRegistrationProtocol {
         return self.manager.update(url: self.scriptURL, scope: self.scope)
     }
     
-    fileprivate func clearWorkerFromAllInstances(worker: ServiceWorkerInstance) {
-        
-        if self.active == worker {
-            self.active = nil
-        }
-        
-        if self.waiting == worker {
-            self.waiting = nil
-        }
-        
-        if self.installing == worker {
-            self.installing = nil
-        }
-        
-    }
+//    fileprivate func clearWorkerFromAllInstances(worker: ServiceWorkerInstance) {
+//        
+//        if self.active == worker {
+//            self.active = nil
+//        }
+//        
+//        if self.waiting == worker {
+//            self.waiting = nil
+//        }
+//        
+//        if self.installing == worker {
+//            self.installing = nil
+//        }
+//        
+//    }
     
     
     /// As the manager alters the state of workers, we need to reflect this in our
     /// ServiceWorkerRegistration instance
     ///
     /// - Parameter bridge: The bridge with the state that changed
-    fileprivate func receiveWorkerUpdate(bridge: ServiceWorkerInstanceBridge) {
-        
-        if bridge.registration.scope != self.scope {
-            // If it isn't the same scope as this registration, we can safely ignore it
-            return
-        }
-        
-        // Otherwise, update our worker collection accordingly. A worker should only
-        // occupy one slot, so we clear it out from any existing ones before placing it
-        // in the new slot.
-        
-        let newState = bridge.instance.installState
-        let newInstance = bridge.instance
-        
-        if newState == .redundant {
-            
-            clearWorkerFromAllInstances(worker: newInstance)
-            
-        } else if newState == .activated && self.active != newInstance {
-            
-            clearWorkerFromAllInstances(worker: newInstance)
-            self.active = newInstance
-            
-        } else if newState == .installed && self.waiting != newInstance {
-            
-            clearWorkerFromAllInstances(worker: newInstance)
-            self.waiting = newInstance
-            
-        } else if newState == .installing && self.installing != newInstance {
-            
-            clearWorkerFromAllInstances(worker: newInstance)
-            self.installing = newInstance
-            
-        }
-        
-        
-    }
+//    fileprivate func receiveWorkerUpdate(bridge: ServiceWorkerInstanceBridge) {
+//        
+//        if bridge.registration.scope != self.scope {
+//            // If it isn't the same scope as this registration, we can safely ignore it
+//            return
+//        }
+//        
+//        // Otherwise, update our worker collection accordingly. A worker should only
+//        // occupy one slot, so we clear it out from any existing ones before placing it
+//        // in the new slot.
+//        
+//        let newState = bridge.instance.installState
+//        let newInstance = bridge.instance
+//        
+//        if newState == .redundant {
+//            
+//            clearWorkerFromAllInstances(worker: newInstance)
+//            
+//        } else if newState == .activated && self.active != newInstance {
+//            
+//            clearWorkerFromAllInstances(worker: newInstance)
+//            self.active = newInstance
+//            
+//        } else if newState == .installed && self.waiting != newInstance {
+//            
+//            clearWorkerFromAllInstances(worker: newInstance)
+//            self.waiting = newInstance
+//            
+//        } else if newState == .installing && self.installing != newInstance {
+//            
+//            clearWorkerFromAllInstances(worker: newInstance)
+//            self.installing = newInstance
+//            
+//        }
+//        
+//        
+//    }
 }

@@ -58,6 +58,14 @@
 		8A24494B1D6F760300052D92 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24494A1D6F760300052D92 /* Util.swift */; };
 		8A2475881D623BDA008906FB /* EventManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2475871D623BDA008906FB /* EventManager.swift */; };
 		8A263A7F1D354D7C00B6505E /* TimeoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */; };
+		8A285F6A1E5C95BA001FBD05 /* Deserializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A285F691E5C95BA001FBD05 /* Deserializer.swift */; };
+		8A285F6C1E5CC5C1001FBD05 /* ConsoleInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A285F6B1E5CC5C1001FBD05 /* ConsoleInterceptor.swift */; };
+		8A285F6E1E5CE923001FBD05 /* js-dist in Resources */ = {isa = PBXBuildFile; fileRef = 8A285F6D1E5CE923001FBD05 /* js-dist */; };
+		8A285F731E5DE679001FBD05 /* ServiceWorkerProxy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A285F721E5DE679001FBD05 /* ServiceWorkerProxy.swift */; };
+		8A285F761E5F4900001FBD05 /* StateChangeEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A285F751E5F4900001FBD05 /* StateChangeEvent.swift */; };
+		8A285F7A1E5F8BA4001FBD05 /* ServiceWorkerEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A285F791E5F8BA4001FBD05 /* ServiceWorkerEvent.swift */; };
+		8A285F7C1E5F8EB1001FBD05 /* GetWorkerClientsEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A285F7B1E5F8EB1001FBD05 /* GetWorkerClientsEvent.swift */; };
+		8A285F7E1E5F8F9F001FBD05 /* WorkerClientProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A285F7D1E5F8F9F001FBD05 /* WorkerClientProtocol.swift */; };
 		8A3B377A1E492CF700FB95EF /* HybridServiceWorker.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A3B37711E492CF700FB95EF /* HybridServiceWorker.framework */; };
 		8A3B37811E492CF700FB95EF /* HybridServiceWorkerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3B37801E492CF700FB95EF /* HybridServiceWorkerTests.swift */; };
 		8A3B37831E492CF700FB95EF /* HybridServiceWorker.h in Headers */ = {isa = PBXBuildFile; fileRef = 8A3B37731E492CF700FB95EF /* HybridServiceWorker.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -100,7 +108,7 @@
 		8A55C63A1D6378A0004AFD21 /* WebviewClientManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */; };
 		8A588AC21E521323008EFDF0 /* HybridWebview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A588AC11E521323008EFDF0 /* HybridWebview.swift */; };
 		8A588AC41E521C5B008EFDF0 /* HybridMessageReceiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A588AC31E521C5B008EFDF0 /* HybridMessageReceiver.swift */; };
-		8A588AC61E5226B6008EFDF0 /* ReturnSerializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A588AC51E5226B6008EFDF0 /* ReturnSerializer.swift */; };
+		8A588AC61E5226B6008EFDF0 /* Serializer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A588AC51E5226B6008EFDF0 /* Serializer.swift */; };
 		8A588ACA1E524681008EFDF0 /* ReturnSerializerSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A588AC91E524681008EFDF0 /* ReturnSerializerSpec.swift */; };
 		8A588ACC1E524DAC008EFDF0 /* js-dist in Resources */ = {isa = PBXBuildFile; fileRef = 8A588ACB1E524DAC008EFDF0 /* js-dist */; };
 		8A588AD01E52708F008EFDF0 /* BridgeCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A588ACF1E52708F008EFDF0 /* BridgeCommand.swift */; };
@@ -554,6 +562,14 @@
 		8A2475871D623BDA008906FB /* EventManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EventManager.swift; sourceTree = "<group>"; };
 		8A263A7C1D353D9300B6505E /* ServiceWorkerWebSqlSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerWebSqlSpec.swift; sourceTree = "<group>"; };
 		8A263A7E1D354D7C00B6505E /* TimeoutManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeoutManager.swift; sourceTree = "<group>"; };
+		8A285F691E5C95BA001FBD05 /* Deserializer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Deserializer.swift; sourceTree = "<group>"; };
+		8A285F6B1E5CC5C1001FBD05 /* ConsoleInterceptor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsoleInterceptor.swift; sourceTree = "<group>"; };
+		8A285F6D1E5CE923001FBD05 /* js-dist */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "js-dist"; sourceTree = "<group>"; };
+		8A285F721E5DE679001FBD05 /* ServiceWorkerProxy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerProxy.swift; sourceTree = "<group>"; };
+		8A285F751E5F4900001FBD05 /* StateChangeEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StateChangeEvent.swift; sourceTree = "<group>"; };
+		8A285F791E5F8BA4001FBD05 /* ServiceWorkerEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerEvent.swift; sourceTree = "<group>"; };
+		8A285F7B1E5F8EB1001FBD05 /* GetWorkerClientsEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GetWorkerClientsEvent.swift; sourceTree = "<group>"; };
+		8A285F7D1E5F8F9F001FBD05 /* WorkerClientProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WorkerClientProtocol.swift; sourceTree = "<group>"; };
 		8A3A74EF1D5E0B9400A7940C /* ServiceWorkerAPISpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerAPISpec.swift; sourceTree = "<group>"; };
 		8A3B37711E492CF700FB95EF /* HybridServiceWorker.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = HybridServiceWorker.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A3B37731E492CF700FB95EF /* HybridServiceWorker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HybridServiceWorker.h; sourceTree = "<group>"; };
@@ -599,7 +615,7 @@
 		8A55C6391D6378A0004AFD21 /* WebviewClientManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebviewClientManager.swift; sourceTree = "<group>"; };
 		8A588AC11E521323008EFDF0 /* HybridWebview.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridWebview.swift; sourceTree = "<group>"; };
 		8A588AC31E521C5B008EFDF0 /* HybridMessageReceiver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HybridMessageReceiver.swift; sourceTree = "<group>"; };
-		8A588AC51E5226B6008EFDF0 /* ReturnSerializer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReturnSerializer.swift; sourceTree = "<group>"; };
+		8A588AC51E5226B6008EFDF0 /* Serializer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Serializer.swift; sourceTree = "<group>"; };
 		8A588AC91E524681008EFDF0 /* ReturnSerializerSpec.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ReturnSerializerSpec.swift; path = HybridTestsNew/ReturnSerializerSpec.swift; sourceTree = SOURCE_ROOT; };
 		8A588ACB1E524DAC008EFDF0 /* js-dist */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "js-dist"; sourceTree = "<group>"; };
 		8A588ACF1E52708F008EFDF0 /* BridgeCommand.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BridgeCommand.swift; sourceTree = "<group>"; };
@@ -924,6 +940,7 @@
 		8A04BE9E1E4B757300E3722A /* HybridWorkerManager */ = {
 			isa = PBXGroup;
 			children = (
+				8A285F741E5F48F7001FBD05 /* Events */,
 				8A81A3EB1E4CE77900BC2861 /* WorkerImplementation */,
 				8A04BEB21E4B7DF000E3722A /* Store */,
 				8A04BEA91E4B764200E3722A /* Manager */,
@@ -968,11 +985,29 @@
 			name = native;
 			sourceTree = "<group>";
 		};
+		8A285F681E5C956B001FBD05 /* Serialize */ = {
+			isa = PBXGroup;
+			children = (
+				8A588AC51E5226B6008EFDF0 /* Serializer.swift */,
+				8A285F691E5C95BA001FBD05 /* Deserializer.swift */,
+			);
+			name = Serialize;
+			sourceTree = "<group>";
+		};
+		8A285F741E5F48F7001FBD05 /* Events */ = {
+			isa = PBXGroup;
+			children = (
+				8A285F751E5F4900001FBD05 /* StateChangeEvent.swift */,
+			);
+			name = Events;
+			sourceTree = "<group>";
+		};
 		8A3B37721E492CF700FB95EF /* HybridServiceWorker */ = {
 			isa = PBXGroup;
 			children = (
 				8A3B37731E492CF700FB95EF /* HybridServiceWorker.h */,
 				8A3B37741E492CF700FB95EF /* Info.plist */,
+				8A285F6D1E5CE923001FBD05 /* js-dist */,
 				8AA9A9C11E4A2D8B00468A3F /* Cache */,
 				8AA9A9CE1E4A2EE000468A3F /* Canvas */,
 				8AA9A9F01E4A487200468A3F /* Client */,
@@ -1053,6 +1088,8 @@
 			children = (
 				8A81A4181E4E2DF100BC2861 /* ServiceWorkerContainer.swift */,
 				8AB8D0F81E561D4700D0E5F4 /* ServiceWorkerRegistration.swift */,
+				8A285F6B1E5CC5C1001FBD05 /* ConsoleInterceptor.swift */,
+				8A285F721E5DE679001FBD05 /* ServiceWorkerProxy.swift */,
 			);
 			name = BridgeItems;
 			sourceTree = "<group>";
@@ -1143,12 +1180,12 @@
 		8A81A4061E4E26E400BC2861 /* WebviewBridge */ = {
 			isa = PBXGroup;
 			children = (
+				8A285F681E5C956B001FBD05 /* Serialize */,
 				8A588ACE1E527080008EFDF0 /* Commands */,
 				8A81A40B1E4E287E00BC2861 /* MessageTypes */,
 				8A81A4071E4E26FC00BC2861 /* MessageHandler.swift */,
 				8AB48D141E4E7EFB008C01D7 /* WebviewMessage.swift */,
 				8A588AC31E521C5B008EFDF0 /* HybridMessageReceiver.swift */,
-				8A588AC51E5226B6008EFDF0 /* ReturnSerializer.swift */,
 				8A588AF91E53A9C1008EFDF0 /* DelayedPromiseStore.swift */,
 			);
 			name = WebviewBridge;
@@ -1342,6 +1379,8 @@
 			children = (
 				8AA9A9E91E4A45CC00468A3F /* ExtendableEvent.swift */,
 				8A81A3F31E4E1F6A00BC2861 /* StateChangeEvent.swift */,
+				8A285F791E5F8BA4001FBD05 /* ServiceWorkerEvent.swift */,
+				8A285F7B1E5F8EB1001FBD05 /* GetWorkerClientsEvent.swift */,
 			);
 			name = Events;
 			sourceTree = "<group>";
@@ -1353,6 +1392,7 @@
 				8AA9A9F11E4A488200468A3F /* WebviewRecord.swift */,
 				8AA9AA061E4A57E900468A3F /* PendingWebviewAction.swift */,
 				8AA9AA081E4A5A0200468A3F /* WebviewClientManager.swift */,
+				8A285F7D1E5F8F9F001FBD05 /* WorkerClientProtocol.swift */,
 			);
 			name = Client;
 			sourceTree = "<group>";
@@ -1688,6 +1728,7 @@
 				8A3B376E1E492CF700FB95EF /* Headers */,
 				8A3B376F1E492CF700FB95EF /* Resources */,
 				7A65D8CAFAEA7D94EE54CAB2 /* [CP] Copy Pods Resources */,
+				8A285F6F1E5CE95F001FBD05 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -2076,6 +2117,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A285F6E1E5CE923001FBD05 /* js-dist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2393,6 +2435,19 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-HybridServiceWorker/Pods-HybridServiceWorker-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		8A285F6F1E5CE95F001FBD05 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd js-src\nnpm run rollup -- src/service-worker/worker-context.ts -o ../HybridServiceWorker/js-dist/worker-context.js";
+		};
 		8A3B37BC1E494B8300FB95EF /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -2636,6 +2691,7 @@
 			files = (
 				8A04BEB11E4B7CEC00E3722A /* ServiceWorkerInstanceBridge.swift in Sources */,
 				8A04BEAB1E4B766F00E3722A /* ServiceWorkerManager.swift in Sources */,
+				8A285F761E5F4900001FBD05 /* StateChangeEvent.swift in Sources */,
 				8A04BEB41E4B7E2A00E3722A /* ServiceWorkerRecord.swift in Sources */,
 				8A81A4151E4E2A8700BC2861 /* UpdateStatusInstruction.swift in Sources */,
 				8A81A3ED1E4CE78C00BC2861 /* ServiceWorkerRegistration.swift in Sources */,
@@ -2657,11 +2713,13 @@
 				8AE51ACC1E4A2B5E0099AF77 /* ServiceWorkerCacheStorage.swift in Sources */,
 				8AA9A9F21E4A488200468A3F /* WebviewRecord.swift in Sources */,
 				8AA9AA111E4A5C3000468A3F /* PendingNotificationShowStore.swift in Sources */,
+				8A285F7A1E5F8BA4001FBD05 /* ServiceWorkerEvent.swift in Sources */,
 				8A81A3EA1E4CE50500BC2861 /* NotificationGetOptions.swift in Sources */,
 				8AA9AA2C1E4A6E2D00468A3F /* PendingPushEventStore.swift in Sources */,
 				8AA9AA051E4A505E00468A3F /* JSContextError.swift in Sources */,
 				8AA9AA281E4A6CF400468A3F /* WebSQLDatabase.swift in Sources */,
 				8A3B378F1E492DAC00FB95EF /* ServiceWorkerInstance.swift in Sources */,
+				8A285F7E1E5F8F9F001FBD05 /* WorkerClientProtocol.swift in Sources */,
 				8AA9A9C41E4A2DAB00468A3F /* PushMananger.swift in Sources */,
 				8A04BEC01E4CD13C00E3722A /* NotificationShowOptions.swift in Sources */,
 				8AE51AC81E4A2B100099AF77 /* ServiceWorkerGlobalScope.swift in Sources */,
@@ -2691,6 +2749,7 @@
 				8AA9A9CD1E4A2E7900468A3F /* ExtendableMessageEvent.swift in Sources */,
 				8A04BEBE1E4CCD7C00E3722A /* ServiceWorkerRegistrationWrapper.swift in Sources */,
 				8A3B37981E4931C300FB95EF /* ServiceWorkerInstallState.swift in Sources */,
+				8A285F7C1E5F8EB1001FBD05 /* GetWorkerClientsEvent.swift in Sources */,
 				8AA9A9EC1E4A478500468A3F /* PushMessageData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2770,13 +2829,16 @@
 				8AB8D0FC1E561F6700D0E5F4 /* ServiceWorkerRegistrationManager.swift in Sources */,
 				8A81A40D1E4E288900BC2861 /* ServiceWorkerRegister.swift in Sources */,
 				8A588AD01E52708F008EFDF0 /* BridgeCommand.swift in Sources */,
-				8A588AC61E5226B6008EFDF0 /* ReturnSerializer.swift in Sources */,
+				8A588AC61E5226B6008EFDF0 /* Serializer.swift in Sources */,
 				8AB48D151E4E7EFB008C01D7 /* WebviewMessage.swift in Sources */,
+				8A285F6C1E5CC5C1001FBD05 /* ConsoleInterceptor.swift in Sources */,
 				8A81A4191E4E2DF100BC2861 /* ServiceWorkerContainer.swift in Sources */,
 				8AB8D0D91E56074800D0E5F4 /* HybridUIContainer.swift in Sources */,
+				8A285F731E5DE679001FBD05 /* ServiceWorkerProxy.swift in Sources */,
 				8A81A4081E4E26FC00BC2861 /* MessageHandler.swift in Sources */,
 				8AB8D0D71E54B9E700D0E5F4 /* ItemEventCommand.swift in Sources */,
 				8A588AC21E521323008EFDF0 /* HybridWebview.swift in Sources */,
+				8A285F6A1E5C95BA001FBD05 /* Deserializer.swift in Sources */,
 				8A8DAD151E54A61B00CD1767 /* ResolvePromiseCommand.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

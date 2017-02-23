@@ -18,8 +18,9 @@ import HybridShared
 @objc class ServiceWorkerGlobalScope: NSObject, ServiceWorkerGlobalScopeExports {
     
     var skipWaitingStatus = false
-    let jsContext:JSContext
-    let scope:URL
+//    let jsContext:JSContext
+//    let scope:URL
+    let worker:ServiceWorkerInstance
     let cache:ServiceWorkerCacheStorage
     let timeout: TimeoutManager
     let console: Console
@@ -27,14 +28,15 @@ import HybridShared
     let registration: ServiceWorkerRegistrationWrapper?
     let webSQL: WebSQLDatabaseCreator
     
-    init(context:JSContext, workerURL:URL, scope: URL, registration: ServiceWorkerRegistrationProtocol?) {
-        
-        self.jsContext = context
-        self.scope = scope
-        self.cache = ServiceWorkerCacheStorage(scope: self.scope, workerURL: workerURL)
+    
+    init(worker:ServiceWorkerInstance, registration: ServiceWorkerRegistrationProtocol?) {
+        self.worker = worker
+//        self.jsContext = context
+//        self.scope = scope
+        self.cache = ServiceWorkerCacheStorage(scope: self.worker.scope, workerURL: self.worker.url)
         self.timeout = TimeoutManager()
-        self.console = Console(context: context)
-        self.clientManager = WebviewClientManager(scope: self.scope, workerURL: workerURL)
+        self.console = Console(context: self.worker.jsContext)
+        self.clientManager = WebviewClientManager(worker: worker)
         
         if registration != nil {
             
@@ -49,10 +51,10 @@ import HybridShared
         }
         
         
-        var domainComponents = URLComponents(url: scope, resolvingAgainstBaseURL: true)!
+        var domainComponents = URLComponents(url: self.worker.scope, resolvingAgainstBaseURL: true)!
         domainComponents.path = "/"
         
-        self.webSQL = WebSQLDatabaseCreator(context: context, origin: domainComponents.url!.absoluteString)
+        self.webSQL = WebSQLDatabaseCreator(context: self.worker.jsContext, origin: domainComponents.url!.absoluteString)
         
         super.init()
         self.applySelfToGlobal()
@@ -90,7 +92,7 @@ import HybridShared
     }
     
     func addVariableToGlobal(obj: JSValue, prop:String, val: JSValue) -> Bool {
-        self.jsContext.setObject(val, forKeyedSubscript: prop as (NSCopying & NSObjectProtocol)!)
+        self.worker.jsContext.setObject(val, forKeyedSubscript: prop as (NSCopying & NSObjectProtocol)!)
         obj.setObject(val, forKeyedSubscript: prop as (NSCopying & NSObjectProtocol)!)
         return true
     }
@@ -99,16 +101,16 @@ import HybridShared
     /// Go through all of our global scope objects, apply to "self"
     func applySelfToGlobal() {
         
-        self.jsContext.setObject(ServiceWorkerGlobalScope.self, forKeyedSubscript: "ServiceWorkerGlobalScope" as (NSCopying & NSObjectProtocol)!)
+        self.worker.jsContext.setObject(ServiceWorkerGlobalScope.self, forKeyedSubscript: "ServiceWorkerGlobalScope" as (NSCopying & NSObjectProtocol)!)
 
         // Define this global scope as a JSValue
-        let selfObj = JSValue(object: self, in: self.jsContext)!
+        let selfObj = JSValue(object: self, in: self.worker.jsContext)!
         
         // Now create a proxy to surround this global scope
         let jsSelf = attachProxyToSelf(selfObj: selfObj)
         
         // Now set the 'self' variable as actually being the proxy, not the original object
-        self.jsContext.setObject(jsSelf, forKeyedSubscript: "self" as (NSCopying & NSObjectProtocol)!)
+        self.worker.jsContext.setObject(jsSelf, forKeyedSubscript: "self" as (NSCopying & NSObjectProtocol)!)
         
         let toApply:[String:AnyObject] = [
             "caches": self.cache,
@@ -128,7 +130,7 @@ import HybridShared
             "createImageBitmap": ImageBitmap.createImageBitmap,
             "Request": FetchRequest.self,
             "Response": FetchResponse.self,
-            "fetch": GlobalFetch.fetchWithScope(scope: self.scope),
+            "fetch": GlobalFetch.fetchWithScope(scope: self.worker.scope),
             "setTimeout": self.timeout.setTimeout,
             "setInterval": self.timeout.setInterval,
             "clearTimeout": self.timeout.clearTimeout,

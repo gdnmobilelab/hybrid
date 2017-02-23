@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import HybridUI
+@testable import HybridUI
 import HybridShared
 
 @UIApplicationMain
@@ -25,6 +25,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             AppDelegate.window = UIWindow(frame: UIScreen.main.bounds)
             
             let coordinator = HybridUIContainer(withStartingURL: URL(string: "http://localhost:9000/browser-tests.html")!)
+            try coordinator.workerManager.removeAllWorkersFromDatabase()
+            
             
             AppDelegate.window!.rootViewController = coordinator.controller
             AppDelegate.window!.makeKeyAndVisible()

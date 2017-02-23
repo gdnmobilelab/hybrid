@@ -19,16 +19,24 @@ class ServiceWorkerInstanceBridge: Hashable {
     let instance: ServiceWorkerInstance
     let id:Int
     let registration: ServiceWorkerRegistration
+    let getClientsListener: Listener<ServiceWorkerEvent>
     
     fileprivate init(record: ServiceWorkerRecord, manager: ServiceWorkerManager) {
         self.registration = ServiceWorkerRegistration(scope: record.scope, scriptURL: record.url, manager: manager)
         self.instance = ServiceWorkerInstance(url: record.url, scope: record.scope, installState: record.installState, registration: self.registration)
         self.id = record.id
+        
+        // We set this listener to re-broadcast getClient events. Clients will use the function on the GetWorkerClientsEvent
+        // to register themselves as prospective clients
+        self.getClientsListener = self.instance.events.on("getclients", { ev in
+            manager.lifecycleEvents.emit("getclients", ev)
+        })
     }
     
     
     func destroy() {
         self.instance.destroy()
+        self.instance.events.off("getclients", self.getClientsListener)
 //        self.manager.lifecycleEvents.off("statechange", self.stateUpdateListener!)
     }
     

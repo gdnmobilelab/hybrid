@@ -1,42 +1,86 @@
-import { NativeItemProxy } from '../bridge/native-item-proxy';
+import { NativeItemProxyWithEvents } from '../bridge/native-item-proxy';
 import { ReceiveFromNativeEvent } from '../bridge/receive-from-native-event';
 import { ServiceWorkerRegistration } from './service-worker-registration';
-// import { registerClass } from '../bridge/connected-items';
+import { registerClass } from '../bridge/connected-items';
+import { ServiceWorker } from './service-worker';
 
 interface ServiceWorkerRegistrationOptions {
     scope?: string
 };
 
-export class ServiceWorkerContainer extends NativeItemProxy {
+export class ServiceWorkerContainer extends NativeItemProxyWithEvents {
 
-    // constructor() {
-    //     super();
-        // this.nativeEvents.on('test', (e:ReceiveFromNativeEvent) => {
+    ready: Promise<any>;
+    controller: ServiceWorker;
 
-        //     console.log("it worked?")
+    oncontrollerchange:Function;
 
-        //     // e.respondWith(
-        //     //     Promise.resolve('test')
-        //     // )
-        // })
-        // setTimeout(() => {
-        //     this.sendToNative("test", {one: "two"})
-        //     .then((response) => {
-        //         console.log('promise response', response);
-        //     })
-        // }, 100)
-        
-        
-    // }
+    constructor() {
+        super();
+
+        // This doesn't actually do anything except serialize the container and
+        // send it over to the native side. If we don't do that, the native version
+        // never gets created, so never looks for workers etc.
+        this.emitJSEvent("init");
+
+
+        this.nativeEvents.on('newactiveregistration', this.receiveActiveRegistration.bind(this));
+
+        // Create our ready promise, and set a listener that'll fulfill the promise
+        // when we receive a new active registration.
+        this.ready = new Promise((fulfill, reject) => {
+
+            this.nativeEvents.once('newactiveregistration', (ev:ReceiveFromNativeEvent) => {
+                console.log('FIRED READY EVENT')
+                let reg = ev.data as ServiceWorkerRegistration;
+                try {
+                    fulfill(reg);
+                } catch (err) {
+                    reject(err);
+                }
+            })
+
+        });
+
+        this.addEventListener('controllerchange', function(ev:Event) {
+            if (this.oncontrollerchange instanceof Function) {
+                this.oncontrollerchange(ev);
+            }
+        })
+    }
+
+    receiveActiveRegistration(ev:ReceiveFromNativeEvent) {
+        console.log('wtffffff')
+        let newRegistration = ev.data as ServiceWorkerRegistration;
+        this.controller = newRegistration.active;
+
+        this.dispatchEvent({
+            type: "controllerchange",
+            target: this
+        });
+
+        console.log("SET CONTROLLER?", newRegistration.active);
+    }
+
+    getArgumentsForNativeConstructor(): any[] {
+
+        let frameType = window.top === window ? 'top-level' : 'nested';
+
+        return [window.location.href, frameType];
+    }
 
     register(url: URL, options: ServiceWorkerRegistrationOptions = {}) : Promise<void> {
-        return this.sendToNative("register", [url, options]);
+        return this.emitJSEvent("register", [url, options]);
     }
 
     getRegistrations() : Promise<[ServiceWorkerRegistration]> {
-        return this.sendToNative("getRegistrations");
+        return this.emitJSEvent("getRegistrations")
+        .then((r) => {
+            console.log('result?', r)
+            return r;
+        })
     }
 
 }
 
-// registerClass("ServiceWorkerContainer", ServiceWorkerContainer);
+registerClass("ServiceWorkerContainer", ServiceWorkerContainer);

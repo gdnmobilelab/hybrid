@@ -23,6 +23,8 @@ function deserializeValue(asValue: SerializedValue) {
 
         return asValue.value;
 
+    } else {
+        throw new Error("Could not deserialize this value")
     }
 }
 

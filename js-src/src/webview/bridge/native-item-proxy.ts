@@ -1,60 +1,60 @@
 import EventEmitter from 'eventemitter3';
-import { addItem, dispatchTargetedEvent } from './connected-items';
 import { DispatchToNativeEvent } from './dispatch-to-native-event';
-import { runCommand } from './bridge';
-import { CreateBridgeItemCommand } from './bridge-commands';
+import { runCommand, sendToNative } from './bridge';
+import { CreateBridgeItemCommand, BridgeItemEventCommand } from './bridge-commands';
+import { notNativeConsole } from '../global/console';
 
-export class NativeItemProxy {
+export abstract class NativeItemProxy {
 
-    nativeId: number = -1;
-    nativeEvents = new EventEmitter();
-
-    nativeIdFetch: Promise<number>;
-
-    // constructor(nativeClassName: string, args:IArguments) {
-        
-    //     let ev = new DispatchToNativeEvent("createbridgeitem", {
-    //         className: nativeClassName,
-    //         args: [].slice.call(args)
-    //     })
-
-    //     this.nativeIdFetch = ev.dispatchAndResolve()
-    //     .then((id) => {
-    //         console.log('IIIDDD', id);
-    //         // console.info(`Created native bridge for ${nativeClassName} with ID #${id}`);
-    //         return id;
-    //     })
-
-    // }
-
-    static createWithBridge() {
-
-        let argArray = [].slice.call(arguments)
-        let thisClass = (this as any);
-
-        let instance = new thisClass(...argArray);
-
-        let idx = addItem(instance);
-
-        console.info(`Trying to register an instance of ${thisClass.name} at index #${idx}...`)
-        let ev = new DispatchToNativeEvent("createbridgeitem", {
-            itemIndex: idx,
-            className: thisClass.name,
-            args: argArray
-        })
-
-        ev.dispatchAndResolve()
-        .catch((err) => {
-            console.error(err)
-        })
-
-        return instance;
+    constructor() {
+        this.emitJSEvent = this.emitJSEvent.bind(this);
     }
 
-    protected sendToNative(name: String, data: any = null): Promise<any> {
+    nativeEvents = new EventEmitter();
 
-        return dispatchTargetedEvent(this, name, data);
+    emitJSEvent(name: string, data: any = null, waitForPromiseReturn:boolean = true) : Promise<any> {
+
+        let cmd:BridgeItemEventCommand = {
+            commandName: "itemevent",
+            target: this,
+            eventName: name,
+            data: data
+        };
         
+        let dispatchEvent = new DispatchToNativeEvent("sendtoitem",cmd);
+
+        // notNativeConsole.info(`Dispatching "${name}" event into native environment...`)
+        if (waitForPromiseReturn) {
+            return dispatchEvent.dispatchAndResolve();
+        } else {
+            dispatchEvent.dispatch();
+            return Promise.resolve();
+        }
+    }
+
+    abstract getArgumentsForNativeConstructor(): any[];
+
+}
+
+interface EventConstructor {
+    type: string;
+    target: any;
+}
+
+export abstract class NativeItemProxyWithEvents extends NativeItemProxy {
+
+    events = new EventEmitter();
+
+    addEventListener(name: string, listener: Function) {
+        this.events.on(name, listener);
+    }
+
+    removeEventListener(name: string, listener: Function) {
+        this.events.off(name, listener);
+    }
+
+    dispatchEvent(ev:EventConstructor) {
+        this.events.emit(ev.type, ev);
     }
 
 }
