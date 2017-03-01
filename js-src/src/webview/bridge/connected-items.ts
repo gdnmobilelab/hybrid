@@ -4,23 +4,11 @@ import { NativeItemProxy } from './native-item-proxy';
 import { sharedStorage } from '../shared-storage/shared-storage';
 import { deserialize } from '../deserializer/deserialize';
 
-let connectedItems: NativeItemProxy[] = null;
+let connectedItems: { [id: string] : NativeItemProxy} = {};
 let registeredClasses: { [className: string] : any } = {};
 
-export function initializeStore() {
-    if (sharedStorage.connectedItems) {
-        // we're already initialized
-        console.info("Store already exists (we're in a frame?)")
-        connectedItems = sharedStorage.connectedItems;
-        return;
-    }
-    console.warn("Clearing bridge items on native and JS side")
-    new DispatchToNativeEvent("clearbridgeitems").dispatchAndResolve();
-    sharedStorage.connectedItems = [];
-    connectedItems = sharedStorage.connectedItems;
-}
-
 export function manuallyAddItem(index:number, item:NativeItemProxy) {
+    console.info(`Manually adding instance of ${item.constructor.name} at index ${index}`)
     connectedItems[index] = item;
 }
 
@@ -75,7 +63,6 @@ function getExistingItem(item: SerializedConnectedItem) {
 }
 
 export function processSerializedItem(item: SerializedConnectedItem) {
-    
     if (item.existing === true) {
         return getExistingItem(item);
     } else {
@@ -85,7 +72,13 @@ export function processSerializedItem(item: SerializedConnectedItem) {
 
 export function getIndexOfItem(item: NativeItemProxy):number {
 
-    return connectedItems.indexOf(item);
+    for (let key in connectedItems) {
+        if (connectedItems[key] === item) {
+            return parseInt(key, 10)
+        }
+    }
+
+    return -1;
 
 }
 

@@ -12,6 +12,11 @@ import HybridShared
 
 class ConsoleInterceptor : NSObject, HybridMessageReceiver {
     
+    internal func unload() {
+        
+    }
+
+    
     static let jsClassName = "ConsoleInterceptor"
     
     func receiveMessage(_ msg: WebviewMessage) -> Promise<Any?>? {

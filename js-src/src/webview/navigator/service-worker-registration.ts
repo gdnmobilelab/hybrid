@@ -20,10 +20,9 @@ export class ServiceWorkerRegistration extends NativeItemProxy {
     }
 
     setWorkerState(ev:ReceiveFromNativeEvent) {
-
         let {property, worker} = ev.data;
-
-        if (property === 'installing') {
+    
+         if (property === 'installing') {
             this.installing = worker;
         } else if (property === 'waiting') {
             this.waiting = worker;
@@ -38,9 +37,6 @@ export class ServiceWorkerRegistration extends NativeItemProxy {
         }
 
         console.info("Received worker for state: " + property);
-
-
-        console.log('workerstate', arguments)
     }
 
     getArgumentsForNativeConstructor(): any[] {

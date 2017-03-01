@@ -9,7 +9,7 @@
 import Foundation
 
 
-class HybridWebviewContext {
+class HybridWebasdviewContext {
     
     let webview:HybridWebview
 //    let serviceWorkerContainer:ServiceWorkerContainer
@@ -19,14 +19,14 @@ class HybridWebviewContext {
 //        self.serviceWorkerContainer = ServiceWorkerContainer(webview: self.webview)
     }
     
-    func getRegisterCommands() -> [RegisterItemCommand] {
-        
-        var commands = [RegisterItemCommand]()
-        
-//        commands.append(RegisterItemCommand(path: ["navigator"], name: "serviceWorker", item: self.serviceWorkerContainer))
-        
-        return commands
-        
-    }
+//    func getRegisterCommands() -> [RegisterItemCommand] {
+//        
+//        var commands = [RegisterItemCommand]()
+//        
+////        commands.append(RegisterItemCommand(path: ["navigator"], name: "serviceWorker", item: self.serviceWorkerContainer))
+//        
+//        return commands
+//        
+//    }
     
 }

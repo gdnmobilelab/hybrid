@@ -15,16 +15,16 @@ class ServiceWorkerProxy: NSObject, HybridMessageReceiver {
     
     let instance: ServiceWorkerInstance
     let messageHandler: HybridMessageManager
-    var stateChangeListener: Listener<JSEvent>?
+    var stateChangeListener: Listener<StateChangeEvent>?
     
     init (_ instance: ServiceWorkerInstance, messageHandler: HybridMessageManager) {
         self.instance = instance
         self.messageHandler = messageHandler
         super.init()
-        self.stateChangeListener = self.instance.addEventListener("statechange", withSwiftFunc: self.stateChange)
+        self.stateChangeListener = self.instance.addEventListener(self.stateChange)
     }
     
-    func stateChange(ev: JSEvent) {
+    func stateChange(_ ev: StateChangeEvent) {
         
         let cmd = ItemEventCommand(target: self, eventName: "statechange", data: self.instance.state)
         
@@ -40,6 +40,10 @@ class ServiceWorkerProxy: NSObject, HybridMessageReceiver {
     
     func getArgumentsForJSMirror() throws -> [Any?] {
         return [self.instance.url.absoluteString, self.instance.state]
+    }
+    
+    func unload() {
+        self.instance.removeEventListener(self.stateChangeListener!)
     }
     
     

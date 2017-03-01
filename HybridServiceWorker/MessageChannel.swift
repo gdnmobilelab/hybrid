@@ -25,18 +25,21 @@ import HybridShared
     public var port1 = MessagePort()
     public var port2 = MessagePort()
     
-    fileprivate var listener1:Listener<ExtendableMessageEvent?>?
-    fileprivate var listener2:Listener<ExtendableMessageEvent?>?
+    fileprivate var listener1:Listener<EmitMessageEvent>?
+    fileprivate var listener2:Listener<EmitMessageEvent>?
+    
+    
+    fileprivate func emitTo(_ targetPort: MessagePort) -> (EmitMessageEvent) -> Void {
+        return { (emit: EmitMessageEvent) in
+            targetPort.dispatchEvent(ExtendableMessageEvent(data: emit.data, ports: emit.transfer, fromWebView: nil))
+        }
+    }
     
     override required public init() {
         super.init()
-        self.listener1 = port1.events.on("emit", { (msg: ExtendableMessageEvent?) in
-            self.port2.events.emit("message", msg!)
-        })
         
-        self.listener2 = port2.events.on("emit", { (msg: ExtendableMessageEvent?) in
-            self.port1.events.emit("message", msg!)
-        })
+        self.listener1 = port1.addEventListener(self.emitTo(self.port2))
+        self.listener2 = port2.addEventListener(self.emitTo(self.port1))
         
     }
 }

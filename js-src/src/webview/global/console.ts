@@ -21,7 +21,12 @@ function makeSuitable(val:any) {
 let levels = ['debug','info', 'log', 'error', 'warn'];
 
 
-export const notNativeConsole:any = {};
+export const notNativeConsole:any = {
+};
+
+levels.forEach((level) => {
+    notNativeConsole[level] = console[level].bind(console);
+})
 
 export class ConsoleInterceptor extends NativeItemProxy {
 

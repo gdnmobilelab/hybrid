@@ -29,6 +29,7 @@ class IframeWrapper {
     }
 
     cleanup() {
+        console.log(`Cleaning up existing registrations for ${this.url}...`);
         return this.cleanAllRegistrations()
         .then(() => {
 
@@ -43,12 +44,36 @@ class IframeWrapper {
 
 }
 
-IframeWrapper.withIframe = function(url, func) {
+IframeWrapper.withIframe = function(url, func, {timeout} = {}) {
 
     let wrapper = new IframeWrapper(url);
     return wrapper.load()
     .then(() => {
-        return Promise.resolve(func(wrapper.iframe));
+
+        return new Promise((fulfill, reject) => {
+      
+            let completed = false;
+
+            Promise.resolve(func(wrapper.iframe))
+            .then(() => {
+                fulfill();
+            })
+            .catch((err) => {
+                reject(err);
+            })
+            .then(() => {
+                completed = true;
+            })
+
+            if (timeout) {
+                setTimeout(() => {
+                    if (completed == false) {
+                        reject(new Error("Test timed out"))
+                    }
+                }, timeout);
+            }
+           
+        })
     })
     .then(() => {
         return wrapper.cleanup();

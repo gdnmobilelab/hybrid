@@ -20,11 +20,9 @@ import HybridShared
 }
 
 /// An implementation of MessagePort: https://developer.mozilla.org/en-US/docs/Web/API/MessagePort
-@objc public class MessagePort : NSObject, MessagePortExports {
+@objc public class MessagePort : JSEventEmitter, MessagePortExports {
     
-    public let events = EventEmitter<ExtendableMessageEvent?>()
-    
-    fileprivate var messageListener:Listener<ExtendableMessageEvent?>?
+    fileprivate var messageListener:Listener<ExtendableMessageEvent>?
     
     fileprivate var _pendingJSExecution = false
     fileprivate var _pendingClose = false
@@ -51,20 +49,20 @@ import HybridShared
     
     override required public init() {
         super.init()
-        self.messageListener = self.events.on("message", self.handleMessage)
+        self.messageListener = self.addEventListener(self.handleMessage)
     }
     
     
     /// Attached to the eventEmitter to listen for incoming ExtendableMessageEvents
     ///
     /// - Parameter message: The message we want to pass onto our onmessage handler
-    fileprivate func handleMessage(_ message:ExtendableMessageEvent?) {
+    fileprivate func handleMessage(_ message:ExtendableMessageEvent) {
         
         if self.onmessage == nil {
             return
         }
         
-        onmessage!.call(withArguments: [message!])
+        onmessage!.call(withArguments: [message])
     }
     
     public func postMessage(_ data: Any) {
@@ -76,14 +74,14 @@ import HybridShared
     }
     
     public func postMessage(_ data:Any, ports:[MessagePort], fromWebView:WKWebView?) {
-        self.events.emit("emit", ExtendableMessageEvent(data: data, ports: ports,fromWebView: fromWebView))
+        self.dispatchEvent(EmitMessageEvent(data: data, transfer: ports))
     }
     
     public func close() {
         if self._pendingJSExecution {
             self._pendingClose = true
         } else {
-            self.events.emit("close", nil)
+            self.dispatchEvent(CloseMessagePortEvent())
         }
     }
     

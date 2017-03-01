@@ -10,5 +10,14 @@ import Foundation
 import JavaScriptCore
 
 @objc public protocol JSEvent : JSExport {
-    var type: String { get }
+    static var type: String { get }
+}
+
+
+extension JSEvent {
+    var type:String {
+        get {
+            return type(of:self).type
+        }
+    }
 }

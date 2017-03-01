@@ -16,7 +16,7 @@ import HybridShared
 /// asynchonously on the native side, then resolve the original promise in the web client.
 class HybridMessageManager: NSObject, WKScriptMessageHandler {
     
-    var connectedItems = [Int : HybridMessageReceiver]()
+    fileprivate var connectedItems = [Int : HybridMessageReceiver]()
     var webview: HybridWebview?
     let delayedPromiseStore = DelayedPromiseStore()
     var serializer:Serializer?
@@ -28,13 +28,21 @@ class HybridMessageManager: NSObject, WKScriptMessageHandler {
         self.deserializer = Deserializer(self)
     }
    
-    func addNewConnectedItem(_ receiver: HybridMessageReceiver) -> Int {
+    func addNewConnectedItem(_ receiver: HybridMessageReceiver) throws -> Int {
+        
+        if self.getIndexForExistingConnectedItem(receiver) != nil {
+            throw ErrorMessage("Item is already in connected items array")
+        }
         
         let newIndex = connectedItems.count
         self.connectedItems[newIndex] = receiver
-
+        log.info("WTFFFFFFFF")
         
         return newIndex
+    }
+    
+    func getConnectedItemAtIndex(_ index:Int) -> HybridMessageReceiver? {
+        return self.connectedItems[index]
     }
 
     
@@ -49,7 +57,7 @@ class HybridMessageManager: NSObject, WKScriptMessageHandler {
             return self.webview!.evaluateJavaScriptAndCatchError(js)
             .then { returnValue -> Promise<Any?> in
                 
-                let returnObject = returnValue as? [String: Any]
+                let returnObject = returnValue as? [String: Any?]
                 
                 if returnObject != nil {
                     
@@ -91,10 +99,10 @@ class HybridMessageManager: NSObject, WKScriptMessageHandler {
         
     }
     
-    func resolvePromise(_ body: [String: Any]) -> Promise<Any?> {
+    func resolvePromise(_ body: [String: Any?]) -> Promise<Any?> {
         
         let promiseId = body["promiseId"] as! Int
-        let data = body["value"]
+        let data = body["value"]!
         let error = body["error"] as? String
         
         let errorInstance:Error? = error != nil ? ErrorMessage(error!) : nil
@@ -104,17 +112,16 @@ class HybridMessageManager: NSObject, WKScriptMessageHandler {
         return Promise(value: nil)
     }
     
-    func sendToItem(_ body: [String: Any]) throws -> Promise<Any?> {
-        
+    func sendToItem(_ body: [String: Any?]) throws -> Promise<Any?> {
         
         let nativeEvent = body["data"] as! [String: Any?]
-        
+
         let targetItem = nativeEvent["target"] as! HybridMessageReceiver
         
         
         let commandName = nativeEvent["eventName"] as! String
         let commandData = nativeEvent["data"]!
-        
+
         let maybePromise = targetItem.receiveMessage(WebviewMessage(command: commandName, data: commandData, messageHandler: self))
         
         if maybePromise == nil {
@@ -122,9 +129,6 @@ class HybridMessageManager: NSObject, WKScriptMessageHandler {
         }
         
         return maybePromise!
-//        .then { returnData in
-//            self.sendCommand(ResolvePromiseCommand(data: returnData, promiseId: promiseId, error: nil))
-//        }
         
     }
     
@@ -153,7 +157,7 @@ class HybridMessageManager: NSObject, WKScriptMessageHandler {
                 if command == "resolvepromise" {
                     return self.resolvePromise(deserializedBody)
                 }
-                
+
                 if command == "connectproxyitem" {
                     
                     let doubleSerializedItem = deserializedBody["data"] as! [String: Any?]
@@ -170,14 +174,15 @@ class HybridMessageManager: NSObject, WKScriptMessageHandler {
                 }
     
                 if command == "clearbridgeitems" {
-                    self.connectedItems.removeAll()
-                    return Promise(value: ())
+                    self.connectedItems.forEach { $1.unload() }
+                    self.connectedItems = [Int: HybridMessageReceiver]()
+                    return Promise(value: nil)
                 }
-    
+
                 throw ErrorMessage("Do not understand command " + command)
-    
+ 
             }
-            .then { response in
+            .then { response  in
                 return ResolvePromiseCommand(data: response, promiseId: promiseId, error: nil)
             }
             .recover { error in

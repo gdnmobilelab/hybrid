@@ -12,6 +12,11 @@ import HybridServiceWorker
 import PromiseKit
 import FMDB
 
+public enum ScopeOptions {
+    case includeChildScopes
+    case includeParentScopes
+}
+
 class ServiceWorkerStore {
     
     func getAllWorkerRecords(forURL: URL, withScope: URL) throws -> [ServiceWorkerRecord] {
@@ -26,17 +31,30 @@ class ServiceWorkerStore {
     /// - Parameters:
     ///   - forScope: the scope to check
     ///   - includingChildScopes: whether to also include 'child' scopes, .e.g /scope/subscope when forScope is /scope
-    func getAllWorkerRecords(forScope: URL, includingChildScopes: Bool) throws -> [ServiceWorkerRecord]  {
+    func getAllWorkerRecords(forScope: URL, options: [ScopeOptions]) throws -> [ServiceWorkerRecord]  {
         
-        let whereString: String
+        var wheres = ["scope = ?"]
+        var values = [forScope.absoluteString]
         
-        if includingChildScopes == false {
-            whereString = "scope = ?"
-        } else {
-            whereString = "scope LIKE (? || '%')"
+        if options.contains(.includeChildScopes) {
+            wheres.append("scope LIKE (? || '%')")
+            values.append(forScope.absoluteString)
         }
         
-        return try self.getWorkerRecordsFor(whereString: whereString, values: [forScope.absoluteURL])
+        if options.contains(.includeParentScopes) {
+            
+            var root = URLComponents(url: forScope, resolvingAgainstBaseURL: true)!
+            root.path = "/"
+            wheres.append("scope LIKE (? || '%')")
+            values.append(root.url!.absoluteString)
+        }
+
+        let whereString = "(" + wheres.joined(separator: ") OR (") + ")"
+        
+        // Silly, but we need to pass in a matching number of arguments to the number of times we use ?
+        
+        
+        return try self.getWorkerRecordsFor(whereString: whereString, values: values)
         
     }
     
@@ -56,7 +74,7 @@ class ServiceWorkerStore {
         
         try Db.mainDatabase.inDatabase { db in
             
-            let allWorkersResultSet = try db.executeQuery("SELECT instance_id,url,scope,headers,install_state,last_checked FROM service_workers WHERE " + whereString, values: values)
+            let allWorkersResultSet = try db.executeQuery("SELECT instance_id,url,scope,headers,install_state,last_checked FROM service_workers WHERE (\(whereString))", values: values)
             
             while allWorkersResultSet.next() {
                 do {

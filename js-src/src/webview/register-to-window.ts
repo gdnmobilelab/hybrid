@@ -2,8 +2,9 @@ import { ServiceWorkerRegistration } from './navigator/service-worker-registrati
 import { ServiceWorkerContainer } from './navigator/service-worker-container';
 import { ServiceWorker } from './navigator/service-worker';
 
-let target = (window as any);
 
-target.ServiceWorkerRegistration = ServiceWorkerRegistration;
-target.ServiceWorkerContainer = ServiceWorkerContainer;
-target.ServiceWorker = ServiceWorker;
+export function register(window: any) {
+    window.ServiceWorkerRegistration = ServiceWorkerRegistration;
+    window.ServiceWorkerContainer = ServiceWorkerContainer;
+    window.ServiceWorker = ServiceWorker;
+}

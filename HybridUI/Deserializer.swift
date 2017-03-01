@@ -22,7 +22,7 @@ class Deserializer {
         self.manager = manager
     }
     
-    func deserializeConnectedItem(_ value: [String: Any]) throws -> HybridMessageReceiver {
+    func deserializeConnectedItem(_ value: [String: Any?]) throws -> HybridMessageReceiver {
         
         let existing = value["existing"] as! Bool
         
@@ -30,18 +30,18 @@ class Deserializer {
             
             let existingIndex = value["index"] as! Int
             
-            return self.manager.connectedItems[existingIndex]!
+            return self.manager.getConnectedItemAtIndex(existingIndex)!
             
         } else {
             
             let jsClassName = value["jsClassName"] as! String
-            let args = value["initialData"] as! [Any]
+            let args = value["initialData"] as! [Any?]
             
             let typeofNewInstance = ConnectedItemTypes.filter { $0.jsClassName == jsClassName }.first!
             
-            let newInstance = try typeofNewInstance.createFromJSArguments(args: args, from: self.manager)
+            	let newInstance = try typeofNewInstance.createFromJSArguments(args: args, from: self.manager)
             
-            _ = self.manager.addNewConnectedItem(newInstance)
+            _ = try self.manager.addNewConnectedItem(newInstance)
             
             return newInstance
             
@@ -60,9 +60,10 @@ class Deserializer {
             
             return try self.deserializeConnectedItem(value!)
             
-        } else if objectType == "value" {
-            
-            let actualValue = value!["value"]! as Any
+        }
+        else if objectType == "value" {
+        
+            let actualValue = value!["value"]!!
             
             if let actualArray = actualValue as? [[String:Any?]?] {
                 

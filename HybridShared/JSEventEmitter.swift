@@ -12,88 +12,85 @@ import JavaScriptCore
 @objc public protocol JSEventEmitterExports : JSExport {
     
     @objc(addEventListener::)
-    func addEventListener(_ name: String, withJSFunc:JSValue)
+    func __JS__addEventListener(name: String, withJSFunc:JSValue)
     
     @objc(removeEventListener::)
     func removeEventListener(_ name: String, withJSFunc:JSValue)
     
-    @objc(dispatchEvent:)
-    func dispatchJSEvent(ev: JSEvent)
+//    @objc(dispatchEvent:)
+//    func dispatchEvent(ev: JSEvent)
 }
 
-fileprivate class JsFuncWrapper: Hashable {
-    
-    let jsVal: JSValue
-    let listener: Listener<JSEvent>
-    
-    var hashValue: Int {
-        get {
-            return jsVal.hashValue
-        }
-    }
-    
-    init(_ jsVal: JSValue, listener: Listener<JSEvent>) {
-        
-        self.jsVal = jsVal
-        self.listener = listener
-        
-    }
-    
-    public static func ==(lhs: JsFuncWrapper, rhs: JsFuncWrapper) -> Bool {
-        return lhs.hashValue == rhs.hashValue
-    }
-    
-}
 
 @objc open class JSEventEmitter : NSObject, JSEventEmitterExports {
     
-
-    let jsEvents = EventEmitter<JSEvent>()
+//    typealias SwiftFunction = 
+  
+    fileprivate var jsListeners = [String: Set<JSValue>]()
+    fileprivate var swiftListeners = [String: Set<NSObject>]()
     
-    fileprivate func runJSFunc(_ funcToRun: JSValue) -> ((JSEvent) -> Void) {
-        
-        return { (emitVal:JSEvent) -> Void in
-
-            funcToRun.call(withArguments: [emitVal])
-            
-        }
-        
-    }
-    
-    fileprivate var allListeners = Set<JsFuncWrapper>()
+    var typeListenerDictionary = [String: Any.Type]()
     
     @objc(addEventListener::)
-    public func addEventListener(_ name: String, withJSFunc:JSValue) {
+    public func __JS__addEventListener(name: String, withJSFunc: JSValue) {
+        if self.jsListeners[name] == nil {
+            self.jsListeners[name] = Set<JSValue>()
+        }
         
-        let listener = self.jsEvents.on(name, self.runJSFunc(withJSFunc))
+        self.jsListeners[name]!.insert(withJSFunc)
+    }
+    
+
+
+    public func addEventListener<T:JSEvent>(_ type: T.Type, withJSFunc:JSValue) {
         
-        allListeners.insert(JsFuncWrapper(withJSFunc, listener: listener))
+        self.__JS__addEventListener(name: T.type, withJSFunc: withJSFunc)
         
     }
     
-    public func addEventListener(_ name: String, withSwiftFunc: @escaping (JSEvent) -> Void) -> Listener<JSEvent> {
+    fileprivate func addEventListener<T:JSEvent>(_ name: String, withSwiftFunc: @escaping (T) -> Void) -> Listener<T> {
         
-        return self.jsEvents.on(name, withSwiftFunc)
+        let listener = Listener(withSwiftFunc)
         
+        if self.swiftListeners[name] == nil {
+            self.swiftListeners[name] = Set<Listener<JSEvent>>()
+        }
+        
+        self.swiftListeners[name]!.insert(listener)
+        
+        return listener
+        
+    }
+    
+
+    public func addEventListener<T:JSEvent>(_ withSwiftFunc: @escaping (T) -> Void) -> Listener<T> {
+        return addEventListener(T.type, withSwiftFunc: withSwiftFunc)
     }
     
     @objc(removeEventListener::)
     public func removeEventListener(_ name: String, withJSFunc:JSValue) {
         
-        let existingWrapper = self.allListeners.filter { $0.jsVal == withJSFunc }.first
-        
-        if let wrapper = existingWrapper {
-            
-            self.jsEvents.off(name, wrapper.listener)
-            self.allListeners.remove(wrapper)
-            
-        }
+        _ = self.jsListeners[name]?.remove(withJSFunc)
         
     }
     
-    @objc(dispatchEvent:)
-    public func dispatchJSEvent(ev:JSEvent) {
-        self.jsEvents.emit(ev.type, ev)
+    public func removeEventListener<T:JSEvent>(_ listener: Listener<T>) {
+        self.swiftListeners[T.type]!.remove(listener)
+    }
+    
+//    @objc(dispatchEvent:)
+    public func dispatchEvent<T:JSEvent>(_ ev:T) {
+        
+        self.jsListeners[ev.type]?.forEach { $0.call(withArguments: [ev]) }
+        self.swiftListeners[ev.type]?.forEach { swiftListener in
+            
+            if let listenerIsThisType = swiftListener as? Listener<T> {
+                listenerIsThisType.funcToCall!(ev)
+            }
+
+        }
+        
+
     }
     
 }

@@ -1,6 +1,5 @@
 import EventEmitter from 'eventemitter3';
 import { DispatchToNativeEvent } from './dispatch-to-native-event';
-import { runCommand, sendToNative } from './bridge';
 import { CreateBridgeItemCommand, BridgeItemEventCommand } from './bridge-commands';
 import { notNativeConsole } from '../global/console';
 
@@ -13,23 +12,26 @@ export abstract class NativeItemProxy {
     nativeEvents = new EventEmitter();
 
     emitJSEvent(name: string, data: any = null, waitForPromiseReturn:boolean = true) : Promise<any> {
+        return Promise.resolve()
+        .then(() => {
+            let cmd:BridgeItemEventCommand = {
+                commandName: "itemevent",
+                target: this,
+                eventName: name,
+                data: data
+            };
+            
+            let dispatchEvent = new DispatchToNativeEvent("sendtoitem",cmd);
 
-        let cmd:BridgeItemEventCommand = {
-            commandName: "itemevent",
-            target: this,
-            eventName: name,
-            data: data
-        };
+            // notNativeConsole.info(`Dispatching "${name}" event into native environment...`)
+            if (waitForPromiseReturn) {
+                return dispatchEvent.dispatchAndResolve();
+            } else {
+                dispatchEvent.dispatch();
+                return Promise.resolve();
+            }
+        })
         
-        let dispatchEvent = new DispatchToNativeEvent("sendtoitem",cmd);
-
-        // notNativeConsole.info(`Dispatching "${name}" event into native environment...`)
-        if (waitForPromiseReturn) {
-            return dispatchEvent.dispatchAndResolve();
-        } else {
-            dispatchEvent.dispatch();
-            return Promise.resolve();
-        }
     }
 
     abstract getArgumentsForNativeConstructor(): any[];

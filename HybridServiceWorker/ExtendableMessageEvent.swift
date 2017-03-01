@@ -9,8 +9,9 @@
 import Foundation
 import WebKit
 import JavaScriptCore
+import HybridShared
 
-@objc protocol ExtendableMessageEventExports : JSExport {
+@objc protocol ExtendableMessageEventExports : ExtendableEventExports, JSEvent, JSExport {
     var data:Any? {get}
     var ports:[MessagePort] {get}
     //    init(data:AnyObject?, ports:[MessagePort]?)
@@ -19,6 +20,9 @@ import JavaScriptCore
 
 /// Implementation of browser ExtendableMessageEvent: https://developer.mozilla.org/en-US/docs/Web/API/ExtendableMessageEvent
 @objc public class ExtendableMessageEvent : ExtendableEvent, ExtendableMessageEventExports {
+    
+    public static let type = "message"
+    
     public var data:Any?
     var ports:[MessagePort]
     
@@ -38,7 +42,7 @@ import JavaScriptCore
         }
         
         self.fromWebView = nil
-        super.init(type: "message")
+        super.init()
         
     }
     
@@ -48,7 +52,7 @@ import JavaScriptCore
         self.ports = ports
         
         self.fromWebView = fromWebView
-        super.init(type: "message")
+        super.init()
     }
     
     required public init(type: String) {

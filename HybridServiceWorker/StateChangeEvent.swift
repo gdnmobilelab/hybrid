@@ -13,9 +13,9 @@ import HybridShared
     var target: ServiceWorkerInstance { get }
 }
 
-@objc public class StateChangeEvent : NSObject, StateChangeEventExports {
+@objc public class StateChangeEvent : NSObject, JSEvent, StateChangeEventExports {
     
-    public let type = "statechange"
+    public static let type = "statechange"
     public let target: ServiceWorkerInstance
     
     init(workerInstance: ServiceWorkerInstance) {

@@ -18,8 +18,8 @@ import HybridWorkerManager
 /// scope, in order to retain a 1:1 connection between webviews and their native proxies.
 class ServiceWorkerRegistration : NSObject, HybridMessageReceiver {
     
-    fileprivate var associatedContainers = Set<ServiceWorkerContainer>()
-    fileprivate var managerListener: Listener<ServiceWorkerEvent>?
+//    fileprivate var associatedContainers = Set<ServiceWorkerContainer>()
+    fileprivate var managerListener: Listener<PendingWorkerStateChangeEvent>?
     
     let workerManager:ServiceWorkerManager
     
@@ -30,11 +30,7 @@ class ServiceWorkerRegistration : NSObject, HybridMessageReceiver {
     internal static func createFromJSArguments(args: [Any?], from manager: HybridMessageManager) throws -> HybridMessageReceiver {
         throw ErrorMessage("Cannot create a new ServiceWorkerRegistration on JS side")
     }
-    
-    /// Annoying to have to do this, but we need to make sure we have one proxy for each instance. So,
-    /// we use this dictionary to track which ones we have and have not already created.
-    fileprivate var instanceProxies = [ServiceWorkerInstance: ServiceWorkerProxy]()
-    
+
     
     static let jsClassName = "ServiceWorkerRegistration"
     
@@ -52,15 +48,13 @@ class ServiceWorkerRegistration : NSObject, HybridMessageReceiver {
         // whenever a new registration is created
         self.workerManager.activeInstances.forEach { self.workerStateChange($0, newState: $0.installState) }
         
-        self.managerListener = workerManager.lifecycleEvents.on("statechange", { ev in
-            
-            if let stateChangeEvent = ev as? WorkerStateChangeEvent {
-                self.workerStateChange(stateChangeEvent.worker, newState: stateChangeEvent.newState)
-            } else {
-                log.error("Non state change event fired on statechange label")
-            }
-            
-        })
+        self.managerListener = workerManager.addEventListener { (ev:PendingWorkerStateChangeEvent) -> Void in
+            self.workerStateChange(ev.worker, newState: ev.newState)
+        }
+    }
+    
+    func unload() {
+        self.workerManager.removeEventListener(self.managerListener!)
     }
     
     func clearFromExistingStates(worker:ServiceWorkerInstance) {
@@ -109,30 +103,14 @@ class ServiceWorkerRegistration : NSObject, HybridMessageReceiver {
         
     }
     
-    fileprivate func getProxyForWorker(_ worker:ServiceWorkerInstance?) -> ServiceWorkerProxy? {
-        
-        var proxy:ServiceWorkerProxy? = nil
-        
-        if let workerExists = worker {
-            
-            proxy = self.instanceProxies[workerExists]
-            
-            if proxy == nil {
-                proxy = ServiceWorkerProxy(workerExists, messageHandler: self.container.manager)
-                self.instanceProxies[workerExists] = proxy
-            }
-        }
-        
-        return proxy
-
-    }
+    
     
     func notifyJSOfStateChange(_ worker: ServiceWorkerInstance?, forProperty: String) {
         
         // We need to wrap the instance in our proxy, so that we can easily bridge properties
         // and events between the two.
         
-        var proxy:ServiceWorkerProxy? = self.getProxyForWorker(worker)
+        let proxy:ServiceWorkerProxy? = self.container.getOrCreateProxyForWorker(worker)
         
         let data:[String: Any?] = [
             "worker": proxy,
@@ -145,18 +123,33 @@ class ServiceWorkerRegistration : NSObject, HybridMessageReceiver {
 
     }
     
+    var onunregister: ((ServiceWorkerRegistration) -> Promise<Void>)? = nil
     
     /// Destroy all workers associated with this registration
     func unregister() -> Promise<Void> {
         
-        let redundantPromises = self.instanceProxies.map { (key, proxy) in
-            self.workerManager.makeWorkerRedundant(worker: proxy.instance)
+        if let onunreg = self.onunregister {
+            
+            return onunreg(self)
+            
+        } else {
+            
+            log.warning("Unregistered registration without a listener attached")
+            return Promise(value: ())
         }
-        
-        return when(fulfilled: redundantPromises)
-        .then { () -> Void in
-            self.instanceProxies.removeAll()
-            self.container.associatedRegistrations.removeValue(forKey: self.scope.absoluteString)
+
+    }
+    
+    
+    /// Quick shortcut to grab all the workers used in his registration, to stop us having to go
+    /// through each property individually
+    var allWorkersUsed: [ServiceWorkerInstance] {
+        get {
+            
+            let allPossibles = [self.active, self.waiting, self.installing, self.redundant]
+            
+            return allPossibles.filter { $0 != nil }.map { $0! }
+            
         }
     }
     

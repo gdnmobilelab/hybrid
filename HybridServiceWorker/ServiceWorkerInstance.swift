@@ -36,6 +36,9 @@ import HybridShared
     /// out so that we can keep it in our Promise chain.
     fileprivate var contextErrorValue:JSValue?
     
+    /// Sometimes we want to send events that'll only fire outside of the worker
+    public let exteriorEvents = JSEventEmitter()
+    
     
     /// The remote URL this service worker was downloaded from.
     public let url:URL
@@ -43,12 +46,9 @@ import HybridShared
     /// The scope for this service worker
     public let scope:URL
     
-    public let events = EventEmitter<ServiceWorkerEvent>()
-    
-    
     fileprivate var _globalScope:ServiceWorkerGlobalScope?
     
-    var globalScope: ServiceWorkerGlobalScope {
+    public var globalScope: ServiceWorkerGlobalScope {
         get {
             return self._globalScope!
         }
@@ -84,7 +84,7 @@ import HybridShared
             }
             
             self._onstatechange = value
-            self.addEventListener("statechange", withJSFunc: value!)
+            self.addEventListener(StateChangeEvent.self, withJSFunc: value!)
             
         }
     }
@@ -155,23 +155,6 @@ import HybridShared
         JSGarbageCollect(self.jsContext.jsGlobalContextRef)
     }
     
-    /// Service workers have "extendable events" - normal JS events that come with an e.waitUntil()
-    /// function attached. These allow you to extend the life of a service worker until the promises
-    /// inside waitUntil() have completed.
-    ///
-    /// - Parameter ev: The ExtendableEvent to dispatch. We have a few subclasses like NotificationEvent.
-    /// - Returns: A promise that waits until any waitUntil() call has completed. Right now it returns a value from that, it should not.
-    public func dispatchExtendableEvent(_ ev:ExtendableEvent) -> Promise<Void> {
-        
-        let funcToRun = self.jsContext.objectForKeyedSubscript("self")
-            .objectForKeyedSubscript("dispatchEvent")!
-        
-        funcToRun.call(withArguments: [ev])
-        
-        return ev.resolve()
-        
-    }
-    
     
     /// Similar to dispatchExtendableEvent, except that FetchEvents do actually have response you can parse
     /// - they use e.respondWith() instead of e.waitUntil()
@@ -196,9 +179,11 @@ import HybridShared
     /// - Returns: A promise when execution is complete and any pending push events have fired.
     public func loadServiceWorker(_ workerJS:String) -> Promise<Void> {
         return self.loadContextScript()
-            .then {_ in
-                return self.runScript(workerJS)
-            }
+        .then {_ in
+            return self.runScript(workerJS)
+        }.then { js in
+            return Promise(value: ())
+        }
 //            .then { _ in
 //                return self.processPendingPushEvents()
 //        }
@@ -297,10 +282,13 @@ import HybridShared
     fileprivate func runScript(_ js: String) -> Promise<JSValue> {
         self.contextErrorValue = nil
         return Promise<JSValue> { fulfill, reject in
+            
             let result = self.jsContext.evaluateScript(js)
-            if (self.contextErrorValue != nil) {
-                let errorText = self.contextErrorValue!.toString()
-                reject(JSContextError(message:errorText!))
+            if let error = self.contextErrorValue {
+                
+                let message = error.objectForKeyedSubscript("message").toString()
+                
+                reject(ErrorMessage(message!))
             } else {
                 fulfill(result!)
             }
@@ -332,7 +320,7 @@ import HybridShared
         set(value) {
             self._installState = value
             self.jsContext.name = "SW (\(self.state)) — " + url.absoluteString
-            self.dispatchJSEvent(ev: StateChangeEvent(workerInstance: self))
+            self.dispatchEvent(StateChangeEvent(workerInstance: self))
         }
     }
     

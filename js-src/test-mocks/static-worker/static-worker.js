@@ -6,7 +6,7 @@ module.exports = [
             body: `
                 self.addEventListener('install', function(e) {
                     // Delay install so that we catch the installing state
-
+                    console.log('ev',e)
                     var p = new Promise(function(fulfill,reject) {
                         setTimeout(fulfill, 100);
                     });

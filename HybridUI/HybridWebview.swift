@@ -16,16 +16,16 @@ public class HybridWebview : WKWebView {
     
     let events = EventEmitter<Void>()
     let hybridConfiguration = HybridWebviewConfiguration()
-    var _context: HybridWebviewContext?
+//    var _context: HybridWebviewContext?
     let container: HybridUIContainer
     
     
     /// Silly to have this, but the way Swift initializers work, we can't make it non-optional.
-    fileprivate var context: HybridWebviewContext {
-        get {
-            return self._context!
-        }
-    }
+//    fileprivate var context: HybridWebviewContext {
+//        get {
+//            return self._context!
+//        }
+//    }
     
     public init(container: HybridUIContainer) {
         
@@ -33,10 +33,8 @@ public class HybridWebview : WKWebView {
         
         super.init(frame: CGRect(x: 0, y: 0, width: 0, height: 0), configuration: self.hybridConfiguration)
         
-        self._context = HybridWebviewContext(webview: self)
-        
         hybridConfiguration.messageHandler.webview = self
-        hybridConfiguration.createScripts(registerCommands: self.context.getRegisterCommands())
+        hybridConfiguration.createScripts()
     }
     
     required public init?(coder: NSCoder) {

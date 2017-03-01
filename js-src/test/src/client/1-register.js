@@ -1,14 +1,14 @@
 const assert = require('assert');
 const iframeWrapper = require('./utils/make-iframe');
 
-test.skip("Register Service Worker", function(t) {
+test("Register Service Worker", function(t) {
 
     return iframeWrapper.withIframe('/static-worker/load.html', (iframe) => {
         let sw = iframe.contentWindow.navigator.serviceWorker;
-
+        
         return sw.register('/static-worker/worker.js', {scope: '/static-worker/'})
         .then((reg) => {
-           
+            console.log("DOING REG CHECK", reg.installed, reg.installing, reg.active, reg.redundant)
             t.equal(reg.constructor.name, "ServiceWorkerRegistration", "Register should return a ServiceWorkerRegistration object");
             t.ok(reg.installing, "Service worker should be in installing status");
 

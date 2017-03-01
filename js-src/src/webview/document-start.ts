@@ -1,34 +1,26 @@
-// import './navigator/service-worker';
-// import './console';
-// import './messages/message-channel';
-// import './util/generic-events';
-// import './notification/notification';
-// import './util/set-document-html';
-// import './load-handler';
 
-// window.onerror = function(err) {
-//     console.error(err);
-// }
+// import { ConsoleInterceptor } from './global/console';
 
-// console.info("Webview layer load complete.")
-import { initializeStore } from './bridge/connected-items';
-initializeStore();
 
-import { ConsoleInterceptor } from './global/console';
+import { DispatchToNativeEvent } from './bridge/dispatch-to-native-event';
+import { bridge } from './bridge/bridge';
 
-new ConsoleInterceptor(console);
+console.warn("Clearing bridge items on native side")
+new DispatchToNativeEvent("clearbridgeitems").dispatchAndResolve();
 
-import { deserialize } from './deserializer/deserialize';
-import { runCommand } from './bridge/bridge';
-import { BridgeCommand } from './bridge/bridge-commands';
-import { ServiceWorkerContainer } from './navigator/service-worker-container';
-import './register-to-window';
+(window.top as any).webkit.messageHandlers.hybrid.bridge = bridge;
+bridge.attachToWindow(window);
+
+
+
+// import './register-to-window';
 
 // If this is a page reload, we might still have bridge items cached
 // on the native side. Just to be sure, clear them out.
 
-(navigator as any).serviceWorker = new ServiceWorkerContainer();
+// bridge.attachToWindow(window);
 
 
+// (window as any).shimDidLoad = true;
 
-(window as any).shimDidLoad = true;
+// export default bridge;

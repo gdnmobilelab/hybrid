@@ -25,6 +25,7 @@ module.exports = [
             headers: { "content-type": "text/javascript" },
             body: `
                 self.addEventListener('activate', function(e) {
+                    console.log('activate event', e);
                     e.waitUntil(self.clients.claim())
                 })
             `

@@ -61,7 +61,7 @@ class Serializer {
                 
             } else {
                 
-                let newIndex = self.manager.addNewConnectedItem(valueIsReceiver)
+                let newIndex = try self.manager.addNewConnectedItem(valueIsReceiver)
                 
                 serializedObject["existing"] = false
                 serializedObject["index"] = newIndex

@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "rollup": "rollup --config rollup.config.js",
-    "compile-tests": "browserify test/bootstrap.js test/src/**/*.js -t bubleify",
+    "rollup": "rollup",
+    "test-server": "node test-server/server",
     "browserify": "browserify",
     "debug-preload": "CONFIGURATION=Debug node preload-workers/index.js ~/Projects/hybrid/preload-workers.json ~/Projects/hybrid/preload-workers",
     "make-hash": "hash-files -f '[\"./src/**/*\"]'"

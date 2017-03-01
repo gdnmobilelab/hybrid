@@ -29,8 +29,7 @@ export function serialize(obj: any) : Promise<any> {
             let retObj:any = {
                 type: 'connected-item',
                 existing: itemIndex > -1,
-                jsClassName: name,
-                
+                jsClassName: name
             };
 
             if (itemIndex === -1) {
@@ -48,6 +47,7 @@ export function serialize(obj: any) : Promise<any> {
                 return nativeProxyCreationCurrentlyHappening.then((newIndex:number) => {
 
                     retObj.index = newIndex;
+                    retObj.existing = true;
 
                     manuallyAddItem(newIndex, asNative);
 

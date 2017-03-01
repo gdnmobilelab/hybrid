@@ -1,4 +1,4 @@
-import { sendToNative } from './bridge';
+import { bridge } from './bridge';
 import { sharedStorage } from '../shared-storage/shared-storage';
 import { notNativeConsole } from '../global/console';
 
@@ -33,7 +33,7 @@ export class DispatchToNativeEvent {
 
     dispatch() {
         // notNativeConsole.info(`Dispatching command ${this.type} to native...`, this.data)
-        sendToNative({
+        bridge.sendToNative({
             command: this.type,
             data: this.data,
             storedResolveId: this.storedResolveId

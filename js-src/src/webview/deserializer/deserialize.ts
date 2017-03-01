@@ -39,7 +39,7 @@ export function deserialize(serializedObject: Serialized): any {
         return deserializeValue(serializedObject as SerializedValue);
         
     } else if (serializedObject.type === "connected-item") {
-
+        
         return processSerializedItem(serializedObject as SerializedConnectedItem);
 
     } else {

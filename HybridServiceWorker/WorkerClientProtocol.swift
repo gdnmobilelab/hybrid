@@ -7,11 +7,12 @@
 //
 
 import Foundation
+import PromiseKit
 
 public protocol WorkerClientProtocol {
     
     func postMessage(_ message: Any, transfer: [Any]) -> Void
-    func claim(by worker:ServiceWorkerInstance) -> Void
+    func claim(by worker:ServiceWorkerInstance) -> Promise<Void>
     
     var frameType: String { get }
     var id: String { get }

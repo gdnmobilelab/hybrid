@@ -1,6 +1,11 @@
 (function () {
 'use strict';
 
+
+        if (window.top.webkit.messageHandlers.hybrid.bridge) {
+            return window.top.webkit.messageHandlers.hybrid.bridge.attachToWindow(window);
+        }
+    
 const __assign = Object.assign || function (target) {
     for (var source, i = 1; i < arguments.length; i++) {
         source = arguments[i];
@@ -41,6 +46,61 @@ function __awaiter(thisArg, _arguments, P, generator) {
         function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments)).next());
     });
+}
+
+var connectedItems = {};
+var registeredClasses = {};
+function manuallyAddItem(index, item) {
+    console.info("Manually adding instance of " + item.constructor.name + " at index " + index);
+    connectedItems[index] = item;
+}
+function registerClass(name, classObj) {
+    console.info("Registering " + name + " as a native proxy class");
+    registeredClasses[name] = classObj;
+}
+function createItem(item) {
+    var classToCreate = registeredClasses[item.jsClassName];
+    if (!classToCreate) {
+        throw new Error("Tried to create an instance of class " + item.jsClassName + " but it wasn't registered");
+    }
+    if (connectedItems[item.index]) {
+        throw new Error("Item already exists at index #" + item.index);
+    }
+    // Our custom item declaration isn't made of serialized values in the same way other stuff is.
+    // However, the initialData argument *is*, since we don't know what will be passed in.
+    var initialData = deserialize(item.initialData);
+    // Creating a new instance via apply:
+    // http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
+    // first argument is ignored
+    initialData.unshift(null);
+    var newInstance = new (Function.prototype.bind.apply(classToCreate, initialData));
+    connectedItems[item.index] = newInstance;
+    console.info("Created an instance of " + item.jsClassName + " at index #" + item.index);
+    return newInstance;
+}
+function getExistingItem(item) {
+    var existingItem = connectedItems[item.index];
+    if (!existingItem) {
+        console.error(connectedItems);
+        throw new Error(("Item of type " + item.jsClassName + " does not exist at index #") + item.index);
+    }
+    return existingItem;
+}
+function processSerializedItem(item) {
+    if (item.existing === true) {
+        return getExistingItem(item);
+    }
+    else {
+        return createItem(item);
+    }
+}
+function getIndexOfItem(item) {
+    for (var key in connectedItems) {
+        if (connectedItems[key] === item) {
+            return parseInt(key, 10);
+        }
+    }
+    return -1;
 }
 
 function deserializeValue(asValue) {
@@ -425,23 +485,27 @@ var NativeItemProxy = (function () {
         this.emitJSEvent = this.emitJSEvent.bind(this);
     }
     NativeItemProxy.prototype.emitJSEvent = function (name, data, waitForPromiseReturn) {
+        var _this = this;
         if (data === void 0) { data = null; }
         if (waitForPromiseReturn === void 0) { waitForPromiseReturn = true; }
-        var cmd = {
-            commandName: "itemevent",
-            target: this,
-            eventName: name,
-            data: data
-        };
-        var dispatchEvent = new DispatchToNativeEvent("sendtoitem", cmd);
-        // notNativeConsole.info(`Dispatching "${name}" event into native environment...`)
-        if (waitForPromiseReturn) {
-            return dispatchEvent.dispatchAndResolve();
-        }
-        else {
-            dispatchEvent.dispatch();
-            return Promise.resolve();
-        }
+        return Promise.resolve()
+            .then(function () {
+            var cmd = {
+                commandName: "itemevent",
+                target: _this,
+                eventName: name,
+                data: data
+            };
+            var dispatchEvent = new DispatchToNativeEvent("sendtoitem", cmd);
+            // notNativeConsole.info(`Dispatching "${name}" event into native environment...`)
+            if (waitForPromiseReturn) {
+                return dispatchEvent.dispatchAndResolve();
+            }
+            else {
+                dispatchEvent.dispatch();
+                return Promise.resolve();
+            }
+        });
     };
     return NativeItemProxy;
 }());
@@ -487,6 +551,9 @@ function makeSuitable(val) {
 ;
 var levels = ['debug', 'info', 'log', 'error', 'warn'];
 var notNativeConsole = {};
+levels.forEach(function (level) {
+    notNativeConsole[level] = console[level].bind(console);
+});
 var ConsoleInterceptor = (function (_super) {
     __extends(ConsoleInterceptor, _super);
     function ConsoleInterceptor(targetConsole) {
@@ -533,7 +600,7 @@ function serialize(obj) {
             var retObj = {
                 type: 'connected-item',
                 existing: itemIndex > -1,
-                jsClassName: name_1,
+                jsClassName: name_1
             };
             if (itemIndex === -1) {
                 notNativeConsole.warn("Found new " + name_1 + " when serializing, manually creating link...");
@@ -544,6 +611,7 @@ function serialize(obj) {
                 nativeProxyCreationCurrentlyHappening = ev.dispatchAndResolve();
                 return nativeProxyCreationCurrentlyHappening.then(function (newIndex) {
                     retObj.index = newIndex;
+                    retObj.existing = true;
                     manuallyAddItem(newIndex, asNative_1);
                     return retObj;
                 });
@@ -590,190 +658,17 @@ function serialize(obj) {
     }
 }
 
-var windowTarget = window;
-if (window.top !== window && window.top.location.href) {
-    // href check makes sure we have same-origin permissions. If we don't
-    // we're kind of screwed.
-    console.info("We appear to be running inside a frame, referencing the parent handler.");
-    windowTarget = window.top;
-}
-var hybridHandler = (windowTarget).webkit.messageHandlers.hybrid;
-if (window.top === window) {
-    hybridHandler.receiveCommand = deserializeAndRunCommand;
-}
-function sendToNative(data) {
-    serialize(data)
-        .then(function (serializedData) {
-        hybridHandler.postMessage(serializedData);
-    })
-        .catch(function (err) {
-        console.error(err);
-    });
-}
-function runCommand(instruction) {
-    if (instruction.commandName === "resolvepromise") {
-        // When a DispatchToNativeEvent dispatches, it sends alone a numeric ID for the
-        // promise that is awaiting resolving/rejecting. The native handler either waits
-        // for a native promise to resolve or immediately resolves this promise via the
-        // resolvepromise command.
-        var asResolve = instruction;
-        DispatchToNativeEvent.resolvePromise(asResolve.promiseId, asResolve.data, asResolve.error);
-    }
-    if (instruction.commandName === "itemevent") {
-        var itemEvent = instruction;
-        var deserializedItem = itemEvent.target;
-        var deserializedData = itemEvent.eventData;
-        var event = new ReceiveFromNativeEvent(itemEvent.eventName, deserializedData);
-        console.info("Dispatching event " + itemEvent.eventName + " in", deserializedItem);
-        deserializedItem.nativeEvents.emit(itemEvent.eventName, event);
-        return event.metadata;
-    }
-    else if (instruction.commandName === "registerItem") {
-        var registerCommand = instruction;
-        var target_1 = window;
-        registerCommand.path.forEach(function (key) {
-            // Go through the path keys, grabbing the correct target object
-            target_1 = target_1[key];
-        });
-        console.info("Registering", registerCommand.item, "as " + registerCommand.name + " on", target_1);
-        target_1[registerCommand.name] = registerCommand.item;
-    }
-}
-function deserializeAndRunCommand(command) {
-    var instruction = deserialize(command);
-    return runCommand(instruction);
-}
-
-// We have one native bridge, but potentially more than one webview-side bridge
-// if we use iframes. So we need to set up a quick storage container
-// that actually references the top frame
-var sharedStorage;
-if (window.top !== window && window.top.location.href) {
-    // the href check makes sure we're on same-origin
-    sharedStorage = window.top.webkit.messageHandlers.hybrid.sharedStorage;
-}
-else {
-    sharedStorage = {};
-    window.webkit.messageHandlers.hybrid.sharedStorage = sharedStorage;
-}
-
-if (!sharedStorage.storedResolves) {
-    sharedStorage.storedResolves = {};
-}
-var storedResolves = sharedStorage.storedResolves;
-var DispatchToNativeEvent = (function () {
-    function DispatchToNativeEvent(type, data) {
-        if (data === void 0) { data = null; }
-        this.storedResolveId = -1;
-        this.type = type;
-        this.data = data;
-    }
-    DispatchToNativeEvent.prototype.dispatch = function () {
-        // notNativeConsole.info(`Dispatching command ${this.type} to native...`, this.data)
-        sendToNative({
-            command: this.type,
-            data: this.data,
-            storedResolveId: this.storedResolveId
-        });
-    };
-    // Dispatch this event to the native environment, and wait
-    // for a response
-    DispatchToNativeEvent.prototype.dispatchAndResolve = function () {
-        var _this = this;
-        return new Promise(function (fulfill, reject) {
-            var vacantResolveId = 0;
-            while (storedResolves[vacantResolveId]) {
-                vacantResolveId++;
-            }
-            storedResolves[vacantResolveId] = { fulfill, reject };
-            _this.storedResolveId = vacantResolveId;
-            _this.dispatch();
-        });
-    };
-    DispatchToNativeEvent.resolvePromise = function (promiseId, data, error) {
-        var _a = storedResolves[promiseId], fulfill = _a.fulfill, reject = _a.reject;
-        if (error) {
-            reject(new Error(error));
-        }
-        else {
-            fulfill(data);
-        }
-        storedResolves[promiseId] = null;
-    };
-    return DispatchToNativeEvent;
-}());
-
-var connectedItems = null;
-var registeredClasses = {};
-function initializeStore() {
-    if (sharedStorage.connectedItems) {
-        // we're already initialized
-        console.info("Store already exists (we're in a frame?)");
-        connectedItems = sharedStorage.connectedItems;
-        return;
-    }
-    console.warn("Clearing bridge items on native and JS side");
-    new DispatchToNativeEvent("clearbridgeitems").dispatchAndResolve();
-    sharedStorage.connectedItems = [];
-    connectedItems = sharedStorage.connectedItems;
-}
-function manuallyAddItem(index, item) {
-    connectedItems[index] = item;
-}
-function registerClass(name, classObj) {
-    console.info("Registering " + name + " as a native proxy class");
-    registeredClasses[name] = classObj;
-}
-function createItem(item) {
-    var classToCreate = registeredClasses[item.jsClassName];
-    if (!classToCreate) {
-        throw new Error("Tried to create an instance of class " + item.jsClassName + " but it wasn't registered");
-    }
-    if (connectedItems[item.index]) {
-        throw new Error("Item already exists at index #" + item.index);
-    }
-    // Our custom item declaration isn't made of serialized values in the same way other stuff is.
-    // However, the initialData argument *is*, since we don't know what will be passed in.
-    var initialData = deserialize(item.initialData);
-    // Creating a new instance via apply:
-    // http://stackoverflow.com/questions/1606797/use-of-apply-with-new-operator-is-this-possible
-    // first argument is ignored
-    initialData.unshift(null);
-    var newInstance = new (Function.prototype.bind.apply(classToCreate, initialData));
-    connectedItems[item.index] = newInstance;
-    console.info("Created an instance of " + item.jsClassName + " at index #" + item.index);
-    return newInstance;
-}
-function getExistingItem(item) {
-    var existingItem = connectedItems[item.index];
-    if (!existingItem) {
-        console.error(connectedItems);
-        throw new Error(("Item of type " + item.jsClassName + " does not exist at index #") + item.index);
-    }
-    return existingItem;
-}
-function processSerializedItem(item) {
-    if (item.existing === true) {
-        return getExistingItem(item);
-    }
-    else {
-        return createItem(item);
-    }
-}
-function getIndexOfItem(item) {
-    return connectedItems.indexOf(item);
-}
-
 var ServiceWorkerContainer = (function (_super) {
     __extends(ServiceWorkerContainer, _super);
-    function ServiceWorkerContainer() {
+    function ServiceWorkerContainer(targetWindow) {
         var _this = this;
         _super.call(this);
+        this.targetWindow = targetWindow;
         // This doesn't actually do anything except serialize the container and
         // send it over to the native side. If we don't do that, the native version
         // never gets created, so never looks for workers etc.
         this.emitJSEvent("init");
-        this.nativeEvents.on('newactiveregistration', this.receiveActiveRegistration.bind(this));
+        this.nativeEvents.on('newcontroller', this.receiveNewController.bind(this));
         // Create our ready promise, and set a listener that'll fulfill the promise
         // when we receive a new active registration.
         this.ready = new Promise(function (fulfill, reject) {
@@ -792,32 +687,26 @@ var ServiceWorkerContainer = (function (_super) {
             if (this.oncontrollerchange instanceof Function) {
                 this.oncontrollerchange(ev);
             }
-        });
+        }.bind(this));
     }
-    ServiceWorkerContainer.prototype.receiveActiveRegistration = function (ev) {
-        console.log('wtffffff');
-        var newRegistration = ev.data;
-        this.controller = newRegistration.active;
+    ServiceWorkerContainer.prototype.receiveNewController = function (ev) {
+        var newController = ev.data;
+        this.controller = newController;
         this.dispatchEvent({
             type: "controllerchange",
             target: this
         });
-        console.log("SET CONTROLLER?", newRegistration.active);
     };
     ServiceWorkerContainer.prototype.getArgumentsForNativeConstructor = function () {
         var frameType = window.top === window ? 'top-level' : 'nested';
-        return [window.location.href, frameType];
+        return [this.targetWindow.location.href, frameType];
     };
     ServiceWorkerContainer.prototype.register = function (url, options) {
         if (options === void 0) { options = {}; }
         return this.emitJSEvent("register", [url, options]);
     };
     ServiceWorkerContainer.prototype.getRegistrations = function () {
-        return this.emitJSEvent("getRegistrations")
-            .then(function (r) {
-            console.log('result?', r);
-            return r;
-        });
+        return this.emitJSEvent("getRegistrations");
     };
     return ServiceWorkerContainer;
 }(NativeItemProxyWithEvents));
@@ -851,7 +740,6 @@ var ServiceWorkerRegistration = (function (_super) {
             throw new Error("Did not understand property " + property);
         }
         console.info("Received worker for state: " + property);
-        console.log('workerstate', arguments);
     };
     ServiceWorkerRegistration.prototype.getArgumentsForNativeConstructor = function () {
         return [];
@@ -897,23 +785,138 @@ var ServiceWorker = (function (_super) {
 }(NativeItemProxyWithEvents));
 registerClass("ServiceWorker", ServiceWorker);
 
-var target = window;
-target.ServiceWorkerRegistration = ServiceWorkerRegistration;
-target.ServiceWorkerContainer = ServiceWorkerContainer;
-target.ServiceWorker = ServiceWorker;
+function register(window) {
+    window.ServiceWorkerRegistration = ServiceWorkerRegistration;
+    window.ServiceWorkerContainer = ServiceWorkerContainer;
+    window.ServiceWorker = ServiceWorker;
+}
 
-// import './navigator/service-worker';
-// import './console';
-// import './messages/message-channel';
-// import './util/generic-events';
-// import './notification/notification';
-// import './util/set-document-html';
-// import './load-handler';
-initializeStore();
-new ConsoleInterceptor(console);
+var hybridHandler = window.top.webkit.messageHandlers.hybrid;
+var Bridge = (function () {
+    function Bridge() {
+    }
+    Bridge.prototype.attachToWindow = function (window) {
+        register(window);
+        window.navigator.serviceWorker = new ServiceWorkerContainer(window);
+        // new ConsoleInterceptor(console);
+    };
+    Bridge.prototype.sendToNative = function (data) {
+        serialize(data)
+            .then(function (serializedData) {
+            hybridHandler.postMessage(serializedData);
+        })
+            .catch(function (err) {
+            console.error(err);
+        });
+    };
+    Bridge.prototype.runCommand = function (instruction) {
+        if (instruction.commandName === "resolvepromise") {
+            // When a DispatchToNativeEvent dispatches, it sends alone a numeric ID for the
+            // promise that is awaiting resolving/rejecting. The native handler either waits
+            // for a native promise to resolve or immediately resolves this promise via the
+            // resolvepromise command.
+            var asResolve = instruction;
+            DispatchToNativeEvent.resolvePromise(asResolve.promiseId, asResolve.data, asResolve.error);
+        }
+        if (instruction.commandName === "itemevent") {
+            var itemEvent = instruction;
+            var deserializedItem = itemEvent.target;
+            var deserializedData = itemEvent.eventData;
+            var event = new ReceiveFromNativeEvent(itemEvent.eventName, deserializedData);
+            // console.info(`Dispatching event ${itemEvent.eventName} in`, deserializedItem);
+            deserializedItem.nativeEvents.emit(itemEvent.eventName, event);
+            return event.metadata;
+        }
+        else if (instruction.commandName === "registerItem") {
+            var registerCommand = instruction;
+            var target_1 = window;
+            registerCommand.path.forEach(function (key) {
+                // Go through the path keys, grabbing the correct target object
+                target_1 = target_1[key];
+            });
+            console.info("Registering", registerCommand.item, "as " + registerCommand.name + " on", target_1);
+            target_1[registerCommand.name] = registerCommand.item;
+        }
+    };
+    Bridge.prototype.deserializeAndRunCommand = function (command) {
+        var instruction = deserialize(command);
+        return this.runCommand(instruction);
+    };
+    return Bridge;
+}());
+var bridge = new Bridge();
+hybridHandler.bridge = bridge;
+hybridHandler.receiveCommand = bridge.deserializeAndRunCommand.bind(bridge);
+
+// We have one native bridge, but potentially more than one webview-side bridge
+// if we use iframes. So we need to set up a quick storage container
+// that actually references the top frame
+var sharedStorage;
+if (window.top !== window && window.top.location.href) {
+    // the href check makes sure we're on same-origin
+    sharedStorage = window.top.webkit.messageHandlers.hybrid.sharedStorage;
+}
+else {
+    sharedStorage = {};
+    window.webkit.messageHandlers.hybrid.sharedStorage = sharedStorage;
+}
+
+if (!sharedStorage.storedResolves) {
+    sharedStorage.storedResolves = {};
+}
+var storedResolves = sharedStorage.storedResolves;
+var DispatchToNativeEvent = (function () {
+    function DispatchToNativeEvent(type, data) {
+        if (data === void 0) { data = null; }
+        this.storedResolveId = -1;
+        this.type = type;
+        this.data = data;
+    }
+    DispatchToNativeEvent.prototype.dispatch = function () {
+        // notNativeConsole.info(`Dispatching command ${this.type} to native...`, this.data)
+        bridge.sendToNative({
+            command: this.type,
+            data: this.data,
+            storedResolveId: this.storedResolveId
+        });
+    };
+    // Dispatch this event to the native environment, and wait
+    // for a response
+    DispatchToNativeEvent.prototype.dispatchAndResolve = function () {
+        var _this = this;
+        return new Promise(function (fulfill, reject) {
+            var vacantResolveId = 0;
+            while (storedResolves[vacantResolveId]) {
+                vacantResolveId++;
+            }
+            storedResolves[vacantResolveId] = { fulfill, reject };
+            _this.storedResolveId = vacantResolveId;
+            _this.dispatch();
+        });
+    };
+    DispatchToNativeEvent.resolvePromise = function (promiseId, data, error) {
+        var _a = storedResolves[promiseId], fulfill = _a.fulfill, reject = _a.reject;
+        if (error) {
+            reject(new Error(error));
+        }
+        else {
+            fulfill(data);
+        }
+        storedResolves[promiseId] = null;
+    };
+    return DispatchToNativeEvent;
+}());
+
+// import { ConsoleInterceptor } from './global/console';
+console.warn("Clearing bridge items on native side");
+new DispatchToNativeEvent("clearbridgeitems").dispatchAndResolve();
+window.top.webkit.messageHandlers.hybrid.bridge = bridge;
+bridge.attachToWindow(window);
+// import './register-to-window';
 // If this is a page reload, we might still have bridge items cached
 // on the native side. Just to be sure, clear them out.
-navigator.serviceWorker = new ServiceWorkerContainer();
-window.shimDidLoad = true;
+// bridge.attachToWindow(window);
+// (window as any).shimDidLoad = true;
+// export default bridge;
 
 }());

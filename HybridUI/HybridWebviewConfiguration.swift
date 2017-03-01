@@ -29,18 +29,12 @@ class HybridWebviewConfiguration : WKWebViewConfiguration {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func createScripts(registerCommands: [RegisterItemCommand]) {
+    func createScripts() {
         
-//        let registerCommands = registerCommands.map { $0.getPayload() }
-//        dump(registerCommands)
         do {
             
-//            let serialized = try ReturnSerializer.serializeToJSON(registerCommands, manager: self.messageHandler)
-//            
-//            let commandsScript = WKUserScript(source: "var __hybridRegisterCommands = \(serialized);", injectionTime: WKUserScriptInjectionTime.atDocumentStart, forMainFrameOnly: false)
             let docStartScript = try self.createDocumentStartScript()
             
-//            self.userContentController.addUserScript(commandsScript)
             self.userContentController.addUserScript(docStartScript)
             
         } catch {

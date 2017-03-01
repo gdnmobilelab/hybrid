@@ -21,4 +21,6 @@ protocol HybridMessageReceiver {
     
     func receiveMessage(_ msg: WebviewMessage) -> Promise<Any?>?
     
+    func unload()
+    
 }

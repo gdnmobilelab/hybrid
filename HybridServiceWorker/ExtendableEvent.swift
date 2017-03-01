@@ -13,23 +13,20 @@ import HybridShared
 
 class PromiseAlreadyResolvedError : Error {}
 
+/// The parts we expose natively
+public protocol ExtendableEventProtocol : ExtendableEventExports, JSExport {
+    func resolve() -> Promise<Void>
+}
+
+/// The parts we expose to JS
 @objc public protocol ExtendableEventExports: JSEvent, JSExport {
-    init(type:String)
-    
     func waitUntil(_ promise:JSValue)
 }
 
-@objc public class ExtendableEvent : NSObject, ExtendableEventExports {
-    
-    public let type: String
+@objc public class ExtendableEvent : NSObject {
     
     var waitUntilPromise:JSValue?
     var hasResolved = false
-    
-    public required init(type:String) {
-        self.type = type
-        super.init()
-    }
     
     public func waitUntil(_ promise:JSValue) {
         

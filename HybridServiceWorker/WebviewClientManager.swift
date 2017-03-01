@@ -80,46 +80,23 @@ import HybridShared
     }
     
     
+    /// Dispatch an event to gather up all ServiceWorkerContainers that live under the scope of this
+    /// worker. This will include both claimed and unclaimed clients.
+    fileprivate func getAllEligibleClients() -> [WorkerClientProtocol] {
+        let getClientsEvent = GetWorkerClientsEvent(scope: self.worker.scope)
+        
+        self.worker.dispatchEvent(getClientsEvent)
+        
+        return getClientsEvent.eligibleClients
+    }
+    
+    
     /// Allows a worker to claim any webviews under its scope and become their active worker
     func claim() -> JSPromise {
         
-        let getClientsEvent = GetWorkerClientsEvent(worker: self.worker)
+        let eligibleClients = self.getAllEligibleClients()
         
-        self.worker.events.emit("getclients", getClientsEvent)
-        
-        
-        
-        let claimPromises = WebviewClientManager.currentWebviewRecords.map { record -> Promise<Void> in
-            
-            return Promise(value: ())
-            
-//            if record.url == nil || record.url!.absoluteString.hasPrefix(self.serviceWorker.scope.absoluteString) == false {
-//                return Promise(value: ())
-//            } else {
-//                
-//                // We put this in an event bridge because out notificiation content extension
-//                // needs to be able to emit these events, which unfortunately means we need
-//                // to store such events for execution later
-//                
-//                let ev = PendingWebviewAction(type: PendingWebviewActionType.claim, record: record, options: [
-//                    "newServiceWorkerId": self.serviceWorker.instanceId as AnyObject
-//                    ])
-//                
-//                if SharedResources.currentExecutionEnvironment == ExecutionEnvironment.app {
-//                    // We're in the app, so we want to wait for immediate execution
-//                    
-//                    return Promise<Void> { fulfill, reject in
-//                        ev.onImmediateExecution = fulfill
-//                        WebviewClientManager.clientEvents.emit("*", ev)
-//                    }
-//                    
-//                } else {
-//                    WebviewClientManager.clientEvents.emit("*", ev)
-//                    return Promise(value: ())
-//                }
-//                
-//            }
-        }
+        let claimPromises = eligibleClients.map { $0.claim(by: self.worker) }
         
         return PromiseToJSPromise<Void>.pass(when(fulfilled: claimPromises))
     }

@@ -14,12 +14,12 @@ import JavaScriptCore
 }
 
 @objc class PushEvent: ExtendableEvent, PushEventExports {
-    
+    static let type = "push"
     let data: PushMessageData
     
     init(dataAsString:String) {
         self.data = PushMessageData(data: dataAsString.data(using: String.Encoding.utf8)!)
-        super.init(type: "push")
+        super.init()
     }
     
     required init(type: String) {

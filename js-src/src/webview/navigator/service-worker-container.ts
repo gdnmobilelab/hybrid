@@ -12,19 +12,20 @@ export class ServiceWorkerContainer extends NativeItemProxyWithEvents {
 
     ready: Promise<any>;
     controller: ServiceWorker;
+    targetWindow: Window;
 
     oncontrollerchange:Function;
 
-    constructor() {
+    constructor(targetWindow:Window) {
         super();
-
+        this.targetWindow = targetWindow;
         // This doesn't actually do anything except serialize the container and
         // send it over to the native side. If we don't do that, the native version
         // never gets created, so never looks for workers etc.
         this.emitJSEvent("init");
 
 
-        this.nativeEvents.on('newactiveregistration', this.receiveActiveRegistration.bind(this));
+        this.nativeEvents.on('newcontroller', this.receiveNewController.bind(this));
 
         // Create our ready promise, and set a listener that'll fulfill the promise
         // when we receive a new active registration.
@@ -46,27 +47,25 @@ export class ServiceWorkerContainer extends NativeItemProxyWithEvents {
             if (this.oncontrollerchange instanceof Function) {
                 this.oncontrollerchange(ev);
             }
-        })
+        }.bind(this))
     }
 
-    receiveActiveRegistration(ev:ReceiveFromNativeEvent) {
-        console.log('wtffffff')
-        let newRegistration = ev.data as ServiceWorkerRegistration;
-        this.controller = newRegistration.active;
+    receiveNewController(ev:ReceiveFromNativeEvent) {
+        let newController = ev.data as ServiceWorker;
+        this.controller = newController;
 
         this.dispatchEvent({
             type: "controllerchange",
             target: this
         });
 
-        console.log("SET CONTROLLER?", newRegistration.active);
     }
 
     getArgumentsForNativeConstructor(): any[] {
 
         let frameType = window.top === window ? 'top-level' : 'nested';
 
-        return [window.location.href, frameType];
+        return [this.targetWindow.location.href, frameType];
     }
 
     register(url: URL, options: ServiceWorkerRegistrationOptions = {}) : Promise<void> {
@@ -74,11 +73,7 @@ export class ServiceWorkerContainer extends NativeItemProxyWithEvents {
     }
 
     getRegistrations() : Promise<[ServiceWorkerRegistration]> {
-        return this.emitJSEvent("getRegistrations")
-        .then((r) => {
-            console.log('result?', r)
-            return r;
-        })
+        return this.emitJSEvent("getRegistrations");
     }
 
 }

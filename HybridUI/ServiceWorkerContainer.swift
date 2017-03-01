@@ -20,8 +20,8 @@ import HybridShared
     let manager: HybridMessageManager
     let webview: HybridWebview
     var navigateListener:Listener<Void>?
-    var workerUpdateListener: Listener<ServiceWorkerEvent>?
-    var getClientsListener: Listener<ServiceWorkerEvent>?
+    var workerUpdateListener: Listener<PendingWorkerStateChangeEvent>?
+    var getClientsListener: Listener<GetWorkerClientsEvent>?
     var containerURL:URL
     
     
@@ -41,12 +41,20 @@ import HybridShared
         
         super.init()
         
-        self.workerUpdateListener = self.webview.container.workerManager.lifecycleEvents.on("statechange", self.listenForWorkerChange)
-        self.getClientsListener = self.webview.container.workerManager.lifecycleEvents.on("getclients", self.checkIfWorkerClient)
+        self.workerUpdateListener = self.webview.container.workerManager.addEventListener(self.listenForWorkerChange)
+        self.getClientsListener = self.webview.container.workerManager.addEventListener(self.checkIfWorkerClient)
+
+        self.checkForController()
         
-        self.navigateListener = self.webview.events.on("navigate", self.updateURL)
         self.updateURL()
         
+    }
+    
+    func checkForController() {
+        _ = self.webview.container.workerManager.getWorkers(forScope: self.containerURL, options: [.includeParentScopes], withState: [.activated])
+        .then { existingWorkers in
+            self.controller = existingWorkers.first
+        }
     }
     
     fileprivate var _activeRegistration: ServiceWorkerRegistration?
@@ -71,73 +79,120 @@ import HybridShared
         }
     }
     
+    func unload() {
+        self.webview.container.workerManager.removeEventListener(self.workerUpdateListener!)
+        self.webview.container.workerManager.removeEventListener(self.getClientsListener!)
+        
+    }
+    
     var controller: ServiceWorkerInstance? {
         get {
-            return self._activeRegistration?.active
+            return self._controller
+        }
+        set (value) {
+            
+            if self._controller == value {
+                return
+            }
+            
+            self._controller = value
+            
+            if let newController = value {
+                
+                let proxy = self.getOrCreateProxyForWorker(newController)
+                
+                let cmd = ItemEventCommand(target: self, eventName: "newcontroller", data: proxy)
+                self.manager.sendCommand(cmd)
+            }
+
         }
     }
+    
+    fileprivate var _controller: ServiceWorkerInstance?
     
     func postMessage(_ message: Any, transfer: [Any]) {
         
     }
     
-    func claim(by worker: ServiceWorkerInstance) {
+    func claim(by worker: ServiceWorkerInstance) -> Promise<Void> {
+        return Promise(value: ())
+        .then { () -> Void in
+            
+            let reg = self.getOrCreateRegistrationForScope(scope: worker.scope)
+            
+            self.activeRegistration = reg
+            self.controller = worker
+
+            
+        }
         
     }
     
-    func checkIfWorkerClient(baseEv: ServiceWorkerEvent) {
+    func checkIfWorkerClient(ev: GetWorkerClientsEvent) {
         
-        if let ev = baseEv as? GetWorkerClientsEvent {
+        if self.containerURL.absoluteString.hasPrefix(ev.scope.absoluteString) == false {
             
-        } else {
-            log.error("Sent non getClient event on getclients")
+            // This container is not in scope for this worker, so we can safely disregard
+            
+            return
         }
+        
+        // Even if it is in scope, our current worker scope might be more specific than the
+        // new worker. If so, this also isn't an eligible client
+        
+        if self.activeRegistration != nil && self.activeRegistration!.scope.absoluteString.characters.count > ev.scope.absoluteString.characters.count {
+            return
+        }
+        
+        // Otherwise, we're good to add ourselves as an eligible client.
+        
+        ev.addEligibleClient(client: self)
         
     }
     
     
     /// If a new worker becomes active within this scope, we want to update our current controller
-    func listenForWorkerChange(baseEv: ServiceWorkerEvent) {
+    func listenForWorkerChange(ev: PendingWorkerStateChangeEvent) {
         
-        if let ev = baseEv as? WorkerStateChangeEvent {
-            
-            let scopeString = ev.worker.scope.absoluteString
-            
-            if ev.newState != .activated {
-                // we only care about activated workers here, so disregard if not
-                return
-            }
-            
-            let containerURLString = self.containerURL.absoluteString
-            
-            if containerURLString.hasPrefix(scopeString) == false {
-                // Worker scope doesn't contain this webview, so we can safely ignore it
-                return
-            }
-            
-            if self.activeRegistration != nil && scopeString.characters.count < self.activeRegistration!.scope.absoluteString.characters.count {
-                // If our existing scope is more specific than the incoming one, we also ignore it. Using a string length to measure
-                // specificity. Feels... wrong to do that, but I can't think of a better way?
-                return
-            }
-            
-            // The registration constructor will pick up this worker in its constructor, and setting
-            // our activeRegistration variable will trigger the event to dispatch this to the client.
-            let newRegistration = self.getOrCreateRegistrationForScope(scope: ev.worker.scope)
-            
-            // This is hacky. But the registration constructor won't automatically place this worker in the "active"
-            // slot, because it's still at activating (with a switch to active pending). Event listeners in registration would
-            // move it, but we've created this too late for that to happen. So we do it manually. Again: hrm.
-            
-            newRegistration.active = ev.worker
-            
-            self.activeRegistration = newRegistration
-
-        } else {
-            log.error("Non-state change event sent on statechange")
+        let scopeString = ev.worker.scope.absoluteString
+        
+        if ev.newState != .activated {
+            // we only care about activated workers here, so disregard if not
+            return
         }
         
+        let containerURLString = self.containerURL.absoluteString
         
+        if containerURLString.hasPrefix(scopeString) == false {
+            // Worker scope doesn't contain this webview, so we can safely ignore it
+            return
+        }
+        
+        if self.activeRegistration != nil && scopeString.characters.count < self.activeRegistration!.scope.absoluteString.characters.count {
+            // If our existing scope is more specific than the incoming one, we also ignore it. Using a string length to measure
+            // specificity. Feels... wrong to do that, but I can't think of a better way?
+            return
+        }
+        
+        // The registration constructor will pick up this worker in its constructor, and setting
+        // our activeRegistration variable will trigger the event to dispatch this to the client.
+        let newRegistration = self.getOrCreateRegistrationForScope(scope: ev.worker.scope)
+        
+        // This is hacky. But the registration constructor won't automatically place this worker in the "active"
+        // slot, because it's still at activating (with a switch to active pending). Event listeners in registration would
+        // move it, but we've created this too late for that to happen. So we do it manually. Again: hrm.
+        
+        newRegistration.active = ev.worker
+        
+        self.activeRegistration = newRegistration
+        
+        // We normally don't set the controller attribute until a worker runs self.clients.claim(), but if there is
+        // no existing worker then we do it immediately.
+        
+        if self.controller == nil {
+            self.controller = ev.worker
+        }
+
     }
 
     
@@ -193,21 +248,16 @@ import HybridShared
         
         let directory = self.containerURL.deletingLastPathComponent()
         
-        return self.webview.container.workerManager.getAllWorkers(forScope: directory, includingChildScopes: true)
+        return self.webview.container.workerManager.getAllNonRedundantWorkers(forScope: directory, options: [.includeChildScopes, .includeParentScopes])
         .then { workers in
+            
+            
             
             let uniqueScopes = Set(workers.map { $0.scope.absoluteString })
             
             let registrations = uniqueScopes.map { scope -> ServiceWorkerRegistration in
                 
-                var registration = self.associatedRegistrations[scope]
-                
-                if registration == nil {
-                    registration = ServiceWorkerRegistration(scope: URL(string: scope)!, container: self)
-                    self.associatedRegistrations[scope] = registration
-                }
-                
-                return registration!
+                return self.getOrCreateRegistrationForScope(scope: URL(string: scope)!)
             }
             
             return Promise(value: registrations)
@@ -222,24 +272,70 @@ import HybridShared
     /// to make sure we aren't creating the same registrations over and over (we'll leak memory if we do that,
     /// because each one is sent through the serializer and stored in the connected items array)
     var associatedRegistrations = [String: ServiceWorkerRegistration]()
-
+    
+    var associatedProxies = [ServiceWorkerInstance: ServiceWorkerProxy]()
+    
+    
+  
     
     func getOrCreateRegistrationForScope(scope:URL) -> ServiceWorkerRegistration {
         
-        var registrationForThisScope = self.associatedRegistrations[scope.absoluteString]
+        let scopeAsString = scope.absoluteString
+        
+        var registrationForThisScope = self.associatedRegistrations[scopeAsString]
         
         if registrationForThisScope == nil {
             registrationForThisScope = ServiceWorkerRegistration(scope: scope, container: self)
-            self.associatedRegistrations[scope.absoluteString] = registrationForThisScope
+            registrationForThisScope!.onunregister = self.unregisterRegistration
+            self.associatedRegistrations[scopeAsString] = registrationForThisScope
         }
         
         return registrationForThisScope!
         
     }
     
+    func unregisterRegistration(registration: ServiceWorkerRegistration) -> Promise<Void> {
+        
+        registration.unload()
+        
+        // Remove this registration from our associated list
+        self.associatedRegistrations.removeValue(forKey: registration.scope.absoluteString)
+        
+        // But we also want to remove any worker proxies associated AND not used by any other
+        // registrations
+        let workersOnlyUsedByThisRegistration = registration.allWorkersUsed.filter { worker in
+            return self.associatedRegistrations.filter { $0.value.allWorkersUsed.contains(worker) == true }.count == 0
+        }
+        
+        let proxiesOnlyUsedByThisRegistration = workersOnlyUsedByThisRegistration.map { self.associatedProxies[$0]! }
+        
+        // Now we know which workers this applies to, unload the proxies and make the workers redundant
+        let redundantPromises = proxiesOnlyUsedByThisRegistration.map { proxy -> Promise<Void> in
+            proxy.unload()
+            return self.webview.container.workerManager.makeWorkerRedundant(worker: proxy.instance)
+        }
+        
+        return when(fulfilled: redundantPromises)
+        
+    }
     
-    
-    var _currentRegistration: ServiceWorkerRegistration?
+    func getOrCreateProxyForWorker(_ worker:ServiceWorkerInstance?) -> ServiceWorkerProxy? {
+        
+        var proxy:ServiceWorkerProxy? = nil
+        
+        if let workerExists = worker {
+            
+            proxy = self.associatedProxies[workerExists]
+            
+            if proxy == nil {
+                proxy = ServiceWorkerProxy(workerExists, messageHandler: self.manager)
+                self.associatedProxies[workerExists] = proxy
+            }
+        }
+        
+        return proxy
+        
+    }
     
     func register(withOptions: ServiceWorkerRegisterMessage) -> Promise<ServiceWorkerRegistration> {
         return self.manager.webview!.container.workerManager.register(url: withOptions.scriptURL, scope: withOptions.scope)

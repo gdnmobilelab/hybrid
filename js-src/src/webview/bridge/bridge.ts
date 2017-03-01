@@ -7,85 +7,89 @@ import { ReceiveFromNativeEvent } from './receive-from-native-event';
 import { serialize } from '../deserializer/serialize';
 import { notNativeConsole } from '../global/console';
 
-let windowTarget: any = window;
+import { ServiceWorkerContainer } from '../navigator/service-worker-container';
+import { ConsoleInterceptor } from '../global/console';
 
-if (window.top !== window && window.top.location.href) {
-    // href check makes sure we have same-origin permissions. If we don't
-    // we're kind of screwed.
-    console.info("We appear to be running inside a frame, referencing the parent handler.")
-    windowTarget = window.top;
-}
+import { register } from '../register-to-window';
 
-const hybridHandler = (windowTarget).webkit.messageHandlers.hybrid;
+const hybridHandler = (window.top as any).webkit.messageHandlers.hybrid;
 
-if (window.top === window) {
-    hybridHandler.receiveCommand = deserializeAndRunCommand;
-}
+class Bridge {
 
-export function sendToNative(data:any) {
-    serialize(data)
-    .then((serializedData) => {
-        hybridHandler.postMessage(serializedData);
-    })
-    .catch((err) => {
-        console.error(err);
-    })
-}
-
-export function runCommand(instruction: BridgeCommand):any {
-
-    if (instruction.commandName === "resolvepromise") {
-
-        // When a DispatchToNativeEvent dispatches, it sends alone a numeric ID for the
-        // promise that is awaiting resolving/rejecting. The native handler either waits
-        // for a native promise to resolve or immediately resolves this promise via the
-        // resolvepromise command.
-
-        let asResolve = instruction as ResolvePromiseCommand;
-     
-        DispatchToNativeEvent.resolvePromise(asResolve.promiseId, asResolve.data, asResolve.error);
-
+    attachToWindow(window:Window) {
+        register(window);
+        (window.navigator as any).serviceWorker = new ServiceWorkerContainer(window);
+        // new ConsoleInterceptor(console);
     }
 
-    if (instruction.commandName === "itemevent") {
-
-        let itemEvent = (instruction as BridgeItemEventCommand);
-
-        let deserializedItem = itemEvent.target as NativeItemProxy;
-        let deserializedData = itemEvent.eventData;
-
-        let event = new ReceiveFromNativeEvent(itemEvent.eventName, deserializedData);
-
-        console.info(`Dispatching event ${itemEvent.eventName} in`, deserializedItem);
-        
-        deserializedItem.nativeEvents.emit(itemEvent.eventName, event);
-
-        return event.metadata;
-        
-    } else if (instruction.commandName === "registerItem") {
-
-        let registerCommand = instruction as RegisterItemCommand;
-
-        let target = window as any;
-
-        registerCommand.path.forEach((key) => {
-
-            // Go through the path keys, grabbing the correct target object
-
-            target = target[key];
+    sendToNative(data:any) {
+        serialize(data)
+        .then((serializedData) => {
+            hybridHandler.postMessage(serializedData);
         })
+        .catch((err) => {
+            console.error(err);
+        })
+    }
 
-        console.info(`Registering`, registerCommand.item, `as ${registerCommand.name} on`, target);
+    runCommand(instruction: BridgeCommand):any {
+        
+        if (instruction.commandName === "resolvepromise") {
 
-        target[registerCommand.name] = registerCommand.item;
+            // When a DispatchToNativeEvent dispatches, it sends alone a numeric ID for the
+            // promise that is awaiting resolving/rejecting. The native handler either waits
+            // for a native promise to resolve or immediately resolves this promise via the
+            // resolvepromise command.
+
+            let asResolve = instruction as ResolvePromiseCommand;
+        
+            DispatchToNativeEvent.resolvePromise(asResolve.promiseId, asResolve.data, asResolve.error);
+
+        }
+
+        if (instruction.commandName === "itemevent") {
+
+            let itemEvent = (instruction as BridgeItemEventCommand);
+
+            let deserializedItem = itemEvent.target as NativeItemProxy;
+            let deserializedData = itemEvent.eventData;
+
+            let event = new ReceiveFromNativeEvent(itemEvent.eventName, deserializedData);
+
+            // console.info(`Dispatching event ${itemEvent.eventName} in`, deserializedItem);
+            
+            deserializedItem.nativeEvents.emit(itemEvent.eventName, event);
+
+            return event.metadata;
+            
+        } else if (instruction.commandName === "registerItem") {
+
+            let registerCommand = instruction as RegisterItemCommand;
+
+            let target = window as any;
+
+            registerCommand.path.forEach((key) => {
+
+                // Go through the path keys, grabbing the correct target object
+
+                target = target[key];
+            })
+
+            console.info(`Registering`, registerCommand.item, `as ${registerCommand.name} on`, target);
+
+            target[registerCommand.name] = registerCommand.item;
+
+        }
+    }
+
+    deserializeAndRunCommand(command:Serialized):any {
+        let instruction = deserialize(command);
+
+        return this.runCommand(instruction);
 
     }
 }
 
-function deserializeAndRunCommand(command:Serialized):any {
-
-    let instruction = deserialize(command);
-
-    return runCommand(instruction);
-
-}
+export let bridge = new Bridge();
+hybridHandler.bridge = bridge;
+hybridHandler.receiveCommand = bridge.deserializeAndRunCommand.bind(bridge);

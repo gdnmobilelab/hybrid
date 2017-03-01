@@ -50,6 +50,10 @@
 		8A1310161DE216BC0074944D /* ServiceWorkerGlobalScope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A1310141DE215B00074944D /* ServiceWorkerGlobalScope.swift */; };
 		8A13101B1DE3CB660074944D /* ArrayBufferJSPromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A13101A1DE3CB660074944D /* ArrayBufferJSPromise.swift */; };
 		8A13101C1DE3CB700074944D /* ArrayBufferJSPromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A13101A1DE3CB660074944D /* ArrayBufferJSPromise.swift */; };
+		8A202B851E648D49007056D6 /* EmitMessageEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A202B841E648D49007056D6 /* EmitMessageEvent.swift */; };
+		8A202B871E649964007056D6 /* CloseMessagePortEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A202B861E649964007056D6 /* CloseMessagePortEvent.swift */; };
+		8A202B891E65D439007056D6 /* InstallEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A202B881E65D439007056D6 /* InstallEvent.swift */; };
+		8A202B8B1E65DE30007056D6 /* ActivateEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A202B8A1E65DE30007056D6 /* ActivateEvent.swift */; };
 		8A24493D1D6CF6F400052D92 /* ServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */; };
 		8A24493F1D6CF71500052D92 /* PushManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A24493E1D6CF71500052D92 /* PushManager.swift */; };
 		8A2449421D6D0B6E00052D92 /* NotificationPermissionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2449411D6D0B6E00052D92 /* NotificationPermissionHandler.swift */; };
@@ -131,6 +135,7 @@
 		8A77863D1D5D1C520062E12B /* ServiceWorkerAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A77863C1D5D1C520062E12B /* ServiceWorkerAPI.swift */; };
 		8A7A49F51D91A991004C8253 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7A49F41D91A991004C8253 /* NotificationService.swift */; };
 		8A7A49F91D91A991004C8253 /* notification-extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 8A7A49F21D91A991004C8253 /* notification-extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		8A7FCF4E1E676C5700932C59 /* UnregisterEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7FCF4D1E676C5700932C59 /* UnregisterEvent.swift */; };
 		8A81A3EA1E4CE50500BC2861 /* NotificationGetOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A81A3E91E4CE50500BC2861 /* NotificationGetOptions.swift */; };
 		8A81A3ED1E4CE78C00BC2861 /* ServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A81A3EC1E4CE78C00BC2861 /* ServiceWorkerRegistration.swift */; };
 		8A81A3EF1E4E172500BC2861 /* JSEventEmitter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A81A3EE1E4E172500BC2861 /* JSEventEmitter.swift */; };
@@ -551,6 +556,10 @@
 		8A1310101DDF9B4F0074944D /* PushMessageData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushMessageData.swift; sourceTree = "<group>"; };
 		8A1310141DE215B00074944D /* ServiceWorkerGlobalScope.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerGlobalScope.swift; sourceTree = "<group>"; };
 		8A13101A1DE3CB660074944D /* ArrayBufferJSPromise.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ArrayBufferJSPromise.swift; sourceTree = "<group>"; };
+		8A202B841E648D49007056D6 /* EmitMessageEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EmitMessageEvent.swift; sourceTree = "<group>"; };
+		8A202B861E649964007056D6 /* CloseMessagePortEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloseMessagePortEvent.swift; sourceTree = "<group>"; };
+		8A202B881E65D439007056D6 /* InstallEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InstallEvent.swift; sourceTree = "<group>"; };
+		8A202B8A1E65DE30007056D6 /* ActivateEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActivateEvent.swift; sourceTree = "<group>"; };
 		8A24493C1D6CF6F400052D92 /* ServiceWorkerRegistration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistration.swift; sourceTree = "<group>"; };
 		8A24493E1D6CF71500052D92 /* PushManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PushManager.swift; sourceTree = "<group>"; };
 		8A2449401D6D0ABD00052D92 /* hybrid.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = hybrid.entitlements; sourceTree = "<group>"; };
@@ -641,6 +650,7 @@
 		8A7A49F21D91A991004C8253 /* notification-extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "notification-extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A7A49F41D91A991004C8253 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		8A7A49F61D91A991004C8253 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		8A7FCF4D1E676C5700932C59 /* UnregisterEvent.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnregisterEvent.swift; sourceTree = "<group>"; };
 		8A81A3E91E4CE50500BC2861 /* NotificationGetOptions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NotificationGetOptions.swift; sourceTree = "<group>"; };
 		8A81A3EC1E4CE78C00BC2861 /* ServiceWorkerRegistration.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistration.swift; sourceTree = "<group>"; };
 		8A81A3EE1E4E172500BC2861 /* JSEventEmitter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSEventEmitter.swift; sourceTree = "<group>"; };
@@ -1145,6 +1155,14 @@
 			path = "notification-extension";
 			sourceTree = "<group>";
 		};
+		8A7FCF4C1E676C4D00932C59 /* Events */ = {
+			isa = PBXGroup;
+			children = (
+				8A7FCF4D1E676C5700932C59 /* UnregisterEvent.swift */,
+			);
+			name = Events;
+			sourceTree = "<group>";
+		};
 		8A81A3EB1E4CE77900BC2861 /* WorkerImplementation */ = {
 			isa = PBXGroup;
 			children = (
@@ -1165,6 +1183,7 @@
 		8A81A3FB1E4E262200BC2861 /* HybridUI */ = {
 			isa = PBXGroup;
 			children = (
+				8A7FCF4C1E676C4D00932C59 /* Events */,
 				8AB8D0FA1E561F5A00D0E5F4 /* Registration */,
 				8A588AC01E52130A008EFDF0 /* Webview */,
 				8A588ACB1E524DAC008EFDF0 /* js-dist */,
@@ -1326,6 +1345,8 @@
 				8AA9A9C81E4A2E4D00468A3F /* MessageChannel.swift */,
 				8AA9A9CA1E4A2E5C00468A3F /* MessagePort.swift */,
 				8AA9A9CC1E4A2E7900468A3F /* ExtendableMessageEvent.swift */,
+				8A202B841E648D49007056D6 /* EmitMessageEvent.swift */,
+				8A202B861E649964007056D6 /* CloseMessagePortEvent.swift */,
 			);
 			name = Message;
 			sourceTree = "<group>";
@@ -1381,6 +1402,8 @@
 				8A81A3F31E4E1F6A00BC2861 /* StateChangeEvent.swift */,
 				8A285F791E5F8BA4001FBD05 /* ServiceWorkerEvent.swift */,
 				8A285F7B1E5F8EB1001FBD05 /* GetWorkerClientsEvent.swift */,
+				8A202B881E65D439007056D6 /* InstallEvent.swift */,
+				8A202B8A1E65DE30007056D6 /* ActivateEvent.swift */,
 			);
 			name = Events;
 			sourceTree = "<group>";
@@ -2446,7 +2469,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd js-src\nnpm run rollup -- src/service-worker/worker-context.ts -o ../HybridServiceWorker/js-dist/worker-context.js";
+			shellScript = "cd js-src\nnpm run rollup -- --config rollup.config.js src/service-worker/worker-context.ts -o ../HybridServiceWorker/js-dist/worker-context.js";
 		};
 		8A3B37BC1E494B8300FB95EF /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2486,7 +2509,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cd \"$PROJECT_DIR\"/js-src\nnpm run rollup -- src/webview/document-start.ts -o ../HybridUI/js-dist/document-start.js";
+			shellScript = "cd \"$PROJECT_DIR\"/js-src\nnpm run rollup -- --config rollup.config.web.js src/webview/document-start.ts -o ../HybridUI/js-dist/document-start.js";
 		};
 		8C4A98E43D1B65285488ADCB /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2714,6 +2737,7 @@
 				8AA9A9F21E4A488200468A3F /* WebviewRecord.swift in Sources */,
 				8AA9AA111E4A5C3000468A3F /* PendingNotificationShowStore.swift in Sources */,
 				8A285F7A1E5F8BA4001FBD05 /* ServiceWorkerEvent.swift in Sources */,
+				8A202B851E648D49007056D6 /* EmitMessageEvent.swift in Sources */,
 				8A81A3EA1E4CE50500BC2861 /* NotificationGetOptions.swift in Sources */,
 				8AA9AA2C1E4A6E2D00468A3F /* PendingPushEventStore.swift in Sources */,
 				8AA9AA051E4A505E00468A3F /* JSContextError.swift in Sources */,
@@ -2730,10 +2754,12 @@
 				8AA9AA301E4A6F4000468A3F /* Console.swift in Sources */,
 				8AA9AA211E4A676A00468A3F /* TimeoutManager.swift in Sources */,
 				8AA9A9F71E4A4A2400468A3F /* JSPromise.swift in Sources */,
+				8A202B891E65D439007056D6 /* InstallEvent.swift in Sources */,
 				8AA9A9D21E4A2EFC00468A3F /* OffscreenCanvasRenderingContext2D.swift in Sources */,
 				8A04BEBC1E4BDFF900E3722A /* RelatedWorkerType.swift in Sources */,
 				8AA9A9E71E4A458A00468A3F /* HexColor.swift in Sources */,
 				8AA9A9D01E4A2EEC00468A3F /* OffscreenCanvas.swift in Sources */,
+				8A202B8B1E65DE30007056D6 /* ActivateEvent.swift in Sources */,
 				8AA9AA2E1E4A6E4100468A3F /* PendingPushEvent.swift in Sources */,
 				8AA9A9EA1E4A45CC00468A3F /* ExtendableEvent.swift in Sources */,
 				8AA9A9E51E4A415100468A3F /* ImageBitmap.swift in Sources */,
@@ -2748,6 +2774,7 @@
 				8AA9AA1F1E4A60DD00468A3F /* PayloadToNotificationContent.swift in Sources */,
 				8AA9A9CD1E4A2E7900468A3F /* ExtendableMessageEvent.swift in Sources */,
 				8A04BEBE1E4CCD7C00E3722A /* ServiceWorkerRegistrationWrapper.swift in Sources */,
+				8A202B871E649964007056D6 /* CloseMessagePortEvent.swift in Sources */,
 				8A3B37981E4931C300FB95EF /* ServiceWorkerInstallState.swift in Sources */,
 				8A285F7C1E5F8EB1001FBD05 /* GetWorkerClientsEvent.swift in Sources */,
 				8AA9A9EC1E4A478500468A3F /* PushMessageData.swift in Sources */,
@@ -2839,6 +2866,7 @@
 				8AB8D0D71E54B9E700D0E5F4 /* ItemEventCommand.swift in Sources */,
 				8A588AC21E521323008EFDF0 /* HybridWebview.swift in Sources */,
 				8A285F6A1E5C95BA001FBD05 /* Deserializer.swift in Sources */,
+				8A7FCF4E1E676C5700932C59 /* UnregisterEvent.swift in Sources */,
 				8A8DAD151E54A61B00CD1767 /* ResolvePromiseCommand.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -99,7 +99,7 @@ import UserNotifications
         self.notification = notification
         self.action = action
         self.target = target
-        super.init(type: type)
+        super.init()
     }
     
     

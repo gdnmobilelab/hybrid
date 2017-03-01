@@ -6,13 +6,15 @@ const browserifyBundle = require('./browserify-bundle');
 
 var server = new ServerMock({ host: "localhost", port: 9000 });
 
+let testPath = process.argv[2] ? path.join(process.cwd(), process.argv[2]) : path.join(__dirname, '../test/src');
+
 browserifyBundle({
     server: server,
     paths: [
         path.join(__dirname, '../test/src/utils.js'),
         path.join(__dirname, '../test/bootstrap-client.js'),
-        path.join(__dirname, '../test/src/shared'),
-        path.join(__dirname, '../test/src/client')
+        testPath,
+        // path.join(__dirname, '../test/src/client')
         
     ],
     servePath: '/browser-tests.js'
