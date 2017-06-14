@@ -1,0 +1,367 @@
+BCSymbolMap Version: 2.0
++[FMDatabase databaseWithPath:]
++[FMDatabase databaseWithURL:]
+-[FMDatabase init]
+-[FMDatabase initWithURL:]
+-[FMDatabase initWithPath:]
+-[FMDatabase dealloc]
+-[FMDatabase databaseURL]
++[FMDatabase FMDBUserVersion]
++[FMDatabase FMDBVersion]
+___25+[FMDatabase FMDBVersion]_block_invoke
+___copy_helper_block_
+___destroy_helper_block_
++[FMDatabase sqliteLibVersion]
++[FMDatabase isSQLiteThreadSafe]
+-[FMDatabase sqliteHandle]
+-[FMDatabase sqlitePath]
+-[FMDatabase open]
+-[FMDatabase openWithFlags:]
+-[FMDatabase openWithFlags:vfs:]
+-[FMDatabase close]
+-[FMDatabase setMaxBusyRetryTimeInterval:]
+_FMDBDatabaseBusyHandler
+-[FMDatabase maxBusyRetryTimeInterval]
+-[FMDatabase busyRetryTimeout]
+-[FMDatabase setBusyRetryTimeout:]
+-[FMDatabase hasOpenResultSets]
+-[FMDatabase closeOpenResultSets]
+-[FMDatabase resultSetDidClose:]
+-[FMDatabase clearCachedStatements]
+-[FMDatabase cachedStatementForQuery:]
+___38-[FMDatabase cachedStatementForQuery:]_block_invoke
+-[FMDatabase setCachedStatement:forQuery:]
+-[FMDatabase rekey:]
+-[FMDatabase rekeyWithData:]
+-[FMDatabase setKey:]
+-[FMDatabase setKeyWithData:]
++[FMDatabase storeableDateFormat:]
+-[FMDatabase hasDateFormatter]
+-[FMDatabase setDateFormat:]
+-[FMDatabase dateFromString:]
+-[FMDatabase stringFromDate:]
+-[FMDatabase goodConnection]
+-[FMDatabase warnInUse]
+-[FMDatabase databaseExists]
+-[FMDatabase lastErrorMessage]
+-[FMDatabase hadError]
+-[FMDatabase lastErrorCode]
+-[FMDatabase lastExtendedErrorCode]
+-[FMDatabase errorWithMessage:]
+-[FMDatabase lastError]
+-[FMDatabase lastInsertRowId]
+-[FMDatabase changes]
+-[FMDatabase bindObject:toColumn:inStatement:]
+-[FMDatabase extractSQL:argumentsList:intoString:arguments:]
+-[FMDatabase executeQuery:withParameterDictionary:]
+-[FMDatabase executeQuery:withArgumentsInArray:orDictionary:orVAList:]
+-[FMDatabase executeQuery:]
+-[FMDatabase executeQueryWithFormat:]
+-[FMDatabase executeQuery:withArgumentsInArray:]
+-[FMDatabase executeQuery:values:error:]
+-[FMDatabase executeQuery:withVAList:]
+-[FMDatabase executeUpdate:error:withArgumentsInArray:orDictionary:orVAList:]
+-[FMDatabase executeUpdate:]
+-[FMDatabase executeUpdate:withArgumentsInArray:]
+-[FMDatabase executeUpdate:values:error:]
+-[FMDatabase executeUpdate:withParameterDictionary:]
+-[FMDatabase executeUpdate:withVAList:]
+-[FMDatabase executeUpdateWithFormat:]
+-[FMDatabase executeStatements:]
+-[FMDatabase executeStatements:withResultBlock:]
+-[FMDatabase executeUpdate:withErrorAndBindings:]
+-[FMDatabase update:withErrorAndBindings:]
+-[FMDatabase rollback]
+-[FMDatabase commit]
+-[FMDatabase beginDeferredTransaction]
+-[FMDatabase beginTransaction]
+-[FMDatabase inTransaction]
+-[FMDatabase interrupt]
+-[FMDatabase startSavePointWithName:error:]
+-[FMDatabase releaseSavePointWithName:error:]
+-[FMDatabase rollbackToSavePointWithName:error:]
+-[FMDatabase inSavePoint:]
+-[FMDatabase shouldCacheStatements]
+-[FMDatabase setShouldCacheStatements:]
+-[FMDatabase makeFunctionNamed:maximumArguments:withBlock:]
+-[FMDatabase makeFunctionNamed:arguments:block:]
+-[FMDatabase valueType:]
+-[FMDatabase valueInt:]
+-[FMDatabase valueLong:]
+-[FMDatabase valueDouble:]
+-[FMDatabase valueData:]
+-[FMDatabase valueString:]
+-[FMDatabase resultNullInContext:]
+-[FMDatabase resultInt:context:]
+-[FMDatabase resultLong:context:]
+-[FMDatabase resultDouble:context:]
+-[FMDatabase resultData:context:]
+-[FMDatabase resultString:context:]
+-[FMDatabase resultError:context:]
+-[FMDatabase resultErrorCode:context:]
+-[FMDatabase resultErrorNoMemoryInContext:]
+-[FMDatabase resultErrorTooBigInContext:]
+-[FMDatabase traceExecution]
+-[FMDatabase setTraceExecution:]
+-[FMDatabase checkedOut]
+-[FMDatabase setCheckedOut:]
+-[FMDatabase crashOnErrors]
+-[FMDatabase setCrashOnErrors:]
+-[FMDatabase logsErrors]
+-[FMDatabase setLogsErrors:]
+-[FMDatabase cachedStatements]
+-[FMDatabase setCachedStatements:]
+-[FMDatabase isInTransaction]
+-[FMDatabase databasePath]
+-[FMDatabase .cxx_destruct]
+-[FMStatement dealloc]
+-[FMStatement close]
+-[FMStatement reset]
+-[FMStatement description]
+-[FMStatement useCount]
+-[FMStatement setUseCount:]
+-[FMStatement query]
+-[FMStatement setQuery:]
+-[FMStatement statement]
+-[FMStatement setStatement:]
+-[FMStatement inUse]
+-[FMStatement setInUse:]
+-[FMStatement .cxx_destruct]
+_OBJC_IVAR_$_FMDatabase._databasePath
+_OBJC_IVAR_$_FMDatabase._openResultSets
+_OBJC_IVAR_$_FMDatabase._db
+_OBJC_IVAR_$_FMDatabase._logsErrors
+_OBJC_IVAR_$_FMDatabase._crashOnErrors
+_OBJC_IVAR_$_FMDatabase._maxBusyRetryTimeInterval
+_FMDBVersion.once
+_FMDBVersion.FMDBVersionVal
+___block_descriptor_tmp
+_OBJC_IVAR_$_FMDatabase._cachedStatements
+___block_descriptor_tmp.94
+___block_literal_global
+_OBJC_IVAR_$_FMDatabase._dateFormat
+_OBJC_IVAR_$_FMDatabase._isExecutingStatement
+_OBJC_IVAR_$_FMDatabase._traceExecution
+_OBJC_IVAR_$_FMDatabase._shouldCacheStatements
+_OBJC_IVAR_$_FMDatabase._isInTransaction
+_inSavePoint:.savePointIdx
+_OBJC_IVAR_$_FMDatabase._openFunctions
+_OBJC_IVAR_$_FMDatabase._checkedOut
+_OBJC_IVAR_$_FMDatabase._startBusyRetryTime
+Apple LLVM version 8.1.0 (clang-802.0.42)
+/Users/alastair.coote/Projects/hybrid-reboot/hybrid/Carthage/Checkouts/fmdb/src/fmdb/FMDatabase.m
+/Users/alastair.coote/Projects/hybrid-reboot/hybrid/Carthage/Checkouts/fmdb
+/Users/alastair.coote/Projects/hybrid-reboot/hybrid/Carthage/Checkouts/fmdb/src/fmdb/FMDatabase.h
+FMDBBlockSQLiteCallBackFunction
+FMDBEscapeSavePointName
+FMDBExecuteBulkSQLCallback
+__38-[FMDatabase cachedStatementForQuery:]_block_invoke
+FMDBDatabaseBusyHandler
+__destroy_helper_block_
+__copy_helper_block_
+__25+[FMDatabase FMDBVersion]_block_invoke
+_dispatch_once
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.3.sdk/usr/include/dispatch/once.h
++[FMResultSet resultSetWithStatement:usingParentDatabase:]
+-[FMResultSet dealloc]
+-[FMResultSet close]
+-[FMResultSet columnCount]
+-[FMResultSet columnNameToIndexMap]
+-[FMResultSet kvcMagic:]
+-[FMResultSet resultDict]
+-[FMResultSet resultDictionary]
+-[FMResultSet next]
+-[FMResultSet nextWithError:]
+-[FMResultSet hasAnotherRow]
+-[FMResultSet columnIndexForName:]
+-[FMResultSet intForColumn:]
+-[FMResultSet intForColumnIndex:]
+-[FMResultSet longForColumn:]
+-[FMResultSet longForColumnIndex:]
+-[FMResultSet longLongIntForColumn:]
+-[FMResultSet longLongIntForColumnIndex:]
+-[FMResultSet unsignedLongLongIntForColumn:]
+-[FMResultSet unsignedLongLongIntForColumnIndex:]
+-[FMResultSet boolForColumn:]
+-[FMResultSet boolForColumnIndex:]
+-[FMResultSet doubleForColumn:]
+-[FMResultSet doubleForColumnIndex:]
+-[FMResultSet stringForColumnIndex:]
+-[FMResultSet stringForColumn:]
+-[FMResultSet dateForColumn:]
+-[FMResultSet dateForColumnIndex:]
+-[FMResultSet dataForColumn:]
+-[FMResultSet dataForColumnIndex:]
+-[FMResultSet dataNoCopyForColumn:]
+-[FMResultSet dataNoCopyForColumnIndex:]
+-[FMResultSet columnIndexIsNull:]
+-[FMResultSet columnIsNull:]
+-[FMResultSet UTF8StringForColumnIndex:]
+-[FMResultSet UTF8StringForColumn:]
+-[FMResultSet UTF8StringForColumnName:]
+-[FMResultSet objectForColumnIndex:]
+-[FMResultSet objectForColumnName:]
+-[FMResultSet objectForColumn:]
+-[FMResultSet columnNameForIndex:]
+-[FMResultSet objectAtIndexedSubscript:]
+-[FMResultSet objectForKeyedSubscript:]
+-[FMResultSet parentDB]
+-[FMResultSet setParentDB:]
+-[FMResultSet query]
+-[FMResultSet setQuery:]
+-[FMResultSet statement]
+-[FMResultSet setStatement:]
+-[FMResultSet .cxx_destruct]
+_OBJC_IVAR_$_FMResultSet._query
+_OBJC_IVAR_$_FMResultSet._columnNameToIndexMap
+_OBJC_IVAR_$_FMResultSet._statement
+_OBJC_IVAR_$_FMResultSet._parentDB
+/Users/alastair.coote/Projects/hybrid-reboot/hybrid/Carthage/Checkouts/fmdb/src/fmdb/FMResultSet.m
+/Users/alastair.coote/Projects/hybrid-reboot/hybrid/Carthage/Checkouts/fmdb/src/fmdb/FMResultSet.h
++[FMDatabaseQueue databaseQueueWithPath:]
++[FMDatabaseQueue databaseQueueWithURL:]
++[FMDatabaseQueue databaseQueueWithPath:flags:]
++[FMDatabaseQueue databaseQueueWithURL:flags:]
++[FMDatabaseQueue databaseClass]
+-[FMDatabaseQueue initWithURL:flags:vfs:]
+-[FMDatabaseQueue initWithPath:flags:vfs:]
+-[FMDatabaseQueue initWithPath:flags:]
+-[FMDatabaseQueue initWithURL:flags:]
+-[FMDatabaseQueue initWithURL:]
+-[FMDatabaseQueue initWithPath:]
+-[FMDatabaseQueue init]
+-[FMDatabaseQueue dealloc]
+-[FMDatabaseQueue close]
+___24-[FMDatabaseQueue close]_block_invoke
+-[FMDatabaseQueue interrupt]
+-[FMDatabaseQueue database]
+-[FMDatabaseQueue inDatabase:]
+___30-[FMDatabaseQueue inDatabase:]_block_invoke
+___copy_helper_block_.50
+___destroy_helper_block_.51
+-[FMDatabaseQueue beginTransaction:withBlock:]
+___46-[FMDatabaseQueue beginTransaction:withBlock:]_block_invoke
+___copy_helper_block_.61
+___destroy_helper_block_.62
+-[FMDatabaseQueue inDeferredTransaction:]
+-[FMDatabaseQueue inTransaction:]
+-[FMDatabaseQueue inSavePoint:]
+___Block_byref_object_copy_
+___Block_byref_object_dispose_
+___31-[FMDatabaseQueue inSavePoint:]_block_invoke
+___copy_helper_block_.74
+___destroy_helper_block_.75
+-[FMDatabaseQueue path]
+-[FMDatabaseQueue setPath:]
+-[FMDatabaseQueue openFlags]
+-[FMDatabaseQueue vfsName]
+-[FMDatabaseQueue setVfsName:]
+-[FMDatabaseQueue .cxx_destruct]
+_OBJC_IVAR_$_FMDatabaseQueue._db
+_OBJC_IVAR_$_FMDatabaseQueue._path
+_OBJC_IVAR_$_FMDatabaseQueue._queue
+_kDispatchQueueSpecificKey
+_OBJC_IVAR_$_FMDatabaseQueue._openFlags
+_OBJC_IVAR_$_FMDatabaseQueue._vfsName
+___block_descriptor_tmp.52
+___block_descriptor_tmp.63
+___block_descriptor_tmp.76
+/Users/alastair.coote/Projects/hybrid-reboot/hybrid/Carthage/Checkouts/fmdb/src/fmdb/FMDatabaseQueue.m
+/Users/alastair.coote/Projects/hybrid-reboot/hybrid/Carthage/Checkouts/fmdb/src/fmdb/FMDatabaseQueue.h
+__31-[FMDatabaseQueue inSavePoint:]_block_invoke
+__Block_byref_object_dispose_
+__Block_byref_object_copy_
+__46-[FMDatabaseQueue beginTransaction:withBlock:]_block_invoke
+__30-[FMDatabaseQueue inDatabase:]_block_invoke
+__24-[FMDatabaseQueue close]_block_invoke
+-[FMDatabase(FMDatabaseAdditions) stringForQuery:]
+-[FMDatabase(FMDatabaseAdditions) intForQuery:]
+-[FMDatabase(FMDatabaseAdditions) longForQuery:]
+-[FMDatabase(FMDatabaseAdditions) boolForQuery:]
+-[FMDatabase(FMDatabaseAdditions) doubleForQuery:]
+-[FMDatabase(FMDatabaseAdditions) dataForQuery:]
+-[FMDatabase(FMDatabaseAdditions) dateForQuery:]
+-[FMDatabase(FMDatabaseAdditions) tableExists:]
+-[FMDatabase(FMDatabaseAdditions) getSchema]
+-[FMDatabase(FMDatabaseAdditions) getTableSchema:]
+-[FMDatabase(FMDatabaseAdditions) columnExists:inTableWithName:]
+-[FMDatabase(FMDatabaseAdditions) applicationID]
+-[FMDatabase(FMDatabaseAdditions) setApplicationID:]
+-[FMDatabase(FMDatabaseAdditions) userVersion]
+-[FMDatabase(FMDatabaseAdditions) setUserVersion:]
+-[FMDatabase(FMDatabaseAdditions) columnExists:columnName:]
+-[FMDatabase(FMDatabaseAdditions) validateSQL:error:]
+/Users/alastair.coote/Projects/hybrid-reboot/hybrid/Carthage/Checkouts/fmdb/src/fmdb/FMDatabaseAdditions.m
++[FMDatabasePool databasePoolWithPath:]
++[FMDatabasePool databasePoolWithURL:]
++[FMDatabasePool databasePoolWithPath:flags:]
++[FMDatabasePool databasePoolWithURL:flags:]
+-[FMDatabasePool initWithURL:flags:vfs:]
+-[FMDatabasePool initWithPath:flags:vfs:]
+-[FMDatabasePool initWithPath:flags:]
+-[FMDatabasePool initWithURL:flags:]
+-[FMDatabasePool initWithPath:]
+-[FMDatabasePool initWithURL:]
+-[FMDatabasePool init]
++[FMDatabasePool databaseClass]
+-[FMDatabasePool dealloc]
+-[FMDatabasePool executeLocked:]
+-[FMDatabasePool pushDatabaseBackInPool:]
+___41-[FMDatabasePool pushDatabaseBackInPool:]_block_invoke
+-[FMDatabasePool db]
+___20-[FMDatabasePool db]_block_invoke
+___copy_helper_block_.67
+___destroy_helper_block_.68
+-[FMDatabasePool countOfCheckedInDatabases]
+___43-[FMDatabasePool countOfCheckedInDatabases]_block_invoke
+___copy_helper_block_.70
+___destroy_helper_block_.71
+-[FMDatabasePool countOfCheckedOutDatabases]
+___44-[FMDatabasePool countOfCheckedOutDatabases]_block_invoke
+___copy_helper_block_.73
+___destroy_helper_block_.74
+-[FMDatabasePool countOfOpenDatabases]
+___38-[FMDatabasePool countOfOpenDatabases]_block_invoke
+___copy_helper_block_.76
+___destroy_helper_block_.77
+-[FMDatabasePool releaseAllDatabases]
+___37-[FMDatabasePool releaseAllDatabases]_block_invoke
+___copy_helper_block_.81
+___destroy_helper_block_.82
+-[FMDatabasePool inDatabase:]
+-[FMDatabasePool beginTransaction:withBlock:]
+-[FMDatabasePool inDeferredTransaction:]
+-[FMDatabasePool inTransaction:]
+-[FMDatabasePool inSavePoint:]
+-[FMDatabasePool path]
+-[FMDatabasePool setPath:]
+-[FMDatabasePool delegate]
+-[FMDatabasePool setDelegate:]
+-[FMDatabasePool maximumNumberOfDatabasesToCreate]
+-[FMDatabasePool setMaximumNumberOfDatabasesToCreate:]
+-[FMDatabasePool openFlags]
+-[FMDatabasePool vfsName]
+-[FMDatabasePool setVfsName:]
+-[FMDatabasePool .cxx_destruct]
+_OBJC_IVAR_$_FMDatabasePool._path
+_OBJC_IVAR_$_FMDatabasePool._lockQueue
+_OBJC_IVAR_$_FMDatabasePool._databaseInPool
+_OBJC_IVAR_$_FMDatabasePool._databaseOutPool
+_OBJC_IVAR_$_FMDatabasePool._openFlags
+_OBJC_IVAR_$_FMDatabasePool._vfsName
+_OBJC_IVAR_$_FMDatabasePool._delegate
+_OBJC_IVAR_$_FMDatabasePool._maximumNumberOfDatabasesToCreate
+___block_descriptor_tmp.69
+___block_descriptor_tmp.72
+___block_descriptor_tmp.75
+___block_descriptor_tmp.78
+___block_descriptor_tmp.83
+/Users/alastair.coote/Projects/hybrid-reboot/hybrid/Carthage/Checkouts/fmdb/src/fmdb/FMDatabasePool.m
+/Users/alastair.coote/Projects/hybrid-reboot/hybrid/Carthage/Checkouts/fmdb/src/fmdb/FMDatabasePool.h
+__37-[FMDatabasePool releaseAllDatabases]_block_invoke
+__38-[FMDatabasePool countOfOpenDatabases]_block_invoke
+__44-[FMDatabasePool countOfCheckedOutDatabases]_block_invoke
+__43-[FMDatabasePool countOfCheckedInDatabases]_block_invoke
+__20-[FMDatabasePool db]_block_invoke
+__41-[FMDatabasePool pushDatabaseBackInPool:]_block_invoke
+/Users/alastair.coote/Library/Caches/org.carthage.CarthageKit/DerivedData/fmdb/2.7.2/Build/Intermediates/fmdb.build/Release-iphoneos/FMDB iOS.build/DerivedSources/FMDB_vers.c
