@@ -1,2 +1,3 @@
 github "ccgus/fmdb"
 github "mxcl/PromiseKit" "swift4-beta1"
+github "emaloney/CleanroomLogger" ~> 5.1.0

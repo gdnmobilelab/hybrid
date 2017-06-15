@@ -8,10 +8,7 @@
 
 import Foundation
 import PromiseKit
-
-enum RegistrationError: String, Error {
-    case ScopeHost = "Service worker scope must be on the same domain as both the page and worker URL"
-}
+import HybridShared
 
 public class ServiceWorkerContainer {
     
@@ -30,16 +27,13 @@ public class ServiceWorkerContainer {
                 // By default we register to the current URL, but we can specify
                 // another scope.
                 if scopeURL.host != self.containerURL.host || workerURL.host != self.containerURL.host {
-                    throw RegistrationError.ScopeHost
+                    throw ErrorMessage("Service worker scope must be on the same domain as both the page and worker URL")
                 }
                 scopeURL = scope
             }
             
-            var reg = try ServiceWorkerRegistration.getByScope(scope: scopeURL)
+//            var reg = try ServiceWorkerRegistration.ensureExists(scope: scopeURL)
             
-            if reg == nil {
-                reg = try ServiceWorkerRegistration.createForScope(scope: scopeURL)
-            }
             
             return Promise(value:true)
         }
