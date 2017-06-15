@@ -13,7 +13,7 @@ import HybridShared
 
 class DBResetError : Error {}
 
-class ServiceWorkerContainerTests: SWContainerTest {
+class ServiceWorkerContainerTests: XCTestCase {
     
     override func setUp() {
         super.setUp()

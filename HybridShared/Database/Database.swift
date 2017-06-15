@@ -10,6 +10,7 @@ import Foundation
 import FMDB
 import PromiseKit
 import CleanroomLogger
+import Shared
 
 public class Database {
     

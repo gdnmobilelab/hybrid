@@ -13,16 +13,11 @@ import JavaScriptCore
 /// The part of our FetchHeaders object that will be available inside a JSContext
 @objc protocol FetchHeadersExports : JSExport {
     
-    @objc(set::)
-    func set(_ name: String, value:String)
-    
+    func set(_ name: String, _ value:String)
     func get(_ name: String) -> String?
     func delete(_ name:String)
     func getAll(_ name:String) -> [String]?
-    
-    @objc(append::)
-    func append(_ name:String, value:String)
-    
+    func append(_ name:String, _ value:String)
     func keys() -> [String]
     init()
 }
@@ -33,8 +28,7 @@ import JavaScriptCore
     
     fileprivate var values = [String: [String]]()
     
-    @objc(set::)
-    public func set(_ name: String, value: String) {
+    public func set(_ name: String, _ value: String) {
         values[name.lowercased()] = [value]
     }
     
@@ -42,10 +36,9 @@ import JavaScriptCore
         values.removeValue(forKey: name.lowercased())
     }
     
-    @objc(append::)
-    public func append(_ name: String, value: String) {
-        if var val = values[name.lowercased()] {
-            val.append(value)
+    public func append(_ name: String, _ value: String) {
+        if values[name.lowercased()] != nil {
+            values[name.lowercased()]!.append(value)
         } else {
             values[name.lowercased()] = [value]
         }
@@ -84,7 +77,7 @@ import JavaScriptCore
         
         for (key, values) in headersObj as! [String: [String]] {
             for value in values {
-                fh.append(key, value: value)
+                fh.append(key, value)
             }
         }
         return fh

@@ -10,7 +10,7 @@ import XCTest
 import JavaScriptCore
 import WebKit
 
-class JSContextFiddling: SWContainerTest {
+class JSContextFiddling: XCTestCase {
     
     override func setUp() {
         super.setUp()

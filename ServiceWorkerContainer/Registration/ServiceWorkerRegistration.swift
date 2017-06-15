@@ -11,6 +11,7 @@ import PromiseKit
 import HybridShared
 import ServiceWorker
 import FMDB
+import Shared
 
 class ServiceWorkerRegistration {
     

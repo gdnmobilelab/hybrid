@@ -8,8 +8,10 @@
 
 import XCTest
 @testable import ServiceWorker
+import CleanroomLogger
 
-class ServiceWorkerTests: XCTestCase {
+
+class ServiceWorkerTests: XCTest {
     
     override func setUp() {
         super.setUp()
@@ -26,11 +28,5 @@ class ServiceWorkerTests: XCTestCase {
         // Use XCTAssert and related functions to verify your tests produce the correct results.
     }
     
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
-    }
     
 }

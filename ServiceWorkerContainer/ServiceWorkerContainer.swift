@@ -9,6 +9,7 @@
 import Foundation
 import PromiseKit
 import HybridShared
+import Shared
 
 public class ServiceWorkerContainer {
     

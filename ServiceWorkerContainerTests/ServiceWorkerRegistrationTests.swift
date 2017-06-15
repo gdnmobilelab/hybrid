@@ -11,17 +11,17 @@ import HybridShared
 import ServiceWorker
 @testable import ServiceWorkerContainer
 
-class ServiceWorkerRegistrationTests: SWContainerTest {
+class ServiceWorkerRegistrationTests: XCTestCase {
 
     
     func testCreateBlankRegistration() {
         
-        self.failOnErrors {
+        AssertNoErrorMessage {
             let reg = try ServiceWorkerRegistration.create(scope: URL(string:"https://www.example.com")!)
             XCTAssert(reg.scope.absoluteString == "https://www.example.com")
         }
         
-        self.shouldError {
+        AssertHasErrorMessage {
             // An attempt to create a registration when one already exists should fail
             _ = try ServiceWorkerRegistration.create(scope: URL(string:"https://www.example.com")!)
         }
@@ -30,7 +30,7 @@ class ServiceWorkerRegistrationTests: SWContainerTest {
     
     func testShouldPopulateWorkerFields() {
         
-        self.failOnErrors {
+        AssertNoErrorMessage {
             try Database.inTransaction { db in
                 
                 try ["active", "installing", "waiting","redundant"].forEach { state in

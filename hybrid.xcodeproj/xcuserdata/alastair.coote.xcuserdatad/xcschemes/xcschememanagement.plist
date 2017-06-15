@@ -19,6 +19,16 @@
 			<key>orderHint</key>
 			<integer>1</integer>
 		</dict>
+		<key>Shared.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>4</integer>
+		</dict>
+		<key>TestShared.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
 		<key>hybrid.xcscheme</key>
 		<dict>
 			<key>orderHint</key>

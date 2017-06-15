@@ -9,6 +9,7 @@
 import Foundation
 import FMDB
 import CleanroomLogger
+import Shared
 
 fileprivate struct MigrationAndVersion {
     let fileName:URL
