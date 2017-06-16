@@ -27,9 +27,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             let lastAmt = Int(notification.request.content.body)!
             ViewController.textView!.text = "Success at " + String(lastAmt)
 //            sleep(2000)
-            if lastAmt < 1200 {
-                NSLog("Trying " + String(lastAmt + 100))
-                 self.sendNotification(title: "FAILURE", body: String(lastAmt + 100))
+            if lastAmt < 10000 {
+                NSLog("Trying " + String(lastAmt + 500))
+                 self.sendNotification(title: "FAILURE", body: String(lastAmt + 500))
                 NSLog("sent?")
             }
         }

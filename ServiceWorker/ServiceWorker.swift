@@ -9,16 +9,17 @@
 import Foundation
 import JavaScriptCore
 
-public class ServiceWorker {
+@objc public class ServiceWorker : NSObject {
     
-    public let url:URL
-    public let id:String
-    fileprivate let registration: ServiceWorkerRegistrationProtocol
+//    public let url:URL
+//    public let id:String
+//    fileprivate let registration: ServiceWorkerRegistrationProtocol
     
-    public init(id:String, url: URL, registration: ServiceWorkerRegistrationProtocol) {
-        self.id = id
-        self.url = url
-        self.registration = registration
+    @objc override public init() {
+//        self.id = id
+//        self.url = url
+//        self.registration = registration
+        super.init()
     }
     
     static public var logInterface:ServiceWorkerLogInterface {
@@ -32,13 +33,13 @@ public class ServiceWorker {
     
     static public var virtualMachine:JSVirtualMachine?
     
-    lazy public var executionEnvironment:ServiceWorkerExecutionEnvironment = {
+    @objc public var executionEnvironment:ServiceWorkerExecutionEnvironment = {
         
         // Being lazy means that we can create instances of ServiceWorker whenever we feel
         // like it (like, say, when ServiceWorkerRegistration is populating active, waiting etc)
         // without incurring a huge penalty for doing so.
         
-        Log.info?("Creating execution environment for worker: " + self.id)
+//        Log.info?("Creating execution environment for worker: " + self.id)
         
         return ServiceWorkerExecutionEnvironment()
         
