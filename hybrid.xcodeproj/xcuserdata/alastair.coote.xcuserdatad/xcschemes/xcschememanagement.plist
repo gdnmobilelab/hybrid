@@ -9,6 +9,16 @@
 			<key>orderHint</key>
 			<integer>2</integer>
 		</dict>
+		<key>NotificationServiceTester.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
+		<key>NotificationServiceTesterService.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>7</integer>
+		</dict>
 		<key>ServiceWorker.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -47,6 +57,11 @@
 			<key>primary</key>
 			<true/>
 		</dict>
+		<key>8A5D06381EF31820009AA8E5</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>8A5E86FF1EF0424700520133</key>
 		<dict>
 			<key>primary</key>
@@ -58,6 +73,21 @@
 			<true/>
 		</dict>
 		<key>8A5E87241EF064D200520133</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>8A6739591EF33560007E890A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>8A6739701EF41E8C007E890A</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>8A6739821EF4317F007E890A</key>
 		<dict>
 			<key>primary</key>
 			<true/>

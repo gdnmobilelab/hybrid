@@ -12,14 +12,24 @@ import Shared
 
 public class ServiceWorkerExecutionEnvironment {
     
-    let jsContext: JSContext
-    let globalScope: ServiceWorkerGlobalScope
+    public var jsContext: JSContext?
+    let globalScope: ServiceWorkerGlobalScope? = nil
     
     init() {
-        self.jsContext = JSContext()
-        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext)
+        if let vm = ServiceWorker.virtualMachine {
+            self.jsContext = JSContext(virtualMachine: vm )
+        } else {
+           self.jsContext = JSContext()
+        }
         
-        self.jsContext.exceptionHandler = self.grabException
+//        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext)
+        
+        self.jsContext!.exceptionHandler = self.grabException
+    }
+    
+    public func shutdown() {
+        self.jsContext!.exceptionHandler = nil
+        self.jsContext = nil
     }
     
     // Thrown errors don't error on the evaluateScript call (necessarily?), so after
@@ -29,13 +39,13 @@ public class ServiceWorkerExecutionEnvironment {
         self.currentException = error
     }
     
-    func evaluateScript(_ script:String) throws -> JSValue? {
+    public func evaluateScript(_ script:String) throws -> JSValue? {
         
         if self.currentException != nil {
             throw ErrorMessage("Cannot run script while context has an exception")
         }
         
-        let returnVal = self.jsContext.evaluateScript(script)
+        let returnVal = self.jsContext!.evaluateScript(script)
         
         if self.currentException != nil {
             let exc = self.currentException!

@@ -30,7 +30,9 @@ public class ServiceWorker {
         }
     }
     
-    lazy var executionEnvironment:ServiceWorkerExecutionEnvironment = {
+    static public var virtualMachine:JSVirtualMachine?
+    
+    lazy public var executionEnvironment:ServiceWorkerExecutionEnvironment = {
         
         // Being lazy means that we can create instances of ServiceWorker whenever we feel
         // like it (like, say, when ServiceWorkerRegistration is populating active, waiting etc)
@@ -43,7 +45,7 @@ public class ServiceWorker {
     }()
     
     func dispatchEvent(_ event:Event) {
-        self.executionEnvironment.globalScope.dispatchEvent(event)
+//        self.executionEnvironment.globalScope.dispatchEvent(event)
     }
     
     
