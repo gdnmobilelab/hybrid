@@ -10,15 +10,17 @@ import Foundation
 import JavaScriptCore
 
 @objc protocol ServiceWorkerGlobalScopeExports : JSExport {
-    
+    var registration:ServiceWorkerRegistrationProtocol { get }
 }
 
 @objc class ServiceWorkerGlobalScope : EventTarget, ServiceWorkerGlobalScopeExports {
     
     let console:ConsoleMirror
+    let registration: ServiceWorkerRegistrationProtocol
     
-    init(context:JSContext) {
+    init(context:JSContext, _ registration: ServiceWorkerRegistrationProtocol) {
         self.console = ConsoleMirror(console: context.objectForKeyedSubscript("console"))
+        self.registration = registration
         super.init()
         context.setObject(self, forSubscriptString: "self")
         context.setObject(Event.self, forSubscriptString: "Event")

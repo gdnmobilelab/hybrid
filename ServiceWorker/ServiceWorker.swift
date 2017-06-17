@@ -45,11 +45,11 @@ import JavaScriptCore
         
         Log.info?("Creating execution environment for worker: " + self.id)
         
-        return ServiceWorkerExecutionEnvironment()
+        return ServiceWorkerExecutionEnvironment(self.registration)
         
     }()
     
-    func dispatchEvent(_ event:Event) {
+    @objc func dispatchEvent(_ event:Event) {
         if self.isDestroyed {
             Log.error?("Tried to dispatch event in a destroyed worker")
             return

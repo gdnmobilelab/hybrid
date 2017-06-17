@@ -15,15 +15,17 @@ import Shared
     let jsContext: JSContext
     let globalScope: ServiceWorkerGlobalScope
     
-    @objc public override init() {
+    @objc public init(_ registration: ServiceWorkerRegistrationProtocol) {
         self.jsContext = JSContext()
-        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext)
+        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext, registration)
         
         super.init()
         self.jsContext.exceptionHandler = self.grabException
     }
     
     func destroy() {
+        // If we don't reset the exception handler then the JSContext never gets
+        // garbage collected.
         self.jsContext.exceptionHandler = nil
         self.currentException = nil
     }

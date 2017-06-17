@@ -21,7 +21,7 @@ class EventTargetTests: XCTestCase {
         sw.jsContext.setObject(testEvents,forSubscriptString: "testEvents")
         
         AssertNoErrorMessage {
-            try sw.evaluateScript("""
+            _ = try sw.evaluateScript("""
             var didFire = false;
             testEvents.addEventListener('test', function() {
                 didFire = true;
@@ -43,7 +43,7 @@ class EventTargetTests: XCTestCase {
         sw.jsContext.setObject(testEvents,forSubscriptString: "testEvents")
         
         AssertNoErrorMessage {
-            try sw.evaluateScript("""
+            _ = try sw.evaluateScript("""
             var didFire = false;
             function trigger() {
                 didFire = true;

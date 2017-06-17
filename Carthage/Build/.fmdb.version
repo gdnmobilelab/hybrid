@@ -1,7 +1,7 @@
 {
   "iOS" : [
     {
-      "hash" : "5d5fb8cb4292205f68fb7e7d0223e3a3aecadc62e19de26b5e482dca111cfba9",
+      "hash" : "03ebda8e1ee75ec06b56322ac11c126259572b9336f8f43d173dbbb440164772",
       "name" : "FMDB"
     }
   ],
@@ -14,7 +14,7 @@
   ],
   "Mac" : [
     {
-      "hash" : "493dbc9db76d23289773d24f6f637d483b95e6b175c297a85f81443ef82cf221",
+      "hash" : "ca5065cdf7900a9bff08add8faf75c4286538712a232e444b211a989aac9a015",
       "name" : "FMDB"
     }
   ]
