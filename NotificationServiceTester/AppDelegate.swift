@@ -19,7 +19,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         completionHandler(UNNotificationPresentationOptions.badge)
-        let title = notification.request.content.title
         let success = notification.request.content.title == "SUCCESS"
         if success == false {
            ViewController.textView!.text = notification.request.content.title + " at " + notification.request.content.body
@@ -83,7 +82,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                     "Authorization": "USER_KEY"
                    ]
         ) { r in
-            let id = (r.json as! AnyObject)["id"] as! String
+            let id = (r.json as AnyObject)["id"] as! String
             
             self.deviceID = id
             self.sendNotification(title: "FAILED", body: "1")

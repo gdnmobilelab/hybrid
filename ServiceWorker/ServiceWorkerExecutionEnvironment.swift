@@ -12,24 +12,20 @@ import Shared
 
 @objc public class ServiceWorkerExecutionEnvironment : NSObject {
     
-    @objc public let jsContext: JSContext
-    let globalScope: ServiceWorkerGlobalScope? = nil
+    let jsContext: JSContext
+    let globalScope: ServiceWorkerGlobalScope
     
     @objc public override init() {
-        if let vm = ServiceWorker.virtualMachine {
-            self.jsContext = JSContext(virtualMachine: vm )
-        } else {
-           self.jsContext = JSContext()
-        }
-        
-//        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext)
+        self.jsContext = JSContext()
+        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext)
         
         super.init()
         self.jsContext.exceptionHandler = self.grabException
     }
     
-    @objc public func shutdown() {
+    func destroy() {
         self.jsContext.exceptionHandler = nil
+        self.currentException = nil
     }
     
     // Thrown errors don't error on the evaluateScript call (necessarily?), so after
@@ -39,21 +35,27 @@ import Shared
         self.currentException = error
     }
     
-    public func evaluateScript(_ script:String) throws -> JSValue? {
+    @objc public func evaluateScript(_ script:String) throws -> JSValue {
         
         if self.currentException != nil {
             throw ErrorMessage("Cannot run script while context has an exception")
         }
         
-        let returnVal = self.jsContext.evaluateScript(script)
+        var returnVal = self.jsContext.evaluateScript(script)
         
         if self.currentException != nil {
             let exc = self.currentException!
             self.currentException = nil
             throw ErrorMessage(exc.toString())
         }
-        let ret = returnVal?.toString()
-        return returnVal
+        
+        // Can't return an optional value because ObjC doesn't supoort it.
+        
+        if returnVal == nil {
+            returnVal = JSValue(undefinedIn: self.jsContext)
+        }
+        
+        return returnVal!
     }
     
 }

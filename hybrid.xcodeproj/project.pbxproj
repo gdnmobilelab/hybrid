@@ -25,6 +25,7 @@
 		8A4E5F051EF0F98D00884923 /* DBMigrations in Resources */ = {isa = PBXBuildFile; fileRef = 8A4E5F041EF0F98D00884923 /* DBMigrations */; };
 		8A4E5F061EF0FAA600884923 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE731A71EF0907400CDF80E /* Database.swift */; };
 		8A4E5F071EF0FAA600884923 /* Migrate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE731C31EF0B23E00CDF80E /* Migrate.swift */; };
+		8A58BBDE1EF4BA1E0039624B /* DummyServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A58BBDD1EF4BA1E0039624B /* DummyServiceWorkerRegistration.swift */; };
 		8A5D05B11EF2E86A009AA8E5 /* CleanroomLogger.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8AA369BE1EF1889E00C523DA /* CleanroomLogger.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8A5D05D01EF2EDD8009AA8E5 /* ConsoleMirror.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5D05CF1EF2EDD8009AA8E5 /* ConsoleMirror.swift */; };
 		8A5D05D21EF2EF3E009AA8E5 /* ConsoleMirrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5D05D11EF2EF3E009AA8E5 /* ConsoleMirrorTests.swift */; };
@@ -276,6 +277,7 @@
 		8A3038C31EF075CA005A663A /* ServiceWorkerRegistrationOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistrationOptions.swift; sourceTree = "<group>"; };
 		8A3038C51EF07B6B005A663A /* ServiceWorkerRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistration.swift; sourceTree = "<group>"; };
 		8A4E5F041EF0F98D00884923 /* DBMigrations */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DBMigrations; sourceTree = "<group>"; };
+		8A58BBDD1EF4BA1E0039624B /* DummyServiceWorkerRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyServiceWorkerRegistration.swift; sourceTree = "<group>"; };
 		8A5D05CF1EF2EDD8009AA8E5 /* ConsoleMirror.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleMirror.swift; sourceTree = "<group>"; };
 		8A5D05D11EF2EF3E009AA8E5 /* ConsoleMirrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleMirrorTests.swift; sourceTree = "<group>"; };
 		8A5D05D51EF31023009AA8E5 /* EventTargetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTargetTests.swift; sourceTree = "<group>"; };
@@ -602,6 +604,7 @@
 			children = (
 				8A67394F1EF32BF4007E890A /* ServiceWorkerRegistrationProtocol.swift */,
 				8A6739511EF32C43007E890A /* NotificationShowOptions.swift */,
+				8A58BBDD1EF4BA1E0039624B /* DummyServiceWorkerRegistration.swift */,
 			);
 			path = Interop;
 			sourceTree = "<group>";
@@ -1089,6 +1092,7 @@
 				8A6739501EF32BF4007E890A /* ServiceWorkerRegistrationProtocol.swift in Sources */,
 				8A2598091EF1A23E00434D10 /* ServiceWorker.swift in Sources */,
 				8A25980D1EF1A83700434D10 /* ServiceWorkerInstallState.swift in Sources */,
+				8A58BBDE1EF4BA1E0039624B /* DummyServiceWorkerRegistration.swift in Sources */,
 				8A7904E51EF2DD500092D31B /* Event.swift in Sources */,
 				8A6739521EF32C43007E890A /* NotificationShowOptions.swift in Sources */,
 			);
@@ -1439,6 +1443,8 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
@@ -1494,6 +1500,8 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;

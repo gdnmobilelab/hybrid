@@ -20,12 +20,10 @@
 - (void)didReceiveNotificationRequest:(UNNotificationRequest *)request withContentHandler:(void (^)(UNNotificationContent * _Nonnull))contentHandler {
     UNMutableNotificationContent *bestAttemptContent = [request.content mutableCopy];
     
+    NSURL *workerURL = [[NSURL alloc] initWithString:@"https://www.example.com"];
+    DummyServiceWorkerRegistration *dummyReg = [[DummyServiceWorkerRegistration alloc] init];
     
-    ServiceWorkerExecutionEnvironment *e = [[ServiceWorkerExecutionEnvironment alloc] init];
-//    ServiceWorker *sw = [[ServiceWorker alloc] init];
-    
-//        JSContext *context = [JSContext new];
-    JSContext *context = e.jsContext;
+    ServiceWorker *sw = [[ServiceWorker alloc] initWithId:@"TEST" url:workerURL registration:dummyReg];
     
     NSString *jsFunctionText =
     @"var array = new Uint8Array(%@);"
@@ -34,14 +32,15 @@
     "}; true";
 
     NSString *withSize = [NSString stringWithFormat:jsFunctionText,request.content.body];
+     NSError *error = nil;
     
-    BOOL success = [[context evaluateScript:withSize] toBool];
+    BOOL success = [[sw.executionEnvironment evaluateScript:withSize error:&error] toBool];
     
     if (success) {
         bestAttemptContent.title = @"SUCCESS";
     }
     
-    [e shutdown];
+    [sw destroy];
     
     contentHandler(bestAttemptContent);
 //    [context release];

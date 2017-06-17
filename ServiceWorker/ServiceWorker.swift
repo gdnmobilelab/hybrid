@@ -11,14 +11,14 @@ import JavaScriptCore
 
 @objc public class ServiceWorker : NSObject {
     
-//    public let url:URL
-//    public let id:String
-//    fileprivate let registration: ServiceWorkerRegistrationProtocol
+    public let url:URL
+    public let id:String
+    fileprivate let registration: ServiceWorkerRegistrationProtocol
     
-    @objc override public init() {
-//        self.id = id
-//        self.url = url
-//        self.registration = registration
+    @objc public init(id: String, url: URL, registration: ServiceWorkerRegistrationProtocol) {
+        self.id = id
+        self.url = url
+        self.registration = registration
         super.init()
     }
     
@@ -31,22 +31,30 @@ import JavaScriptCore
         }
     }
     
-    static public var virtualMachine:JSVirtualMachine?
+    fileprivate var isDestroyed = false
+    @objc public func destroy() {
+        self.isDestroyed = true
+        self.executionEnvironment.destroy()
+    }
     
-    @objc public var executionEnvironment:ServiceWorkerExecutionEnvironment = {
+    @objc lazy public var executionEnvironment:ServiceWorkerExecutionEnvironment = {
         
         // Being lazy means that we can create instances of ServiceWorker whenever we feel
         // like it (like, say, when ServiceWorkerRegistration is populating active, waiting etc)
         // without incurring a huge penalty for doing so.
         
-//        Log.info?("Creating execution environment for worker: " + self.id)
+        Log.info?("Creating execution environment for worker: " + self.id)
         
         return ServiceWorkerExecutionEnvironment()
         
     }()
     
     func dispatchEvent(_ event:Event) {
-//        self.executionEnvironment.globalScope.dispatchEvent(event)
+        if self.isDestroyed {
+            Log.error?("Tried to dispatch event in a destroyed worker")
+            return
+        }
+        self.executionEnvironment.globalScope.dispatchEvent(event)
     }
     
     
