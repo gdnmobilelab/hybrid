@@ -59,7 +59,7 @@ class DatabaseMigration {
                 let currentVersion = try self.getCurrentMigrationVersion(db)
                 
                 // Grab all the migration files currently in our bundle.
-                let migrationFiles = Bundle(for: DatabaseMigration.self).paths(forResourcesOfType: "sql", inDirectory: "DBMigrations")
+                let migrationFiles = Bundle(for: DatabaseMigration.self).paths(forResourcesOfType: "sql", inDirectory: "DBMigrations/app")
                     .map { file -> MigrationAndVersion in
                         
                         // Extract the version number (the number before the _ in the file)

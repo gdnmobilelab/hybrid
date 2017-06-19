@@ -18,21 +18,21 @@ class ServiceWorkerContainerTests: XCTestCase {
     override func setUp() {
         super.setUp()
         
-        do {
-            try Database.inTransaction { db in
-                let result = db.executeStatements("""
-                    DELETE FROM registrations;
-                    DELETE FROM workers;
-                """)
-                
-                if !result {
-                    throw DBResetError()
-                }
-            }
-        } catch {
-            fatalError()
-        }
-
+//        do {
+//            try Database.inTransaction { db in
+//                let result = db.executeStatements("""
+//                    DELETE FROM registrations;
+//                    DELETE FROM workers;
+//                """)
+//                
+//                if !result {
+//                    throw DBResetError()
+//                }
+//            }
+//        } catch {
+//            fatalError()
+//        }
+        
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }
     
@@ -53,3 +53,5 @@ class ServiceWorkerContainerTests: XCTestCase {
     }
     
 }
+
+

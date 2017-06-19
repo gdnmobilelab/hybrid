@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8A164D491EF875260059C9A5 /* SQLiteResultSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A164D481EF875260059C9A5 /* SQLiteResultSet.swift */; };
+		8A164D4B1EF888830059C9A5 /* SQLiteBlobInputStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A164D4A1EF888830059C9A5 /* SQLiteBlobInputStream.swift */; };
 		8A16CBA01EF46D0F001C3C4B /* ServiceWorker.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A2597EB1EF1A21B00434D10 /* ServiceWorker.framework */; };
 		8A2597F41EF1A21B00434D10 /* ServiceWorker.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A2597EB1EF1A21B00434D10 /* ServiceWorker.framework */; };
 		8A2597FB1EF1A21B00434D10 /* ServiceWorkerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2597FA1EF1A21B00434D10 /* ServiceWorkerTests.swift */; };
@@ -15,17 +17,22 @@
 		8A2598011EF1A21B00434D10 /* ServiceWorker.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8A2597EB1EF1A21B00434D10 /* ServiceWorker.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8A2598091EF1A23E00434D10 /* ServiceWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2598081EF1A23E00434D10 /* ServiceWorker.swift */; };
 		8A25980D1EF1A83700434D10 /* ServiceWorkerInstallState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A25980C1EF1A83700434D10 /* ServiceWorkerInstallState.swift */; };
-		8A2D8FAA1EF0CFE900687A32 /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE731BE1EF0B0C000CDF80E /* FMDB.framework */; };
 		8A2D8FAB1EF0D00300687A32 /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE731BE1EF0B0C000CDF80E /* FMDB.framework */; };
 		8A2F031C1EF4449800BA3E07 /* CleanroomLogger.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA369BE1EF1889E00C523DA /* CleanroomLogger.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8A3038C41EF075CA005A663A /* ServiceWorkerRegistrationOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3038C31EF075CA005A663A /* ServiceWorkerRegistrationOptions.swift */; };
 		8A3038C61EF07B6B005A663A /* ServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3038C51EF07B6B005A663A /* ServiceWorkerRegistration.swift */; };
 		8A3684901EF0D34400F7D8B7 /* FMDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE731BE1EF0B0C000CDF80E /* FMDB.framework */; };
 		8A3684911EF0D34400F7D8B7 /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE731C01EF0B0D900CDF80E /* PromiseKit.framework */; };
+		8A3A246C1EF83ADD007AA0B9 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A3A246B1EF83ADD007AA0B9 /* libsqlite3.tbd */; };
 		8A4E5F051EF0F98D00884923 /* DBMigrations in Resources */ = {isa = PBXBuildFile; fileRef = 8A4E5F041EF0F98D00884923 /* DBMigrations */; };
 		8A4E5F061EF0FAA600884923 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE731A71EF0907400CDF80E /* Database.swift */; };
 		8A4E5F071EF0FAA600884923 /* Migrate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE731C31EF0B23E00CDF80E /* Migrate.swift */; };
 		8A58BBDE1EF4BA1E0039624B /* DummyServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A58BBDD1EF4BA1E0039624B /* DummyServiceWorkerRegistration.swift */; };
+		8A58BBEB1EF82DA00039624B /* Paths.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A58BBEA1EF82DA00039624B /* Paths.swift */; };
+		8A58BBED1EF82F740039624B /* SQLiteConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A58BBEC1EF82F740039624B /* SQLiteConnection.swift */; };
+		8A58BBEF1EF85C480039624B /* SQLiteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A58BBEE1EF85C480039624B /* SQLiteTests.swift */; };
+		8A58BBF31EF85EFD0039624B /* libsqlite3.tbd in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 8A3A246B1EF83ADD007AA0B9 /* libsqlite3.tbd */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		8A58BBF41EF85FC40039624B /* libsqlite3.tbd in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8A3A246B1EF83ADD007AA0B9 /* libsqlite3.tbd */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		8A5D05B11EF2E86A009AA8E5 /* CleanroomLogger.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8AA369BE1EF1889E00C523DA /* CleanroomLogger.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8A5D05D01EF2EDD8009AA8E5 /* ConsoleMirror.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5D05CF1EF2EDD8009AA8E5 /* ConsoleMirror.swift */; };
 		8A5D05D21EF2EF3E009AA8E5 /* ConsoleMirrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5D05D11EF2EF3E009AA8E5 /* ConsoleMirrorTests.swift */; };
@@ -82,7 +89,6 @@
 		8AE350C51EF18F2E0020F632 /* ServiceWorkerRegistrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE350C41EF18F2E0020F632 /* ServiceWorkerRegistrationTests.swift */; };
 		8AE731B21EF090F100CDF80E /* HybridShared.h in Headers */ = {isa = PBXBuildFile; fileRef = 8AE731B01EF090F100CDF80E /* HybridShared.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8AE731BB1EF090FC00CDF80E /* SharedResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE731BA1EF090FC00CDF80E /* SharedResources.swift */; };
-		8AE731C11EF0B0DD00CDF80E /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE731C01EF0B0D900CDF80E /* PromiseKit.framework */; };
 		8AF94EF51EF319EB00DD7F8E /* Bootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AF94EF41EF319EB00DD7F8E /* Bootstrap.swift */; };
 		8AF94EF71EF31BE600DD7F8E /* Bootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AF94EF61EF31BE600DD7F8E /* Bootstrap.swift */; };
 /* End PBXBuildFile section */
@@ -243,6 +249,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				8A58BBF31EF85EFD0039624B /* libsqlite3.tbd in Copy Frameworks */,
 				8A2F031C1EF4449800BA3E07 /* CleanroomLogger.framework in Copy Frameworks */,
 				8AC940941EF0D7E600BF972F /* PromiseKit.framework in Copy Frameworks */,
 				8AC940951EF0D7E600BF972F /* FMDB.framework in Copy Frameworks */,
@@ -256,6 +263,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				8A58BBF41EF85FC40039624B /* libsqlite3.tbd in CopyFiles */,
 				8AE350BF1EF188B30020F632 /* CleanroomLogger.framework in CopyFiles */,
 				8AC940971EF0D81000BF972F /* PromiseKit.framework in CopyFiles */,
 				8AC940981EF0D81000BF972F /* FMDB.framework in CopyFiles */,
@@ -265,6 +273,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		8A164D481EF875260059C9A5 /* SQLiteResultSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteResultSet.swift; sourceTree = "<group>"; };
+		8A164D4A1EF888830059C9A5 /* SQLiteBlobInputStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteBlobInputStream.swift; sourceTree = "<group>"; };
 		8A2597EB1EF1A21B00434D10 /* ServiceWorker.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ServiceWorker.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A2597ED1EF1A21B00434D10 /* ServiceWorker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ServiceWorker.h; sourceTree = "<group>"; };
 		8A2597EE1EF1A21B00434D10 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -276,8 +286,12 @@
 		8A25980E1EF1AC5D00434D10 /* ErrorMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorMessage.swift; sourceTree = "<group>"; };
 		8A3038C31EF075CA005A663A /* ServiceWorkerRegistrationOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistrationOptions.swift; sourceTree = "<group>"; };
 		8A3038C51EF07B6B005A663A /* ServiceWorkerRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistration.swift; sourceTree = "<group>"; };
+		8A3A246B1EF83ADD007AA0B9 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		8A4E5F041EF0F98D00884923 /* DBMigrations */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DBMigrations; sourceTree = "<group>"; };
 		8A58BBDD1EF4BA1E0039624B /* DummyServiceWorkerRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyServiceWorkerRegistration.swift; sourceTree = "<group>"; };
+		8A58BBEA1EF82DA00039624B /* Paths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Paths.swift; sourceTree = "<group>"; };
+		8A58BBEC1EF82F740039624B /* SQLiteConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteConnection.swift; sourceTree = "<group>"; };
+		8A58BBEE1EF85C480039624B /* SQLiteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteTests.swift; sourceTree = "<group>"; };
 		8A5D05CF1EF2EDD8009AA8E5 /* ConsoleMirror.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleMirror.swift; sourceTree = "<group>"; };
 		8A5D05D11EF2EF3E009AA8E5 /* ConsoleMirrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleMirrorTests.swift; sourceTree = "<group>"; };
 		8A5D05D51EF31023009AA8E5 /* EventTargetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTargetTests.swift; sourceTree = "<group>"; };
@@ -363,6 +377,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A3A246C1EF83ADD007AA0B9 /* libsqlite3.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -382,8 +397,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8AE731C11EF0B0DD00CDF80E /* PromiseKit.framework in Frameworks */,
-				8A2D8FAA1EF0CFE900687A32 /* FMDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -466,9 +479,28 @@
 			path = Registration;
 			sourceTree = "<group>";
 		};
+		8A58BBDF1EF81F810039624B /* SQLite */ = {
+			isa = PBXGroup;
+			children = (
+				8A58BBEC1EF82F740039624B /* SQLiteConnection.swift */,
+				8A164D481EF875260059C9A5 /* SQLiteResultSet.swift */,
+				8A164D4A1EF888830059C9A5 /* SQLiteBlobInputStream.swift */,
+			);
+			path = SQLite;
+			sourceTree = "<group>";
+		};
+		8A58BBE91EF82D930039624B /* Util */ = {
+			isa = PBXGroup;
+			children = (
+				8A58BBEA1EF82DA00039624B /* Paths.swift */,
+			);
+			path = Util;
+			sourceTree = "<group>";
+		};
 		8A5D05BA1EF2EA17009AA8E5 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				8A58BBDF1EF81F810039624B /* SQLite */,
 				8A25980E1EF1AC5D00434D10 /* ErrorMessage.swift */,
 				8A5D05D71EF31199009AA8E5 /* JSContextExtension.swift */,
 			);
@@ -577,6 +609,7 @@
 				8AE350C41EF18F2E0020F632 /* ServiceWorkerRegistrationTests.swift */,
 				8A7904DE1EF1E60E0092D31B /* JSContextFiddling.swift */,
 				8AF94EF61EF31BE600DD7F8E /* Bootstrap.swift */,
+				8A58BBEE1EF85C480039624B /* SQLiteTests.swift */,
 			);
 			path = ServiceWorkerContainerTests;
 			sourceTree = "<group>";
@@ -659,6 +692,7 @@
 		8AE731AF1EF090F100CDF80E /* HybridShared */ = {
 			isa = PBXGroup;
 			children = (
+				8A58BBE91EF82D930039624B /* Util */,
 				8A4E5F041EF0F98D00884923 /* DBMigrations */,
 				8AE731C21EF0B22D00CDF80E /* Database */,
 				8AE731B01EF090F100CDF80E /* HybridShared.h */,
@@ -680,6 +714,7 @@
 		E948CE9416B0C1880892CA0A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				8A3A246B1EF83ADD007AA0B9 /* libsqlite3.tbd */,
 				8AA60B6D1EF421B200C9FA4F /* Just.framework */,
 				8A5D06111EF31584009AA8E5 /* XCTest.framework */,
 				8AA369BE1EF1889E00C523DA /* CleanroomLogger.framework */,
@@ -1118,6 +1153,9 @@
 			files = (
 				8A5D064A1EF31839009AA8E5 /* JSContextExtension.swift in Sources */,
 				8A5D06491EF31835009AA8E5 /* ErrorMessage.swift in Sources */,
+				8A58BBED1EF82F740039624B /* SQLiteConnection.swift in Sources */,
+				8A164D491EF875260059C9A5 /* SQLiteResultSet.swift in Sources */,
+				8A164D4B1EF888830059C9A5 /* SQLiteBlobInputStream.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1150,6 +1188,7 @@
 				8A7904DF1EF1E60E0092D31B /* JSContextFiddling.swift in Sources */,
 				8A5E872D1EF064D200520133 /* ServiceWorkerContainerTests.swift in Sources */,
 				8A5D06321EF3179A009AA8E5 /* AssertNoErrorMessage.swift in Sources */,
+				8A58BBEF1EF85C480039624B /* SQLiteTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1176,6 +1215,7 @@
 			files = (
 				8A4E5F071EF0FAA600884923 /* Migrate.swift in Sources */,
 				8A4E5F061EF0FAA600884923 /* Database.swift in Sources */,
+				8A58BBEB1EF82DA00039624B /* Paths.swift in Sources */,
 				8AE731BB1EF090FC00CDF80E /* SharedResources.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1290,6 +1330,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
@@ -1317,6 +1358,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
@@ -1380,6 +1422,7 @@
 		8A5D06431EF31820009AA8E5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1403,6 +1446,7 @@
 		8A5D06441EF31820009AA8E5 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1534,6 +1578,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				APPLICATION_EXTENSION_API_ONLY = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = hybrid/hybrid.entitlements;
 				DEVELOPMENT_TEAM = 6J2C5AEPEG;
@@ -1541,6 +1586,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
+				HYBRID_APP_GROUP = group.com.gdnmobilelab.hybrid;
 				INFOPLIST_FILE = hybrid/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gdnmobilelabaccount.hybrid;
@@ -1554,6 +1600,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				APPLICATION_EXTENSION_API_ONLY = NO;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = hybrid/hybrid.entitlements;
 				DEVELOPMENT_TEAM = 6J2C5AEPEG;
@@ -1561,6 +1608,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/Carthage/Build/iOS",
 				);
+				HYBRID_APP_GROUP = group.com.gdnmobilelab.hybrid;
 				INFOPLIST_FILE = hybrid/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.gdnmobilelabaccount.hybrid;

@@ -1,4 +1,4 @@
 github "JustHTTP/Just" "0.6.0"
-github "ccgus/fmdb" "2.7.2"
 github "emaloney/CleanroomLogger" "5.1.1"
 github "mxcl/PromiseKit" "1cd1092b31739af70c81a6708123a0a1ca7eb61a"
+github "stephencelis/SQLite.swift" "5e771a1af67f52b5154cc5e9ee3f0f5f4a3e07a5"

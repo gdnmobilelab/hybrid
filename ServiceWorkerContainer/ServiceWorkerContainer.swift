@@ -19,25 +19,25 @@ public class ServiceWorkerContainer {
         self.containerURL = forURL
     }
     
-    func register(workerURL: URL, options: ServiceWorkerRegistrationOptions?) -> Promise<Bool> {
+    func register(workerURL: URL, options: ServiceWorkerRegistrationOptions?) -> Bool {
         
-        return firstly {
-            
+//        return firstly {
+        
             var scopeURL = self.containerURL
             if let scope = options?.scope {
                 // By default we register to the current URL, but we can specify
                 // another scope.
-                if scopeURL.host != self.containerURL.host || workerURL.host != self.containerURL.host {
-                    throw ErrorMessage("Service worker scope must be on the same domain as both the page and worker URL")
-                }
+//                if scopeURL.host != self.containerURL.host || workerURL.host != self.containerURL.host {
+//                    throw ErrorMessage("Service worker scope must be on the same domain as both the page and worker URL")
+//                }
                 scopeURL = scope
             }
             
 //            var reg = try ServiceWorkerRegistration.ensureExists(scope: scopeURL)
             
-            
-            return Promise(value:true)
-        }
+            return true
+//            return Promise(value:true)
+//        }
         
     }
     
