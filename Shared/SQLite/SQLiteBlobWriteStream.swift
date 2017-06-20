@@ -9,28 +9,32 @@
 import Foundation
 import SQLite3
 
-
-class SqliteBlobWriteStream : OutputStream {
+public class SQLiteBlobWriteStream : SQLiteBlobStream {
     
-    let table:String;
-    let column:String;
-    let row:Int64
-    fileprivate let dbPointer:OpaquePointer
-    var isOpen:Bool = false
-    
-    fileprivate var pointer: OpaquePointer?
-    fileprivate var blobLength: Int32?
-    fileprivate var currentReadPosition: Int32?
-    
-    init(_ dbPointer: OpaquePointer, table: String, column:String, row: Int64) {
-        self.dbPointer = dbPointer
-        self.table = table
-        self.column = column
-        self.row = row
-        super.init(toMemory: ())
+    override var isWriteStream: Int32 {
+        get {
+            return 1
+        }
     }
     
-    public override func open() {
-        sqlite3_blob_open(self.dbPointer, "main", self.table, self.column, self.row, 1, &self.pointer)
+    func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
+     
+        let bytesLeft = self.blobLength! - self.currentPosition!
+        let lengthToWrite = min(Int32(len), bytesLeft)
+        
+        if sqlite3_blob_write(self.pointer!, buffer, lengthToWrite, self.currentPosition!) != SQLITE_OK {
+            return -1
+        }
+        
+        self.currentPosition = self.currentPosition! + lengthToWrite
+        
+        return Int(lengthToWrite)
     }
+    
+    var hasSpaceAvailable:Bool {
+        get {
+            return self.currentPosition! < self.blobLength!
+        }
+    }
+    
 }

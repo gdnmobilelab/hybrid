@@ -28,7 +28,7 @@ public class SQLiteBlobReadStream : SQLiteBlobStream {
         let lengthToRead = min(Int32(len), bytesLeft)
         
         if sqlite3_blob_read(self.pointer!, buffer, lengthToRead, self.currentPosition!) != SQLITE_OK {
-            NSLog("What do we do here?")
+            return -1
         }
         self.currentPosition = self.currentPosition! + lengthToRead
         return Int(lengthToRead)

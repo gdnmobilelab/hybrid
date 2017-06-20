@@ -27,6 +27,7 @@ class SQLiteTests: XCTestCase {
     override func setUp() {
         super.setUp()
         self.deleteDB()
+        NSLog("DB: " + dbPath.path)
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }
     
@@ -212,7 +213,7 @@ class SQLiteTests: XCTestCase {
         }
     }
     
-    func testBlobStream() {
+    func testBlobReadStream() {
         AssertNoErrorMessage {
             let conn = try SQLiteConnection(self.dbPath)
             try conn.exec(sql: """
@@ -259,5 +260,98 @@ class SQLiteTests: XCTestCase {
             stream.close()
         }
     }
+    
+    func testBlobWriteStream() {
+        AssertNoErrorMessage {
+            let conn = try SQLiteConnection(self.dbPath)
+            try conn.exec(sql: """
+                CREATE TABLE "testtable" (
+                    "val" BLOB NOT NULL
+                );
+            """)
+            
+            
+            
+            let rowId = try conn.insert(sql: "INSERT INTO testtable (val) VALUES ('aaaaaaaaaaa')", values: [])
+            
+            let stream = conn.openBlobWriteStream(table: "testtable", column: "val", row: rowId)
+            stream.open()
+            _ = "abc".data(using: String.Encoding.utf8)!.withUnsafeBytes { body in
+                XCTAssert(stream.write(body, maxLength: 3) == 3)
+            }
+
+            _ = "def".data(using: String.Encoding.utf8)!.withUnsafeBytes { body in
+                stream.write(body, maxLength: 3)
+            }
+
+            _ = "ghijk".data(using: String.Encoding.utf8)!.withUnsafeBytes { body in
+                stream.write(body, maxLength: 5)
+            }
+
+            stream.close()
+            
+            try conn.select(sql: "SELECT val FROM testtable", values: []) { rs in
+                XCTAssert( rs.next() == true)
+                let data: Data = try rs.column("val")
+                let asStr = String(data: data, encoding: String.Encoding.utf8)
+                XCTAssert(asStr! == "abcdefghijk")
+            }
+        }
+    }
+    
+//    func testUpdateMonitor() {
+//        AssertNoErrorMessage {
+//            let conn = try SQLiteConnection(self.dbPath)
+//            let monitorConn = try SQLiteConnection(self.dbPath)
+//            try conn.exec(sql: """
+//                    CREATE TABLE "testtable" (
+//                        "val" TEXT NOT NULL
+//                    );
+//                """)
+//            
+//            let monitor = SQLiteUpdateMonitor(monitorConn)
+//            
+//            var insertListenerFired = false
+//            var listenerID = monitor.addListener { (operation, tableName, rowId) in
+//                insertListenerFired = true
+//                XCTAssert(operation == SQLiteUpdateOperation.Insert)
+//                XCTAssert(tableName == "testtable")
+//                XCTAssert(rowId == 1)
+//            }
+//            
+//            try conn.exec(sql: "INSERT INTO testtable (val) VALUES ('test')")
+//            XCTAssert(insertListenerFired == true)
+//            monitor.removeListener(listenerID)
+//            
+//            var updateListenerFired = false
+//            
+//            listenerID = monitor.addListener { (operation, tableName, rowId) in
+//                updateListenerFired = true
+//                XCTAssert(operation == SQLiteUpdateOperation.Update)
+//                XCTAssert(tableName == "testtable")
+//                XCTAssert(rowId == 1)
+//            }
+//            
+//            try conn.exec(sql: "UPDATE testtable SET val = 'new-test'")
+//            XCTAssert(updateListenerFired == true)
+//            monitor.removeListener(listenerID)
+//            
+//            var deleteListenerFired = false
+//            
+//            listenerID = monitor.addListener { (operation, tableName, rowId) in
+//                deleteListenerFired = true
+//                XCTAssert(operation == SQLiteUpdateOperation.Delete)
+//                XCTAssert(tableName == "testtable")
+//                XCTAssert(rowId == 1)
+//            }
+//            
+//            try conn.exec(sql: "DELETE FROM testtable")
+//            XCTAssert(deleteListenerFired == true)
+//            monitor.removeListener(listenerID)
+//            
+//            
+//        }
+//    }
+    
     
 }

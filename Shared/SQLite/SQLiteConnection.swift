@@ -75,8 +75,10 @@ public class SQLiteConnection {
     
     fileprivate func bindValue(_ statement: OpaquePointer, idx:Int32, value:Any) throws {
         
-        if let intValue = value as? Int32 {
-            sqlite3_bind_int(statement, idx, intValue)
+        if let int32Value = value as? Int32 {
+            sqlite3_bind_int(statement, idx, int32Value)
+        } else if let intValue = value as? Int {
+            sqlite3_bind_int(statement, idx, Int32(intValue))
         } else if let stringValue = value as? String {
             sqlite3_bind_text(statement, idx, stringValue.cString(using: String.Encoding.utf8), -1, nil)
         } else if let dataValue = value as? Data {
@@ -163,6 +165,12 @@ public class SQLiteConnection {
     public func openBlobReadStream(table: String, column:String, row: Int64) -> SQLiteBlobReadStream {
         
         return SQLiteBlobReadStream(self.db!, table: table, column: column, row: row)
+        
+    }
+    
+    public func openBlobWriteStream(table: String, column:String, row: Int64) -> SQLiteBlobWriteStream {
+        
+        return SQLiteBlobWriteStream(self.db!, table: table, column: column, row: row)
         
     }
     

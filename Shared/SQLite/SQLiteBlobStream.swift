@@ -13,14 +13,18 @@ public class SQLiteBlobStream : Stream {
     let table:String;
     let column:String;
     let row:Int64
-    fileprivate let dbPointer:OpaquePointer
+    let dbPointer:OpaquePointer
     var isOpen:Bool = false
     
     var pointer: OpaquePointer?
     var blobLength: Int32?
     var currentPosition: Int32?
     
-    fileprivate let isWriteStream:Int32 = 0
+    var isWriteStream:Int32 {
+        get {
+            return 0
+        }
+    }
     
     init(_ dbPointer: OpaquePointer, table: String, column:String, row: Int64) {
         
@@ -41,7 +45,7 @@ public class SQLiteBlobStream : Stream {
     
     public override func close() {
         self.isOpen = false
-        sqlite3_blob_close(self.dbPointer)
+        sqlite3_blob_close(self.pointer)
     }
     
 }

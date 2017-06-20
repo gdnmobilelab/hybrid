@@ -81,6 +81,8 @@
 		8AA369BF1EF1889E00C523DA /* CleanroomLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA369BE1EF1889E00C523DA /* CleanroomLogger.framework */; };
 		8AA60B6E1EF421B200C9FA4F /* Just.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA60B6D1EF421B200C9FA4F /* Just.framework */; };
 		8AA60B701EF421E600C9FA4F /* Just.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8AA60B6D1EF421B200C9FA4F /* Just.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		8AB7EEA01EF978E7000AC249 /* SQLiteUpdateMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EE9F1EF978E7000AC249 /* SQLiteUpdateMonitor.swift */; };
+		8AB7EEA21EF97ED5000AC249 /* SQLiteUpdateOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EEA11EF97ED5000AC249 /* SQLiteUpdateOperation.swift */; };
 		8AC940941EF0D7E600BF972F /* PromiseKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE731C01EF0B0D900CDF80E /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8AC940951EF0D7E600BF972F /* FMDB.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE731BE1EF0B0C000CDF80E /* FMDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8AC940971EF0D81000BF972F /* PromiseKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8AE731C01EF0B0D900CDF80E /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -343,6 +345,8 @@
 		8A7904EA1EF2E7720092D31B /* ServiceWorkerLogInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorkerLogInterface.swift; sourceTree = "<group>"; };
 		8AA369BE1EF1889E00C523DA /* CleanroomLogger.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CleanroomLogger.framework; path = Carthage/Build/iOS/CleanroomLogger.framework; sourceTree = "<group>"; };
 		8AA60B6D1EF421B200C9FA4F /* Just.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Just.framework; path = Carthage/Build/iOS/Just.framework; sourceTree = "<group>"; };
+		8AB7EE9F1EF978E7000AC249 /* SQLiteUpdateMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteUpdateMonitor.swift; sourceTree = "<group>"; };
+		8AB7EEA11EF97ED5000AC249 /* SQLiteUpdateOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteUpdateOperation.swift; sourceTree = "<group>"; };
 		8ACA0B1D1EF8E0D300E49C20 /* SQLiteBlobWriteStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteBlobWriteStream.swift; sourceTree = "<group>"; };
 		8ACA0B1F1EF8E2B900E49C20 /* SQLiteBlobStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteBlobStream.swift; sourceTree = "<group>"; };
 		8AE350C41EF18F2E0020F632 /* ServiceWorkerRegistrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistrationTests.swift; sourceTree = "<group>"; };
@@ -491,6 +495,8 @@
 				8A164D4A1EF888830059C9A5 /* SQLiteBlobReadStream.swift */,
 				8ACA0B1D1EF8E0D300E49C20 /* SQLiteBlobWriteStream.swift */,
 				8ACA0B1F1EF8E2B900E49C20 /* SQLiteBlobStream.swift */,
+				8AB7EE9F1EF978E7000AC249 /* SQLiteUpdateMonitor.swift */,
+				8AB7EEA11EF97ED5000AC249 /* SQLiteUpdateOperation.swift */,
 			);
 			path = SQLite;
 			sourceTree = "<group>";
@@ -1158,12 +1164,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				8ACA0B1E1EF8E0D300E49C20 /* SQLiteBlobWriteStream.swift in Sources */,
+				8AB7EEA01EF978E7000AC249 /* SQLiteUpdateMonitor.swift in Sources */,
 				8A5D064A1EF31839009AA8E5 /* JSContextExtension.swift in Sources */,
 				8ACA0B201EF8E2B900E49C20 /* SQLiteBlobStream.swift in Sources */,
 				8A5D06491EF31835009AA8E5 /* ErrorMessage.swift in Sources */,
 				8A58BBED1EF82F740039624B /* SQLiteConnection.swift in Sources */,
 				8A164D491EF875260059C9A5 /* SQLiteResultSet.swift in Sources */,
 				8A164D4B1EF888830059C9A5 /* SQLiteBlobReadStream.swift in Sources */,
+				8AB7EEA21EF97ED5000AC249 /* SQLiteUpdateOperation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

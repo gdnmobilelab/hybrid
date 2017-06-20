@@ -51,6 +51,12 @@ public class SQLiteResultSet {
         } else if T.self == Int.self {
             let result = sqlite3_column_int(self.statement, Int32(idx!))
             return Int(result) as! T
+        } else if T.self == Data.self {
+            let idx32 = Int32(idx!)
+            let result = sqlite3_column_blob(self.statement, idx32)
+            let length = sqlite3_column_bytes(self.statement, idx32)
+            
+            return Data(bytes: result!, count: Int(length)) as! T
         } else {
             throw ErrorMessage("Do not know how to return this data type")
         }
