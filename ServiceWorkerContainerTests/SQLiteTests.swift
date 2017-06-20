@@ -299,59 +299,46 @@ class SQLiteTests: XCTestCase {
         }
     }
     
-//    func testUpdateMonitor() {
-//        AssertNoErrorMessage {
-//            let conn = try SQLiteConnection(self.dbPath)
-//            let monitorConn = try SQLiteConnection(self.dbPath)
-//            try conn.exec(sql: """
-//                    CREATE TABLE "testtable" (
-//                        "val" TEXT NOT NULL
-//                    );
-//                """)
-//            
-//            let monitor = SQLiteUpdateMonitor(monitorConn)
-//            
-//            var insertListenerFired = false
-//            var listenerID = monitor.addListener { (operation, tableName, rowId) in
-//                insertListenerFired = true
-//                XCTAssert(operation == SQLiteUpdateOperation.Insert)
-//                XCTAssert(tableName == "testtable")
-//                XCTAssert(rowId == 1)
-//            }
-//            
-//            try conn.exec(sql: "INSERT INTO testtable (val) VALUES ('test')")
-//            XCTAssert(insertListenerFired == true)
-//            monitor.removeListener(listenerID)
-//            
-//            var updateListenerFired = false
-//            
-//            listenerID = monitor.addListener { (operation, tableName, rowId) in
-//                updateListenerFired = true
-//                XCTAssert(operation == SQLiteUpdateOperation.Update)
-//                XCTAssert(tableName == "testtable")
-//                XCTAssert(rowId == 1)
-//            }
-//            
-//            try conn.exec(sql: "UPDATE testtable SET val = 'new-test'")
-//            XCTAssert(updateListenerFired == true)
-//            monitor.removeListener(listenerID)
-//            
-//            var deleteListenerFired = false
-//            
-//            listenerID = monitor.addListener { (operation, tableName, rowId) in
-//                deleteListenerFired = true
-//                XCTAssert(operation == SQLiteUpdateOperation.Delete)
-//                XCTAssert(tableName == "testtable")
-//                XCTAssert(rowId == 1)
-//            }
-//            
-//            try conn.exec(sql: "DELETE FROM testtable")
-//            XCTAssert(deleteListenerFired == true)
-//            monitor.removeListener(listenerID)
-//            
-//            
-//        }
-//    }
+    func testUpdateMonitor() {
+        AssertNoErrorMessage {
+            let conn = try SQLiteConnection(self.dbPath)
+            try conn.exec(sql: """
+                    CREATE TABLE "testtable" (
+                        "val" TEXT NOT NULL
+                    );
+                """)
+            
+            let monitor = SQLiteUpdateMonitor(conn)
+            
+            var insertListenerFired = false
+            var listenerID = monitor.addListener { (operation, tableName, rowId) in
+                insertListenerFired = true
+                XCTAssert(operation == SQLiteUpdateOperation.Insert)
+                XCTAssert(tableName == "testtable")
+                XCTAssert(rowId == 1)
+            }
+            
+            try conn.exec(sql: "INSERT INTO testtable (val) VALUES ('test')")
+            XCTAssert(insertListenerFired == true)
+            monitor.removeListener(listenerID)
+            
+            var updateListenerFired = false
+            
+            listenerID = monitor.addListener { (operation, tableName, rowId) in
+                updateListenerFired = true
+                XCTAssert(operation == SQLiteUpdateOperation.Update)
+                XCTAssert(tableName == "testtable")
+                XCTAssert(rowId == 1)
+            }
+            
+            try conn.exec(sql: "UPDATE testtable SET val = 'new-test'")
+            XCTAssert(updateListenerFired == true)
+            monitor.removeListener(listenerID)
+        
+            
+            
+        }
+    }
     
     
 }
