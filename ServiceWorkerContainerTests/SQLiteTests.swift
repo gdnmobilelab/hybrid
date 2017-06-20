@@ -223,7 +223,7 @@ class SQLiteTests: XCTestCase {
             
             let rowId = try conn.insert(sql: "INSERT INTO testtable (val) VALUES (?)", values: ["abcdefghijk".data(using: String.Encoding.utf8) as Any])
             
-            let stream = conn.openBlobInputStream(table: "testtable", column: "val", row: rowId)
+            let stream = conn.openBlobReadStream(table: "testtable", column: "val", row: rowId)
             stream.open()
             
             var testData = Data(count: 3)
@@ -232,6 +232,8 @@ class SQLiteTests: XCTestCase {
                 stream.read(body, maxLength: 3)
             }
             
+            
+            
             XCTAssert(String(data: testData, encoding: String.Encoding.utf8) == "abc")
             
             _ = testData.withUnsafeMutableBytes { body in
@@ -239,6 +241,8 @@ class SQLiteTests: XCTestCase {
             }
             
             XCTAssert(String(data: testData, encoding: String.Encoding.utf8) == "def")
+            
+            XCTAssert(stream.hasBytesAvailable == true)
             
             var restData = Data(count: 5)
             var amtRead = 0
@@ -249,7 +253,10 @@ class SQLiteTests: XCTestCase {
             
             XCTAssert(amtRead == 5)
             XCTAssert(String(data: restData, encoding: String.Encoding.utf8) == "ghijk")
+            XCTAssert(stream.hasBytesAvailable == false)
             
+            
+            stream.close()
         }
     }
     

@@ -160,9 +160,9 @@ public class SQLiteConnection {
         
     }
     
-    public func openBlobInputStream(table: String, column:String, row: Int64) -> SQLiteBlobInputStream {
+    public func openBlobReadStream(table: String, column:String, row: Int64) -> SQLiteBlobReadStream {
         
-        return SQLiteBlobInputStream(self.db!, table: table, column: column, row: row)
+        return SQLiteBlobReadStream(self.db!, table: table, column: column, row: row)
         
     }
     
