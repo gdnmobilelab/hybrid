@@ -9,15 +9,16 @@
 import Foundation
 import ServiceWorker
 import CleanroomLogger
+import Shared
 
 public class TestBootstrap : NSObject {
     override init() {
         super.init()
         Log.enable()
         
-        ServiceWorker.logInterface.debug = { Log.debug?.message($0) }
-        ServiceWorker.logInterface.info = { Log.info?.message($0) }
-        ServiceWorker.logInterface.warn = { Log.warning?.message($0) }
-        ServiceWorker.logInterface.error = { Log.error?.message($0) }
+        Shared.Log.debug = { Log.debug?.message($0) }
+        Shared.Log.info = { Log.info?.message($0) }
+        Shared.Log.warn = { Log.warning?.message($0) }
+        Shared.Log.error = { Log.error?.message($0) }
     }
 }

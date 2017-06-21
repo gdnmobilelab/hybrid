@@ -37,30 +37,54 @@ public class SQLiteResultSet {
         return sqlite3_step(self.statement) == SQLITE_ROW
     }
     
-    public func column<T>(_ name:String) throws -> T {
-        
+    fileprivate func nullCheck(_ idx:Int32) -> Bool {
+        return sqlite3_column_type(self.statement, idx) == SQLITE_NULL
+    }
+    
+    fileprivate func idxForColumnName(_ name:String) throws -> Int32 {
         let idx = self.columnNames.index(of: name)
         
         if idx == nil {
             throw ErrorMessage("Column does not exist in result set")
         }
+        return Int32(idx!)
+    }
+    
+    public func string(_ name:String) throws -> String? {
         
-        if T.self == String.self {
-            let result = sqlite3_column_text(self.statement, Int32(idx!))!
-            return String(cString: result) as! T
-        } else if T.self == Int.self {
-            let result = sqlite3_column_int(self.statement, Int32(idx!))
-            return Int(result) as! T
-        } else if T.self == Data.self {
-            let idx32 = Int32(idx!)
-            let result = sqlite3_column_blob(self.statement, idx32)
-            let length = sqlite3_column_bytes(self.statement, idx32)
-            
-            return Data(bytes: result!, count: Int(length)) as! T
-        } else {
-            throw ErrorMessage("Do not know how to return this data type")
+        let idx = try self.idxForColumnName(name)
+        
+        if self.nullCheck(idx) {
+            return nil
         }
         
+        let result = sqlite3_column_text(self.statement, idx)!
+        return String(cString: result)
+        
+    }
+    
+    public func int(_ name:String) throws -> Int? {
+        let idx = try self.idxForColumnName(name)
+        
+        if self.nullCheck(idx) {
+            return nil
+        }
+        
+        let result = sqlite3_column_int(self.statement, idx)
+        return Int(result)
+    }
+    
+    public func data(_ name: String) throws -> Data? {
+        let idx = try self.idxForColumnName(name)
+        
+        if self.nullCheck(idx) {
+            return nil
+        }
+        
+        let result = sqlite3_column_blob(self.statement, idx)
+        let length = sqlite3_column_bytes(self.statement, idx)
+        
+        return Data(bytes: result!, count: Int(length))
     }
     
 }

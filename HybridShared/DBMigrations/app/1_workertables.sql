@@ -25,7 +25,8 @@ DROP TABLE IF EXISTS "workers";
 CREATE TABLE "workers" (
 "worker_id" text(36,0) NOT NULL,
 "url" text NOT NULL,
-"headers" blob NOT NULL,
+"headers" text NOT NULL,
+"content" blob NOT NULL,
 "install_state" integer NOT NULL,
 PRIMARY KEY("worker_id")
 );

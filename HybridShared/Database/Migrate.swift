@@ -14,12 +14,12 @@ fileprivate struct MigrationAndVersion {
     let version:Int
 }
 
-enum DatabaseType: String {
+public enum DatabaseType: String {
     case App = "app"
     case Cache = "cache"
 }
 
-class DatabaseMigration {
+public class DatabaseMigration {
     
     fileprivate static func ensureMigrationTableCreated(_ db:SQLiteConnection) throws {
         
@@ -40,56 +40,56 @@ class DatabaseMigration {
             if rs.next() == false {
                 throw ErrorMessage("Could not find row for current migration version")
             }
-            return try rs.column("value")
+            return try rs.int("value")!
         }
         
     }
     
     public static func check(dbPath: URL, DatabaseType: DatabaseType) throws {
         
-        let connection = try SQLiteConnection(dbPath)
+        return try SQLiteConnection.inConnection(dbPath) { connection in
         
-        try connection.inTransaction {
-            
-            try self.ensureMigrationTableCreated(connection)
-            let currentVersion = try self.getCurrentMigrationVersion(connection)
-            
-            // Grab all the migration files currently in our bundle.
-            let migrationFiles = Bundle(for: DatabaseMigration.self).paths(forResourcesOfType: "sql", inDirectory: "DBMigrations/" + DatabaseType.rawValue)
-                .map { file -> MigrationAndVersion in
+            return try connection.inTransaction {
                 
-                // Extract the version number (the number before the _ in the file)
-                let url = URL(fileURLWithPath: file)
-                let idx = Int(url.deletingPathExtension().lastPathComponent.components(separatedBy: "_")[0])!
+                try self.ensureMigrationTableCreated(connection)
+                let currentVersion = try self.getCurrentMigrationVersion(connection)
                 
-                return MigrationAndVersion(fileName: url, version: idx)
+                // Grab all the migration files currently in our bundle.
+                let migrationFiles = Bundle(for: DatabaseMigration.self).paths(forResourcesOfType: "sql", inDirectory: "DBMigrations/" + DatabaseType.rawValue)
+                    .map { file -> MigrationAndVersion in
+                        
+                    // Extract the version number (the number before the _ in the file)
+                    let url = URL(fileURLWithPath: file)
+                    let idx = Int(url.deletingPathExtension().lastPathComponent.components(separatedBy: "_")[0])!
+                        
+                    return MigrationAndVersion(fileName: url, version: idx)
+                        
+                    }
+                    // Remove any migrations we've already completed
+                    .filter { $0.version > currentVersion }
+                    // Sort them by version, so they execute in order
+                    .sorted(by: { $1.version > $0.version })
                 
-                }
-                // Remove any migrations we've already completed
-                .filter { $0.version > currentVersion }
-                // Sort them by version, so they execute in order
-                .sorted(by: { $1.version > $0.version })
-            
-            if migrationFiles.count == 0 {
-                Log.debug?("No pending migration files found")
-                return
-            }
-            
-            for migration in migrationFiles {
-                
-                Log.info?("Processing migration file: " + migration.fileName.lastPathComponent)
-                let sql = try String(contentsOfFile: migration.fileName.path)
-                
-                do {
-                    try connection.exec(sql: sql)
-                } catch {
-                    throw ErrorMessage("Error when attempting migration: " + migration.fileName.absoluteString + ", internal error: " + String(describing: error))
+                if migrationFiles.count == 0 {
+                    Log.debug?("No pending migration files found")
+                    return
                 }
                 
+                for migration in migrationFiles {
+                    
+                    Log.info?("Processing migration file: " + migration.fileName.lastPathComponent)
+                    let sql = try String(contentsOfFile: migration.fileName.path)
+                    
+                    do {
+                        try connection.exec(sql: sql)
+                    } catch {
+                        throw ErrorMessage("Error when attempting migration: " + migration.fileName.absoluteString + ", internal error: " + String(describing: error))
+                    }
+                    
+                }
+                
+                try connection.update(sql: "UPDATE _migrations SET value = ? WHERE identifier = 'currentVersion'", values: [migrationFiles.last!.version])
             }
-            
-            try connection.update(sql: "UPDATE _migrations SET value = ? WHERE identifier = 'currentVersion'", values: [migrationFiles.last!.version])
-            
         }
         
     }

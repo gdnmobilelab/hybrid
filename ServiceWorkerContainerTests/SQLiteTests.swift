@@ -12,28 +12,8 @@ import FMDB
 
 class SQLiteTests: XCTestCase {
     
-    let dbPath = URL(fileURLWithPath: NSTemporaryDirectory() + "temp.db")
-    
-    func deleteDB() {
-        do {
-            if FileManager.default.fileExists(atPath: self.dbPath.path) {
-                try FileManager.default.removeItem(atPath: self.dbPath.path)
-            }
-        } catch {
-            fatalError(String(describing: error))
-        }
-    }
-    
-    override func setUp() {
-        super.setUp()
-        self.deleteDB()
-        NSLog("DB: " + dbPath.path)
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-    
     override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        self.deleteDB()
+        TestDB.delete()
         super.tearDown()
     }
     
@@ -42,7 +22,7 @@ class SQLiteTests: XCTestCase {
         // Use XCTAssert and related functions to verify your tests produce the correct results.
         
         var conn:SQLiteConnection? = nil
-        XCTAssertNoThrow(conn = try SQLiteConnection(self.dbPath))
+        XCTAssertNoThrow(conn = try SQLiteConnection(TestDB.path))
         XCTAssert(conn!.open == true)
         conn!.close()
         XCTAssert(conn!.open == false)
@@ -51,7 +31,7 @@ class SQLiteTests: XCTestCase {
     func testExecQuery() {
         
         AssertNoErrorMessage {
-            let conn = try SQLiteConnection(self.dbPath)
+            let conn = try SQLiteConnection(TestDB.path)
             try conn.exec(sql: """
                 CREATE TABLE "test-table" (
                     "value" TEXT NOT NULL
@@ -60,7 +40,7 @@ class SQLiteTests: XCTestCase {
             
             conn.close()
             
-            let fm = FMDatabase(url: self.dbPath)
+            let fm = FMDatabase(url: TestDB.path)
             fm.open()
             let rs = try fm.executeQuery("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='test-table';", values: nil)
             
@@ -77,7 +57,7 @@ class SQLiteTests: XCTestCase {
     func testInsertQuery() {
         
         AssertNoErrorMessage {
-            let conn = try SQLiteConnection(self.dbPath)
+            let conn = try SQLiteConnection(TestDB.path)
             try conn.exec(sql: """
                 CREATE TABLE "testtable" (
                     "val" TEXT NOT NULL
@@ -89,7 +69,7 @@ class SQLiteTests: XCTestCase {
                 
             conn.close()
             
-            let fm = FMDatabase(url: self.dbPath)
+            let fm = FMDatabase(url: TestDB.path)
             fm.open()
             let rs = try fm.executeQuery("SELECT * from testtable;", values: nil)
             
@@ -106,7 +86,7 @@ class SQLiteTests: XCTestCase {
     func testMultiInsertQuery() {
         
         AssertNoErrorMessage {
-            let conn = try SQLiteConnection(self.dbPath)
+            let conn = try SQLiteConnection(TestDB.path)
             try conn.exec(sql: """
                 CREATE TABLE "testtable" (
                     "val" TEXT NOT NULL
@@ -118,7 +98,7 @@ class SQLiteTests: XCTestCase {
             
             conn.close()
             
-            let fm = FMDatabase(url: self.dbPath)
+            let fm = FMDatabase(url: TestDB.path)
             fm.open()
             let rs = try fm.executeQuery("SELECT * from testtable;", values: nil)
             
@@ -139,7 +119,7 @@ class SQLiteTests: XCTestCase {
     func testMultiInsertRollback() {
         
         AssertNoErrorMessage {
-            let conn = try SQLiteConnection(self.dbPath)
+            let conn = try SQLiteConnection(TestDB.path)
             try conn.exec(sql: """
                 CREATE TABLE "testtable" (
                     "val" TEXT NOT NULL
@@ -151,7 +131,7 @@ class SQLiteTests: XCTestCase {
             
             conn.close()
             
-            let fm = FMDatabase(url: self.dbPath)
+            let fm = FMDatabase(url: TestDB.path)
             fm.open()
             let rs = try fm.executeQuery("SELECT * from testtable;", values: nil)
             
@@ -166,26 +146,28 @@ class SQLiteTests: XCTestCase {
     
     func testSelect() {
         AssertNoErrorMessage {
-            let conn = try SQLiteConnection(self.dbPath)
+            let conn = try SQLiteConnection(TestDB.path)
             try conn.exec(sql: """
                 CREATE TABLE "testtable" (
-                    "val" TEXT NOT NULL,
-                    "num" INT NOT NULL
+                    "val" TEXT NOT NULL PRIMARY KEY,
+                    "num" INT NOT NULL,
+                    "blobtexttest" BLOB NOT NULL
                 );
-
-                INSERT INTO testtable (val, num) VALUES ("hello", 1), ("there", 2);
             """)
+            
+            try conn.multiUpdate(sql: "INSERT INTO testtable (val, num, blobtexttest) VALUES (?,?,?);", values: [["hello", 1,"blobtest"],["there", 2, "blobtest2"]])
             
             
             let returnedValue = try conn.select(sql: "SELECT * FROM testtable", values: []) { rs -> Int in
                 
                 XCTAssert(rs.next() == true)
-                XCTAssert(try rs.column("val") == "hello")
-                XCTAssert(try rs.column("num") == 1)
+                XCTAssert(try rs.string("val") == "hello")
+                XCTAssert(try rs.int("num") == 1)
+                XCTAssert(try rs.string("blobtexttest") == "blobtest")
                 
                 XCTAssert(rs.next() == true)
-                XCTAssert(try rs.column("val") == "there")
-                XCTAssert(try rs.column("num") == 2)
+                XCTAssert(try rs.string("val") == "there")
+                XCTAssert(try rs.int("num") == 2)
                 
                 return 2
             }
@@ -195,9 +177,32 @@ class SQLiteTests: XCTestCase {
         }
     }
     
+    func testSelectOfOptionalTypes() {
+        AssertNoErrorMessage {
+            let conn = try SQLiteConnection(TestDB.path)
+            try conn.exec(sql: """
+                CREATE TABLE "testtable" (
+                    "val" TEXT NULL
+                );
+
+                INSERT INTO testtable (val) VALUES (NULL);
+            """)
+            
+            
+            _ = try conn.select(sql: "SELECT * FROM testtable", values: []) { rs in
+                
+                XCTAssert(rs.next() == true)
+                XCTAssert(try rs.string("val") == nil)
+                
+            }
+            
+            
+        }
+    }
+    
     func testInsert() {
         AssertNoErrorMessage {
-            let conn = try SQLiteConnection(self.dbPath)
+            let conn = try SQLiteConnection(TestDB.path)
             try conn.exec(sql: """
                 CREATE TABLE "testtable" (
                     "val" TEXT NOT NULL
@@ -215,7 +220,7 @@ class SQLiteTests: XCTestCase {
     
     func testBlobReadStream() {
         AssertNoErrorMessage {
-            let conn = try SQLiteConnection(self.dbPath)
+            let conn = try SQLiteConnection(TestDB.path)
             try conn.exec(sql: """
                 CREATE TABLE "testtable" (
                     "val" BLOB NOT NULL
@@ -263,7 +268,7 @@ class SQLiteTests: XCTestCase {
     
     func testBlobWriteStream() {
         AssertNoErrorMessage {
-            let conn = try SQLiteConnection(self.dbPath)
+            let conn = try SQLiteConnection(TestDB.path)
             try conn.exec(sql: """
                 CREATE TABLE "testtable" (
                     "val" BLOB NOT NULL
@@ -292,7 +297,7 @@ class SQLiteTests: XCTestCase {
             
             try conn.select(sql: "SELECT val FROM testtable", values: []) { rs in
                 XCTAssert( rs.next() == true)
-                let data: Data = try rs.column("val")
+                let data = try rs.data("val")!
                 let asStr = String(data: data, encoding: String.Encoding.utf8)
                 XCTAssert(asStr! == "abcdefghijk")
             }
@@ -301,7 +306,7 @@ class SQLiteTests: XCTestCase {
     
     func testUpdateMonitor() {
         AssertNoErrorMessage {
-            let conn = try SQLiteConnection(self.dbPath)
+            let conn = try SQLiteConnection(TestDB.path)
             try conn.exec(sql: """
                     CREATE TABLE "testtable" (
                         "val" TEXT NOT NULL

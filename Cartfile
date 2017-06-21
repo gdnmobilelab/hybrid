@@ -1,5 +1,4 @@
 github "mxcl/PromiseKit" "swift4-beta1"
 github "emaloney/CleanroomLogger" ~> 5.1.0
 github "JustHTTP/Just"
-github "stephencelis/SQLite.swift" "swift-4"
-
+github "mutualmobile/MMWormhole"

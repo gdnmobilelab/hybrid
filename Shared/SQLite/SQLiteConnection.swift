@@ -9,6 +9,9 @@
 import Foundation
 import SQLite3
 
+fileprivate let SQLITE_STATIC = unsafeBitCast(0, to: sqlite3_destructor_type.self)
+fileprivate let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+
 public class SQLiteConnection {
     
     var db:OpaquePointer? = nil
@@ -21,6 +24,19 @@ public class SQLiteConnection {
         }
         
         self.open = true
+    }
+    
+    public static func inConnection<T>(_ dbURL: URL, _ cb: ((SQLiteConnection) throws -> T)) throws -> T {
+        
+        let conn = try SQLiteConnection(dbURL)
+        
+        let result = try cb(conn)
+        
+        conn.close()
+        
+        return result
+        
+        
     }
     
     public func close() {
@@ -36,14 +52,12 @@ public class SQLiteConnection {
     
     public func exec(sql:String) throws {
         
-        try self.inTransaction {
-            var zErrMsg:UnsafeMutablePointer<Int8>?
-            let rc = sqlite3_exec(self.db!, sql, nil, nil, &zErrMsg)
-            if rc != SQLITE_OK {
-                try self.throwSQLiteError(zErrMsg!)
-            }
+        var zErrMsg:UnsafeMutablePointer<Int8>?
+        let rc = sqlite3_exec(self.db!, sql, nil, nil, &zErrMsg)
+        if rc != SQLITE_OK {
+            try self.throwSQLiteError(zErrMsg!)
         }
-        
+
     }
     
     public func inTransaction<T>(_ closure: () throws -> T) throws -> T {
@@ -80,7 +94,7 @@ public class SQLiteConnection {
         } else if let intValue = value as? Int {
             sqlite3_bind_int(statement, idx, Int32(intValue))
         } else if let stringValue = value as? String {
-            sqlite3_bind_text(statement, idx, stringValue.cString(using: String.Encoding.utf8), -1, nil)
+            sqlite3_bind_text(statement, idx, stringValue.cString(using: String.Encoding.utf8), -1, SQLITE_TRANSIENT)
         } else if let dataValue = value as? Data {
             _ = dataValue.withUnsafeBytes { body in
                 sqlite3_bind_blob(statement, idx, body, Int32(dataValue.count), nil)
@@ -104,27 +118,31 @@ public class SQLiteConnection {
             throw self.getLastError()
         }
         
-        try self.inTransaction {
+        let parameterCount = sqlite3_bind_parameter_count(statement)
+        
+        for valueArray in values {
             
-            for valueArray in values {
-                
-                for (offset, element) in valueArray.enumerated() {
-                    // SQLite uses non-zero index for parameter numbers
-                    try self.bindValue(statement!, idx: Int32(offset) + 1, value: element)
-                }
-                
-                if sqlite3_step(statement) != SQLITE_DONE {
-                    sqlite3_finalize(statement)
-                    throw self.getLastError()
-                }
-                
-                sqlite3_reset(statement)
-                
+            if valueArray.count != parameterCount {
+                throw ErrorMessage("Value array length is not equal to the parameter count")
             }
             
-            sqlite3_finalize(statement)
+            for (offset, element) in valueArray.enumerated() {
+                // SQLite uses non-zero index for parameter numbers
+                try self.bindValue(statement!, idx: Int32(offset) + 1, value: element)
+            }
+            
+            if sqlite3_step(statement) != SQLITE_DONE {
+                sqlite3_finalize(statement)
+                throw self.getLastError()
+            }
+            
+            sqlite3_reset(statement)
             
         }
+        
+        sqlite3_finalize(statement)
+            
+        
         
     }
     

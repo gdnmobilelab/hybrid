@@ -83,6 +83,7 @@
 		8AB7EEA21EF97ED5000AC249 /* SQLiteUpdateOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EEA11EF97ED5000AC249 /* SQLiteUpdateOperation.swift */; };
 		8AB7EEA31EFAC416000AC249 /* SharedLogInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7904EA1EF2E7720092D31B /* SharedLogInterface.swift */; };
 		8AB7EEA51EFAC635000AC249 /* ServiceWorkerContainer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A5E871D1EF064D100520133 /* ServiceWorkerContainer.framework */; };
+		8AB7EEAA1EFAE576000AC249 /* TestDB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EEA91EFAE576000AC249 /* TestDB.swift */; };
 		8AC940941EF0D7E600BF972F /* PromiseKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE731C01EF0B0D900CDF80E /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8AC940951EF0D7E600BF972F /* FMDB.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE731BE1EF0B0C000CDF80E /* FMDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8AC940971EF0D81000BF972F /* PromiseKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8AE731C01EF0B0D900CDF80E /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -347,6 +348,7 @@
 		8AA60B6D1EF421B200C9FA4F /* Just.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Just.framework; path = Carthage/Build/iOS/Just.framework; sourceTree = "<group>"; };
 		8AB7EE9F1EF978E7000AC249 /* SQLiteUpdateMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteUpdateMonitor.swift; sourceTree = "<group>"; };
 		8AB7EEA11EF97ED5000AC249 /* SQLiteUpdateOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteUpdateOperation.swift; sourceTree = "<group>"; };
+		8AB7EEA91EFAE576000AC249 /* TestDB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDB.swift; sourceTree = "<group>"; };
 		8ACA0B1D1EF8E0D300E49C20 /* SQLiteBlobWriteStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteBlobWriteStream.swift; sourceTree = "<group>"; };
 		8ACA0B1F1EF8E2B900E49C20 /* SQLiteBlobStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteBlobStream.swift; sourceTree = "<group>"; };
 		8AE350C41EF18F2E0020F632 /* ServiceWorkerRegistrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistrationTests.swift; sourceTree = "<group>"; };
@@ -616,6 +618,7 @@
 		8A5E872B1EF064D200520133 /* ServiceWorkerContainerTests */ = {
 			isa = PBXGroup;
 			children = (
+				8AB7EEA81EFAE56D000AC249 /* Utils */,
 				8A5E872C1EF064D200520133 /* ServiceWorkerContainerTests.swift */,
 				8A5E872E1EF064D200520133 /* Info.plist */,
 				8AE350C41EF18F2E0020F632 /* ServiceWorkerRegistrationTests.swift */,
@@ -699,6 +702,14 @@
 				8A5D06301EF31792009AA8E5 /* AssertNoErrorMessage.swift */,
 			);
 			path = TestShared;
+			sourceTree = "<group>";
+		};
+		8AB7EEA81EFAE56D000AC249 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				8AB7EEA91EFAE576000AC249 /* TestDB.swift */,
+			);
+			path = Utils;
 			sourceTree = "<group>";
 		};
 		8AE731AF1EF090F100CDF80E /* HybridShared */ = {
@@ -1204,6 +1215,7 @@
 				8A7904DF1EF1E60E0092D31B /* JSContextFiddling.swift in Sources */,
 				8A5E872D1EF064D200520133 /* ServiceWorkerContainerTests.swift in Sources */,
 				8A5D06321EF3179A009AA8E5 /* AssertNoErrorMessage.swift in Sources */,
+				8AB7EEAA1EFAE576000AC249 /* TestDB.swift in Sources */,
 				8A58BBEF1EF85C480039624B /* SQLiteTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
