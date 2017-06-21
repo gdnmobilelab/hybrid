@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import FMDB
 import CleanroomLogger
 import Shared
 
@@ -16,10 +15,16 @@ fileprivate struct MigrationAndVersion {
     let version:Int
 }
 
+enum DatabaseType: String {
+    case App = "app"
+    case Cache = "cache"
+}
+
 class DatabaseMigration {
     
-    fileprivate static func ensureMigrationTableCreated(_ db:FMDatabase) throws {
-        let tableCheck = """
+    fileprivate static func ensureMigrationTableCreated(_ db:SQLiteConnection) throws {
+        
+        try db.exec(sql: """
                 CREATE TABLE IF NOT EXISTS _migrations (
                      "identifier" text NOT NULL,
                      "value" integer NOT NULL,
@@ -27,82 +32,66 @@ class DatabaseMigration {
                 );
 
                 INSERT OR IGNORE INTO _migrations (identifier, value) VALUES ('currentVersion', 0);
-            """
-        
-        if db.executeStatements(tableCheck) == false {
-            throw ErrorMessage("Could not create or check initial database migration table.")
-        }
+            """)
     }
     
-    fileprivate static func getCurrentMigrationVersion(_ db:FMDatabase) throws -> Int {
+    fileprivate static func getCurrentMigrationVersion(_ db:SQLiteConnection) throws -> Int {
         
-        let resultSet = try db.executeQuery("SELECT value FROM _migrations WHERE identifier = 'currentVersion'", values: nil)
-        
-        if !resultSet.next() {
-            throw ErrorMessage("Unable to retreive current database migration version")
-        }
-        
-        let version = Int(resultSet.int(forColumn: "value"))
-        
-        return version
-        
-    }
-    
-    public static func check(dbQueue:FMDatabaseQueue) throws {
-        
-        var err:Error? = nil
-        
-        dbQueue.inTransaction { db, rollback in
-            do {
-                try self.ensureMigrationTableCreated(db)
-                
-                let currentVersion = try self.getCurrentMigrationVersion(db)
-                
-                // Grab all the migration files currently in our bundle.
-                let migrationFiles = Bundle(for: DatabaseMigration.self).paths(forResourcesOfType: "sql", inDirectory: "DBMigrations/app")
-                    .map { file -> MigrationAndVersion in
-                        
-                        // Extract the version number (the number before the _ in the file)
-                        let url = URL(fileURLWithPath: file)
-                        let idx = Int(url.deletingPathExtension().lastPathComponent.components(separatedBy: "_")[0])!
-                        
-                        return MigrationAndVersion(fileName: url, version: idx)
-                        
-                     }
-                    // Remove any migrations we've already completed
-                    .filter { $0.version > currentVersion }
-                    // Sort them by version, so they execute in order
-                    .sorted(by: { $1.version > $0.version })
-                
-                if migrationFiles.count == 0 {
-                    Log.debug?.message("No pending migration files found")
-                    return
-                }
-                
-                for migration in migrationFiles {
-                    
-                    Log.info?.message("Processing migration file: " + migration.fileName.lastPathComponent)
-                    let sql = try String(contentsOfFile: migration.fileName.path)
-                    
-                    if db.executeStatements(sql) == false {
-                        throw ErrorMessage("Error when attempting migration:" + migration.fileName.absoluteString)
-                    }
-                    
-                    
-                }
-                
-                try db.executeUpdate("UPDATE _migrations SET value = ? WHERE identifier = 'currentVersion'", values: [migrationFiles.last!.version])
-                
-            } catch {
-                rollback.pointee = true
-                err = error
+        return try db.select(sql: "SELECT value FROM _migrations WHERE identifier = 'currentVersion'") { rs -> Int in
+            if rs.next() == false {
+                throw ErrorMessage("Could not find row for current migration version")
             }
+            return try rs.column("value")
         }
         
-        if err != nil {
-            throw err!
-        }
+    }
+    
+    public static func check(dbPath: URL, DatabaseType: DatabaseType) throws {
         
+        let connection = try SQLiteConnection(dbPath)
+        
+        try connection.inTransaction {
+            
+            try self.ensureMigrationTableCreated(connection)
+            let currentVersion = try self.getCurrentMigrationVersion(connection)
+            
+            // Grab all the migration files currently in our bundle.
+            let migrationFiles = Bundle(for: DatabaseMigration.self).paths(forResourcesOfType: "sql", inDirectory: "DBMigrations/" + DatabaseType.rawValue)
+                .map { file -> MigrationAndVersion in
+                
+                // Extract the version number (the number before the _ in the file)
+                let url = URL(fileURLWithPath: file)
+                let idx = Int(url.deletingPathExtension().lastPathComponent.components(separatedBy: "_")[0])!
+                
+                return MigrationAndVersion(fileName: url, version: idx)
+                
+                }
+                // Remove any migrations we've already completed
+                .filter { $0.version > currentVersion }
+                // Sort them by version, so they execute in order
+                .sorted(by: { $1.version > $0.version })
+            
+            if migrationFiles.count == 0 {
+                Log.debug?.message("No pending migration files found")
+                return
+            }
+            
+            for migration in migrationFiles {
+                
+                Log.info?.message("Processing migration file: " + migration.fileName.lastPathComponent)
+                let sql = try String(contentsOfFile: migration.fileName.path)
+                
+                do {
+                    try connection.exec(sql: sql)
+                } catch {
+                    throw ErrorMessage("Error when attempting migration: " + migration.fileName.absoluteString + ", internal error: " + String(describing: error))
+                }
+                
+            }
+            
+            try connection.update(sql: "UPDATE _migrations SET value = ? WHERE identifier = 'currentVersion'", values: [migrationFiles.last!.version])
+            
+        }
         
     }
     

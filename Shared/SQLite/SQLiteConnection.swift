@@ -162,6 +162,10 @@ public class SQLiteConnection {
         
     }
     
+    public func select<T>(sql:String, _ cb: (SQLiteResultSet) throws -> T) throws -> T {
+        return try self.select(sql: sql, values: [], cb)
+    }
+    
     public func openBlobReadStream(table: String, column:String, row: Int64) -> SQLiteBlobReadStream {
         
         return SQLiteBlobReadStream(self.db!, table: table, column: column, row: row)

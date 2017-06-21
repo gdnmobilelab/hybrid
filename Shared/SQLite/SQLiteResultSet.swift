@@ -33,11 +33,11 @@ public class SQLiteResultSet {
         
     }
     
-    func next() -> Bool {
+    public func next() -> Bool {
         return sqlite3_step(self.statement) == SQLITE_ROW
     }
     
-    func column<T>(_ name:String) throws -> T {
+    public func column<T>(_ name:String) throws -> T {
         
         let idx = self.columnNames.index(of: name)
         
