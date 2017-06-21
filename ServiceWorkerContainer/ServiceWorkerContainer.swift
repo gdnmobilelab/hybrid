@@ -19,6 +19,15 @@ public class ServiceWorkerContainer {
         self.containerURL = forURL
     }
     
+    public static var logger:SharedLogInterface {
+        get {
+            return Shared.Log
+        }
+        set(value) {
+            Shared.Log = value
+        }
+    }
+    
     func register(workerURL: URL, options: ServiceWorkerRegistrationOptions?) -> Bool {
         
 //        return firstly {

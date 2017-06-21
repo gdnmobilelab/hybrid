@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import CleanroomLogger
 import Shared
 
 fileprivate struct MigrationAndVersion {
@@ -72,13 +71,13 @@ class DatabaseMigration {
                 .sorted(by: { $1.version > $0.version })
             
             if migrationFiles.count == 0 {
-                Log.debug?.message("No pending migration files found")
+                Log.debug?("No pending migration files found")
                 return
             }
             
             for migration in migrationFiles {
                 
-                Log.info?.message("Processing migration file: " + migration.fileName.lastPathComponent)
+                Log.info?("Processing migration file: " + migration.fileName.lastPathComponent)
                 let sql = try String(contentsOfFile: migration.fileName.path)
                 
                 do {

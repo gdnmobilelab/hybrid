@@ -8,6 +8,7 @@
 
 import Foundation
 import JavaScriptCore
+import Shared
 
 @objc public class ServiceWorker : NSObject {
     
@@ -20,15 +21,6 @@ import JavaScriptCore
         self.url = url
         self.registration = registration
         super.init()
-    }
-    
-    static public var logInterface:ServiceWorkerLogInterface {
-        get {
-            return Log
-        }
-        set(value) {
-            Log = value
-        }
     }
     
     fileprivate var isDestroyed = false

@@ -8,6 +8,7 @@
 
 import Foundation
 import JavaScriptCore
+import Shared
 
 fileprivate struct EventListener {
     let eventName:String

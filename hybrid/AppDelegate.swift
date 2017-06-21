@@ -8,7 +8,8 @@
 
 import UIKit
 import FMDB
-import Shared
+import ServiceWorkerContainer
+import CleanroomLogger
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -17,7 +18,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-
+        
+        // Our shared library uses an abstracted logging interface, which we should hook up to CleanroomLogger
+        ServiceWorkerContainer.logger.debug = { CleanroomLogger.Log.debug?.message($0) }
+        ServiceWorkerContainer.logger.info = { CleanroomLogger.Log.info?.message($0) }
+        ServiceWorkerContainer.logger.warn = { CleanroomLogger.Log.warning?.message($0) }
+        ServiceWorkerContainer.logger.error = { CleanroomLogger.Log.error?.message($0) }
+        
         return true
     }
 

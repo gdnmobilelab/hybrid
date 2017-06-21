@@ -8,6 +8,7 @@
 
 import Foundation
 import JavaScriptCore
+import Shared
 
 @objc fileprivate protocol ConsoleMirrorExports : JSExport {
     func mirror(_ level:String, _ msg:JSValue)

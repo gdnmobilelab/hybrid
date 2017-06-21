@@ -13,7 +13,6 @@
 		8A2597F41EF1A21B00434D10 /* ServiceWorker.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A2597EB1EF1A21B00434D10 /* ServiceWorker.framework */; };
 		8A2597FB1EF1A21B00434D10 /* ServiceWorkerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2597FA1EF1A21B00434D10 /* ServiceWorkerTests.swift */; };
 		8A2597FD1EF1A21B00434D10 /* ServiceWorker.h in Headers */ = {isa = PBXBuildFile; fileRef = 8A2597ED1EF1A21B00434D10 /* ServiceWorker.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		8A2598001EF1A21B00434D10 /* ServiceWorker.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A2597EB1EF1A21B00434D10 /* ServiceWorker.framework */; };
 		8A2598011EF1A21B00434D10 /* ServiceWorker.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8A2597EB1EF1A21B00434D10 /* ServiceWorker.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8A2598091EF1A23E00434D10 /* ServiceWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2598081EF1A23E00434D10 /* ServiceWorker.swift */; };
 		8A25980D1EF1A83700434D10 /* ServiceWorkerInstallState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A25980C1EF1A83700434D10 /* ServiceWorkerInstallState.swift */; };
@@ -77,12 +76,13 @@
 		8A7904E51EF2DD500092D31B /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7904E41EF2DD500092D31B /* Event.swift */; };
 		8A7904E71EF2E2050092D31B /* ServiceWorkerGlobalScope.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7904E61EF2E2050092D31B /* ServiceWorkerGlobalScope.swift */; };
 		8A7904E91EF2E2920092D31B /* ServiceWorkerExecutionEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7904E81EF2E2920092D31B /* ServiceWorkerExecutionEnvironment.swift */; };
-		8A7904EB1EF2E7720092D31B /* ServiceWorkerLogInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7904EA1EF2E7720092D31B /* ServiceWorkerLogInterface.swift */; };
 		8AA369BF1EF1889E00C523DA /* CleanroomLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA369BE1EF1889E00C523DA /* CleanroomLogger.framework */; };
 		8AA60B6E1EF421B200C9FA4F /* Just.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA60B6D1EF421B200C9FA4F /* Just.framework */; };
 		8AA60B701EF421E600C9FA4F /* Just.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8AA60B6D1EF421B200C9FA4F /* Just.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8AB7EEA01EF978E7000AC249 /* SQLiteUpdateMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EE9F1EF978E7000AC249 /* SQLiteUpdateMonitor.swift */; };
 		8AB7EEA21EF97ED5000AC249 /* SQLiteUpdateOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EEA11EF97ED5000AC249 /* SQLiteUpdateOperation.swift */; };
+		8AB7EEA31EFAC416000AC249 /* SharedLogInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7904EA1EF2E7720092D31B /* SharedLogInterface.swift */; };
+		8AB7EEA51EFAC635000AC249 /* ServiceWorkerContainer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A5E871D1EF064D100520133 /* ServiceWorkerContainer.framework */; };
 		8AC940941EF0D7E600BF972F /* PromiseKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE731C01EF0B0D900CDF80E /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8AC940951EF0D7E600BF972F /* FMDB.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE731BE1EF0B0C000CDF80E /* FMDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8AC940971EF0D81000BF972F /* PromiseKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8AE731C01EF0B0D900CDF80E /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -342,7 +342,7 @@
 		8A7904E41EF2DD500092D31B /* Event.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 		8A7904E61EF2E2050092D31B /* ServiceWorkerGlobalScope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorkerGlobalScope.swift; sourceTree = "<group>"; };
 		8A7904E81EF2E2920092D31B /* ServiceWorkerExecutionEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorkerExecutionEnvironment.swift; sourceTree = "<group>"; };
-		8A7904EA1EF2E7720092D31B /* ServiceWorkerLogInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorkerLogInterface.swift; sourceTree = "<group>"; };
+		8A7904EA1EF2E7720092D31B /* SharedLogInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedLogInterface.swift; sourceTree = "<group>"; };
 		8AA369BE1EF1889E00C523DA /* CleanroomLogger.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CleanroomLogger.framework; path = Carthage/Build/iOS/CleanroomLogger.framework; sourceTree = "<group>"; };
 		8AA60B6D1EF421B200C9FA4F /* Just.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Just.framework; path = Carthage/Build/iOS/Just.framework; sourceTree = "<group>"; };
 		8AB7EE9F1EF978E7000AC249 /* SQLiteUpdateMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteUpdateMonitor.swift; sourceTree = "<group>"; };
@@ -393,7 +393,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8A2598001EF1A21B00434D10 /* ServiceWorker.framework in Frameworks */,
+				8AB7EEA51EFAC635000AC249 /* ServiceWorkerContainer.framework in Frameworks */,
 				8A3684901EF0D34400F7D8B7 /* FMDB.framework in Frameworks */,
 				8A3684911EF0D34400F7D8B7 /* PromiseKit.framework in Frameworks */,
 				8A6059FC1EF4445300CDDF81 /* CleanroomLogger.framework in Frameworks */,
@@ -458,7 +458,6 @@
 				8A2598081EF1A23E00434D10 /* ServiceWorker.swift */,
 				8A25980C1EF1A83700434D10 /* ServiceWorkerInstallState.swift */,
 				8A7904E81EF2E2920092D31B /* ServiceWorkerExecutionEnvironment.swift */,
-				8A7904EA1EF2E7720092D31B /* ServiceWorkerLogInterface.swift */,
 			);
 			path = ServiceWorker;
 			sourceTree = "<group>";
@@ -512,6 +511,7 @@
 		8A5D05BA1EF2EA17009AA8E5 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				8A7904EA1EF2E7720092D31B /* SharedLogInterface.swift */,
 				8A58BBDF1EF81F810039624B /* SQLite */,
 				8A25980E1EF1AC5D00434D10 /* ErrorMessage.swift */,
 				8A5D05D71EF31199009AA8E5 /* JSContextExtension.swift */,
@@ -1130,7 +1130,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8A7904EB1EF2E7720092D31B /* ServiceWorkerLogInterface.swift in Sources */,
 				8A7904DB1EF1D88A0092D31B /* FetchHeaders.swift in Sources */,
 				8A7904E71EF2E2050092D31B /* ServiceWorkerGlobalScope.swift in Sources */,
 				8A7904E31EF2DB610092D31B /* EventTarget.swift in Sources */,
@@ -1164,6 +1163,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8ACA0B1E1EF8E0D300E49C20 /* SQLiteBlobWriteStream.swift in Sources */,
+				8AB7EEA31EFAC416000AC249 /* SharedLogInterface.swift in Sources */,
 				8AB7EEA01EF978E7000AC249 /* SQLiteUpdateMonitor.swift in Sources */,
 				8A5D064A1EF31839009AA8E5 /* JSContextExtension.swift in Sources */,
 				8ACA0B201EF8E2B900E49C20 /* SQLiteBlobStream.swift in Sources */,
