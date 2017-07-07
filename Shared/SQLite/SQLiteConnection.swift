@@ -111,6 +111,7 @@ public class SQLiteConnection {
     
     public func multiUpdate(sql:String, values: [[Any]]) throws {
         
+        
         var statement: OpaquePointer? = nil
         
         if sqlite3_prepare_v2(self.db!, sql + ";", -1, &statement, nil) != SQLITE_OK {
@@ -118,30 +119,35 @@ public class SQLiteConnection {
             throw self.getLastError()
         }
         
-        let parameterCount = sqlite3_bind_parameter_count(statement)
-        
-        for valueArray in values {
+        do {
+            let parameterCount = sqlite3_bind_parameter_count(statement)
             
-            if valueArray.count != parameterCount {
-                throw ErrorMessage("Value array length is not equal to the parameter count")
+            for valueArray in values {
+                
+                if valueArray.count != parameterCount {
+                    throw ErrorMessage("Value array length is not equal to the parameter count")
+                }
+                
+                for (offset, element) in valueArray.enumerated() {
+                    // SQLite uses non-zero index for parameter numbers
+                    try self.bindValue(statement!, idx: Int32(offset) + 1, value: element)
+                }
+                
+                if sqlite3_step(statement) != SQLITE_DONE {
+                    throw self.getLastError()
+                }
+                
+                sqlite3_reset(statement)
+                
             }
             
-            for (offset, element) in valueArray.enumerated() {
-                // SQLite uses non-zero index for parameter numbers
-                try self.bindValue(statement!, idx: Int32(offset) + 1, value: element)
-            }
             
-            if sqlite3_step(statement) != SQLITE_DONE {
-                sqlite3_finalize(statement)
-                throw self.getLastError()
-            }
-            
-            sqlite3_reset(statement)
-            
+            sqlite3_finalize(statement)
+        } catch {
+            sqlite3_finalize(statement)
+            throw error
         }
         
-        sqlite3_finalize(statement)
-            
         
         
     }

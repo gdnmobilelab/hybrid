@@ -19,6 +19,12 @@
 
 - (void)didReceiveNotificationRequest:(UNNotificationRequest *)request withContentHandler:(void (^)(UNNotificationContent * _Nonnull))contentHandler {
     UNMutableNotificationContent *bestAttemptContent = [request.content mutableCopy];
+    if ([request.content.title isEqualToString:(@"Test notification")]) {
+        bestAttemptContent.threadIdentifier = @"test-notification-thread";
+        contentHandler(bestAttemptContent);
+        return;
+        
+    }
     
     NSURL *workerURL = [[NSURL alloc] initWithString:@"https://www.example.com"];
     DummyServiceWorkerRegistration *dummyReg = [[DummyServiceWorkerRegistration alloc] init];

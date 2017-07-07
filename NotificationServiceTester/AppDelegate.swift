@@ -10,6 +10,7 @@ import UIKit
 import Just
 import UserNotifications
 import JavaScriptCore
+import Shared
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
@@ -18,17 +19,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     var deviceID:String?
     
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        
+        if notification.request.content.title == "Test notification" {
+            completionHandler(UNNotificationPresentationOptions.alert)
+            return
+        }
+        
         completionHandler(UNNotificationPresentationOptions.badge)
         let success = notification.request.content.title == "SUCCESS"
         if success == false {
-           ViewController.textView!.text = notification.request.content.title + " at " + notification.request.content.body
+           ViewController.textView!.setTitle(notification.request.content.title + " at " + notification.request.content.body, for: .normal)
         } else {
             let lastAmt = Int(notification.request.content.body)!
-            ViewController.textView!.text = "Success at " + String(lastAmt)
+            ViewController.textView!.setTitle("Success at " + String(lastAmt), for: .normal)
 //            sleep(2000)
             if lastAmt < 10000 {
                 NSLog("Trying " + String(lastAmt + 500))
-                 self.sendNotification(title: "FAILURE", body: String(lastAmt + 500))
+                 AppDelegate.sendNotification(title: "FAILURE", body: String(lastAmt + 500))
                 NSLog("sent?")
             }
         }
@@ -37,8 +44,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         
     }
     
-    func sendNotification(title:String, body: String) {
-        Just.post("https://alastairtest-node.ngrok.io/registrations/" + self.deviceID!, json: [
+    static func sendNotification(title:String, body: String) {
+        Just.post("https://alastairtest-node.ngrok.io/registrations/" + self.firebaseToken, json: [
             "ttl": 500,
             "payload": ["hello": "yes"],
             "service_worker_url": "test",
@@ -59,39 +66,36 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         return true
     }
     
+    static var onDeviceToken: (() -> Void)? = nil
+    static var deviceToken:String = ""
+    static var firebaseToken:String = ""
+    
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
-        NSLog("WOOOOOO")
+        Shared.Log.debug = { NSLog($0) }
+        Shared.Log.info = { NSLog($0) }
+        Shared.Log.warn = { NSLog($0) }
+        Shared.Log.error = { NSLog($0) }
         
         UNUserNotificationCenter.current().delegate = self
+        
         
         var token: String = ""
         for i in 0..<deviceToken.count {
             token += String(format: "%02.2hhx", deviceToken[i] as CVarArg)
         }
         
-        let subToken:[String:Any] = [
-            "platform": "iOS",
-            "device_id": token,
-            "bundle_name": "com.gdnmobilelabaccount.NotificationServiceTester",
-            "sandbox": true
-        ]
+        AppDelegate.deviceToken = token
         
-        Just.post("https://alastairtest-node.ngrok.io/registrations",
-                  json: ["subscription": subToken],
-                  headers: [
-                    "Authorization": "USER_KEY"
-                   ]
-        ) { r in
-            let id = (r.json as AnyObject)["id"] as! String
-            
-            self.deviceID = id
-            self.sendNotification(title: "FAILED", body: "1")
+        if AppDelegate.onDeviceToken != nil {
+            AppDelegate.onDeviceToken!()
         }
+        
+        
         
     }
     
     func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
-        fatalError("Could not get remote notifications. Are you running in the simulator?")
+//        fatalError("Could not get remote notifications. Are you running in the simulator?")
     }
     
     

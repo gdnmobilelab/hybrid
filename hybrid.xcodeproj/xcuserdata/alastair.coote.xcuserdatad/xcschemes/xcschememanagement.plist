@@ -34,6 +34,11 @@
 			<key>orderHint</key>
 			<integer>4</integer>
 		</dict>
+		<key>TestContainerApp.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>8</integer>
+		</dict>
 		<key>TestShared.xcscheme</key>
 		<dict>
 			<key>orderHint</key>

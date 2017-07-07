@@ -119,24 +119,39 @@ class SQLiteTests: XCTestCase {
     func testMultiInsertRollback() {
         
         AssertNoErrorMessage {
-            let conn = try SQLiteConnection(TestDB.path)
-            try conn.exec(sql: """
-                CREATE TABLE "testtable" (
-                    "val" TEXT NOT NULL
-                )
-            """)
             
-            // Don't support booleans
-            XCTAssertThrowsError(try conn.multiUpdate(sql: "INSERT INTO testtable (val) VALUES (?)", values: [["hello"], [true]]))
+           XCTAssertThrowsError(try SQLiteConnection.inConnection(TestDB.path, { conn in
             
-            conn.close()
+                try conn.exec(sql: """
+                    CREATE TABLE "testtable" (
+                        "val" TEXT NOT NULL
+                    )
+                """)
+            
+                try conn.inTransaction {
+                    
+                    // Don't support booleans
+                    
+                    try conn.multiUpdate(sql: "INSERT INTO testtable (val) VALUES (?)", values: [["hello"], [true]])
+
+                }
+                
+            }))
             
             let fm = FMDatabase(url: TestDB.path)
             fm.open()
             let rs = try fm.executeQuery("SELECT * from testtable;", values: nil)
             
-            XCTAssert(rs.next() == false)
+            let hasRow = rs.next()
             
+//            if hasRow == true {
+//                let val = rs.string(forColumn: "val")!
+//                NSLog(val)
+//            }
+            
+            
+            XCTAssert(hasRow == false)
+            rs.close()
             
             fm.close()
             

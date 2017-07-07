@@ -1,26 +1,26 @@
 {
   "iOS" : [
     {
-      "hash" : "520d1c4a143e534a9d8530742a3016dca9a3e6c4255dfd1ee4e791ccd803ffc2",
+      "hash" : "bed3002a3ad42ddc75dfbf0bb5e62cdc8b1f80dd4752519dea5362f460b0b7fd",
       "name" : "PromiseKit"
     }
   ],
   "commitish" : "1cd1092b31739af70c81a6708123a0a1ca7eb61a",
   "watchOS" : [
     {
-      "hash" : "851698bc0f2848864f0cc9a441303615fcadecf1cfe68b625a459aedab53a313",
+      "hash" : "db64c1ea6d893ee1615810fbaf13c1bcf6efb484f58550d6e9750ec0a493f427",
       "name" : "PromiseKit"
     }
   ],
   "tvOS" : [
     {
-      "hash" : "b9d0a456d7dcbe3568c98eb4efcb2413ff38aff980febb2758e7de0e3e0d1e24",
+      "hash" : "6b92678378b607674b6c4914c4c373c2909686b401301d7fe6f3e39dbb01f239",
       "name" : "PromiseKit"
     }
   ],
   "Mac" : [
     {
-      "hash" : "7b0cce16a5d411aba002de6a8d4a0bdb45d42230c5c9fab0fd02c3e743723605",
+      "hash" : "7974ee1c00b9fc6cdd42972cc6199b635b8a050c1ce285b40f00cd9529b81898",
       "name" : "PromiseKit"
     }
   ]

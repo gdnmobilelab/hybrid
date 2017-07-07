@@ -9,15 +9,16 @@
 import XCTest
 @testable import ServiceWorker
 import CleanroomLogger
+import Shared
 
 class ConsoleMirrorTests: XCTestCase {
     
     
     override func tearDown() {
-        ServiceWorker.logInterface.debug = { Log.debug?.message($0) }
-        ServiceWorker.logInterface.info = { Log.info?.message($0) }
-        ServiceWorker.logInterface.warn = { Log.warning?.message($0) }
-        ServiceWorker.logInterface.error = { Log.error?.message($0) }
+        Shared.Log.debug = { Log.debug?.message($0) }
+        Shared.Log.info = { Log.info?.message($0) }
+        Shared.Log.warn = { Log.warning?.message($0) }
+        Shared.Log.error = { Log.error?.message($0) }
     }
     
     func testShouldMirrorAllLevels() {
@@ -28,22 +29,22 @@ class ConsoleMirrorTests: XCTestCase {
         
         XCTAssertNoThrow(testWorker.executionEnvironment)
         
-        ServiceWorker.logInterface.info = { msg in
+        Shared.Log.info = { msg in
             XCTAssert(msg == "info-test")
             functionsRun.insert("info")
         }
         
-        ServiceWorker.logInterface.debug = { msg in
+        Shared.Log.debug = { msg in
             XCTAssert(msg == "debug-test")
             functionsRun.insert("debug")
         }
         
-        ServiceWorker.logInterface.warn = { msg in
+        Shared.Log.warn = { msg in
             XCTAssert(msg == "warn-test")
             functionsRun.insert("warn")
         }
         
-        ServiceWorker.logInterface.error = { msg in
+        Shared.Log.error = { msg in
             XCTAssert(msg == "error-test")
             functionsRun.insert("error")
         }
@@ -65,7 +66,7 @@ class ConsoleMirrorTests: XCTestCase {
     
     func testShouldMirrorObjects() {
         
-        ServiceWorker.logInterface.debug = { msg in
+        Shared.Log.debug = { msg in
             XCTAssert(msg.contains("test = looks;"))
             XCTAssert(msg.contains("like = this;"))
         }
