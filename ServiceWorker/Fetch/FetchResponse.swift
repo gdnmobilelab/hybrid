@@ -134,6 +134,10 @@ import Shared
         
     }
     
+    
+    /// This is run when we have received the headers but have not yet started receiving
+    /// the body. This is the point at which we return the fetch() promise with this Response
+    /// object, and the JS can then call .text(), .json() etc.
     internal func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
         
         let asHTTP = response as! HTTPURLResponse
@@ -155,7 +159,6 @@ import Shared
         self.headers = headers
         self.status = asHTTP.statusCode
         
-        
         self.responseCallback = completionHandler
         self.responseIsReadyCallback!(nil)
     }
@@ -175,13 +178,24 @@ import Shared
         
         if self.request.redirect == .Follow {
             completionHandler(request)
+            
+        } else if self.request.redirect == .Error {
+            completionHandler(nil)
+            let err = ErrorMessage("Response redirected when this was not expected")
+            self.responseIsReadyCallback!(err)
+            
         } else {
             completionHandler(nil)
         }
         
-        // There is also .Error in the spec. We can't throw an error here, but we will later on.
         self.redirected = true
         
+    }
+    
+    deinit {
+        if self.responseCallback != nil {
+            self.responseCallback!(URLSession.ResponseDisposition.cancel)
+        }
     }
     
 }

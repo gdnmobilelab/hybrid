@@ -3,4 +3,4 @@ github "emaloney/CleanroomLogger" ~> 5.1.0
 github "JustHTTP/Just"
 github "mutualmobile/MMWormhole"
 github "swisspol/GCDWebServer" ~> 3.2.5
-
+github "ccgus/fmdb"

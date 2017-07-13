@@ -14,7 +14,7 @@ import Shared
 public class TestBootstrap : NSObject {
     override init() {
         super.init()
-        Log.enable()
+//        Log.enable()
         
         Shared.Log.debug = { Log.debug?.message($0) }
         Shared.Log.info = { Log.info?.message($0) }

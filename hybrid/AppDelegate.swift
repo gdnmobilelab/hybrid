@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import FMDB
 import ServiceWorkerContainer
 import CleanroomLogger
 
