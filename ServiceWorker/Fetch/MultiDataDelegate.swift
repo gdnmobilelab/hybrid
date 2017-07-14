@@ -1,0 +1,22 @@
+//
+//  MultiDataDelegate.swift
+//  ServiceWorker
+//
+//  Created by alastair.coote on 14/07/2017.
+//  Copyright © 2017 Guardian Mobile Innovation Lab. All rights reserved.
+//
+
+import Foundation
+
+
+/// We want multiple FetchResponses to be able to listen to this (in case they are cloned)
+/// so we use this delegate as a means to attach multiple delegates.
+@objc public class MultiDataDelegate : NSObject, URLSessionDelegate, URLSessionDataDelegate, URLSessionTaskDelegate {
+    
+    var listeners: [URLSessionDataDelegate] = []
+    
+    func add(delegate: URLSessionDataDelegate) {
+        self.listeners.append(delegate)
+    }
+    
+}

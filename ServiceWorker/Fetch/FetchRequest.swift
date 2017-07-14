@@ -29,6 +29,7 @@ public class FetchRequest {
     var mode:String = "no-cors"
     var redirect: FetchRequestRedirect = FetchRequestRedirect.Follow
     var cache: FetchRequestCache = FetchRequestCache.Default
+    var body: Data?
     
     init(url: URL) {
         self.url = url
