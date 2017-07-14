@@ -11,29 +11,17 @@ import Shared
 
 @objc public class FetchResponse : NSObject, URLSessionDataDelegate {
     
-    fileprivate let fetchOperation: FetchOperation
+    fileprivate let fetchOperation: FetchOperation?
     fileprivate var responseCallback: ((URLSession.ResponseDisposition) -> Void)?
-    fileprivate let httpResponse:HTTPURLResponse
+    
     let headers:FetchHeaders
     var bodyUsed:Bool = false
+    fileprivate var dataStream: ReadableStream?
+    fileprivate var streamController:ReadableStreamController?
     
-    @objc var url:String? {
-        get {
-            return self.httpResponse.url?.absoluteString
-        }
-    }
-    
-    @objc var status:Int {
-        get {
-            return self.httpResponse.statusCode
-        }
-    }
-    
-    @objc var redirected:Bool {
-        get {
-            return self.fetchOperation.redirected
-        }
-    }
+    @objc let url:String
+    @objc let status:Int
+    @objc let redirected:Bool
     
     @objc var ok:Bool {
         get {
@@ -51,10 +39,35 @@ import Shared
         }
     }
     
+    fileprivate func markBodyUsed() throws {
+        if self.bodyUsed == true {
+            throw ErrorMessage("Body was already used")
+        }
+        self.bodyUsed = true
+    }
+    
+    func getReader() throws -> ReadableStream {
+        try self.markBodyUsed()
+        if let responseCallback = self.responseCallback {
+            responseCallback(.allow)
+        }
+        return self.dataStream!
+    }
+    
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        do {
+            try self.streamController!.enqueue(data)
+        } catch {
+            Log.error?("Failed to enqueue data:")
+        }
+    }
+    
     init(response: HTTPURLResponse, operation:FetchOperation, callback: @escaping (URLSession.ResponseDisposition) -> Void) {
-        self.httpResponse = response
-        self.responseCallback = callback
         self.fetchOperation = operation
+        self.responseCallback = callback
+        self.status = response.statusCode
+        self.url = response.url!.absoluteString
+        self.redirected = operation.redirected
         
         // Convert to our custom FetchHeaders class
         let headers = FetchHeaders()
@@ -73,14 +86,18 @@ import Shared
         self.headers = headers
         
         super.init()
-//        self.fetchOperation.add(delegate: self)
+        self.fetchOperation!.add(delegate: self)
+        
+        self.dataStream = ReadableStream(start: { controller in
+            self.streamController = controller
+        })
 
     }
     
     deinit {
-        if self.fetchOperation.task!.state == .running {
-            Log.warn?("Terminating currently pending fetch operation for: " + self.fetchOperation.request.url.absoluteString)
-            self.fetchOperation.task!.cancel()
+        if self.fetchOperation?.task!.state == .running {
+            Log.warn?("Terminating currently pending fetch operation for: " + self.fetchOperation!.request.url.absoluteString)
+            self.fetchOperation!.task!.cancel()
         }
     }
     

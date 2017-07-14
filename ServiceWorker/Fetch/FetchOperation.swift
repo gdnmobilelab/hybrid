@@ -9,7 +9,7 @@
 import Foundation
 import Shared
 
-@objc public class FetchOperation : NSObject, URLSessionDataDelegate, URLSessionTaskDelegate {
+@objc public class FetchOperation : MultiDataDelegate {
     
     public typealias ResponseCallback = (Error?, FetchResponse?) -> Void
     

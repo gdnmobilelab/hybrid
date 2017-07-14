@@ -32,6 +32,7 @@
 		8A3684911EF0D34400F7D8B7 /* PromiseKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE731C01EF0B0D900CDF80E /* PromiseKit.framework */; };
 		8A396A281F190BA9001D7938 /* FetchOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A396A271F190BA9001D7938 /* FetchOperation.swift */; };
 		8A396A2A1F190EF5001D7938 /* MultiDataDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A396A291F190EF5001D7938 /* MultiDataDelegate.swift */; };
+		8A396A2C1F197ABE001D7938 /* FetchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A396A2B1F197ABE001D7938 /* FetchResponse.swift */; };
 		8A3A246C1EF83ADD007AA0B9 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A3A246B1EF83ADD007AA0B9 /* libsqlite3.tbd */; };
 		8A4E5F051EF0F98D00884923 /* DBMigrations in Resources */ = {isa = PBXBuildFile; fileRef = 8A4E5F041EF0F98D00884923 /* DBMigrations */; };
 		8A4E5F061EF0FAA600884923 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE731A71EF0907400CDF80E /* Database.swift */; };
@@ -102,7 +103,7 @@
 		8AB7EEB71EFC130B000AC249 /* TestWeb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EEB41EFC0D99000AC249 /* TestWeb.swift */; };
 		8AB7EEB81EFC1320000AC249 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8ABF76471EFC11D60095585D /* GCDWebServers.framework */; };
 		8AB7EEB91EFC1328000AC249 /* GCDWebServers.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8ABF76471EFC11D60095585D /* GCDWebServers.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		8AB7EEBD1EFC13A0000AC249 /* FetchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EEBC1EFC13A0000AC249 /* FetchResponse.swift */; };
+		8AB7EEBD1EFC13A0000AC249 /* FetchResponseOld.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EEBC1EFC13A0000AC249 /* FetchResponseOld.swift */; };
 		8AC940941EF0D7E600BF972F /* PromiseKit.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 8AE731C01EF0B0D900CDF80E /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8AC940971EF0D81000BF972F /* PromiseKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8AE731C01EF0B0D900CDF80E /* PromiseKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8AC940981EF0D81000BF972F /* FMDB.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8AE731BE1EF0B0C000CDF80E /* FMDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -335,6 +336,7 @@
 		8A3038C51EF07B6B005A663A /* ServiceWorkerRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorkerRegistration.swift; sourceTree = "<group>"; };
 		8A396A271F190BA9001D7938 /* FetchOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchOperation.swift; sourceTree = "<group>"; };
 		8A396A291F190EF5001D7938 /* MultiDataDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiDataDelegate.swift; sourceTree = "<group>"; };
+		8A396A2B1F197ABE001D7938 /* FetchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchResponse.swift; sourceTree = "<group>"; };
 		8A3A246B1EF83ADD007AA0B9 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		8A4E5F041EF0F98D00884923 /* DBMigrations */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DBMigrations; sourceTree = "<group>"; };
 		8A5658A91F1825E100C5E516 /* GlobalFetch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalFetch.swift; sourceTree = "<group>"; };
@@ -399,7 +401,7 @@
 		8AB7EEAD1EFAF797000AC249 /* FetchRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchRequest.swift; sourceTree = "<group>"; };
 		8AB7EEB21EFB0D86000AC249 /* FetchResponseOld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchResponseOld.swift; sourceTree = "<group>"; };
 		8AB7EEB41EFC0D99000AC249 /* TestWeb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestWeb.swift; sourceTree = "<group>"; };
-		8AB7EEBC1EFC13A0000AC249 /* FetchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchResponse.swift; sourceTree = "<group>"; };
+		8AB7EEBC1EFC13A0000AC249 /* FetchResponseOld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchResponseOld.swift; sourceTree = "<group>"; };
 		8ABF76471EFC11D60095585D /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
 		8ACA0B1D1EF8E0D300E49C20 /* SQLiteBlobWriteStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteBlobWriteStream.swift; sourceTree = "<group>"; };
 		8ACA0B1F1EF8E2B900E49C20 /* SQLiteBlobStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteBlobStream.swift; sourceTree = "<group>"; };
@@ -744,9 +746,10 @@
 			isa = PBXGroup;
 			children = (
 				8A67394C1EF32719007E890A /* FetchHeadersTests.swift */,
-				8AB7EEBC1EFC13A0000AC249 /* FetchResponse.swift */,
+				8AB7EEBC1EFC13A0000AC249 /* FetchResponseOld.swift */,
 				8A26D8281EFDBF9E0017EF75 /* JSFetchResponse.swift */,
 				8A396A271F190BA9001D7938 /* FetchOperation.swift */,
+				8A396A2B1F197ABE001D7938 /* FetchResponse.swift */,
 			);
 			path = Fetch;
 			sourceTree = "<group>";
@@ -1347,11 +1350,12 @@
 				8A26D8291EFDBF9E0017EF75 /* JSFetchResponse.swift in Sources */,
 				8AF94EF51EF319EB00DD7F8E /* Bootstrap.swift in Sources */,
 				8A6739551EF32E6F007E890A /* ServiceWorkerRegistrationPlaceholder.swift in Sources */,
+				8A396A2C1F197ABE001D7938 /* FetchResponse.swift in Sources */,
 				8A396A281F190BA9001D7938 /* FetchOperation.swift in Sources */,
 				8A67394D1EF32719007E890A /* FetchHeadersTests.swift in Sources */,
 				8A5D05D21EF2EF3E009AA8E5 /* ConsoleMirrorTests.swift in Sources */,
 				8A5D05D61EF31023009AA8E5 /* EventTargetTests.swift in Sources */,
-				8AB7EEBD1EFC13A0000AC249 /* FetchResponse.swift in Sources */,
+				8AB7EEBD1EFC13A0000AC249 /* FetchResponseOld.swift in Sources */,
 				8A26D8271EFD8AC00017EF75 /* JSPromise.swift in Sources */,
 				8A2597FB1EF1A21B00434D10 /* ServiceWorkerTests.swift in Sources */,
 				8AB7EEB71EFC130B000AC249 /* TestWeb.swift in Sources */,

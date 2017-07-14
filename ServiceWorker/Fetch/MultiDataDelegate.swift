@@ -19,4 +19,10 @@ import Foundation
         self.listeners.append(delegate)
     }
     
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        self.listeners.forEach { l in
+            l.urlSession?(session, dataTask: dataTask, didReceive: data)
+        }
+    }
+    
 }
