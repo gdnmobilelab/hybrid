@@ -25,4 +25,16 @@ import Foundation
         }
     }
     
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        self.listeners.forEach { l in
+            l.urlSession?(session, task: task, didCompleteWithError: error)
+        }
+    }
+    
+    public func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
+        self.listeners.forEach { l in
+            l.urlSession?(session, didBecomeInvalidWithError: error)
+        }
+    }
+    
 }

@@ -9,6 +9,7 @@
 import XCTest
 @testable import ServiceWorker
 import GCDWebServers
+import Gzip
 
 class FetchOperationTests: XCTestCase {
     
@@ -36,7 +37,7 @@ class FetchOperationTests: XCTestCase {
         
         let expect = expectation(description: "Fetch call returns")
         
-        FetchOperation(request) { error, response in
+        FetchOperation.fetch(request) { error, response in
             XCTAssert(response != nil)
             XCTAssert(response!.status == 201)
             XCTAssert(response!.headers.get("X-Test-Header") == "TEST-VALUE")
@@ -46,6 +47,20 @@ class FetchOperationTests: XCTestCase {
         wait(for: [expect], timeout: 1)
         
     }
+    
+    func testFailedFetch() {
+        
+        let expect = expectation(description: "Fetch call returns")
+        
+        FetchOperation.fetch("http://localhost:23423") { error, response in
+            XCTAssert(error != nil)
+            expect.fulfill()
+        }
+        
+        wait(for: [expect], timeout: 1)
+        
+    }
+
     
     func testRedirectFetch() {
         
@@ -71,7 +86,7 @@ class FetchOperationTests: XCTestCase {
         
         let request = FetchRequest(url: TestWeb.serverURL.appendingPathComponent("/redirect-me"))
         
-        FetchOperation(request) { error, response in
+        FetchOperation.fetch(request) { error, response in
             XCTAssert(response != nil)
             XCTAssert(response!.status == 201)
             XCTAssert(response!.url == TestWeb.serverURL.appendingPathComponent("/test.txt").absoluteString)
@@ -81,7 +96,7 @@ class FetchOperationTests: XCTestCase {
         let noRedirectRequest = FetchRequest(url: TestWeb.serverURL.appendingPathComponent("/redirect-me"))
         noRedirectRequest.redirect = .Manual
         
-        FetchOperation(noRedirectRequest) { error, response in
+        FetchOperation.fetch(noRedirectRequest) { error, response in
             XCTAssert(response != nil, "Response should exist")
             XCTAssert(response!.status == 301, "Should be a 301 status")
             XCTAssert(response!.headers.get("Location") == "/test.txt", "URL should be correct")
@@ -92,7 +107,7 @@ class FetchOperationTests: XCTestCase {
         let errorRequest = FetchRequest(url: TestWeb.serverURL.appendingPathComponent("/redirect-me"))
         errorRequest.redirect = .Error
         
-        FetchOperation(errorRequest) { error, response in
+        FetchOperation.fetch(errorRequest) { error, response in
             XCTAssert(error != nil, "Error should exist")
             expectError.fulfill()
         }
@@ -101,7 +116,7 @@ class FetchOperationTests: XCTestCase {
         
     }
     
-    func testFetchBody() {
+    func testFetchRequestBody() {
         
         let expectResponse = expectation(description: "Request body is received")
         
@@ -121,7 +136,7 @@ class FetchOperationTests: XCTestCase {
         postRequest.body = "TEST STRING".data(using: String.Encoding.utf8)
         postRequest.method = "POST"
         
-        FetchOperation(postRequest) { error, response in
+        FetchOperation.fetch(postRequest) { error, response in
             XCTAssert(error == nil, "Should not error")
         }
         

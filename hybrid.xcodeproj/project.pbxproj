@@ -66,6 +66,8 @@
 		8A5E872D1EF064D200520133 /* ServiceWorkerContainerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5E872C1EF064D200520133 /* ServiceWorkerContainerTests.swift */; };
 		8A5E872F1EF064D200520133 /* ServiceWorkerContainer.h in Headers */ = {isa = PBXBuildFile; fileRef = 8A5E871F1EF064D100520133 /* ServiceWorkerContainer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8A5E873E1EF0665400520133 /* ServiceWorkerContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5E873D1EF0665400520133 /* ServiceWorkerContainer.swift */; };
+		8A5E9C821F1FCEC2002A9832 /* Gzip.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AD2EA501F1FCC0B00BED72F /* Gzip.framework */; };
+		8A5E9C831F1FCED2002A9832 /* Gzip.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8AD2EA501F1FCC0B00BED72F /* Gzip.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8A6059FB1EF4434200CDDF81 /* CleanroomLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA369BE1EF1889E00C523DA /* CleanroomLogger.framework */; };
 		8A6059FC1EF4445300CDDF81 /* CleanroomLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA369BE1EF1889E00C523DA /* CleanroomLogger.framework */; };
 		8A66F0C41EF44893002F06C3 /* ServiceWorker.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A2597EB1EF1A21B00434D10 /* ServiceWorker.framework */; };
@@ -264,6 +266,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				8A5E9C831F1FCED2002A9832 /* Gzip.framework in CopyFiles */,
 				8AB7EEB91EFC1328000AC249 /* GCDWebServers.framework in CopyFiles */,
 				8A5D05B11EF2E86A009AA8E5 /* CleanroomLogger.framework in CopyFiles */,
 			);
@@ -405,6 +408,7 @@
 		8ABF76471EFC11D60095585D /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
 		8ACA0B1D1EF8E0D300E49C20 /* SQLiteBlobWriteStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteBlobWriteStream.swift; sourceTree = "<group>"; };
 		8ACA0B1F1EF8E2B900E49C20 /* SQLiteBlobStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteBlobStream.swift; sourceTree = "<group>"; };
+		8AD2EA501F1FCC0B00BED72F /* Gzip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Gzip.framework; path = Carthage/Build/iOS/Gzip.framework; sourceTree = "<group>"; };
 		8ADB09871F0FF59100C155B7 /* NativeFetchHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeFetchHandler.swift; sourceTree = "<group>"; };
 		8ADB09891F10031800C155B7 /* ReadableStreamController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadableStreamController.swift; sourceTree = "<group>"; };
 		8ADB098B1F10066B00C155B7 /* ReadableStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadableStream.swift; sourceTree = "<group>"; };
@@ -441,6 +445,7 @@
 				8A2597F41EF1A21B00434D10 /* ServiceWorker.framework in Frameworks */,
 				8A6059FB1EF4434200CDDF81 /* CleanroomLogger.framework in Frameworks */,
 				8AB7EEB81EFC1320000AC249 /* GCDWebServers.framework in Frameworks */,
+				8A5E9C821F1FCEC2002A9832 /* Gzip.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -879,6 +884,7 @@
 		E948CE9416B0C1880892CA0A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				8AD2EA501F1FCC0B00BED72F /* Gzip.framework */,
 				8ABF76471EFC11D60095585D /* GCDWebServers.framework */,
 				8A3A246B1EF83ADD007AA0B9 /* libsqlite3.tbd */,
 				8AA60B6D1EF421B200C9FA4F /* Just.framework */,

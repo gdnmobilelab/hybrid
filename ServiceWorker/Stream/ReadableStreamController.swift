@@ -20,8 +20,8 @@ import Foundation
         try self.stream.enqueue(data)
     }
     
-//    public func close() {
-//        self.stream.enqueue(StreamReadResult(done: true, value: nil))
-//    }
+    public func close() {
+        self.stream.close()
+    }
     
 }

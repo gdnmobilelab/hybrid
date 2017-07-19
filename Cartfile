@@ -4,3 +4,4 @@ github "JustHTTP/Just"
 github "mutualmobile/MMWormhole"
 github "swisspol/GCDWebServer" ~> 3.2.5
 github "ccgus/fmdb"
+github "1024jp/GzipSwift" "swift4"

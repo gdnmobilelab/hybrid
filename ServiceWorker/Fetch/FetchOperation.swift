@@ -21,7 +21,16 @@ import Shared
     
     var responseIsReadyCallback:ResponseCallback
     
-    public init(_ request:FetchRequest, _ callback: @escaping ResponseCallback) {
+    public static func fetch(_ url: String, _ callback: @escaping ResponseCallback) {
+        let request = FetchRequest(url: URL(string: url)!)
+        _ = FetchOperation(request, callback)
+    }
+    
+    public static func fetch(_ request: FetchRequest, _ callback: @escaping ResponseCallback) {
+        _ = FetchOperation(request, callback)
+    }
+    
+    fileprivate init(_ request:FetchRequest, _ callback: @escaping ResponseCallback) {
         
         self.request = request
         self.responseIsReadyCallback = callback
@@ -63,11 +72,16 @@ import Shared
         self.task!.resume()
     }
     
-    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        NSLog("Error?")
+    override public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        super.urlSession(session, task: task, didCompleteWithError: error)
+        if let errorExists = error {
+            self.responseIsReadyCallback(errorExists, nil)
+        }
+        
     }
     
-    public func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
+    override public func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
+        super.urlSession(session, didBecomeInvalidWithError: error)
         NSLog("sdfsdf")
     }
     

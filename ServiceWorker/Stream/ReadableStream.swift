@@ -22,7 +22,7 @@ import Shared
     let pull:StreamOperation?
     let cancel:StreamOperation?
     
- init(start:StreamOperation? = nil, pull: StreamOperation? = nil, cancel:StreamOperation? = nil) {
+    init(start:StreamOperation? = nil, pull: StreamOperation? = nil, cancel:StreamOperation? = nil) {
         self.start = start
         self.pull = pull
         self.cancel = cancel
