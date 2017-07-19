@@ -19,7 +19,7 @@ import Shared
     
     var redirected = false
     
-    var responseIsReadyCallback:ResponseCallback
+    var responseIsReadyCallback:ResponseCallback?
     
     public static func fetch(_ url: String, _ callback: @escaping ResponseCallback) {
         let request = FetchRequest(url: URL(string: url)!)
@@ -72,10 +72,18 @@ import Shared
         self.task!.resume()
     }
     
+    fileprivate func sendResponse(_ err:Error?, _ res: FetchResponse?) {
+        self.responseIsReadyCallback!(err, res)
+        self.responseIsReadyCallback = nil
+    }
+    
+    
     override public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         super.urlSession(session, task: task, didCompleteWithError: error)
         if let errorExists = error {
-            self.responseIsReadyCallback(errorExists, nil)
+            if errorExists.localizedDescription.contains("cancel") == false {
+                self.sendResponse(errorExists, nil)
+            }
         }
         
     }
@@ -95,7 +103,7 @@ import Shared
         } else if self.request.redirect == .Error {
             completionHandler(nil)
             let err = ErrorMessage("Response redirected when this was not expected")
-            self.responseIsReadyCallback(err,nil)
+            self.sendResponse(err,nil)
             self.task!.cancel()
             
         } else {
@@ -115,9 +123,15 @@ import Shared
         
         let asHTTP = response as! HTTPURLResponse
         
+        if self.redirected == true && self.request.redirect == .Error {
+            // This is still run even when we cancel a task. So if we've already thrown
+            // we want to ignore this completion event
+            return
+        }
+        
         let response = FetchResponse(response: asHTTP, operation:self, callback: completionHandler)
         
-        self.responseIsReadyCallback(nil, response)
+        self.sendResponse(nil, response)
         
     }
     

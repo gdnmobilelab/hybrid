@@ -73,9 +73,16 @@ import Shared
         self.streamController!.close()
     }
     
-    fileprivate func readStreamToEnd(_ callback: @escaping (Data) -> Void) throws {
+    internal func data(_ callback: @escaping (Error?, Data?) -> Void) {
         
-        let reader = try self.getReader()
+        var reader:ReadableStream
+        
+        do {
+            reader = try self.getReader()
+        } catch {
+            callback(error, nil)
+            return
+        }
         
         var allData = Data()
         
@@ -86,7 +93,7 @@ import Shared
         doRead = {
             reader.read { read in
                 if read.done {
-                    callback(allData)
+                    callback(nil, allData)
                 } else {
                     allData.append(read.value!)
                     doRead!()
@@ -100,65 +107,67 @@ import Shared
     }
     
     public func text(_ callback: @escaping (Error?, String?) -> Void) {
-        do {
-            try self.readStreamToEnd { data in
+        self.data { err, data in
+            
+            if err != nil {
+                callback(err, nil)
+                return
+            }
+            
+            do {
+       
+                var charset = String.Encoding.utf8
                 
-                do {
-                    
-                    var charset = String.Encoding.utf8
-                    
-                    if let contentTypeHeader = self.headers.get("Content-Type") {
-                        let charsetRegex = try NSRegularExpression(pattern: ";\\s?charset=(.*)+", options: [])
-                        let charsetMatches = charsetRegex.matches(in: contentTypeHeader, options: [], range: NSRange(location: 0, length: contentTypeHeader.characters.count))
+                if let contentTypeHeader = self.headers.get("Content-Type") {
+                    let charsetRegex = try NSRegularExpression(pattern: ";\\s?charset=(.*)+", options: [])
+                    let charsetMatches = charsetRegex.matches(in: contentTypeHeader, options: [], range: NSRange(location: 0, length: contentTypeHeader.characters.count))
 
-                        if let relevantMatch = charsetMatches.first {
-                            
-                            let matchText = (contentTypeHeader as NSString).substring(with: relevantMatch.range).lowercased()
-                            
-                            if matchText == "utf-16" {
-                                charset = String.Encoding.utf16
-                            } else if matchText == "utf-32" {
-                                charset = String.Encoding.utf32
-                            } else if matchText == "iso-8859-1" {
-                                charset = String.Encoding.windowsCP1252
-                            }
+                    if let relevantMatch = charsetMatches.first {
+                        
+                        let matchText = (contentTypeHeader as NSString).substring(with: relevantMatch.range).lowercased()
+                        
+                        if matchText == "utf-16" {
+                            charset = String.Encoding.utf16
+                        } else if matchText == "utf-32" {
+                            charset = String.Encoding.utf32
+                        } else if matchText == "iso-8859-1" {
+                            charset = String.Encoding.windowsCP1252
                         }
                     }
-                    
-                    let asString = String(data: data, encoding: charset)
-                    callback(nil, asString)
-                    
-                } catch {
-                    callback(error, nil)
                 }
+               
+                let asString = String(data: data!, encoding: charset)
+                callback(nil, asString)
                 
+            } catch {
+                callback(error, nil)
             }
-        } catch {
-            callback(error, nil)
+  
+                
         }
-        
-        
+
     }
     
     public func json(_ callback: @escaping (Error?, Any?) -> Void) {
         
-        do {
-            
-            try self.readStreamToEnd { data in
+        
+         self.data { err, data in
                 
-                do {
-                    let json = try JSONSerialization.jsonObject(with: data, options: [])
-                    callback(nil, json)
-                } catch {
-                    callback(error, nil)
-                }
-                
-                
+            if err != nil {
+                callback(err, nil)
+                return
             }
             
-        } catch {
-            callback(error, nil)
+            do {
+                let json = try JSONSerialization.jsonObject(with: data!, options: [])
+                callback(nil, json)
+            } catch {
+                callback(error, nil)
+            }
+            
+            
         }
+
     }
     
     init(response: HTTPURLResponse, operation:FetchOperation, callback: @escaping (URLSession.ResponseDisposition) -> Void) {
@@ -172,12 +181,15 @@ import Shared
         let headers = FetchHeaders()
         response.allHeaderFields.keys.forEach { key in
             
-            if (key as! String).lowercased() == "content-encoding" {
+            let keyString = key as! String
+            let value = response.allHeaderFields[key] as! String
+            
+            if keyString.lowercased() == "content-encoding" {
                 // URLSession automatically decodes content (which we don't actually want it to do)
                 // so the only way to continue to use this is to strip out the Content-Encoding
                 // header, otherwise the browser will try to decode it again
                 return
-            } else if (key as! String).lowercased() == "content-length" {
+            } else if keyString.lowercased() == "content-length" {
                 // Because of this same GZIP issue, the content length will be incorrect. It's actually
                 // also normally incorrect, but because we're stripping out all encoding we should
                 // update the content-length header to be accurate.
@@ -185,10 +197,8 @@ import Shared
                 return
             }
             
-            headers.set(key as! String, response.allHeaderFields[key] as! String)
+            headers.set(keyString, value)
         }
-        
-        
         
         self.headers = headers
         

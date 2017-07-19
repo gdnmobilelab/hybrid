@@ -15,6 +15,7 @@ class FetchOperationTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
+        URLCache.shared.removeAllCachedResponses()
         TestWeb.createServer()
     }
     
@@ -27,20 +28,22 @@ class FetchOperationTests: XCTestCase {
     func testSimpleFetch() {
         
         TestWeb.server!.addHandler(forMethod: "GET", path: "/test.txt", request: GCDWebServerRequest.self) { (request) -> GCDWebServerResponse? in
-            let res = GCDWebServerDataResponse(text: "THIS IS TEST CONTENT")
+            let res = GCDWebServerDataResponse(jsonObject: [
+                "blah": "value"
+            ])
             res!.statusCode = 201
             res!.setValue("TEST-VALUE", forAdditionalHeader: "X-Test-Header")
             return res
         }
         
         let request = FetchRequest(url: TestWeb.serverURL.appendingPathComponent("/test.txt"))
-        
+       
         let expect = expectation(description: "Fetch call returns")
         
         FetchOperation.fetch(request) { error, response in
             XCTAssert(response != nil)
-            XCTAssert(response!.status == 201)
-            XCTAssert(response!.headers.get("X-Test-Header") == "TEST-VALUE")
+            XCTAssertEqual(response!.status,201)
+            XCTAssertEqual(response!.headers.get("X-Test-Header"), "TEST-VALUE")
             expect.fulfill()
         }
         
@@ -60,14 +63,12 @@ class FetchOperationTests: XCTestCase {
         wait(for: [expect], timeout: 1)
         
     }
-
     
-    func testRedirectFetch() {
+    fileprivate func setupRedirectURLs() {
         
         TestWeb.server!.addHandler(forMethod: "GET", path: "/test.txt", request: GCDWebServerRequest.self) { (request) -> GCDWebServerResponse? in
             let res = GCDWebServerDataResponse(text: "THIS IS TEST CONTENT")
             res!.statusCode = 201
-            res!.setValue("TEST-VALUE", forAdditionalHeader: "X-Test-Header")
             return res
         }
         
@@ -78,20 +79,34 @@ class FetchOperationTests: XCTestCase {
             res!.setValue("/test.txt", forAdditionalHeader: "Location")
             return res
         }
+    
+    }
+
+    
+    func testRedirectFetch() {
         
+        self.setupRedirectURLs()
         
         let expectRedirect = expectation(description: "Fetch call returns")
-        let expectNotRedirect = expectation(description: "Fetch call does not redirect")
-        let expectError = expectation(description: "Fetch call errors on redirect")
         
         let request = FetchRequest(url: TestWeb.serverURL.appendingPathComponent("/redirect-me"))
         
         FetchOperation.fetch(request) { error, response in
             XCTAssert(response != nil)
-            XCTAssert(response!.status == 201)
+            XCTAssertEqual(response!.status, 201)
             XCTAssert(response!.url == TestWeb.serverURL.appendingPathComponent("/test.txt").absoluteString)
             expectRedirect.fulfill()
         }
+        
+        
+        wait(for: [expectRedirect], timeout: 10)
+        
+    }
+    
+    func testRedirectNoFollow() {
+        self.setupRedirectURLs()
+        
+        let expectNotRedirect = expectation(description: "Fetch call does not redirect")
         
         let noRedirectRequest = FetchRequest(url: TestWeb.serverURL.appendingPathComponent("/redirect-me"))
         noRedirectRequest.redirect = .Manual
@@ -104,16 +119,24 @@ class FetchOperationTests: XCTestCase {
             expectNotRedirect.fulfill()
         }
         
+        wait(for: [expectNotRedirect], timeout: 10)
+    }
+    
+    func testRedirectError() {
+        self.setupRedirectURLs()
+        
+        let expectError = expectation(description: "Fetch call errors on redirect")
+        
         let errorRequest = FetchRequest(url: TestWeb.serverURL.appendingPathComponent("/redirect-me"))
         errorRequest.redirect = .Error
         
         FetchOperation.fetch(errorRequest) { error, response in
+            let errString = String(describing: error!)
             XCTAssert(error != nil, "Error should exist")
             expectError.fulfill()
         }
         
-        wait(for: [expectRedirect, expectNotRedirect,expectError], timeout: 10)
-        
+        wait(for: [expectError], timeout: 100)
     }
     
     func testFetchRequestBody() {
