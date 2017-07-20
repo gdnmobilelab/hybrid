@@ -56,6 +56,68 @@ class JSPromiseTests: XCTestCase {
         
     }
     
+    func testStaticResolvePromise() {
+        
+        let context = JSContext()!
+        
+        let promise = context.evaluateScript("Promise.resolve('testvalue')")!
+        let expectResponse = expectation(description: "JS promise resolved")
+        
+        JSPromise.resolve(promise) { err, val in
+            XCTAssert(err == nil)
+            XCTAssert(val!.toString() == "testvalue")
+            expectResponse.fulfill()
+        }
+        
+        wait(for: [expectResponse], timeout: 1)
+        
+    }
+    
+    func testStaticResolvePromiseThatRejects() {
+        
+        let context = JSContext()!
+        
+        let promise = context.evaluateScript("Promise.reject(new Error('oh no'))")!
+        let expectResponse = expectation(description: "JS promise resolved")
+        
+        JSPromise.resolve(promise) { err, val in
+            XCTAssertEqual((err as! ErrorMessage).message, "oh no")
+            expectResponse.fulfill()
+        }
+        
+        wait(for: [expectResponse], timeout: 1)
+        
+    }
+    
+    func testPromiseRejectionWithException() {
+        
+        // We can also throw errors in a JSContext by setting the exception property
+        // - just want to make sure that works correctly in the context of a promise
+        
+        let context = JSContext()!
+        
+        let testFunc: @convention(block) () -> Void = {
+            context.exception = JSValue(newErrorFromMessage: "oh no", in: context)
+        }
+        
+        let jsfunc = context.evaluateScript("""
+            (function(toRun) {
+                return Promise.resolve()
+                .then(function() {
+                    toRun()
+                    return true;
+                })
+            })
+        """)
+        
+        let promise = jsfunc!.call(withArguments: [unsafeBitCast(testFunc, to: AnyObject.self)])!
+        
+        JSPromise.resolve(promise) { err, val in
+            XCTAssert((err as! ErrorMessage).message == "oh no")
+        }
+        
+    }
+    
     
     
 }

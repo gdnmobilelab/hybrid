@@ -10,8 +10,10 @@ import XCTest
 @testable import ServiceWorker
 import GCDWebServers
 import Gzip
+import JavaScriptCore
+import Shared
 
-class FetchResponse: XCTestCase {
+class FetchResponseTests: XCTestCase {
     
     override func setUp() {
         super.setUp()
@@ -43,7 +45,7 @@ class FetchResponse: XCTestCase {
             
         }
         
-        wait(for: [expectResponse], timeout: 1)
+        wait(for: [expectResponse], timeout: 100)
         
         
     }
@@ -83,7 +85,7 @@ class FetchResponse: XCTestCase {
             
         }
         
-        wait(for: [expect], timeout: 100)
+        wait(for: [expect], timeout: 1)
         
     }
     
@@ -101,8 +103,12 @@ class FetchResponse: XCTestCase {
         FetchOperation.fetch(TestWeb.serverURL.appendingPathComponent("/test.json").absoluteString) { err, res in
             XCTAssert(err == nil)
             res!.json { err, obj in
+                
                 XCTAssert(err == nil)
-                XCTAssert((obj as! AnyObject)["test"] as! String == "value")
+                
+                let json = obj as! [String: Any]
+                
+                XCTAssertEqual(json["test"] as! String, "value")
                 expectResponse.fulfill()
             }
             
@@ -110,7 +116,37 @@ class FetchResponse: XCTestCase {
         
         wait(for: [expectResponse], timeout: 1)
         
+    }
+    
+    func testResponseInJSContext() {
         
+        let context = JSContext()!
+        
+        FetchOperation.addToJSContext(context: context)
+        
+        let expectResponse = expectation(description: "Response body is received via JS")
+
+        
+        TestWeb.server!.addHandler(forMethod: "GET", path: "/test.txt", request: GCDWebServerRequest.self) { (request) -> GCDWebServerResponse? in
+            let res = GCDWebServerDataResponse(text: "THIS IS TEST CONTENT")
+            res!.statusCode = 200
+            return res
+        }
+        
+        let promise = context.evaluateScript("""
+            fetch('\(TestWeb.serverURL.appendingPathComponent("/test.txt"))')
+            .then(function(res) { return res.text() })
+        """)!
+        
+        JSPromise.resolve(promise) { err, val in
+            XCTAssert(err == nil)
+            XCTAssertEqual(val!.toString(),"THIS IS TEST CONTENT")
+            expectResponse.fulfill()
+        }
+        
+        
+        wait(for: [expectResponse], timeout: 1)
+
     }
     
 }

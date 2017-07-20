@@ -8,34 +8,52 @@
 
 import Foundation
 import Shared
+import JavaScriptCore
 
-@objc public class FetchResponse : NSObject, URLSessionDataDelegate {
+@objc protocol FetchResponseExports : JSExport {
+    func json() -> JSValue
+    func text() -> JSValue
+    var headers: FetchHeaders {get}
+}
+
+@objc public class FetchResponse : NSObject, FetchResponseExports, URLSessionDataDelegate {
     
-    fileprivate let fetchOperation: FetchOperation?
-    fileprivate var responseCallback: ((URLSession.ResponseDisposition) -> Void)?
+    internal var fetchOperation: FetchOperation?
+    internal var responseCallback: ((URLSession.ResponseDisposition) -> Void)?
     
     let headers:FetchHeaders
     var bodyUsed:Bool = false
-    fileprivate var dataStream: ReadableStream?
+    internal var dataStream: ReadableStream?
     fileprivate var streamController:ReadableStreamController?
     
+    /// We use this context when using the JS-type functions, like json() etc
+    /// to create JSPromises
+    internal var jsContext:JSContext?
     
-    /// While we'd normally use the Content-Length header, it doesn't accurately
-    /// reflect ungzipped content. Since iOS automatically ungzips and we can't
-    /// stop it, we use this as the canonical length
-    let expectedLength:Int64
+    var internalResponse:FetchResponse {
+        get {
+            return self
+        }
+    }
     
-    @objc let url:String
-    @objc let status:Int
-    @objc let redirected:Bool
+    var type:ResponseType {
+        get {
+            return .Internal
+        }
+    }
+
     
-    @objc var ok:Bool {
+    let url:URL
+    let status:Int
+    let redirected:Bool
+    
+    var ok:Bool {
         get {
             return status >= 200 && status < 300
         }
     }
     
-    @objc var statusText:String {
+    var statusText:String {
         get {
             
             if HttpStatusCodes[self.status] != nil {
@@ -54,6 +72,9 @@ import Shared
     
     func getReader() throws -> ReadableStream {
         try self.markBodyUsed()
+        if let op = self.fetchOperation {
+            op.add(delegate: self)
+        }
         if let responseCallback = self.responseCallback {
             responseCallback(.allow)
         }
@@ -148,9 +169,38 @@ import Shared
 
     }
     
+    internal func json() -> JSValue {
+        let promise = JSPromise(context: self.jsContext!)
+        
+        self.json() { err, json in
+            if err != nil {
+                promise.reject(err!)
+            } else {
+                promise.fulfill(json)
+            }
+        }
+        
+        return promise.jsValue
+    }
+    
+    internal func text() -> JSValue {
+        
+        let promise = JSPromise(context: self.jsContext!)
+        
+        self.text() { err, text in
+            if err != nil {
+                promise.reject(err!)
+            } else {
+                promise.fulfill(text)
+            }
+        }
+        
+        return promise.jsValue
+        
+    }
+    
     public func json(_ callback: @escaping (Error?, Any?) -> Void) {
-        
-        
+    
          self.data { err, data in
                 
             if err != nil {
@@ -165,16 +215,27 @@ import Shared
                 callback(error, nil)
             }
             
-            
         }
 
     }
+    
+    init(headers: FetchHeaders, status: Int, url:URL, redirected:Bool, stream:ReadableStream) {
+        self.fetchOperation = nil
+        self.responseCallback = nil
+        self.headers = headers
+        self.status = status
+        self.url = url
+        self.redirected = redirected
+        self.dataStream = stream
+        self.streamController = stream.controller
+    }
+    
     
     init(response: HTTPURLResponse, operation:FetchOperation, callback: @escaping (URLSession.ResponseDisposition) -> Void) {
         self.fetchOperation = operation
         self.responseCallback = callback
         self.status = response.statusCode
-        self.url = response.url!.absoluteString
+        self.url = response.url!
         self.redirected = operation.redirected
         
         // Convert to our custom FetchHeaders class
@@ -202,14 +263,12 @@ import Shared
         
         self.headers = headers
         
-        self.expectedLength = operation.task!.countOfBytesExpectedToReceive
-        
         super.init()
-        self.fetchOperation!.add(delegate: self)
         
         self.dataStream = ReadableStream(start: { controller in
             self.streamController = controller
         })
+        
 
     }
     

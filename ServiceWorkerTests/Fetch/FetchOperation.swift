@@ -10,6 +10,7 @@ import XCTest
 @testable import ServiceWorker
 import GCDWebServers
 import Gzip
+import JavaScriptCore
 
 class FetchOperationTests: XCTestCase {
     
@@ -94,7 +95,7 @@ class FetchOperationTests: XCTestCase {
         FetchOperation.fetch(request) { error, response in
             XCTAssert(response != nil)
             XCTAssertEqual(response!.status, 201)
-            XCTAssert(response!.url == TestWeb.serverURL.appendingPathComponent("/test.txt").absoluteString)
+            XCTAssert(response!.url.absoluteString == TestWeb.serverURL.appendingPathComponent("/test.txt").absoluteString)
             expectRedirect.fulfill()
         }
         
@@ -115,7 +116,7 @@ class FetchOperationTests: XCTestCase {
             XCTAssert(response != nil, "Response should exist")
             XCTAssert(response!.status == 301, "Should be a 301 status")
             XCTAssert(response!.headers.get("Location") == "/test.txt", "URL should be correct")
-            XCTAssert(response!.url == TestWeb.serverURL.appendingPathComponent("/redirect-me").absoluteString)
+            XCTAssert(response!.url.absoluteString == TestWeb.serverURL.appendingPathComponent("/redirect-me").absoluteString)
             expectNotRedirect.fulfill()
         }
         
@@ -131,7 +132,6 @@ class FetchOperationTests: XCTestCase {
         errorRequest.redirect = .Error
         
         FetchOperation.fetch(errorRequest) { error, response in
-            let errString = String(describing: error!)
             XCTAssert(error != nil, "Error should exist")
             expectError.fulfill()
         }
@@ -142,7 +142,6 @@ class FetchOperationTests: XCTestCase {
     func testFetchRequestBody() {
         
         let expectResponse = expectation(description: "Request body is received")
-        
         
         TestWeb.server!.addHandler(forMethod: "POST", path: "/post", request: GCDWebServerDataRequest.self) { (request) -> GCDWebServerResponse? in
             let dataReq = request as! GCDWebServerDataRequest
@@ -161,6 +160,30 @@ class FetchOperationTests: XCTestCase {
         
         FetchOperation.fetch(postRequest) { error, response in
             XCTAssert(error == nil, "Should not error")
+        }
+        
+        wait(for: [expectResponse], timeout: 1)
+    }
+    
+    func testJSFetch() {
+        
+        TestWeb.server!.addHandler(forMethod: "GET", path: "/test.txt", request: GCDWebServerRequest.self) { (request) -> GCDWebServerResponse? in
+            return GCDWebServerDataResponse(text: "THIS IS TEST CONTENT")
+        }
+        
+        let expectResponse = expectation(description: "JS Fetch worked")
+        
+        let context = JSContext()!
+        FetchOperation.addToJSContext(context: context)
+        
+        let promise = context.evaluateScript("fetch('\(TestWeb.serverURL.appendingPathComponent("/test.txt").absoluteString)')")
+        
+        XCTAssert(promise != nil)
+        
+        JSPromise.resolve(promise!) {err, val in
+            XCTAssert(err == nil)
+            XCTAssert(val!.isInstance(of: FetchResponse.self))
+            expectResponse.fulfill()
         }
         
         wait(for: [expectResponse], timeout: 1)

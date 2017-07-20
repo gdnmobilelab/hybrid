@@ -16,7 +16,6 @@
 		8A2598011EF1A21B00434D10 /* ServiceWorker.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8A2597EB1EF1A21B00434D10 /* ServiceWorker.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8A2598091EF1A23E00434D10 /* ServiceWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A2598081EF1A23E00434D10 /* ServiceWorker.swift */; };
 		8A25980D1EF1A83700434D10 /* ServiceWorkerInstallState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A25980C1EF1A83700434D10 /* ServiceWorkerInstallState.swift */; };
-		8A26D8211EFD84130017EF75 /* JSFetchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A26D8201EFD84130017EF75 /* JSFetchResponse.swift */; };
 		8A26D8241EFD89090017EF75 /* JSPromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A26D8231EFD89090017EF75 /* JSPromise.swift */; };
 		8A26D8271EFD8AC00017EF75 /* JSPromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A26D8261EFD8AC00017EF75 /* JSPromise.swift */; };
 		8A26D8291EFDBF9E0017EF75 /* JSFetchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A26D8281EFDBF9E0017EF75 /* JSFetchResponse.swift */; };
@@ -37,7 +36,6 @@
 		8A4E5F051EF0F98D00884923 /* DBMigrations in Resources */ = {isa = PBXBuildFile; fileRef = 8A4E5F041EF0F98D00884923 /* DBMigrations */; };
 		8A4E5F061EF0FAA600884923 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE731A71EF0907400CDF80E /* Database.swift */; };
 		8A4E5F071EF0FAA600884923 /* Migrate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE731C31EF0B23E00CDF80E /* Migrate.swift */; };
-		8A5658AA1F1825E100C5E516 /* GlobalFetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5658A91F1825E100C5E516 /* GlobalFetch.swift */; };
 		8A5658AC1F18267700C5E516 /* FetchOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5658AB1F18267700C5E516 /* FetchOperation.swift */; };
 		8A5658AE1F182BDE00C5E516 /* FetchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A5658AD1F182BDE00C5E516 /* FetchResponse.swift */; };
 		8A58BBDE1EF4BA1E0039624B /* DummyServiceWorkerRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A58BBDD1EF4BA1E0039624B /* DummyServiceWorkerRegistration.swift */; };
@@ -95,6 +93,11 @@
 		8AA369BF1EF1889E00C523DA /* CleanroomLogger.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA369BE1EF1889E00C523DA /* CleanroomLogger.framework */; };
 		8AA60B6E1EF421B200C9FA4F /* Just.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AA60B6D1EF421B200C9FA4F /* Just.framework */; };
 		8AA60B701EF421E600C9FA4F /* Just.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8AA60B6D1EF421B200C9FA4F /* Just.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		8AA6A4471F212F170014C1BF /* ResponseType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA6A4461F212F170014C1BF /* ResponseType.swift */; };
+		8AA6A4491F2130AC0014C1BF /* BasicResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA6A4481F2130AC0014C1BF /* BasicResponse.swift */; };
+		8AA6A44F1F2144580014C1BF /* CORSResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA6A44E1F2144580014C1BF /* CORSResponse.swift */; };
+		8AA6A4511F2147020014C1BF /* OpaqueResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA6A4501F2147020014C1BF /* OpaqueResponse.swift */; };
+		8AA6A4531F21593E0014C1BF /* FetchOperationCORS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA6A4521F21593E0014C1BF /* FetchOperationCORS.swift */; };
 		8AB7EEA01EF978E7000AC249 /* SQLiteUpdateMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EE9F1EF978E7000AC249 /* SQLiteUpdateMonitor.swift */; };
 		8AB7EEA21EF97ED5000AC249 /* SQLiteUpdateOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EEA11EF97ED5000AC249 /* SQLiteUpdateOperation.swift */; };
 		8AB7EEA31EFAC416000AC249 /* SharedLogInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A7904EA1EF2E7720092D31B /* SharedLogInterface.swift */; };
@@ -324,7 +327,6 @@
 		8A2598081EF1A23E00434D10 /* ServiceWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorker.swift; sourceTree = "<group>"; };
 		8A25980C1EF1A83700434D10 /* ServiceWorkerInstallState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorkerInstallState.swift; sourceTree = "<group>"; };
 		8A25980E1EF1AC5D00434D10 /* ErrorMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorMessage.swift; sourceTree = "<group>"; };
-		8A26D8201EFD84130017EF75 /* JSFetchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSFetchResponse.swift; sourceTree = "<group>"; };
 		8A26D8231EFD89090017EF75 /* JSPromise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSPromise.swift; sourceTree = "<group>"; };
 		8A26D8261EFD8AC00017EF75 /* JSPromise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSPromise.swift; sourceTree = "<group>"; };
 		8A26D8281EFDBF9E0017EF75 /* JSFetchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSFetchResponse.swift; sourceTree = "<group>"; };
@@ -342,7 +344,6 @@
 		8A396A2B1F197ABE001D7938 /* FetchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchResponse.swift; sourceTree = "<group>"; };
 		8A3A246B1EF83ADD007AA0B9 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		8A4E5F041EF0F98D00884923 /* DBMigrations */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DBMigrations; sourceTree = "<group>"; };
-		8A5658A91F1825E100C5E516 /* GlobalFetch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalFetch.swift; sourceTree = "<group>"; };
 		8A5658AB1F18267700C5E516 /* FetchOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchOperation.swift; sourceTree = "<group>"; };
 		8A5658AD1F182BDE00C5E516 /* FetchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchResponse.swift; sourceTree = "<group>"; };
 		8A58BBDD1EF4BA1E0039624B /* DummyServiceWorkerRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DummyServiceWorkerRegistration.swift; sourceTree = "<group>"; };
@@ -398,6 +399,11 @@
 		8A7904EA1EF2E7720092D31B /* SharedLogInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedLogInterface.swift; sourceTree = "<group>"; };
 		8AA369BE1EF1889E00C523DA /* CleanroomLogger.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CleanroomLogger.framework; path = Carthage/Build/iOS/CleanroomLogger.framework; sourceTree = "<group>"; };
 		8AA60B6D1EF421B200C9FA4F /* Just.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Just.framework; path = Carthage/Build/iOS/Just.framework; sourceTree = "<group>"; };
+		8AA6A4461F212F170014C1BF /* ResponseType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResponseType.swift; sourceTree = "<group>"; };
+		8AA6A4481F2130AC0014C1BF /* BasicResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BasicResponse.swift; sourceTree = "<group>"; };
+		8AA6A44E1F2144580014C1BF /* CORSResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CORSResponse.swift; sourceTree = "<group>"; };
+		8AA6A4501F2147020014C1BF /* OpaqueResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpaqueResponse.swift; sourceTree = "<group>"; };
+		8AA6A4521F21593E0014C1BF /* FetchOperationCORS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchOperationCORS.swift; sourceTree = "<group>"; };
 		8AB7EE9F1EF978E7000AC249 /* SQLiteUpdateMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteUpdateMonitor.swift; sourceTree = "<group>"; };
 		8AB7EEA11EF97ED5000AC249 /* SQLiteUpdateOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteUpdateOperation.swift; sourceTree = "<group>"; };
 		8AB7EEA91EFAE576000AC249 /* TestDB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDB.swift; sourceTree = "<group>"; };
@@ -755,6 +761,7 @@
 				8A26D8281EFDBF9E0017EF75 /* JSFetchResponse.swift */,
 				8A396A271F190BA9001D7938 /* FetchOperation.swift */,
 				8A396A2B1F197ABE001D7938 /* FetchResponse.swift */,
+				8AA6A4521F21593E0014C1BF /* FetchOperationCORS.swift */,
 			);
 			path = Fetch;
 			sourceTree = "<group>";
@@ -794,13 +801,12 @@
 		8A7904D91EF1D8680092D31B /* Fetch */ = {
 			isa = PBXGroup;
 			children = (
+				8AA6A4431F212E210014C1BF /* Response */,
 				8AB7EEAD1EFAF797000AC249 /* FetchRequest.swift */,
 				8A7904DA1EF1D88A0092D31B /* FetchHeaders.swift */,
 				8AB7EEB21EFB0D86000AC249 /* FetchResponseOld.swift */,
 				8AF715071EFC6EBD00A56FEA /* HttpStatusCodes.swift */,
-				8A26D8201EFD84130017EF75 /* JSFetchResponse.swift */,
 				8ADB09871F0FF59100C155B7 /* NativeFetchHandler.swift */,
-				8A5658A91F1825E100C5E516 /* GlobalFetch.swift */,
 				8A5658AB1F18267700C5E516 /* FetchOperation.swift */,
 				8A5658AD1F182BDE00C5E516 /* FetchResponse.swift */,
 				8A396A291F190EF5001D7938 /* MultiDataDelegate.swift */,
@@ -823,6 +829,17 @@
 				8A5D06301EF31792009AA8E5 /* AssertNoErrorMessage.swift */,
 			);
 			path = TestShared;
+			sourceTree = "<group>";
+		};
+		8AA6A4431F212E210014C1BF /* Response */ = {
+			isa = PBXGroup;
+			children = (
+				8AA6A4461F212F170014C1BF /* ResponseType.swift */,
+				8AA6A4481F2130AC0014C1BF /* BasicResponse.swift */,
+				8AA6A44E1F2144580014C1BF /* CORSResponse.swift */,
+				8AA6A4501F2147020014C1BF /* OpaqueResponse.swift */,
+			);
+			path = Response;
 			sourceTree = "<group>";
 		};
 		8AB7EEA81EFAE56D000AC249 /* Utils */ = {
@@ -1325,15 +1342,18 @@
 				8AB7EEAF1EFAF896000AC249 /* FetchRequest.swift in Sources */,
 				8ADB098C1F10066B00C155B7 /* ReadableStream.swift in Sources */,
 				8A7904DB1EF1D88A0092D31B /* FetchHeaders.swift in Sources */,
+				8AA6A44F1F2144580014C1BF /* CORSResponse.swift in Sources */,
 				8A7904E71EF2E2050092D31B /* ServiceWorkerGlobalScope.swift in Sources */,
 				8AB7EEB31EFB0D86000AC249 /* FetchResponseOld.swift in Sources */,
 				8A7904E31EF2DB610092D31B /* EventTarget.swift in Sources */,
 				8ADB098A1F10031800C155B7 /* ReadableStreamController.swift in Sources */,
 				8AF715081EFC6EBD00A56FEA /* HttpStatusCodes.swift in Sources */,
+				8AA6A4471F212F170014C1BF /* ResponseType.swift in Sources */,
+				8AA6A4491F2130AC0014C1BF /* BasicResponse.swift in Sources */,
 				8A26D8241EFD89090017EF75 /* JSPromise.swift in Sources */,
 				8A5D05D01EF2EDD8009AA8E5 /* ConsoleMirror.swift in Sources */,
+				8AA6A4511F2147020014C1BF /* OpaqueResponse.swift in Sources */,
 				8A396A2A1F190EF5001D7938 /* MultiDataDelegate.swift in Sources */,
-				8A26D8211EFD84130017EF75 /* JSFetchResponse.swift in Sources */,
 				8A5658AE1F182BDE00C5E516 /* FetchResponse.swift in Sources */,
 				8A7904E91EF2E2920092D31B /* ServiceWorkerExecutionEnvironment.swift in Sources */,
 				8A6739501EF32BF4007E890A /* ServiceWorkerRegistrationProtocol.swift in Sources */,
@@ -1345,7 +1365,6 @@
 				8A6739521EF32C43007E890A /* NotificationShowOptions.swift in Sources */,
 				8ADB09881F0FF59100C155B7 /* NativeFetchHandler.swift in Sources */,
 				8A5658AC1F18267700C5E516 /* FetchOperation.swift in Sources */,
-				8A5658AA1F1825E100C5E516 /* GlobalFetch.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1353,6 +1372,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8AA6A4531F21593E0014C1BF /* FetchOperationCORS.swift in Sources */,
 				8A26D8291EFDBF9E0017EF75 /* JSFetchResponse.swift in Sources */,
 				8AF94EF51EF319EB00DD7F8E /* Bootstrap.swift in Sources */,
 				8A6739551EF32E6F007E890A /* ServiceWorkerRegistrationPlaceholder.swift in Sources */,

@@ -50,8 +50,13 @@ class JSPromise {
         self.context.virtualMachine.removeManagedReference(self.jsValue, withOwner: self)
     }
     
-    public func fulfill(_ value: Any) {
-        self.fulfill!.value.call(withArguments: [value])
+    public func fulfill(_ value: Any?) {
+        if value == nil {
+            self.fulfill!.value.call(withArguments: [NSNull()])
+        } else {
+            self.fulfill!.value.call(withArguments: [value!])
+        }
+        
     }
     
     public func reject(_ error: Error) {
@@ -64,6 +69,21 @@ class JSPromise {
         let err = JSValue(newErrorFromMessage: str, in: self.context)
         
         self.reject!.value.call(withArguments: [err!])
+    }
+    
+    public static func resolve(_ promise: JSValue, _ cb: @escaping (Error?, JSValue?) -> Void) {
+        
+        let reject: @convention(block) (JSValue) -> Void = { err in
+            cb(ErrorMessage(err.objectForKeyedSubscript("message").toString()), nil)
+        }
+        let fulfill: @convention(block) (JSValue?) -> Void = { result in
+            cb(nil,result)
+        }
+
+        let bindFunc = promise.context.evaluateScript("(function(promise,thenFunc,catchFunc) { return promise.then(thenFunc).catch(catchFunc)})")!
+        
+        bindFunc.call(withArguments: [promise, unsafeBitCast(fulfill, to: AnyObject.self), unsafeBitCast(reject, to: AnyObject.self)])
+        
     }
     
 }
