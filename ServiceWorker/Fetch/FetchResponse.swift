@@ -36,7 +36,7 @@ import JavaScriptCore
         }
     }
     
-    var type:ResponseType {
+    var responseType:ResponseType {
         get {
             return .Internal
         }
@@ -72,11 +72,10 @@ import JavaScriptCore
     
     func getReader() throws -> ReadableStream {
         try self.markBodyUsed()
-        if let op = self.fetchOperation {
-            op.add(delegate: self)
-        }
-        if let responseCallback = self.responseCallback {
+        if let responseCallback = self.internalResponse.responseCallback {
             responseCallback(.allow)
+            // This can only be run once, so once we've done that, clear it out.
+            self.internalResponse.responseCallback = nil
         }
         return self.dataStream!
     }
@@ -219,15 +218,61 @@ import JavaScriptCore
 
     }
     
-    init(headers: FetchHeaders, status: Int, url:URL, redirected:Bool, stream:ReadableStream) {
-        self.fetchOperation = nil
+    public func clone() throws -> FetchResponse {
+        if self.bodyUsed == true {
+            throw ErrorMessage("Cannot clone response: body has already been used")
+        }
+        
+        if self.internalResponse.fetchOperation == nil {
+            throw ErrorMessage("Cannot currently clone manually constructed responses")
+        }
+        
+        let clonedInternalResponse = FetchResponse(headers: self.internalResponse.headers, status: self.internalResponse.status, url: self.internalResponse.url, redirected: self.internalResponse.redirected, fetchOperation: self.internalResponse.fetchOperation)
+        
+        let exteriorClone:FetchResponse
+        
+        if self.responseType == .Basic {
+            exteriorClone = BasicResponse(from: clonedInternalResponse)
+        } else if self.responseType == .CORS {
+            exteriorClone = CORSResponse(from: clonedInternalResponse, allowedHeaders: self.headers.keys())
+        } else if self.responseType == .Opaque {
+            exteriorClone = OpaqueResponse(from: clonedInternalResponse)
+        } else {
+            throw ErrorMessage("Do not know how to clone this response")
+        }
+        
+        return exteriorClone
+    }
+    
+    public init(headers: FetchHeaders, status: Int, url:URL, redirected:Bool, fetchOperation:FetchOperation?, stream: ReadableStream? = nil) {
+        self.fetchOperation = fetchOperation
         self.responseCallback = nil
         self.headers = headers
         self.status = status
         self.url = url
         self.redirected = redirected
-        self.dataStream = stream
-        self.streamController = stream.controller
+        super.init()
+        
+        if let str = stream {
+            // We can override the underlying stream if we want - this is used
+            // in OpaqueResponse to ensure we don't actually provide the response
+            // body
+            self.dataStream = str
+            self.streamController = str.controller
+        } else {
+            // Otherwise we create another new stream and hook up the fetch
+            // operation.
+            
+            self.dataStream = ReadableStream(start: { controller in
+                self.streamController = controller
+            })
+            
+            if let op = fetchOperation {
+                op.add(delegate: self)
+            }
+        }
+        
+        
     }
     
     
@@ -268,6 +313,12 @@ import JavaScriptCore
         self.dataStream = ReadableStream(start: { controller in
             self.streamController = controller
         })
+        
+        // since this is being created directly from native, we know we want
+        // it to be a delegate
+        operation.add(delegate: self)
+        
+
         
 
     }

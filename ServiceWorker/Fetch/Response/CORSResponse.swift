@@ -27,7 +27,7 @@ fileprivate var CORSHeaders = [
         }
     }
     
-    override var type: ResponseType {
+    override var responseType: ResponseType {
         get {
             return .CORS
         }
@@ -51,10 +51,8 @@ fileprivate var CORSHeaders = [
             }
         }
         
-        super.init(headers: filteredHeaders, status: response.status, url: response.url, redirected: response.redirected,  stream: response.dataStream!)
-        
-        self.fetchOperation = response.fetchOperation
-        self.responseCallback = response.responseCallback
+        super.init(headers: filteredHeaders, status: response.status, url: response.url, redirected: response.redirected, fetchOperation: nil, stream: response.dataStream)
+
     }
     
 }

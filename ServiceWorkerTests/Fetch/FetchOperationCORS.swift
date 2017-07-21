@@ -96,7 +96,7 @@ class FetchOperationCORSTests: XCTestCase {
         
         FetchOperation.fetch(request) { error, response in
             XCTAssert(error == nil)
-            XCTAssert(response!.type == ResponseType.CORS)
+            XCTAssert(response!.responseType == ResponseType.CORS)
             expect.fulfill()
         }
         
@@ -126,7 +126,7 @@ class FetchOperationCORSTests: XCTestCase {
         
         FetchOperation.fetch(request) { error, response in
             XCTAssert(error == nil)
-            XCTAssert(response!.type == ResponseType.CORS)
+            XCTAssert(response!.responseType == ResponseType.CORS)
             expect.fulfill()
         }
         
@@ -187,7 +187,7 @@ class FetchOperationCORSTests: XCTestCase {
         
         FetchOperation.fetch(request) { error, response in
             XCTAssert(error == nil)
-            XCTAssert(response!.type == ResponseType.CORS)
+            XCTAssert(response!.responseType == ResponseType.CORS)
             expect.fulfill()
         }
         
@@ -220,7 +220,7 @@ class FetchOperationCORSTests: XCTestCase {
         
         FetchOperation.fetch(request) { error, response in
             XCTAssert(error == nil)
-            XCTAssert(response!.type == ResponseType.CORS)
+            XCTAssert(response!.responseType == ResponseType.CORS)
             XCTAssertNil(response!.headers.get("X-Additional-Header"))
             XCTAssertNil(response!.headers.get("X-Header-Two"))
             expect.fulfill()
@@ -256,7 +256,7 @@ class FetchOperationCORSTests: XCTestCase {
         
         FetchOperation.fetch(request) { error, response in
             XCTAssert(error == nil)
-            XCTAssert(response!.type == ResponseType.CORS)
+            XCTAssert(response!.responseType == ResponseType.CORS)
             XCTAssertEqual(response!.headers.get("X-Additional-Header"), "TESTVALUE")
             XCTAssertEqual(response!.headers.get("X-Header-Two"), "TESTVALUE2")
             expect.fulfill()
@@ -266,7 +266,7 @@ class FetchOperationCORSTests: XCTestCase {
         
     }
     
-    func testAllowsNoCORSResponse() {
+    func testAllowsOpaqueCORSResponse() {
         
         TestWeb.server!.addHandler(forMethod: "GET", path: "/test.txt", request: GCDWebServerRequest.self) { (request) -> GCDWebServerResponse? in
             return GCDWebServerDataResponse(text: "blah")
@@ -280,13 +280,40 @@ class FetchOperationCORSTests: XCTestCase {
         
         FetchOperation.fetch(request) { error, response in
             XCTAssert(error == nil)
-            XCTAssert(response!.type == .Opaque)
+            XCTAssert(response!.responseType == .Opaque)
             
             response!.text { err, text in
                 XCTAssert(err == nil)
                 XCTAssertEqual(text, "")
                 expect.fulfill()
             }
+            
+        }
+        
+        wait(for: [expect], timeout: 1)
+        
+    }
+    
+    func testReturnsBasicResponseWhenSameDomain() {
+        
+        TestWeb.server!.addHandler(forMethod: "GET", path: "/test.txt", request: GCDWebServerRequest.self) { (request) -> GCDWebServerResponse? in
+            let res = GCDWebServerDataResponse(text: "blah")!
+            res.setValue("TEST", forAdditionalHeader: "X-Custom-Header")
+            return res
+        }
+        
+        let request = FetchRequest(url: TestWeb.serverURL.appendingPathComponent("/test.txt"))
+        request.origin = URL(string: "http://localhost")
+        request.mode = .NoCORS
+        
+        let expect = expectation(description: "Fetch call works")
+        
+        FetchOperation.fetch(request) { error, response in
+            XCTAssert(error == nil)
+            XCTAssertEqual(response!.headers.get("X-Custom-Header"), "TEST")
+            XCTAssert(response!.responseType == .Basic)
+            
+            expect.fulfill()
             
         }
         

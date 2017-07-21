@@ -149,4 +149,42 @@ class FetchResponseTests: XCTestCase {
 
     }
     
+    func testFetchResponseClone() {
+        
+        TestWeb.server!.addHandler(forMethod: "GET", path: "/test.txt", request: GCDWebServerRequest.self) { (request) -> GCDWebServerResponse? in
+            let res = GCDWebServerDataResponse(text: "THIS IS TEST CONTENT")
+            res!.statusCode = 200
+            return res
+        }
+        
+        let expectResponseOne = expectation(description: "Response body is received")
+        let expectResponseTwo = expectation(description: "Response clone body is received")
+        
+        FetchOperation.fetch(TestWeb.serverURL.appendingPathComponent("/test.txt").absoluteString) { err, res in
+            XCTAssert(err == nil)
+            
+            var clone:FetchResponse? = nil
+            AssertNoErrorMessage {
+                clone = try res!.clone()
+            }
+            
+            clone!.text { err, str in
+                XCTAssert(err == nil)
+                XCTAssertEqual(str, "THIS IS TEST CONTENT")
+                expectResponseTwo.fulfill()
+            }
+            
+            res!.text { err, str in
+                XCTAssert(err == nil)
+                XCTAssertEqual(str, "THIS IS TEST CONTENT")
+                expectResponseOne.fulfill()
+            }
+            
+        }
+        
+        wait(for: [expectResponseOne, expectResponseTwo], timeout: 1)
+        
+        
+    }
+    
 }

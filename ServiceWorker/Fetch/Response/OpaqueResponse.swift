@@ -18,7 +18,7 @@ import Foundation
         }
     }
     
-    override var type: ResponseType {
+    override var responseType: ResponseType {
         get {
             return .Opaque
         }
@@ -34,7 +34,7 @@ import Foundation
             controller.close()
         })
  
-        super.init(headers: noHeaders, status: 0, url: response.url, redirected: false, stream: emptyStream)
+        super.init(headers: noHeaders, status: 0, url: response.url, redirected: false, fetchOperation: nil, stream: emptyStream)
 
     }
 }

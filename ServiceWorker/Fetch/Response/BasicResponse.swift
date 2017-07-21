@@ -19,7 +19,7 @@ import JavaScriptCore
         }
     }
     
-    override var type: ResponseType {
+    override var responseType: ResponseType {
         get {
             return .Basic
         }
@@ -37,9 +37,8 @@ import JavaScriptCore
             filteredHeaders.set(key, response.headers.get(key)!)
         }
         
-        super.init(headers: filteredHeaders, status: response.status, url: response.url, redirected: response.redirected, stream: response.dataStream!)
-        
-        self.fetchOperation = response.fetchOperation
-        self.responseCallback = response.responseCallback
+        super.init(headers: filteredHeaders, status: response.status, url: response.url, redirected: response.redirected, fetchOperation: nil, stream: response.dataStream)
+
     }
+    
 }

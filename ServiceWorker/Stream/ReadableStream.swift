@@ -9,7 +9,7 @@
 import Foundation
 import Shared
 
-@objc class ReadableStream : NSObject {
+@objc public class ReadableStream : NSObject {
     
     var controller: ReadableStreamController?
     fileprivate var enqeueuedData = NSMutableData()

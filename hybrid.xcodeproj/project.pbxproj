@@ -104,7 +104,6 @@
 		8AB7EEA51EFAC635000AC249 /* ServiceWorkerContainer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A5E871D1EF064D100520133 /* ServiceWorkerContainer.framework */; };
 		8AB7EEAA1EFAE576000AC249 /* TestDB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EEA91EFAE576000AC249 /* TestDB.swift */; };
 		8AB7EEAF1EFAF896000AC249 /* FetchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EEAD1EFAF797000AC249 /* FetchRequest.swift */; };
-		8AB7EEB31EFB0D86000AC249 /* FetchResponseOld.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EEB21EFB0D86000AC249 /* FetchResponseOld.swift */; };
 		8AB7EEB71EFC130B000AC249 /* TestWeb.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AB7EEB41EFC0D99000AC249 /* TestWeb.swift */; };
 		8AB7EEB81EFC1320000AC249 /* GCDWebServers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8ABF76471EFC11D60095585D /* GCDWebServers.framework */; };
 		8AB7EEB91EFC1328000AC249 /* GCDWebServers.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8ABF76471EFC11D60095585D /* GCDWebServers.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -114,7 +113,6 @@
 		8AC940981EF0D81000BF972F /* FMDB.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8AE731BE1EF0B0C000CDF80E /* FMDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		8ACA0B1E1EF8E0D300E49C20 /* SQLiteBlobWriteStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ACA0B1D1EF8E0D300E49C20 /* SQLiteBlobWriteStream.swift */; };
 		8ACA0B201EF8E2B900E49C20 /* SQLiteBlobStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ACA0B1F1EF8E2B900E49C20 /* SQLiteBlobStream.swift */; };
-		8ADB09881F0FF59100C155B7 /* NativeFetchHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADB09871F0FF59100C155B7 /* NativeFetchHandler.swift */; };
 		8ADB098A1F10031800C155B7 /* ReadableStreamController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADB09891F10031800C155B7 /* ReadableStreamController.swift */; };
 		8ADB098C1F10066B00C155B7 /* ReadableStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADB098B1F10066B00C155B7 /* ReadableStream.swift */; };
 		8ADB098E1F100AB100C155B7 /* StreamReadResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ADB098D1F100AB100C155B7 /* StreamReadResult.swift */; };
@@ -408,14 +406,12 @@
 		8AB7EEA11EF97ED5000AC249 /* SQLiteUpdateOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteUpdateOperation.swift; sourceTree = "<group>"; };
 		8AB7EEA91EFAE576000AC249 /* TestDB.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestDB.swift; sourceTree = "<group>"; };
 		8AB7EEAD1EFAF797000AC249 /* FetchRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchRequest.swift; sourceTree = "<group>"; };
-		8AB7EEB21EFB0D86000AC249 /* FetchResponseOld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchResponseOld.swift; sourceTree = "<group>"; };
 		8AB7EEB41EFC0D99000AC249 /* TestWeb.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestWeb.swift; sourceTree = "<group>"; };
 		8AB7EEBC1EFC13A0000AC249 /* FetchResponseOld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchResponseOld.swift; sourceTree = "<group>"; };
 		8ABF76471EFC11D60095585D /* GCDWebServers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GCDWebServers.framework; path = Carthage/Build/iOS/GCDWebServers.framework; sourceTree = "<group>"; };
 		8ACA0B1D1EF8E0D300E49C20 /* SQLiteBlobWriteStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteBlobWriteStream.swift; sourceTree = "<group>"; };
 		8ACA0B1F1EF8E2B900E49C20 /* SQLiteBlobStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLiteBlobStream.swift; sourceTree = "<group>"; };
 		8AD2EA501F1FCC0B00BED72F /* Gzip.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Gzip.framework; path = Carthage/Build/iOS/Gzip.framework; sourceTree = "<group>"; };
-		8ADB09871F0FF59100C155B7 /* NativeFetchHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeFetchHandler.swift; sourceTree = "<group>"; };
 		8ADB09891F10031800C155B7 /* ReadableStreamController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadableStreamController.swift; sourceTree = "<group>"; };
 		8ADB098B1F10066B00C155B7 /* ReadableStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadableStream.swift; sourceTree = "<group>"; };
 		8ADB098D1F100AB100C155B7 /* StreamReadResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamReadResult.swift; sourceTree = "<group>"; };
@@ -804,9 +800,7 @@
 				8AA6A4431F212E210014C1BF /* Response */,
 				8AB7EEAD1EFAF797000AC249 /* FetchRequest.swift */,
 				8A7904DA1EF1D88A0092D31B /* FetchHeaders.swift */,
-				8AB7EEB21EFB0D86000AC249 /* FetchResponseOld.swift */,
 				8AF715071EFC6EBD00A56FEA /* HttpStatusCodes.swift */,
-				8ADB09871F0FF59100C155B7 /* NativeFetchHandler.swift */,
 				8A5658AB1F18267700C5E516 /* FetchOperation.swift */,
 				8A5658AD1F182BDE00C5E516 /* FetchResponse.swift */,
 				8A396A291F190EF5001D7938 /* MultiDataDelegate.swift */,
@@ -1344,7 +1338,6 @@
 				8A7904DB1EF1D88A0092D31B /* FetchHeaders.swift in Sources */,
 				8AA6A44F1F2144580014C1BF /* CORSResponse.swift in Sources */,
 				8A7904E71EF2E2050092D31B /* ServiceWorkerGlobalScope.swift in Sources */,
-				8AB7EEB31EFB0D86000AC249 /* FetchResponseOld.swift in Sources */,
 				8A7904E31EF2DB610092D31B /* EventTarget.swift in Sources */,
 				8ADB098A1F10031800C155B7 /* ReadableStreamController.swift in Sources */,
 				8AF715081EFC6EBD00A56FEA /* HttpStatusCodes.swift in Sources */,
@@ -1363,7 +1356,6 @@
 				8ADB098E1F100AB100C155B7 /* StreamReadResult.swift in Sources */,
 				8A7904E51EF2DD500092D31B /* Event.swift in Sources */,
 				8A6739521EF32C43007E890A /* NotificationShowOptions.swift in Sources */,
-				8ADB09881F0FF59100C155B7 /* NativeFetchHandler.swift in Sources */,
 				8A5658AC1F18267700C5E516 /* FetchOperation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
