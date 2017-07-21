@@ -57,6 +57,10 @@ import Shared
         return self._internal.text()
     }
     
+    func arrayBuffer() -> JSValue {
+        return self._internal.arrayBuffer()
+    }
+    
     func cloneInternalResponse() -> FetchResponse {
         return FetchResponse(headers: self._internal.headers, status: self._internal.status, url: self._internal.url, redirected: self._internal.redirected, fetchOperation: self._internal.fetchOperation)
     }

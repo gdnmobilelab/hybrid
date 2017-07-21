@@ -220,14 +220,12 @@ import JavaScriptCore
            
             let arr = d.withUnsafeMutableBytes { pointer -> JSObjectRef in
                 return JSObjectMakeArrayBufferWithBytesNoCopy(self.jsContext!.jsGlobalContextRef, pointer, data!.count, { (arr, deallocPointer) in
+                    // TODO: WTF to do with this
                     NSLog("Deallocate!")
                 }, nil, nil)
             }
-            
-            promise.fulfill(arr)
-            
-            
-            
+            let asJSVal = JSValue(jsValueRef: arr, in: self.jsContext!)
+            promise.fulfill(asJSVal)
             
         }
         

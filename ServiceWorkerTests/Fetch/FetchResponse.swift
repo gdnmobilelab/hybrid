@@ -188,4 +188,54 @@ class FetchResponseTests: XCTestCase {
         
     }
     
+    func testArrayBufferResponse() {
+        
+        let context = JSContext()!
+        
+        FetchOperation.addToJSContext(context: context)
+        
+        let expectResponse = expectation(description: "Response body is received via JS")
+        
+        
+        TestWeb.server!.addHandler(forMethod: "GET", path: "/test.dat", request: GCDWebServerRequest.self) { (request) -> GCDWebServerResponse? in
+            
+            var d = Data(bytes: [1,2,3,4,255])
+//            d.append(contentsOf: [1,2,3,4,255])
+            let c = d.count
+            let res = GCDWebServerDataResponse(data: d, contentType: "application/binary")
+            res.statusCode = 200
+            return res
+        }
+        
+        let promise = context.evaluateScript("""
+            fetch('\(TestWeb.serverURL.appendingPathComponent("/test.dat"))')
+            .then(function(res) { return res.arrayBuffer() })
+            .then(function(arrBuffer) {
+                let arr = new Uint8Array(arrBuffer);
+                return [arr[0],arr[1],arr[2],arr[3],arr[4]]
+            })
+            """)!
+        
+        JSPromise.resolve(promise) { err, val in
+            
+            let arr = val!.toArray() as! [Int]
+            
+            XCTAssertEqual(arr[0], 1)
+            XCTAssertEqual(arr[1], 2)
+            XCTAssertEqual(arr[2], 3)
+            XCTAssertEqual(arr[3], 4)
+            XCTAssertEqual(arr[4], 255)
+            
+            
+            
+//            XCTAssert(err == nil)
+//            XCTAssertEqual(val!.toString(),"THIS IS TEST CONTENT")
+            expectResponse.fulfill()
+        }
+        
+        wait(for: [expectResponse], timeout: 100)
+        
+        
+    }
+    
 }

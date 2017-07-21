@@ -27,6 +27,7 @@ import JavaScriptCore
     func getReader() throws -> ReadableStream
     func json() -> JSValue
     func text() -> JSValue
+    func arrayBuffer() -> JSValue
     
     @objc(clone)
     func cloneResponseExports() -> FetchResponseJSExports?
