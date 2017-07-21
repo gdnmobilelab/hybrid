@@ -12,7 +12,7 @@ import JavaScriptCore
 
 @objc public class FetchOperation : MultiDataDelegate {
     
-    public typealias ResponseCallback = (Error?, FetchResponse?) -> Void
+    public typealias ResponseCallback = (Error?, FetchResponseProtocol?) -> Void
     
     let request:FetchRequest
     var task:URLSessionTask?
@@ -73,7 +73,7 @@ import JavaScriptCore
             if err != nil {
                 promise.reject(err!)
             } else {
-                res!.jsContext = context
+                res!.internalResponse.jsContext = context
                 promise.fulfill(res!)
             }
         }
@@ -196,7 +196,7 @@ import JavaScriptCore
         
     }
     
-    fileprivate func sendResponse(_ err:Error?, _ res: FetchResponse?) {
+    fileprivate func sendResponse(_ err:Error?, _ res: FetchResponseProtocol?) {
         self.responseIsReadyCallback!(err, res)
         self.responseIsReadyCallback = nil
     }
@@ -254,7 +254,7 @@ import JavaScriptCore
         }
         
         let internalResponse = FetchResponse(response: asHTTP, operation:self, callback: completionHandler)
-        var filteredResponse:FetchResponse
+        var filteredResponse:FetchResponseProtocol
         
         let isCrossDomain = self.request.origin != nil && self.request.origin!.host != internalResponse.url.host
         

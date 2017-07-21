@@ -7,16 +7,9 @@
 //
 
 import Foundation
+import JavaScriptCore
 
-@objc class OpaqueResponse : FetchResponse {
-    
-    fileprivate let _internal:FetchResponse
-    
-    override var internalResponse: FetchResponse {
-        get {
-            return self._internal
-        }
-    }
+@objc class OpaqueResponse : FetchResponseProxy {
     
     override var responseType: ResponseType {
         get {
@@ -24,17 +17,50 @@ import Foundation
         }
     }
     
-    init(from response: FetchResponse) {
+    let emptyHeaders = FetchHeaders()
+    let emptyStream:ReadableStream
+    
+    override var headers: FetchHeaders {
+        get {
+            return self.emptyHeaders
+        }
+    }
+    
+    override func getReader() throws -> ReadableStream {
+        return self.emptyStream
+    }
+    
+    override func text() -> JSValue {
         
-        self._internal = response
+        let promise = JSPromise(context: self._internal.jsContext!)
+        promise.fulfill("")
+        return promise.jsValue
         
-        let noHeaders = FetchHeaders()
+    }
+    
+    override func text(_ cb: @escaping (Error?, String?) -> Void) {
+        cb(nil, "")
+    }
+    
+    override func json() -> JSValue {
         
-        let emptyStream = ReadableStream(start: { controller in
+        let promise = JSPromise(context: self._internal.jsContext!)
+        promise.fulfill(NSNull())
+        return promise.jsValue
+        
+    }
+    
+    override func json(_ cb: @escaping (Error?, Any?) -> Void) {
+        cb(nil, NSNull())
+    }
+    
+    override init(from response: FetchResponse) {
+        
+        self.emptyStream = ReadableStream(start: { controller in
             controller.close()
         })
  
-        super.init(headers: noHeaders, status: 0, url: response.url, redirected: false, fetchOperation: nil, stream: emptyStream)
+        super.init(from: response)
 
     }
 }

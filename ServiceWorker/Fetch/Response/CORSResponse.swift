@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import Shared
 
 fileprivate var CORSHeaders = [
     "cache-control",
@@ -17,15 +18,7 @@ fileprivate var CORSHeaders = [
     "pragma"
 ]
 
-@objc class CORSResponse : FetchResponse {
-    
-    fileprivate let _internal:FetchResponse
-    
-    override var internalResponse: FetchResponse {
-        get {
-            return self._internal
-        }
-    }
+@objc class CORSResponse : FetchResponseProxy {
     
     override var responseType: ResponseType {
         get {
@@ -33,10 +26,19 @@ fileprivate var CORSHeaders = [
         }
     }
     
+    fileprivate let filteredHeaders:FetchHeaders
+    
+    override var headers: FetchHeaders {
+        get {
+            return self.filteredHeaders
+        }
+    }
+    
+    fileprivate let allowedHeaders: [String]?
+    
     init(from response: FetchResponse, allowedHeaders: [String]?) {
         
-        self._internal = response
-        
+        self.allowedHeaders = allowedHeaders
         let filteredHeaders = FetchHeaders()
         
         var allAllowedHeaders:[String] = []
@@ -51,8 +53,22 @@ fileprivate var CORSHeaders = [
             }
         }
         
-        super.init(headers: filteredHeaders, status: response.status, url: response.url, redirected: response.redirected, fetchOperation: nil, stream: response.dataStream)
+        self.filteredHeaders = filteredHeaders
+        
+        super.init(from: response)
 
+    }
+    
+    override func clone() throws -> FetchResponseProtocol {
+        
+        if self.bodyUsed {
+            throw ErrorMessage("Cannot clone response: body already used")
+        }
+        
+        let clone = self.cloneInternalResponse()
+        
+        return CORSResponse(from: clone, allowedHeaders: self.allowedHeaders)
+        
     }
     
 }

@@ -9,15 +9,9 @@
 import Foundation
 import JavaScriptCore
 
-@objc class BasicResponse : FetchResponse {
+@objc class BasicResponse : FetchResponseProxy {
     
-    fileprivate let _internal:FetchResponse
-    
-    override var internalResponse: FetchResponse {
-        get {
-           return self._internal
-        }
-    }
+    fileprivate let filteredHeaders:FetchHeaders
     
     override var responseType: ResponseType {
         get {
@@ -25,9 +19,13 @@ import JavaScriptCore
         }
     }
     
-    init(from response:FetchResponse) {
-        
-        self._internal = response
+    override var headers: FetchHeaders {
+        get {
+            return self.filteredHeaders
+        }
+    }
+    
+    override init(from response:FetchResponse) {
         let filteredHeaders = FetchHeaders()
         
         response.headers.keys().forEach { key in
@@ -37,7 +35,9 @@ import JavaScriptCore
             filteredHeaders.set(key, response.headers.get(key)!)
         }
         
-        super.init(headers: filteredHeaders, status: response.status, url: response.url, redirected: response.redirected, fetchOperation: nil, stream: response.dataStream)
+        self.filteredHeaders = filteredHeaders
+        
+        super.init(from: response)
 
     }
     

@@ -10,19 +10,13 @@ import Foundation
 import Shared
 import JavaScriptCore
 
-@objc protocol FetchResponseExports : JSExport {
-    func json() -> JSValue
-    func text() -> JSValue
-    var headers: FetchHeaders {get}
-}
-
-@objc public class FetchResponse : NSObject, FetchResponseExports, URLSessionDataDelegate {
+@objc public class FetchResponse : NSObject, URLSessionDataDelegate {
     
     internal var fetchOperation: FetchOperation?
     internal var responseCallback: ((URLSession.ResponseDisposition) -> Void)?
     
-    let headers:FetchHeaders
-    var bodyUsed:Bool = false
+    public let headers:FetchHeaders
+    public var bodyUsed:Bool = false
     internal var dataStream: ReadableStream?
     fileprivate var streamController:ReadableStreamController?
     
@@ -30,30 +24,43 @@ import JavaScriptCore
     /// to create JSPromises
     internal var jsContext:JSContext?
     
-    var internalResponse:FetchResponse {
+    public var internalResponse:FetchResponse {
         get {
             return self
         }
     }
     
-    var responseType:ResponseType {
+    public var responseType:ResponseType {
         get {
             return .Internal
         }
     }
+    
+
+    public var responseTypeString: String {
+        get {
+            return self.responseType.rawValue
+        }
+    }
+    
+    public var urlString: String {
+        get {
+            return self.url.absoluteString
+        }
+    }
 
     
-    let url:URL
-    let status:Int
-    let redirected:Bool
+    public let url:URL
+    public let status:Int
+    public let redirected:Bool
     
-    var ok:Bool {
+    public var ok:Bool {
         get {
             return status >= 200 && status < 300
         }
     }
     
-    var statusText:String {
+    public var statusText:String {
         get {
             
             if HttpStatusCodes[self.status] != nil {
@@ -70,7 +77,7 @@ import JavaScriptCore
         self.bodyUsed = true
     }
     
-    func getReader() throws -> ReadableStream {
+    public func getReader() throws -> ReadableStream {
         try self.markBodyUsed()
         if let responseCallback = self.internalResponse.responseCallback {
             responseCallback(.allow)
@@ -168,7 +175,7 @@ import JavaScriptCore
 
     }
     
-    internal func json() -> JSValue {
+    func json() -> JSValue {
         let promise = JSPromise(context: self.jsContext!)
         
         self.json() { err, json in
@@ -182,7 +189,7 @@ import JavaScriptCore
         return promise.jsValue
     }
     
-    internal func text() -> JSValue {
+    func text() -> JSValue {
         
         let promise = JSPromise(context: self.jsContext!)
         
@@ -192,6 +199,36 @@ import JavaScriptCore
             } else {
                 promise.fulfill(text)
             }
+        }
+        
+        return promise.jsValue
+        
+    }
+    
+    internal func arrayBuffer() -> JSValue {
+        
+        let promise = JSPromise(context: self.jsContext!)
+        
+        self.data { err, data in
+            
+            if err != nil {
+                promise.reject(err!)
+                return
+            }
+            
+            var d = data!
+           
+            let arr = d.withUnsafeMutableBytes { pointer -> JSObjectRef in
+                return JSObjectMakeArrayBufferWithBytesNoCopy(self.jsContext!.jsGlobalContextRef, pointer, data!.count, { (arr, deallocPointer) in
+                    NSLog("Deallocate!")
+                }, nil, nil)
+            }
+            
+            promise.fulfill(arr)
+            
+            
+            
+            
         }
         
         return promise.jsValue
@@ -216,32 +253,6 @@ import JavaScriptCore
             
         }
 
-    }
-    
-    public func clone() throws -> FetchResponse {
-        if self.bodyUsed == true {
-            throw ErrorMessage("Cannot clone response: body has already been used")
-        }
-        
-        if self.internalResponse.fetchOperation == nil {
-            throw ErrorMessage("Cannot currently clone manually constructed responses")
-        }
-        
-        let clonedInternalResponse = FetchResponse(headers: self.internalResponse.headers, status: self.internalResponse.status, url: self.internalResponse.url, redirected: self.internalResponse.redirected, fetchOperation: self.internalResponse.fetchOperation)
-        
-        let exteriorClone:FetchResponse
-        
-        if self.responseType == .Basic {
-            exteriorClone = BasicResponse(from: clonedInternalResponse)
-        } else if self.responseType == .CORS {
-            exteriorClone = CORSResponse(from: clonedInternalResponse, allowedHeaders: self.headers.keys())
-        } else if self.responseType == .Opaque {
-            exteriorClone = OpaqueResponse(from: clonedInternalResponse)
-        } else {
-            throw ErrorMessage("Do not know how to clone this response")
-        }
-        
-        return exteriorClone
     }
     
     public init(headers: FetchHeaders, status: Int, url:URL, redirected:Bool, fetchOperation:FetchOperation?, stream: ReadableStream? = nil) {

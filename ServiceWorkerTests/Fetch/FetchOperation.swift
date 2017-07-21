@@ -95,6 +95,7 @@ class FetchOperationTests: XCTestCase {
         FetchOperation.fetch(request) { error, response in
             XCTAssert(response != nil)
             XCTAssertEqual(response!.status, 201)
+            
             XCTAssert(response!.url.absoluteString == TestWeb.serverURL.appendingPathComponent("/test.txt").absoluteString)
             expectRedirect.fulfill()
         }
@@ -176,17 +177,50 @@ class FetchOperationTests: XCTestCase {
         let context = JSContext()!
         FetchOperation.addToJSContext(context: context)
         
-        let promise = context.evaluateScript("fetch('\(TestWeb.serverURL.appendingPathComponent("/test.txt").absoluteString)')")
+        let promise = context.evaluateScript("""
+            fetch('\(TestWeb.serverURL.appendingPathComponent("/test.txt").absoluteString)')
+            .then(function(res) {
+            
+            function valOrNo(val) {
+                if (typeof val == "undefined") {
+                    return -1;
+                } else {
+                    return val;
+                }
+            }
+            
+                return {
+                    status: valOrNo(res.status),
+                    ok: valOrNo(res.ok),
+                    redirected: valOrNo(res.redirected),
+                    statusText: valOrNo(res.statusText),
+                    type: valOrNo(res.type),
+                    url: valOrNo(res.url),
+                    bodyUsed: valOrNo(res.bodyUsed),
+                    json: valOrNo(res.json),
+                    text: valOrNo(res.text)
+                }
+            })
+        """)
         
         XCTAssert(promise != nil)
         
         JSPromise.resolve(promise!) {err, val in
             XCTAssert(err == nil)
-            XCTAssert(val!.isInstance(of: FetchResponse.self))
+            
+            let obj = val!.toDictionary()!
+            
+            for (key, val) in obj {
+                NSLog("KEY: \(key), VAL: \(val)")
+                let valInt = val as? Int
+                XCTAssert(valInt == nil || valInt != -1, "Property \(key) should exist")
+            }
+
+            
             expectResponse.fulfill()
         }
         
-        wait(for: [expectResponse], timeout: 1)
+        wait(for: [expectResponse], timeout: 10)
     }
     
 

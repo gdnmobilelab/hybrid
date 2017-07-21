@@ -163,8 +163,9 @@ class FetchResponseTests: XCTestCase {
         FetchOperation.fetch(TestWeb.serverURL.appendingPathComponent("/test.txt").absoluteString) { err, res in
             XCTAssert(err == nil)
             
-            var clone:FetchResponse? = nil
+            var clone:FetchResponseProtocol? = nil
             AssertNoErrorMessage {
+                
                 clone = try res!.clone()
             }
             
