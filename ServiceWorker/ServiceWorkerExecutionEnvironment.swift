@@ -15,9 +15,9 @@ import Shared
     let jsContext: JSContext
     let globalScope: ServiceWorkerGlobalScope
     
-    @objc public init(_ registration: ServiceWorkerRegistrationProtocol) {
+    @objc public init(_ worker: ServiceWorker) {
         self.jsContext = JSContext()
-        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext, registration)
+        self.globalScope = ServiceWorkerGlobalScope(context: self.jsContext, worker)
         
         super.init()
         self.jsContext.exceptionHandler = self.grabException

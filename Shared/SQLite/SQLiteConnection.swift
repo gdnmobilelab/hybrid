@@ -18,9 +18,12 @@ public class SQLiteConnection {
     var open:Bool
     
     public init(_ dbURL:URL) throws {
+        let dbPathString = dbURL.path
         
-        if sqlite3_open(dbURL.path.cString(using: String.Encoding.utf8), &self.db) != SQLITE_OK {
-            throw ErrorMessage("Could not create SQLite database instance")
+        let open = sqlite3_open(dbURL.path.cString(using: String.Encoding.utf8), &self.db)
+            
+        if open != SQLITE_OK {
+            throw ErrorMessage("Could not create SQLite database instance.")
         }
         
         self.open = true
@@ -94,6 +97,9 @@ public class SQLiteConnection {
         } else if let intValue = value as? Int {
             sqlite3_bind_int(statement, idx, Int32(intValue))
         } else if let stringValue = value as? String {
+            sqlite3_bind_text(statement, idx, stringValue.cString(using: String.Encoding.utf8), -1, SQLITE_TRANSIENT)
+        } else if let urlValue = value as? URL {
+            let stringValue = urlValue.absoluteString
             sqlite3_bind_text(statement, idx, stringValue.cString(using: String.Encoding.utf8), -1, SQLITE_TRANSIENT)
         } else if let dataValue = value as? Data {
             _ = dataValue.withUnsafeBytes { body in

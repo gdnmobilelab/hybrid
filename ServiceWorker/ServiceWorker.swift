@@ -14,7 +14,7 @@ import Shared
     
     public let url:URL
     public let id:String
-    fileprivate let registration: ServiceWorkerRegistrationProtocol
+    let registration: ServiceWorkerRegistrationProtocol
     
     @objc public init(id: String, url: URL, registration: ServiceWorkerRegistrationProtocol) {
         self.id = id
@@ -37,7 +37,7 @@ import Shared
         
         Log.info?("Creating execution environment for worker: " + self.id)
         
-        return ServiceWorkerExecutionEnvironment(self.registration)
+        return ServiceWorkerExecutionEnvironment(self)
         
     }()
     
@@ -47,6 +47,16 @@ import Shared
             return
         }
         self.executionEnvironment.globalScope.dispatchEvent(event)
+    }
+    
+    
+    /// The Service Worker API requires that we cache imported scripts as part of the loading
+    /// process. But because we want this implementation to be self-contained, we provide this
+    /// hook for another module (i.e. ServiceWorkerContainer) to actually implement importing.
+    public var importScripts: (ServiceWorker, [URL]) throws -> [String] = ServiceWorker.importScriptsDefault
+    
+    fileprivate static func importScriptsDefault(worker: ServiceWorker, scripts: [URL]) throws -> [String] {
+        throw ErrorMessage("You must provide an importScripts implementation on ServiceWorker")
     }
     
     

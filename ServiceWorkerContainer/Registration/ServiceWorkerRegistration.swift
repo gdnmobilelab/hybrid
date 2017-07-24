@@ -13,11 +13,11 @@ import ServiceWorker
 import Shared
 
 class ServiceWorkerRegistration : ServiceWorkerRegistrationProtocol {
+    
     func showNotification(title: String) {
         
     }
-    
-    
+ 
     let scope: URL
     var active: ServiceWorker?
     var waiting: ServiceWorker?
@@ -63,9 +63,9 @@ class ServiceWorkerRegistration : ServiceWorkerRegistrationProtocol {
         
     }
     
-    static public func get(scope:URL, dbPath: URL) throws -> ServiceWorkerRegistration? {
+    static public func get(scope:URL) throws -> ServiceWorkerRegistration? {
         
-        return try SQLiteConnection.inConnection(dbPath) { connection in
+        return try CoreDatabase.inConnection() { connection in
             
             return try connection.select(sql: "SELECT * FROM registrations WHERE scope = ?", values: [scope.absoluteString]) { rs -> ServiceWorkerRegistration? in
                 
@@ -98,7 +98,7 @@ class ServiceWorkerRegistration : ServiceWorkerRegistrationProtocol {
                     while workerResults.next() {
                         
                         let workerId = try workerResults.string("worker_id")!
-                        let worker = ServiceWorker(id: workerId, url: URL(string: try workerResults.string("url")!)!, registration: reg)
+                        let worker = ServiceWorker(id: workerId, url: try workerResults.url("url")!, registration: reg)
                         
                         if workerId == activeId {
                             reg.active = worker
@@ -121,10 +121,10 @@ class ServiceWorkerRegistration : ServiceWorkerRegistrationProtocol {
         
     }
     
-    static public func create(scope:URL, dbPath: URL) throws -> ServiceWorkerRegistration {
+    static public func create(scope:URL) throws -> ServiceWorkerRegistration {
         
-        return try SQLiteConnection.inConnection(dbPath) { connection in
-            _ = try connection.insert(sql: "INSERT INTO registrations (scope) VALUES (?)", values: [scope.absoluteString])
+        return try CoreDatabase.inConnection() { connection in
+            _ = try connection.insert(sql: "INSERT INTO registrations (scope) VALUES (?)", values: [scope])
             return ServiceWorkerRegistration(scope: scope)
         }
         

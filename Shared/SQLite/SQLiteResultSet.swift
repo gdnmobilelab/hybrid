@@ -87,4 +87,12 @@ public class SQLiteResultSet {
         return Data(bytes: result!, count: Int(length))
     }
     
+    public func url( _ name: String) throws -> URL? {
+        let str = try self.string(name)
+        if let strVal = str {
+            return URL(string: strVal)
+        }
+        return nil
+    }
+    
 }
