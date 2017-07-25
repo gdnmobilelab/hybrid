@@ -9,23 +9,33 @@
 import XCTest
 @testable import ServiceWorker
 import CleanroomLogger
+import JavaScriptCore
 
-
-class ServiceWorkerTests: XCTest {
+class ServiceWorkerTests: XCTestCase {
     
-    override func setUp() {
-        super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    
+    func testLoadContentFunction() {
+        
+        let sw = ServiceWorker(id: "TEST", url: URL(string: "http://www.example.com/test.js")!, registration: DummyServiceWorkerRegistration(), loadContent: { (worker) -> String in
+            return "var testValue = 'hello';"
+        })
+        
+        var jsVal:JSValue? = nil
+        XCTAssertNoThrow(jsVal = try sw.executionEnvironment.evaluateScript("testValue"))
+        
+        XCTAssertEqual(jsVal!.toString(), "hello")
+
     }
     
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
-    }
-    
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    func testLoadContentDirectly() {
+        
+        let sw = ServiceWorker(id: "TEST", url: URL(string: "http://www.example.com/test.js")!, registration: DummyServiceWorkerRegistration(), content: "var testValue = 'hello';")
+        
+        var jsVal:JSValue? = nil
+        XCTAssertNoThrow(jsVal = try sw.executionEnvironment.evaluateScript("testValue"))
+        
+        XCTAssertEqual(jsVal!.toString(), "hello")
+        
     }
     
     

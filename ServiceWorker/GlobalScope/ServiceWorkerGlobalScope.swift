@@ -12,6 +12,8 @@ import Shared
 
 @objc protocol ServiceWorkerGlobalScopeExports : JSExport {
     var registration:ServiceWorkerRegistrationProtocol { get }
+    func skipWaiting()
+    func importScripts(_: JSValue)
 }
 
 @objc class ServiceWorkerGlobalScope : EventTarget, ServiceWorkerGlobalScopeExports {
@@ -19,6 +21,12 @@ import Shared
     let console:ConsoleMirror
     let worker: ServiceWorker
     let context:JSContext
+    
+    var skipWaitingStatus = false
+    
+    func skipWaiting() {
+        self.skipWaitingStatus = true
+    }
     
     var registration: ServiceWorkerRegistrationProtocol {
         get {
@@ -36,6 +44,7 @@ import Shared
         
         context.globalObject.setValue(self, forProperty: "self")
         context.globalObject.setValue(Event.self, forProperty: "Event")
+        context.globalObject.setValue(self.skipWaiting as @convention(block) () -> Void, forProperty: "skipWaiting")
         
         let importAsConvention: @convention(block) (JSValue) -> Void = self.importScripts
         context.globalObject.setValue(importAsConvention, forProperty: "importScripts")
@@ -51,7 +60,7 @@ import Shared
         self.context.exception = err
     }
     
-    fileprivate func importScripts(_ scripts: JSValue) {
+    internal func importScripts(_ scripts: JSValue) {
         do {
             
             var scriptURLStrings: [String]

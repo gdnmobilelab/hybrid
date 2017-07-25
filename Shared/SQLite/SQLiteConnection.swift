@@ -32,13 +32,14 @@ public class SQLiteConnection {
     public static func inConnection<T>(_ dbURL: URL, _ cb: ((SQLiteConnection) throws -> T)) throws -> T {
         
         let conn = try SQLiteConnection(dbURL)
-        
-        let result = try cb(conn)
-        
-        conn.close()
-        
-        return result
-        
+        do {
+            let result = try cb(conn)
+            conn.close()
+            return result
+        } catch {
+            conn.close()
+            throw error
+        }
         
     }
     
@@ -96,6 +97,8 @@ public class SQLiteConnection {
             sqlite3_bind_int(statement, idx, int32Value)
         } else if let intValue = value as? Int {
             sqlite3_bind_int(statement, idx, Int32(intValue))
+        } else if let int64Value = value as? Int64 {
+            sqlite3_bind_int64(statement, idx, int64Value)
         } else if let stringValue = value as? String {
             sqlite3_bind_text(statement, idx, stringValue.cString(using: String.Encoding.utf8), -1, SQLITE_TRANSIENT)
         } else if let urlValue = value as? URL {

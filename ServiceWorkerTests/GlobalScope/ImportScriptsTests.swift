@@ -14,7 +14,7 @@ class ImportScriptsTests: XCTestCase {
     
     func testImportingAScript() {
 
-        let sw = ServiceWorker(id: "TEST", url: URL(string: "http://www.example.com/worker.js")!, registration: DummyServiceWorkerRegistration())
+        let sw = ServiceWorker(id: "TEST", url: URL(string: "http://www.example.com/worker.js")!, registration: DummyServiceWorkerRegistration(), content: "")
         
         sw.importScripts = { worker, scripts in
             XCTAssertEqual(scripts[0].absoluteString, "http://www.example.com/test.js")
@@ -30,7 +30,7 @@ class ImportScriptsTests: XCTestCase {
     
     func testImportingMultipleScripts() {
         
-        let sw = ServiceWorker(id: "TEST", url: URL(string: "http://www.example.com/worker.js")!, registration: DummyServiceWorkerRegistration())
+        let sw = ServiceWorker(id: "TEST", url: URL(string: "http://www.example.com/worker.js")!, registration: DummyServiceWorkerRegistration(), content: "")
         
         sw.importScripts = { worker, scripts in
             XCTAssertEqual(scripts[0].absoluteString, "http://www.example.com/test.js")
@@ -47,7 +47,7 @@ class ImportScriptsTests: XCTestCase {
     
     func testImportingWithBlockingSyncOperation() {
         
-        let sw = ServiceWorker(id: "TEST", url: URL(string: "http://www.example.com/worker.js")!, registration: DummyServiceWorkerRegistration())
+        let sw = ServiceWorker(id: "TEST", url: URL(string: "http://www.example.com/worker.js")!, registration: DummyServiceWorkerRegistration(), content: "")
         
         sw.importScripts = { worker, scripts in
             XCTAssertEqual(scripts[0].absoluteString, "http://www.example.com/test.js")

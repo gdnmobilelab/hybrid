@@ -85,7 +85,7 @@ public enum FetchRequestMode: String {
         }
     }
     
-    init(url: URL) {
+    public init(url: URL) {
         self.url = url
         super.init()
     }

@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct StreamReadResult {
-    let done: Bool
-    let value: Data?
+public struct StreamReadResult {
+    public let done: Bool
+    public let value: Data?
 }

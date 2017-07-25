@@ -17,7 +17,13 @@ public class SQLiteBlobWriteStream : SQLiteBlobStream {
         }
     }
     
-    func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
+    public func write( _ data: Data) -> Int {
+        return data.withUnsafeBytes { bytes in
+            self.write(bytes, maxLength: data.count)
+        }
+    }
+    
+    public func write(_ buffer: UnsafePointer<UInt8>, maxLength len: Int) -> Int {
      
         let bytesLeft = self.blobLength! - self.currentPosition!
         let lengthToWrite = min(Int32(len), bytesLeft)
@@ -31,7 +37,7 @@ public class SQLiteBlobWriteStream : SQLiteBlobStream {
         return Int(lengthToWrite)
     }
     
-    var hasSpaceAvailable:Bool {
+    public var hasSpaceAvailable:Bool {
         get {
             return self.currentPosition! < self.blobLength!
         }

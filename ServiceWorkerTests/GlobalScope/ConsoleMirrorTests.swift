@@ -25,7 +25,7 @@ class ConsoleMirrorTests: XCTestCase {
         
         var functionsRun: Set<String> = []
         
-        let testWorker = ServiceWorker(id: "TEST_WORKER", url: URL(string:"https://www.example.com/worker.js")!, registration: ServiceWorkerRegistrationPlaceholder())
+        let testWorker = ServiceWorker(id: "TEST_WORKER", url: URL(string:"https://www.example.com/worker.js")!, registration: ServiceWorkerRegistrationPlaceholder(), content: "")
         
         XCTAssertNoThrow(testWorker.executionEnvironment)
         
@@ -71,7 +71,7 @@ class ConsoleMirrorTests: XCTestCase {
             XCTAssert(msg.contains("like = this;"))
         }
         
-        let testWorker = ServiceWorker(id: "TEST_WORKER", url: URL(string:"https://www.example.com/worker.js")!, registration: ServiceWorkerRegistrationPlaceholder())
+        let testWorker = ServiceWorker(id: "TEST_WORKER", url: URL(string:"https://www.example.com/worker.js")!, registration: ServiceWorkerRegistrationPlaceholder(), content: "")
         
         XCTAssertNoThrow(try testWorker.executionEnvironment.evaluateScript("console.debug({test:'looks', like: 'this'})"))
         

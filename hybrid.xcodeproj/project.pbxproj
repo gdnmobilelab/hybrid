@@ -18,7 +18,6 @@
 		8A25980D1EF1A83700434D10 /* ServiceWorkerInstallState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A25980C1EF1A83700434D10 /* ServiceWorkerInstallState.swift */; };
 		8A26D8241EFD89090017EF75 /* JSPromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A26D8231EFD89090017EF75 /* JSPromise.swift */; };
 		8A26D8271EFD8AC00017EF75 /* JSPromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A26D8261EFD8AC00017EF75 /* JSPromise.swift */; };
-		8A26D8291EFDBF9E0017EF75 /* JSFetchResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A26D8281EFDBF9E0017EF75 /* JSFetchResponse.swift */; };
 		8A27C0411EFC196400866961 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A27C0401EFC196400866961 /* AppDelegate.swift */; };
 		8A27C0431EFC196400866961 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A27C0421EFC196400866961 /* ViewController.swift */; };
 		8A27C0461EFC196400866961 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8A27C0441EFC196400866961 /* Main.storyboard */; };
@@ -34,6 +33,10 @@
 		8A3A246C1EF83ADD007AA0B9 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 8A3A246B1EF83ADD007AA0B9 /* libsqlite3.tbd */; };
 		8A4D2F121F265E8100E5626D /* DatabaseMigrations in Resources */ = {isa = PBXBuildFile; fileRef = 8AB6C0F41F265D10000DF4BE /* DatabaseMigrations */; };
 		8A4D2F141F26771400E5626D /* ImportScriptsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4D2F131F26771400E5626D /* ImportScriptsTests.swift */; };
+		8A4D2F161F26965100E5626D /* WorkerInstances.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4D2F151F26965100E5626D /* WorkerInstances.swift */; };
+		8A4D2F191F2699ED00E5626D /* ServiceWorkerHooks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4D2F181F2699ED00E5626D /* ServiceWorkerHooks.swift */; };
+		8A4D2F1D1F26CECD00E5626D /* ExtendableEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4D2F1C1F26CECD00E5626D /* ExtendableEvent.swift */; };
+		8A4D2F1F1F27998400E5626D /* ExtendableEventTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4D2F1E1F27998400E5626D /* ExtendableEventTests.swift */; };
 		8A4E5F051EF0F98D00884923 /* DBMigrations in Resources */ = {isa = PBXBuildFile; fileRef = 8A4E5F041EF0F98D00884923 /* DBMigrations */; };
 		8A4E5F061EF0FAA600884923 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE731A71EF0907400CDF80E /* Database.swift */; };
 		8A4E5F071EF0FAA600884923 /* Migrate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AE731C31EF0B23E00CDF80E /* Migrate.swift */; };
@@ -343,7 +346,6 @@
 		8A25980E1EF1AC5D00434D10 /* ErrorMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorMessage.swift; sourceTree = "<group>"; };
 		8A26D8231EFD89090017EF75 /* JSPromise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSPromise.swift; sourceTree = "<group>"; };
 		8A26D8261EFD8AC00017EF75 /* JSPromise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSPromise.swift; sourceTree = "<group>"; };
-		8A26D8281EFDBF9E0017EF75 /* JSFetchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSFetchResponse.swift; sourceTree = "<group>"; };
 		8A27C03E1EFC196400866961 /* TestContainerApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TestContainerApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8A27C0401EFC196400866961 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		8A27C0421EFC196400866961 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -358,6 +360,10 @@
 		8A396A2B1F197ABE001D7938 /* FetchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchResponse.swift; sourceTree = "<group>"; };
 		8A3A246B1EF83ADD007AA0B9 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		8A4D2F131F26771400E5626D /* ImportScriptsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportScriptsTests.swift; sourceTree = "<group>"; };
+		8A4D2F151F26965100E5626D /* WorkerInstances.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkerInstances.swift; sourceTree = "<group>"; };
+		8A4D2F181F2699ED00E5626D /* ServiceWorkerHooks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceWorkerHooks.swift; sourceTree = "<group>"; };
+		8A4D2F1C1F26CECD00E5626D /* ExtendableEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtendableEvent.swift; sourceTree = "<group>"; };
+		8A4D2F1E1F27998400E5626D /* ExtendableEventTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtendableEventTests.swift; sourceTree = "<group>"; };
 		8A4E5F041EF0F98D00884923 /* DBMigrations */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DBMigrations; sourceTree = "<group>"; };
 		8A5658AB1F18267700C5E516 /* FetchOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchOperation.swift; sourceTree = "<group>"; };
 		8A5658AD1F182BDE00C5E516 /* FetchResponse.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchResponse.swift; sourceTree = "<group>"; };
@@ -622,6 +628,14 @@
 			path = Registration;
 			sourceTree = "<group>";
 		};
+		8A4D2F171F2699E300E5626D /* Interop */ = {
+			isa = PBXGroup;
+			children = (
+				8A4D2F181F2699ED00E5626D /* ServiceWorkerHooks.swift */,
+			);
+			path = Interop;
+			sourceTree = "<group>";
+		};
 		8A58BBDF1EF81F810039624B /* SQLite */ = {
 			isa = PBXGroup;
 			children = (
@@ -678,6 +692,7 @@
 			isa = PBXGroup;
 			children = (
 				8A5D05D51EF31023009AA8E5 /* EventTargetTests.swift */,
+				8A4D2F1E1F27998400E5626D /* ExtendableEventTests.swift */,
 			);
 			path = Events;
 			sourceTree = "<group>";
@@ -745,6 +760,7 @@
 		8A5E871E1EF064D100520133 /* ServiceWorkerContainer */ = {
 			isa = PBXGroup;
 			children = (
+				8A4D2F171F2699E300E5626D /* Interop */,
 				8AB6C0F41F265D10000DF4BE /* DatabaseMigrations */,
 				8AA103611F264D6900A503D0 /* Storage */,
 				8A3038C21EF075B7005A663A /* Registration */,
@@ -783,7 +799,6 @@
 			isa = PBXGroup;
 			children = (
 				8A67394C1EF32719007E890A /* FetchHeadersTests.swift */,
-				8A26D8281EFDBF9E0017EF75 /* JSFetchResponse.swift */,
 				8A396A271F190BA9001D7938 /* FetchOperation.swift */,
 				8A396A2B1F197ABE001D7938 /* FetchResponse.swift */,
 				8AA6A4521F21593E0014C1BF /* FetchOperationCORS.swift */,
@@ -842,6 +857,7 @@
 			children = (
 				8A7904E21EF2DB610092D31B /* EventTarget.swift */,
 				8A7904E41EF2DD500092D31B /* Event.swift */,
+				8A4D2F1C1F26CECD00E5626D /* ExtendableEvent.swift */,
 			);
 			path = Events;
 			sourceTree = "<group>";
@@ -867,6 +883,7 @@
 			children = (
 				8AA103621F264D7500A503D0 /* CoreDatabase.swift */,
 				8AA103641F264D9000A503D0 /* SharedResources.swift */,
+				8A4D2F151F26965100E5626D /* WorkerInstances.swift */,
 			);
 			path = Storage;
 			sourceTree = "<group>";
@@ -1389,6 +1406,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A4D2F1D1F26CECD00E5626D /* ExtendableEvent.swift in Sources */,
 				8AB7EEAF1EFAF896000AC249 /* FetchRequest.swift in Sources */,
 				8ADB098C1F10066B00C155B7 /* ReadableStream.swift in Sources */,
 				8A7904DB1EF1D88A0092D31B /* FetchHeaders.swift in Sources */,
@@ -1424,10 +1442,10 @@
 			files = (
 				8AA6A4531F21593E0014C1BF /* FetchOperationCORS.swift in Sources */,
 				8AA1035B1F25A49300A503D0 /* Migrate.swift in Sources */,
-				8A26D8291EFDBF9E0017EF75 /* JSFetchResponse.swift in Sources */,
 				8AF94EF51EF319EB00DD7F8E /* Bootstrap.swift in Sources */,
 				8A6739551EF32E6F007E890A /* ServiceWorkerRegistrationPlaceholder.swift in Sources */,
 				8A396A2C1F197ABE001D7938 /* FetchResponse.swift in Sources */,
+				8A4D2F1F1F27998400E5626D /* ExtendableEventTests.swift in Sources */,
 				8A396A281F190BA9001D7938 /* FetchOperation.swift in Sources */,
 				8A67394D1EF32719007E890A /* FetchHeadersTests.swift in Sources */,
 				8A5D05D21EF2EF3E009AA8E5 /* ConsoleMirrorTests.swift in Sources */,
@@ -1483,10 +1501,12 @@
 			files = (
 				8A3038C61EF07B6B005A663A /* ServiceWorkerRegistration.swift in Sources */,
 				8A5E873E1EF0665400520133 /* ServiceWorkerContainer.swift in Sources */,
+				8A4D2F191F2699ED00E5626D /* ServiceWorkerHooks.swift in Sources */,
 				8AA103631F264D7500A503D0 /* CoreDatabase.swift in Sources */,
 				8A3038C41EF075CA005A663A /* ServiceWorkerRegistrationOptions.swift in Sources */,
 				8AA103651F264D9000A503D0 /* SharedResources.swift in Sources */,
 				8A7904DD1EF1DEEA0092D31B /* FetchNewWorkerContent.swift in Sources */,
+				8A4D2F161F26965100E5626D /* WorkerInstances.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

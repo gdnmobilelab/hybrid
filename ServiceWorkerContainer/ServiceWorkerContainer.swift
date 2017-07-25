@@ -28,25 +28,28 @@ public class ServiceWorkerContainer {
         }
     }
     
-    func register(workerURL: URL, options: ServiceWorkerRegistrationOptions?) -> Bool {
-        
-//        return firstly {
-        
-            var scopeURL = self.containerURL
-            if let scope = options?.scope {
-                // By default we register to the current URL, but we can specify
-                // another scope.
-//                if scopeURL.host != self.containerURL.host || workerURL.host != self.containerURL.host {
-//                    throw ErrorMessage("Service worker scope must be on the same domain as both the page and worker URL")
-//                }
-                scopeURL = scope
+    func register(workerURL: URL, options: ServiceWorkerRegistrationOptions?) throws {
+
+        var scopeURL = self.containerURL
+        if let scope = options?.scope {
+            // By default we register to the current URL, but we can specify
+            // another scope.
+            if scopeURL.host != self.containerURL.host || workerURL.host != self.containerURL.host {
+                throw ErrorMessage("Service worker scope must be on the same domain as both the page and worker URL")
             }
+            scopeURL = scope
+        }
+        
+        if workerURL.absoluteString.starts(with: scopeURL.absoluteString) == false {
+            throw ErrorMessage("Script must be within scope")
+        }
             
-//            var reg = try ServiceWorkerRegistration.ensureExists(scope: scopeURL)
-            
-            return true
-//            return Promise(value:true)
-//        }
+        var registration = try ServiceWorkerRegistration.get(scope: scopeURL)
+        if registration == nil {
+            registration = try ServiceWorkerRegistration.create(scope: scopeURL)
+        }
+        
+        
         
     }
     

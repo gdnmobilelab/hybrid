@@ -6,7 +6,7 @@ PRAGMA foreign_keys = false;
 DROP TABLE IF EXISTS "registrations";
 CREATE TABLE "registrations" (
 "scope" TEXT NOT NULL,
-"active" TEXT(36,0),
+"active" TEXT,
 "installing" TEXT,
 "waiting" TEXT,
 "redundant" TEXT,
@@ -24,6 +24,7 @@ DROP TABLE IF EXISTS "workers";
 CREATE TABLE "workers" (
 "worker_id" text(36,0) NOT NULL,
 "url" text NOT NULL,
+"scope" text NOT NULL,
 "headers" text NOT NULL,
 "content" blob NOT NULL,
 "install_state" integer NOT NULL,

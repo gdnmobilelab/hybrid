@@ -16,7 +16,7 @@ class EventTargetTests: XCTestCase {
         
         let testEvents = EventTarget()
         
-        let sw = ServiceWorker(id: "TEST", url: URL(string: "https://www.example.com")!, registration: ServiceWorkerRegistrationPlaceholder()).executionEnvironment
+        let sw = ServiceWorker(id: "TEST", url: URL(string: "https://www.example.com")!, registration: ServiceWorkerRegistrationPlaceholder(), content: "").executionEnvironment
         
         sw.jsContext.setObject(testEvents,forSubscriptString: "testEvents")
         
@@ -38,7 +38,7 @@ class EventTargetTests: XCTestCase {
         
         let testEvents = EventTarget()
         
-        let sw = ServiceWorker(id: "TEST", url: URL(string: "https://www.example.com")!, registration: ServiceWorkerRegistrationPlaceholder()).executionEnvironment
+        let sw = ServiceWorker(id: "TEST", url: URL(string: "https://www.example.com")!, registration: ServiceWorkerRegistrationPlaceholder(), content: "").executionEnvironment
         
         sw.jsContext.setObject(testEvents,forSubscriptString: "testEvents")
         

@@ -32,7 +32,7 @@ import Shared
     
     // Thrown errors don't error on the evaluateScript call (necessarily?), so after
     // evaluating, we need to check whether there is a new exception.
-    fileprivate var currentException:JSValue?
+    internal var currentException:JSValue?
     fileprivate func grabException(context: JSContext?, error: JSValue?) {
         self.currentException = error
     }

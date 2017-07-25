@@ -15,7 +15,7 @@ import Shared
     fileprivate var enqeueuedData = NSMutableData()
     fileprivate var pendingReads: [PendingRead] = []
     var closed = false
-    typealias PendingRead = (StreamReadResult) -> Void
+    public typealias PendingRead = (StreamReadResult) -> Void
     typealias StreamOperation = (ReadableStreamController) -> Void
     
     let start:StreamOperation?
@@ -52,7 +52,7 @@ import Shared
         
     }
     
-    func read(cb: @escaping PendingRead) {
+    public func read(cb: @escaping PendingRead) {
         
         if self.enqeueuedData.length > 0 {
             cb(StreamReadResult(done: false, value: self.enqeueuedData as Data))
